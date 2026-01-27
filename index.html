@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phonics Wordle</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<h1>Phonics Wordle</h1>
+
+<div id="controls">
+  <button id="btn-help">How to Play</button>
+  <button id="btn-word">Word</button>
+  <button id="btn-sentence">Sentence</button>
+  <button id="btn-voice">Voice</button>
+
+  <label>Focus <select id="focus-select"></select></label>
+  <label>Letters <select id="length-select"></select></label>
+  <label>Guesses <select id="guess-select"></select></label>
+
+  <input id="teacher-input" placeholder="Teacher word (hidden)" />
+  <button id="btn-set-word">Set Word</button>
+</div>
+
+<div id="game-board"></div>
+<div id="keyboard"></div>
+
+<div id="toast-container"></div>
+<div id="howto-modal" class="modal hidden">Guess the word in limited tries.</div>
+<div id="end-modal" class="modal hidden"></div>
+
+<script src="app-config.js"></script>
+<script src="words.js"></script>
+<script src="app-core.js"></script>
+</body>
+</html>
