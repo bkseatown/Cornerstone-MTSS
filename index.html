@@ -1,48 +1,78 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Phonics Wordle</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="theme-color" content="#ffffff" />
 </head>
+
 <body>
-  <header>
-    <h1>Phonics Wordle</h1>
+  <header class="app-header">
+    <h1 class="app-title">Phonics Wordle</h1>
+
     <div class="controls">
-      <button id="btnHelp">How to Play</button>
-      <button id="btnWord">Word</button>
-      <button id="btnSentence">Sentence</button>
-      <button id="btnVoice">Voice</button>
-      <label>Focus
-        <select id="focusSelect"></select>
+      <button id="help-btn" class="btn" type="button">How to Play</button>
+
+      <button id="hear-word" class="btn" type="button" aria-label="Hear word">🎧 Word</button>
+      <button id="hear-sentence" class="btn" type="button" aria-label="Hear sentence">🗣️ Sentence</button>
+      <button id="voice-toggle" class="btn" type="button">Voice On</button>
+
+      <label class="ctl" data-ctl="focus">
+        Focus
+        <select id="focus-select"></select>
       </label>
-      <label>Letters
-        <select id="lengthSelect"></select>
+
+      <label class="ctl">
+        Letters
+        <select id="length-select"></select>
       </label>
-      <label>Guesses
-        <select id="guessSelect"></select>
+
+      <label class="ctl">
+        Guesses
+        <select id="guess-select"></select>
       </label>
-      <label>Teacher word (hidden)
-        <input id="teacherInput" placeholder="Enter 2–10 letters"/>
+
+      <label class="ctl teacher">
+        Teacher word (hidden)
+        <input id="teacher-word" type="password" inputmode="text" autocomplete="off"
+               placeholder="Enter 2–10 letters" />
       </label>
-      <button id="btnSetWord">Set Word</button>
-      <button id="btnNext">Next Word →</button>
+      <button id="set-teacher-word" class="btn" type="button">Set Word</button>
+      <div id="teacher-toast" role="status" aria-live="polite"></div>
     </div>
   </header>
 
-  <main>
-    <div id="board"></div>
-    <div id="keyboard"></div>
+  <main class="app-main">
+    <section id="game-board" aria-label="Guess board"></section>
+    <section id="keyboard" aria-label="Keyboard"></section>
   </main>
 
-  <div id="modal" class="hidden">
-    <div id="modalContent"></div>
-    <button id="modalClose">Close</button>
+  <!-- Modals -->
+  <div id="howto-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+    <div class="modal-content">
+      <h2 id="howto-title">How to Play</h2>
+      <div id="howto-text"></div>
+      <p><button class="btn" type="button" onclick="document.getElementById('howto-modal').classList.remove('open')">Close</button></p>
+    </div>
   </div>
 
-  <script src="app-config.js"></script>
-  <script src="words.js"></script>
-  <script src="app-core.js"></script>
+  <div id="end-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="end-title">
+    <div class="modal-content">
+      <h2 id="end-title">Answer</h2>
+      <div id="end-word"></div>
+      <div class="end-details">
+        <div id="end-definition"></div>
+        <div id="end-sentence"></div>
+        <div id="end-fun"></div>
+      </div>
+      <p><button class="btn" type="button" onclick="document.getElementById('end-modal').classList.remove('open')">Close</button></p>
+    </div>
+  </div>
+
+  <script src="./app-config.js"></script>
+  <script src="./words.js"></script>
+  <script src="./app-core.js"></script>
 </body>
 </html>
