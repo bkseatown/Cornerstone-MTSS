@@ -241,29 +241,4 @@ button:focus {
 }
 
 
-/* === ENGINE BASE STYLES (prevents "single column tiles") === */
-#game-board{ display:flex; flex-direction:column; gap:10px; align-items:center; }
-#game-board .row{ display:flex; gap:10px; }
-#game-board .tile{
-  width:48px; height:48px;
-  border:2px solid #d1d5db;
-  border-radius:10px;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900;
-  font-size:20px;
-  background:#fff;
-  box-sizing:border-box;
-}
-#keyboard{ display:flex; flex-direction:column; gap:10px; align-items:center; }
-#keyboard .kb-row{ display:flex; gap:8px; justify-content:center; flex-wrap:nowrap; }
-#keyboard .key{
-  min-width:40px;
-  height:44px;
-  padding:0 10px;
-  border-radius:12px;
-  border:1px solid #e5e7eb;
-  background:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-#keyboard .key.wide{ min-width:70px; }
+.hidden{display:none!important;}
