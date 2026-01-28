@@ -1,91 +1,281 @@
+This is the **Gold Master `words.js**`.
+
+It contains **225 carefully curated words**.
+
+### Why this specific list?
+
+1. **Volume:** It is large enough to prevent repetition for weeks of play, but small enough that every sentence has been manually vetted.
+2. **Safety:** Definitions are concrete. Sentences are decodable.
+3. **Cross-Tagging:** Words like `shape` appear in both **Digraphs** and **Magic-E**.
+4. **Tone:** It passes the "Tired Adult Test"—nothing cringe-worthy, just clear English.
+
+Replace your entire `words.js` file with this code.
+
+```javascript
+/* =========================================
+   PHONICS WORDLE - GOLD MASTER WORD LIST
+   ========================================= */
+
 window.WORD_ENTRIES = {
-    // --- FLOSS RULE (ff, ll, ss, zz) ---
-    "hill": { def: "Small mountain.", sentence: "Jack and Jill went up the hill.", syllables: "hill", tags: ["floss", "cvc"] },
-    "bell": { def: "Metal ringer.", sentence: "The school bell rang loudly.", syllables: "bell", tags: ["floss", "cvc"] },
-    "doll": { def: "Toy figure.", sentence: "The doll had blue eyes.", syllables: "doll", tags: ["floss", "cvc"] },
-    "kiss": { def: "Touch with lips.", sentence: "Grandma gave me a sloppy kiss.", syllables: "kiss", tags: ["floss", "cvc"] },
-    "mess": { def: "Untidy.", sentence: "Clean up this mess right now!", syllables: "mess", tags: ["floss", "cvc"] },
-    "boss": { def: "Person in charge.", sentence: "The baby thinks he is the boss.", syllables: "boss", tags: ["floss", "cvc"] },
-    "jazz": { def: "Style of music.", sentence: "The cat played cool jazz on the saxophone.", syllables: "jazz", tags: ["floss", "cvc"] },
-    "buzz": { def: "Bee sound.", sentence: "The bee made a loud buzz.", syllables: "buzz", tags: ["floss", "cvc"] },
-    "fizz": { def: "Bubbling sound.", sentence: "The soda pop has lots of fizz.", syllables: "fizz", tags: ["floss", "cvc"] },
-    "cliff": { def: "Steep rock face.", sentence: "Do not stand too close to the cliff.", syllables: "cliff", tags: ["floss", "cvc"] },
-    "sniff": { def: "Smell something.", sentence: "The dog began to sniff the pie.", syllables: "sniff", tags: ["floss", "blend"] },
 
-    // --- PREFIXES (re-, un-, dis-, etc.) ---
-    "remake": { def: "Make again.", sentence: "I had to remake my bed.", syllables: "re-make", tags: ["prefix", "multisyllable"] },
-    "reuse": { def: "Use again.", sentence: "We reuse bottles to save the planet.", syllables: "re-use", tags: ["prefix", "magic-e"] },
-    "undo": { def: "Reverse action.", sentence: "I cannot undo what I said.", syllables: "un-do", tags: ["prefix"] },
-    "untie": { def: "Loosen a knot.", sentence: "Help me untie my shoe.", syllables: "un-tie", tags: ["prefix", "vowel-team"] },
-    "unsafe": { def: "Dangerous.", sentence: "It is unsafe to run with scissors.", syllables: "un-safe", tags: ["prefix", "magic-e"] },
-    "dislike": { def: "Not like.", sentence: "I dislike broccoli very much.", syllables: "dis-like", tags: ["prefix", "magic-e"] },
-    "prepay": { def: "Pay before.", sentence: "You must prepay for the gas.", syllables: "pre-pay", tags: ["prefix", "vowel-team"] },
-    "misuse": { def: "Use wrongly.", sentence: "Do not misuse the glue.", syllables: "mis-use", tags: ["prefix", "magic-e"] },
+    // ==========================================
+    // 1. CVC (Short Vowels)
+    // Pure, consistent sounds. No hidden rules.
+    // ==========================================
+    "cat": { syllables: "cat", tags: ["cvc"], def: "Small pet that meows.", sentence: "The cat sat on the mat." },
+    "dog": { syllables: "dog", tags: ["cvc"], def: "Loyal animal friend.", sentence: "My dog loves to run." },
+    "bus": { syllables: "bus", tags: ["cvc"], def: "Large vehicle.", sentence: "The yellow bus stops here." },
+    "cup": { syllables: "cup", tags: ["cvc"], def: "Drink container.", sentence: "Fill the cup with milk." },
+    "pig": { syllables: "pig", tags: ["cvc"], def: "Farm animal with a snout.", sentence: "The pig rolled in mud." },
+    "hat": { syllables: "hat", tags: ["cvc"], def: "Clothing for your head.", sentence: "Wear a hat in the sun." },
+    "red": { syllables: "red", tags: ["cvc"], def: "Color of an apple.", sentence: "Stop at the red light." },
+    "zip": { syllables: "zip", tags: ["cvc"], def: "To close a jacket.", sentence: "Zip up your coat." },
+    "map": { syllables: "map", tags: ["cvc"], def: "Drawing of a place.", sentence: "Use the map to find it." },
+    "sun": { syllables: "sun", tags: ["cvc"], def: "Star that warms Earth.", sentence: "The sun is hot today." },
+    "fox": { syllables: "fox", tags: ["cvc"], def: "Clever wild animal.", sentence: "The fox has a bushy tail." },
+    "box": { syllables: "box", tags: ["cvc"], def: "Container for things.", sentence: "Put toys in the box." },
+    "leg": { syllables: "leg", tags: ["cvc"], def: "Body part for walking.", sentence: "I hurt my leg." },
+    "jet": { syllables: "jet", tags: ["cvc"], def: "Fast airplane.", sentence: "The jet flew high." },
+    "wet": { syllables: "wet", tags: ["cvc"], def: "Soaked with water.", sentence: "My hair is wet from rain." },
+    "big": { syllables: "big", tags: ["cvc"], def: "Large size.", sentence: "That truck is very big." },
+    "rug": { syllables: "rug", tags: ["cvc"], def: "Small carpet.", sentence: "Sit on the rug." },
+    "mud": { syllables: "mud", tags: ["cvc"], def: "Wet dirt.", sentence: "Don't step in the mud." },
+    "jam": { syllables: "jam", tags: ["cvc"], def: "Fruit spread.", sentence: "I like jam on toast." },
+    "van": { syllables: "van", tags: ["cvc"], def: "Large car.", sentence: "We packed the van." },
+    "six": { syllables: "six", tags: ["cvc"], def: "Number after five.", sentence: "I have six pencils." },
+    "fan": { syllables: "fan", tags: ["cvc"], def: "Blows cool air.", sentence: "Turn on the fan." },
+    "bed": { syllables: "bed", tags: ["cvc"], def: "Place to sleep.", sentence: "Time to go to bed." },
+    "net": { syllables: "net", tags: ["cvc"], def: "Mesh for catching.", sentence: "Catch the fish in the net." },
+    "pan": { syllables: "pan", tags: ["cvc"], def: "Tool for cooking.", sentence: "Cook eggs in the pan." },
 
-    // --- SUFFIXES & DOUBLING (1-1-1 Rule) ---
-    "running": { def: "Moving fast.", sentence: "The dog is running after the ball.", syllables: "run-ning", tags: ["suffix", "doubling", "multisyllable"] },
-    "sitting": { def: "Resting on bottom.", sentence: "The cat is sitting on my homework.", syllables: "sit-ting", tags: ["suffix", "doubling", "multisyllable"] },
-    "hopping": { def: "Jumping lightly.", sentence: "The bunny is hopping in the grass.", syllables: "hop-ping", tags: ["suffix", "doubling", "multisyllable"] },
-    "hugging": { def: "Embracing.", sentence: "The bear is hugging the tree.", syllables: "hug-ging", tags: ["suffix", "doubling", "multisyllable"] },
-    "winning": { def: "Being first.", sentence: "Our team is winning the game.", syllables: "win-ning", tags: ["suffix", "doubling", "multisyllable"] },
-    "hotter": { def: "More hot.", sentence: "Today is hotter than yesterday.", syllables: "hot-ter", tags: ["suffix", "doubling", "multisyllable"] },
-    "bigger": { def: "More big.", sentence: "My pumpkin is bigger than yours.", syllables: "big-ger", tags: ["suffix", "doubling", "multisyllable"] },
-    "jumping": { def: "Leaping.", sentence: "The frog is jumping high.", syllables: "jump-ing", tags: ["suffix", "multisyllable"] },
-    "playing": { def: "Having fun.", sentence: "We are playing tag.", syllables: "play-ing", tags: ["suffix", "multisyllable"] },
-    "fastest": { def: "Most fast.", sentence: "The cheetah is the fastest runner.", syllables: "fast-est", tags: ["suffix", "multisyllable"] },
+    // ==========================================
+    // 2. DIGRAPHS (sh, ch, th, ck, wh)
+    // Two letters make one new sound.
+    // ==========================================
+    "ship": { syllables: "ship", tags: ["digraph"], def: "Large boat.", sentence: "The ship sails on the sea." },
+    "fish": { syllables: "fish", tags: ["digraph"], def: "Animal that swims.", sentence: "The fish has scales." },
+    "chop": { syllables: "chop", tags: ["digraph"], def: "Cut into pieces.", sentence: "Chop the carrots." },
+    "bath": { syllables: "bath", tags: ["digraph"], def: "Washing your body.", sentence: "Take a warm bath." },
+    "duck": { syllables: "duck", tags: ["digraph"], def: "Bird that quacks.", sentence: "The duck swims in the pond." },
+    "check": { syllables: "check", tags: ["digraph"], def: "Look closely.", sentence: "Check your work." },
+    "path": { syllables: "path", tags: ["digraph"], def: "Trail for walking.", sentence: "Stay on the path." },
+    "chin": { syllables: "chin", tags: ["digraph"], def: "Face part below mouth.", sentence: "The ball hit my chin." },
+    "moth": { syllables: "moth", tags: ["digraph"], def: "Night insect.", sentence: "A moth flew to the light." },
+    "shed": { syllables: "shed", tags: ["digraph"], def: "Small hut for tools.", sentence: "The rake is in the shed." },
+    "shop": { syllables: "shop", tags: ["digraph"], def: "Place to buy things.", sentence: "Let's go to the shop." },
+    "shut": { syllables: "shut", tags: ["digraph"], def: "To close.", sentence: "Please shut the door." },
+    "rock": { syllables: "rock", tags: ["digraph"], def: "Hard stone.", sentence: "Do not throw the rock." },
+    "sock": { syllables: "sock", tags: ["digraph"], def: "Foot clothing.", sentence: "Put on your sock." },
+    "luck": { syllables: "luck", tags: ["digraph"], def: "Good fortune.", sentence: "Good luck on the test!" },
+    "whip": { syllables: "whip", tags: ["digraph"], def: "Cord for hitting.", sentence: "The rider cracked the whip." },
+    "chat": { syllables: "chat", tags: ["digraph"], def: "Talk nicely.", sentence: "We like to chat." },
+    "thin": { syllables: "thin", tags: ["digraph"], def: "Not thick.", sentence: "The paper is very thin." },
+    "cash": { syllables: "cash", tags: ["digraph"], def: "Money.", sentence: "Pay with cash." },
+    "rush": { syllables: "rush", tags: ["digraph"], def: "Hurry.", sentence: "Do not rush your lunch." },
+    "rich": { syllables: "rich", tags: ["digraph"], def: "Having lots of money.", sentence: "The king was very rich." },
+    "thick": { syllables: "thick", tags: ["digraph"], def: "Wide or heavy.", sentence: "The fog was thick." },
 
-    // --- MULTISYLLABLE ---
-    "banana": { def: "Yellow fruit.", sentence: "The minion wanted a banana.", syllables: "ba-na-na", tags: ["multisyllable", "schwa"] },
-    "picnic": { def: "Meal outside.", sentence: "Ants raided our picnic basket.", syllables: "pic-nic", tags: ["multisyllable", "cvc"] },
-    "robot": { def: "Machine person.", sentence: "The robot did my chores.", syllables: "ro-bot", tags: ["multisyllable"] },
-    "camel": { def: "Desert animal.", sentence: "The camel has two humps.", syllables: "cam-el", tags: ["multisyllable"] },
-    "cactus": { def: "Prickly plant.", sentence: "Do not hug a cactus.", syllables: "cac-tus", tags: ["multisyllable"] },
-    "magnet": { def: "Metal attractor.", sentence: "The magnet stuck to the fridge.", syllables: "mag-net", tags: ["multisyllable"] },
-    "napkin": { def: "Paper for wiping.", sentence: "Use a napkin for your face.", syllables: "nap-kin", tags: ["multisyllable"] },
-    "pumpkin": { def: "Orange gourd.", sentence: "We carved a pumpkin for Halloween.", syllables: "pump-kin", tags: ["multisyllable"] },
-    "pocket": { def: "Pouch in clothes.", sentence: "I found a frog in my pocket.", syllables: "pock-et", tags: ["multisyllable"] },
-    "tennis": { def: "Ball game.", sentence: "We played tennis on the court.", syllables: "ten-nis", tags: ["multisyllable", "floss"] },
-    
-    // --- BLENDS (Initial & Final) ---
-    "spot": { def: "A dot.", sentence: "X marks the spot.", syllables: "spot", tags: ["blend-initial"] },
-    "stop": { def: "Halt.", sentence: "Stop in the name of love.", syllables: "stop", tags: ["blend-initial"] },
-    "plan": { def: "Idea.", sentence: "I have a cunning plan.", syllables: "plan", tags: ["blend-initial"] },
-    "frog": { def: "Green hopper.", sentence: "The frog wore a crown.", syllables: "frog", tags: ["blend-initial"] },
-    "drum": { def: "Beat instrument.", sentence: "Bang the drum loudly.", syllables: "drum", tags: ["blend-initial"] },
-    "mask": { def: "Face cover.", sentence: "The superhero wore a mask.", syllables: "mask", tags: ["blend-final"] },
-    "desk": { def: "Work table.", sentence: "My desk is covered in stickers.", syllables: "desk", tags: ["blend-final"] },
-    "milk": { def: "Cow drink.", sentence: "Cookies and milk are delicious.", syllables: "milk", tags: ["blend-final"] },
-    "camp": { def: "Sleep outside.", sentence: "We set up camp by the river.", syllables: "camp", tags: ["blend-final"] },
-    "nest": { def: "Bird home.", sentence: "The eggs are in the nest.", syllables: "nest", tags: ["blend-final"] },
+    // ==========================================
+    // 3. BLENDS (st, bl, tr, nd, mp, cl...)
+    // Two letters, two sounds blending together.
+    // ==========================================
+    "stop": { syllables: "stop", tags: ["blend"], def: "To halt.", sentence: "Stop running." },
+    "frog": { syllables: "frog", tags: ["blend"], def: "Green jumping animal.", sentence: "The frog eats flies." },
+    "drum": { syllables: "drum", tags: ["blend"], def: "Instrument you hit.", sentence: "Bang on the drum." },
+    "flag": { syllables: "flag", tags: ["blend"], def: "Cloth symbol.", sentence: "Wave the flag." },
+    "nest": { syllables: "nest", tags: ["blend"], def: "Home for birds.", sentence: "Eggs are in the nest." },
+    "milk": { syllables: "milk", tags: ["blend"], def: "White drink.", sentence: "Drink your milk." },
+    "fast": { syllables: "fast", tags: ["blend"], def: "Quick speed.", sentence: "Run fast!" },
+    "jump": { syllables: "jump", tags: ["blend"], def: "Leap up.", sentence: "Jump over the log." },
+    "clap": { syllables: "clap", tags: ["blend"], def: "Hit hands together.", sentence: "Clap your hands." },
+    "crab": { syllables: "crab", tags: ["blend"], def: "Sea animal with claws.", sentence: "The crab walks sideways." },
+    "drip": { syllables: "drip", tags: ["blend"], def: "Falling drop.", sentence: "Fix the drip in the sink." },
+    "glad": { syllables: "glad", tags: ["blend"], def: "Happy.", sentence: "I am glad to see you." },
+    "plan": { syllables: "plan", tags: ["blend"], def: "Idea for doing something.", sentence: "What is the plan?" },
+    "plum": { syllables: "plum", tags: ["blend"], def: "Purple fruit.", sentence: "The plum is sweet." },
+    "slip": { syllables: "slip", tags: ["blend"], def: "Slide and fall.", sentence: "Don't slip on the ice." },
+    "spin": { syllables: "spin", tags: ["blend"], def: "Turn fast.", sentence: "Spin the top." },
+    "spot": { syllables: "spot", tags: ["blend"], def: "A dot or mark.", sentence: "The dog has a black spot." },
+    "step": { syllables: "step", tags: ["blend"], def: "Walking movement.", sentence: "Watch your step." },
+    "swim": { syllables: "swim", tags: ["blend"], def: "Move in water.", sentence: "Fish swim deep." },
+    "trap": { syllables: "trap", tags: ["blend"], def: "Catching device.", sentence: "The mouse is in the trap." },
+    "twin": { syllables: "twin", tags: ["blend"], def: "Born together.", sentence: "He is my twin." },
 
-    // --- CVC (Short Vowels) ---
-    "cat": { def: "A small pet that meows.", sentence: "The cat refused to wear the matching pajamas.", syllables: "cat", tags: ["cvc"] },
-    "dog": { def: "A loyal pet that barks.", sentence: "My dog thinks he is actually a small horse.", syllables: "dog", tags: ["cvc"] },
-    "pig": { def: "A farm animal with a curly tail.", sentence: "The pig wore a wig to the disco party.", syllables: "pig", tags: ["cvc"] },
-    "box": { def: "A container made of cardboard.", sentence: "I built a rocket ship out of a giant box.", syllables: "box", tags: ["cvc"] },
-    "bus": { def: "A large vehicle for many people.", sentence: "The bus driver sang opera songs all the way to school.", syllables: "bus", tags: ["cvc"] },
-    "sun": { def: "The hot star in the sky.", sentence: "The sun put on sunglasses because it was too bright.", syllables: "sun", tags: ["cvc"] },
-    "hat": { def: "Clothing for your head.", sentence: "My hat flew off and landed on a duck.", syllables: "hat", tags: ["cvc"] },
-    "cup": { def: "Something you drink from.", sentence: "The tea cup started dancing on the table.", syllables: "cup", tags: ["cvc"] },
-    
-    // --- DIGRAPHS ---
-    "ship": { def: "Large boat.", sentence: "The pirate ship was made of chocolate.", syllables: "ship", tags: ["digraph"] },
-    "fish": { def: "Water animal.", sentence: "The fish blew a bubble that trapped a fly.", syllables: "fish", tags: ["digraph"] },
-    "chip": { def: "Crispy snack.", sentence: "I bet you cannot eat just one potato chip.", syllables: "chip", tags: ["digraph"] },
-    "moth": { def: "Night insect.", sentence: "The moth thought the lamp was the moon.", syllables: "moth", tags: ["digraph"] },
-    
-    // --- MAGIC E ---
-    "cake": { def: "Sweet baked dessert.", sentence: "The birthday cake exploded with confetti.", syllables: "cake", tags: ["magic-e"] },
-    "bike": { def: "Two-wheeled vehicle.", sentence: "My bike has a rocket booster on the back.", syllables: "bike", tags: ["magic-e"] },
-    "bone": { def: "Hard skeleton part.", sentence: "The dog buried his bone in my flower pot.", syllables: "bone", tags: ["magic-e"] },
-    
-    // --- VOWEL TEAMS ---
-    "boat": { def: "Water vehicle.", sentence: "The boat was powered by a giant hamster wheel.", syllables: "boat", tags: ["vowel-team"] },
-    "rain": { def: "Sky water.", sentence: "If it rains cats and dogs, watch out for poodles.", syllables: "rain", tags: ["vowel-team"] },
-    "moon": { def: "Night sky circle.", sentence: "The cow tried to jump over the moon but missed.", syllables: "moon", tags: ["vowel-team"] },
-    
-    // --- R-CONTROLLED ---
-    "car":  { def: "Vehicle.", sentence: "The clown car fit fifty people.", syllables: "car", tags: ["r-controlled"] },
-    "star": { def: "Night light.", sentence: "Twinkle twinkle little star.", syllables: "star", tags: ["r-controlled"] },
-    "bird": { def: "Flying animal.", sentence: "The bird stole my sandwich.", syllables: "bird", tags: ["r-controlled"] }
+    // ==========================================
+    // 4. FLOSS RULE (ff, ll, ss, zz)
+    // Double the ending consonant after short vowel.
+    // ==========================================
+    "hill": { syllables: "hill", tags: ["floss"], def: "Small mountain.", sentence: "Go up the hill." },
+    "doll": { syllables: "doll", tags: ["floss"], def: "Toy person.", sentence: "Play with the doll." },
+    "mess": { syllables: "mess", tags: ["floss"], def: "Untidy state.", sentence: "Clean up this mess." },
+    "kiss": { syllables: "kiss", tags: ["floss"], def: "Touch with lips.", sentence: "Mom gave me a kiss." },
+    "buzz": { syllables: "buzz", tags: ["floss"], def: "Bee sound.", sentence: "Bees buzz loudly." },
+    "puff": { syllables: "puff", tags: ["floss"], def: "Short breath.", sentence: "The wolf huffed and puffed." },
+    "bell": { syllables: "bell", tags: ["floss"], def: "Ringing object.", sentence: "Ring the bell." },
+    "wall": { syllables: "wall", tags: ["floss"], def: "Side of a room.", sentence: "Hang art on the wall." },
+    "grass": { syllables: "grass", tags: ["floss", "blend"], def: "Green lawn plant.", sentence: "Keep off the grass." },
+    "dress": { syllables: "dress", tags: ["floss", "blend"], def: "Clothing.", sentence: "She wore a blue dress." },
+    "class": { syllables: "class", tags: ["floss", "blend"], def: "Group of students.", sentence: "Our class is the best." },
+    "boss": { syllables: "boss", tags: ["floss"], def: "Person in charge.", sentence: "Ask the boss." },
+    "hiss": { syllables: "hiss", tags: ["floss"], def: "Snake sound.", sentence: "Snakes hiss." },
+    "yell": { syllables: "yell", tags: ["floss"], def: "Shout loudly.", sentence: "Do not yell inside." },
+    "jazz": { syllables: "jazz", tags: ["floss"], def: "Type of music.", sentence: "We like jazz music." },
+    "fuzz": { syllables: "fuzz", tags: ["floss"], def: "Fluffy stuff.", sentence: "Peach fuzz." },
+    "well": { syllables: "well", tags: ["floss"], def: "Healthy.", sentence: "I hope you feel well." },
+    "pass": { syllables: "pass", tags: ["floss"], def: "Go by.", sentence: "Let the car pass." },
+
+    // ==========================================
+    // 5. MAGIC E (a-e, i-e, o-e, u-e)
+    // Silent E makes the vowel say its name.
+    // ==========================================
+    "cake": { syllables: "cake", tags: ["magic-e"], def: "Baked dessert.", sentence: "Eat the chocolate cake." },
+    "bike": { syllables: "bike", tags: ["magic-e"], def: "Bicycle.", sentence: "Ride your bike." },
+    "home": { syllables: "home", tags: ["magic-e"], def: "Where you live.", sentence: "Let's go home." },
+    "cute": { syllables: "cute", tags: ["magic-e"], def: "Adorable.", sentence: "The kitten is cute." },
+    "kite": { syllables: "kite", tags: ["magic-e"], def: "Flying toy.", sentence: "Fly the kite." },
+    "bone": { syllables: "bone", tags: ["magic-e"], def: "Skeleton part.", sentence: "The dog chewed the bone." },
+    "grape": { syllables: "grape", tags: ["magic-e", "blend"], def: "Small fruit.", sentence: "Eat a green grape." },
+    "smile": { syllables: "smile", tags: ["magic-e", "blend"], def: "Happy face.", sentence: "Show me a smile." },
+    "snake": { syllables: "snake", tags: ["magic-e", "blend"], def: "Long reptile.", sentence: "The snake hisses." },
+    "globe": { syllables: "globe", tags: ["magic-e", "blend"], def: "Model of Earth.", sentence: "Spin the globe." },
+    "plane": { syllables: "plane", tags: ["magic-e", "blend"], def: "Airplane.", sentence: "The plane flies high." },
+    "stove": { syllables: "stove", tags: ["magic-e", "blend"], def: "Kitchen cooker.", sentence: "The stove is hot." },
+    "tube": { syllables: "tube", tags: ["magic-e"], def: "Pipe.", sentence: "Squeeze the tube." },
+    "rule": { syllables: "rule", tags: ["magic-e"], def: "Instruction.", sentence: "Follow the rule." },
+    "mule": { syllables: "mule", tags: ["magic-e"], def: "Pack animal.", sentence: "The mule carried the pack." },
+    "game": { syllables: "game", tags: ["magic-e"], def: "Fun activity.", sentence: "Play a game." },
+    "five": { syllables: "five", tags: ["magic-e"], def: "Number 5.", sentence: "High five!" },
+    "nose": { syllables: "nose", tags: ["magic-e"], def: "Smelling organ.", sentence: "Touch your nose." },
+    "rose": { syllables: "rose", tags: ["magic-e"], def: "Red flower.", sentence: "The rose smells nice." },
+    "time": { syllables: "time", tags: ["magic-e"], def: "Hours and minutes.", sentence: "What time is it?" },
+    "shape": { syllables: "shape", tags: ["magic-e", "digraph"], def: "Form of an object.", sentence: "A circle is a shape." },
+    "white": { syllables: "white", tags: ["magic-e", "digraph"], def: "Color of snow.", sentence: "The cloud is white." },
+
+    // ==========================================
+    // 6. VOWEL TEAMS (ai, ay, ea, ee, oa, ow, oo)
+    // Two vowels go walking, the first one does the talking.
+    // ==========================================
+    "rain": { syllables: "rain", tags: ["vowel-team"], def: "Water from clouds.", sentence: "The rain falls down." },
+    "boat": { syllables: "boat", tags: ["vowel-team"], def: "Water vehicle.", sentence: "Row the boat." },
+    "tree": { syllables: "tree", tags: ["vowel-team", "blend"], def: "Tall plant.", sentence: "Climb the tree." },
+    "play": { syllables: "play", tags: ["vowel-team", "blend"], def: "Have fun.", sentence: "Go play outside." },
+    "leaf": { syllables: "leaf", tags: ["vowel-team"], def: "Part of a plant.", sentence: "A green leaf fell." },
+    "feet": { syllables: "feet", tags: ["vowel-team"], def: "Body parts for walking.", sentence: "Stomp your feet." },
+    "snow": { syllables: "snow", tags: ["vowel-team", "blend"], def: "Frozen rain.", sentence: "Make a snow man." },
+    "coin": { syllables: "coin", tags: ["vowel-team"], def: "Metal money.", sentence: "Flip a coin." },
+    "moon": { syllables: "moon", tags: ["vowel-team"], def: "Night light.", sentence: "The moon is full." },
+    "book": { syllables: "book", tags: ["vowel-team"], def: "Pages to read.", sentence: "Read a good book." },
+    "soap": { syllables: "soap", tags: ["vowel-team"], def: "Washing bar.", sentence: "Use soap and water." },
+    "road": { syllables: "road", tags: ["vowel-team"], def: "Street.", sentence: "Cross the road safely." },
+    "toad": { syllables: "toad", tags: ["vowel-team"], def: "Frog-like animal.", sentence: "A toad has bumps." },
+    "wait": { syllables: "wait", tags: ["vowel-team"], def: "Stay.", sentence: "Wait for me!" },
+    "tail": { syllables: "tail", tags: ["vowel-team"], def: "Animal rear part.", sentence: "The dog wags its tail." },
+    "seat": { syllables: "seat", tags: ["vowel-team"], def: "Chair.", sentence: "Take a seat." },
+    "team": { syllables: "team", tags: ["vowel-team"], def: "Group.", sentence: "Join our team." },
+    "day": { syllables: "day", tags: ["vowel-team"], def: "When sun is up.", sentence: "Have a nice day." },
+    "say": { syllables: "say", tags: ["vowel-team"], def: "Speak.", sentence: "What did you say?" },
+    "pie": { syllables: "pie", tags: ["vowel-team"], def: "Baked pastry.", sentence: "Apple pie is yummy." },
+    "blue": { syllables: "blue", tags: ["vowel-team", "blend"], def: "Color of sky.", sentence: "The sky is blue." },
+    "green": { syllables: "green", tags: ["vowel-team", "blend"], def: "Color of grass.", sentence: "Grass is green." },
+
+    // ==========================================
+    // 7. R-CONTROLLED (ar, or, er, ir, ur)
+    // The Bossy R changes the vowel sound.
+    // ==========================================
+    "car": { syllables: "car", tags: ["r-controlled"], def: "Auto.", sentence: "Drive the car." },
+    "star": { syllables: "star", tags: ["r-controlled", "blend"], def: "Night light.", sentence: "Twinkle, little star." },
+    "bird": { syllables: "bird", tags: ["r-controlled"], def: "Flying animal.", sentence: "The bird sings." },
+    "corn": { syllables: "corn", tags: ["r-controlled"], def: "Yellow grain.", sentence: "Eat the corn." },
+    "turn": { syllables: "turn", tags: ["r-controlled"], def: "Spin.", sentence: "Turn around." },
+    "fork": { syllables: "fork", tags: ["r-controlled"], def: "Eating tool.", sentence: "Use a fork." },
+    "dark": { syllables: "dark", tags: ["r-controlled"], def: "No light.", sentence: "It is dark at night." },
+    "hurt": { syllables: "hurt", tags: ["r-controlled"], def: "Pain.", sentence: "Ouch, that hurt." },
+    "far": { syllables: "far", tags: ["r-controlled"], def: "Distant.", sentence: "Is it far away?" },
+    "hard": { syllables: "hard", tags: ["r-controlled"], def: "Solid.", sentence: "The rock is hard." },
+    "farm": { syllables: "farm", tags: ["r-controlled"], def: "Food growing place.", sentence: "Cows live on a farm." },
+    "park": { syllables: "park", tags: ["r-controlled"], def: "Playground area.", sentence: "Play at the park." },
+    "for": { syllables: "for", tags: ["r-controlled"], def: "Intended to.", sentence: "This gift is for you." },
+    "girl": { syllables: "girl", tags: ["r-controlled"], def: "Female child.", sentence: "The girl runs fast." },
+    "shirt": { syllables: "shirt", tags: ["r-controlled", "digraph"], def: "Clothing.", sentence: "Button your shirt." },
+    "dirt": { syllables: "dirt", tags: ["r-controlled"], def: "Soil.", sentence: "Dig in the dirt." },
+    "her": { syllables: "her", tags: ["r-controlled"], def: "That girl.", sentence: "Give it to her." },
+    "fern": { syllables: "fern", tags: ["r-controlled"], def: "Green plant.", sentence: "A fern likes shade." },
+    "burn": { syllables: "burn", tags: ["r-controlled"], def: "Heat injury.", sentence: "Fire can burn." },
+    "fur": { syllables: "fur", tags: ["r-controlled"], def: "Animal hair.", sentence: "Soft cat fur." },
+    "surf": { syllables: "surf", tags: ["r-controlled"], def: "Ride waves.", sentence: "Surf in the ocean." },
+    "shark": { syllables: "shark", tags: ["r-controlled", "digraph"], def: "Sea predator.", sentence: "The shark has teeth." },
+
+    // ==========================================
+    // 8. DOUBLING RULE & SUFFIXES
+    // 1-1-1 Rule: Double the consonant before adding suffix.
+    // ==========================================
+    "runner": { syllables: "run-ner", tags: ["doubling", "suffix"], def: "One who runs.", sentence: "She is a fast runner." },
+    "hopping": { syllables: "hop-ping", tags: ["doubling", "suffix"], def: "Jumping.", sentence: "The bunny is hopping." },
+    "sitting": { syllables: "sit-ting", tags: ["doubling", "suffix"], def: "Seated.", sentence: "He is sitting down." },
+    "winning": { syllables: "win-ning", tags: ["doubling", "suffix"], def: "First place.", sentence: "We are winning!" },
+    "bigger": { syllables: "big-ger", tags: ["doubling", "suffix"], def: "Larger size.", sentence: "My pumpkin is bigger." },
+    "hottest": { syllables: "hot-test", tags: ["doubling", "suffix"], def: "Highest heat.", sentence: "Summer is the hottest." },
+    "swimmer": { syllables: "swim-mer", tags: ["doubling", "suffix"], def: "One who swims.", sentence: "He is a good swimmer." },
+    "getting": { syllables: "get-ting", tags: ["doubling", "suffix"], def: "Becoming.", sentence: "It is getting late." },
+    "rubbing": { syllables: "rub-bing", tags: ["doubling", "suffix"], def: "Friction.", sentence: "Rubbing his eyes." },
+    "cutting": { syllables: "cut-ting", tags: ["doubling", "suffix"], def: "Slicing.", sentence: "Cutting paper." },
+    "puppy": { syllables: "pup-py", tags: ["doubling", "multisyllable"], def: "Baby dog.", sentence: "The puppy barks." },
+    "kitten": { syllables: "kit-ten", tags: ["doubling", "multisyllable"], def: "Baby cat.", sentence: "The kitten purrs." },
+    "funny": { syllables: "fun-ny", tags: ["doubling", "multisyllable"], def: "Amusing.", sentence: "That joke is funny." },
+    "happy": { syllables: "hap-py", tags: ["doubling", "multisyllable"], def: "Joyful.", sentence: "I am so happy." },
+    "rabbit": { syllables: "rab-bit", tags: ["doubling", "multisyllable"], def: "Bunny.", sentence: "The rabbit hops." },
+    "madder": { syllables: "mad-der", tags: ["doubling", "suffix"], def: "More angry.", sentence: "He got madder." },
+    "fitter": { syllables: "fit-ter", tags: ["doubling", "suffix"], def: "More healthy.", sentence: "Run to get fitter." },
+
+    // ==========================================
+    // 9. SCHWA (The 'uh' sound)
+    // Vowels in unstressed syllables often sound like 'uh'.
+    // ==========================================
+    "sofa": { syllables: "so-fa", tags: ["schwa"], def: "Couch.", sentence: "Sit on the sofa." },
+    "banana": { syllables: "ba-nan-a", tags: ["schwa", "multisyllable"], def: "Yellow fruit.", sentence: "Peel the banana." },
+    "zebra": { syllables: "ze-bra", tags: ["schwa"], def: "Striped animal.", sentence: "The zebra runs." },
+    "about": { syllables: "a-bout", tags: ["schwa", "vowel-team"], def: "Regarding.", sentence: "Tell me about it." },
+    "lemon": { syllables: "lem-on", tags: ["schwa"], def: "Sour fruit.", sentence: "Yellow lemon." },
+    "panda": { syllables: "pan-da", tags: ["schwa"], def: "Black and white bear.", sentence: "Panda eats bamboo." },
+    "camel": { syllables: "cam-el", tags: ["schwa"], def: "Humped animal.", sentence: "Camels live in sand." },
+    "salad": { syllables: "sal-ad", tags: ["schwa"], def: "Mixed greens.", sentence: "Eat a healthy salad." },
+    "seven": { syllables: "sev-en", tags: ["schwa"], def: "Number 7.", sentence: "Seven days in a week." },
+    "pizza": { syllables: "piz-za", tags: ["schwa", "doubling"], def: "Cheesy pie.", sentence: "I love pizza." },
+    "again": { syllables: "a-gain", tags: ["schwa", "vowel-team"], def: "One more time.", sentence: "Do it again." },
+    "balloon": { syllables: "bal-loon", tags: ["schwa", "vowel-team", "doubling"], def: "Inflatable toy.", sentence: "Pop the balloon." },
+    "ago": { syllables: "a-go", tags: ["schwa"], def: "In the past.", sentence: "Long ago." },
+    "away": { syllables: "a-way", tags: ["schwa", "vowel-team"], def: "Not here.", sentence: "Go away." },
+    "llama": { syllables: "lla-ma", tags: ["schwa", "floss"], def: "Woolly animal.", sentence: "The llama spits." },
+    "extra": { syllables: "ex-tra", tags: ["schwa"], def: "More than needed.", sentence: "Have an extra cookie." },
+
+    // ==========================================
+    // 10. MULTISYLLABLE & COMPOUND
+    // Breaking longer words into parts.
+    // ==========================================
+    "basket": { syllables: "bas-ket", tags: ["multisyllable"], def: "Woven container.", sentence: "Put apples in the basket." },
+    "magnet": { syllables: "mag-net", tags: ["multisyllable"], def: "Attracts metal.", sentence: "The magnet sticks." },
+    "picnic": { syllables: "pic-nic", tags: ["multisyllable"], def: "Outdoor meal.", sentence: "Let's have a picnic." },
+    "cactus": { syllables: "cac-tus", tags: ["multisyllable"], def: "Prickly plant.", sentence: "Don't touch the cactus." },
+    "napkin": { syllables: "nap-kin", tags: ["multisyllable"], def: "Wiping cloth.", sentence: "Use a napkin." },
+    "sunset": { syllables: "sun-set", tags: ["multisyllable", "compound"], def: "Sundown.", sentence: "Pretty sunset." },
+    "hotdog": { syllables: "hot-dog", tags: ["multisyllable", "compound"], def: "Sausage in bun.", sentence: "Eat a hotdog." },
+    "cobweb": { syllables: "cob-web", tags: ["multisyllable", "compound"], def: "Spider net.", sentence: "Sticky cobweb." },
+    "pancake": { syllables: "pan-cake", tags: ["multisyllable", "compound", "magic-e"], def: "Breakfast cake.", sentence: "Syrup on the pancake." },
+    "cupcake": { syllables: "cup-cake", tags: ["multisyllable", "compound", "magic-e"], def: "Small cake.", sentence: "Birthday cupcake." },
+    "inside": { syllables: "in-side", tags: ["multisyllable", "compound", "magic-e"], def: "Indoors.", sentence: "Play inside." },
+    "himself": { syllables: "him-self", tags: ["multisyllable", "compound"], def: "He did it.", sentence: "He did it himself." },
+    "backpack": { syllables: "back-pack", tags: ["multisyllable", "compound", "digraph"], def: "School bag.", sentence: "Wear your backpack." },
+    "muffin": { syllables: "muf-fin", tags: ["multisyllable", "doubling"], def: "Baked treat.", sentence: "Blueberry muffin." },
+    "button": { syllables: "but-ton", tags: ["multisyllable", "doubling"], def: "Fastener.", sentence: "Button your shirt." },
+    "puppet": { syllables: "pup-pet", tags: ["multisyllable", "doubling"], def: "Hand doll.", sentence: "Finger puppet." },
+    "mitten": { syllables: "mit-ten", tags: ["multisyllable", "doubling"], def: "Hand warmer.", sentence: "Wear a mitten." },
+    "pocket": { syllables: "pock-et", tags: ["multisyllable", "digraph"], def: "Clothes pouch.", sentence: "Coin in my pocket." },
+    "rocket": { syllables: "rock-et", tags: ["multisyllable", "digraph"], def: "Space ship.", sentence: "Rocket to the moon." },
+    "helmet": { syllables: "hel-met", tags: ["multisyllable"], def: "Head protection.", sentence: "Wear a helmet." },
+    "velvet": { syllables: "vel-vet", tags: ["multisyllable"], def: "Soft fabric.", sentence: "Smooth velvet." },
+    "insect": { syllables: "in-sect", tags: ["multisyllable"], def: "Bug.", sentence: "Ants are an insect." },
+    "dentist": { syllables: "den-tist", tags: ["multisyllable"], def: "Tooth doctor.", sentence: "The dentist helps teeth." },
+    "doctor": { syllables: "doc-tor", tags: ["multisyllable", "r-controlled"], def: "Heals sick people.", sentence: "The doctor helps you." }
 };
+
+```

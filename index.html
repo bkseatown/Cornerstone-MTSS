@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Phonics Wordle - Pro</title>
+    <title>Phonics Wordle</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
@@ -11,76 +11,58 @@
 
     <div class="app-container">
         <header>
-            <div class="header-top">
-                <h1>Phonics Wordle</h1>
-                <div class="toolbar">
-                    <button id="btn-voice" class="icon-btn" aria-label="Toggle Voice">
-                        <span class="icon">🔇</span>
-                        <span class="btn-label">OFF</span>
-                    </button>
-                    <button id="btn-size" class="icon-btn" aria-label="Toggle Text Size">
-                        <span class="icon">Aa</span>
-                        <span class="btn-label">Size</span>
-                    </button>
-                    <button id="btn-teacher" class="icon-btn" aria-label="Teacher Tools">
-                        <span class="icon">🎓</span>
-                        <span class="btn-label">Teach</span>
-                    </button>
-                    <button id="btn-help" class="icon-btn" aria-label="Help">
-                        <span class="icon">❓</span>
-                        <span class="btn-label">Help</span>
-                    </button>
-                </div>
+            <h1>Phonics Wordle</h1>
+            <div class="toolbar">
+                <button id="btn-voice" class="icon-btn" aria-label="Toggle Voice">🔇</button>
+                <button id="btn-size" class="icon-btn" aria-label="Toggle Text Size">Aa</button>
+                <button id="btn-teacher" class="icon-btn" aria-label="Teacher Tools">🎓</button>
+                <button id="btn-help" class="icon-btn" aria-label="Help">❓</button>
             </div>
         </header>
         
         <div id="teacher-menu" class="hidden tool-overlay">
             <div class="modal-content">
+                <button class="close-x" id="teacher-close" style="position:absolute; right:20px; top:15px; background:none; border:none; font-size:1.5rem;">×</button>
                 <h3>Teacher Tools</h3>
-                <p>Enter a target word (e.g. <em>magnetic</em>).<br>Students will guess using letters only.</p>
-                <input type="text" id="teacher-input" placeholder="e.g. magnetic" autocomplete="off" style="width: 100%; padding: 10px; margin-bottom: 10px; font-size: 1.2rem;">
-                <div class="btn-row">
-                    <button id="btn-teacher-set" class="primary-btn">Set Word</button>
-                    <button id="btn-teacher-cancel" class="action-btn" style="margin-top: 10px; width: 100%;">Cancel</button>
-                </div>
+                <p style="margin-bottom: 15px; color: #64748b;">Set a specific word for the class.</p>
+                <input type="text" id="teacher-input" placeholder="Word: magnetic" autocomplete="off" 
+                       style="width: 100%; padding: 12px; font-size: 1.2rem; border: 2px solid #cbd5e1; border-radius: 12px; margin-bottom: 15px;">
+                <button id="btn-teacher-set" class="primary-btn">Set Word</button>
             </div>
         </div>
 
         <div class="filters-row">
             <div class="filter-group">
-                <label for="filter-select" class="sr-only">Phonics Focus</label>
-                <select id="filter-select">
-                    <option value="all">Mixed Review (All)</option>
-                    <option value="cvc">CVC (Closed Syllables)</option>
-                    <option value="floss">FLOSS Rule (ff, ll, ss, zz)</option>
-                    <option value="blend">Blends (st, bl, tr...)</option>
-                    <option value="digraph">Digraphs (sh, ch, th...)</option>
-                    <option value="magic-e">Magic E (VCe)</option>
-                    <option value="vowel-team">Vowel Teams (ai, ea...)</option>
-                    <option value="r-controlled">R-Controlled (ar, or...)</option>
-                    <option value="prefix">Prefixes (re-, un-, dis-)</option>
-                    <option value="suffix">Suffixes (-ing, -ed, -ly)</option>
-                    <option value="doubling">Doubling Rule (1-1-1)</option>
-                    <option value="schwa">Schwa Sound (ə)</option>
+                <select id="filter-select" aria-label="Phonics Filter">
+                    <option value="all">All Phonics Patterns</option>
+                    <option value="cvc">CVC (Short Vowels)</option>
+                    <option value="floss">FLOSS Rule (ff, ll, ss)</option>
+                    <option value="blend">Blends (st, tr, bl...)</option>
+                    <option value="digraph">Digraphs (sh, ch, th)</option>
+                    <option value="magic-e">Magic E (a-e, i-e...)</option>
+                    <option value="vowel-team">Vowel Teams</option>
+                    <option value="r-controlled">R-Controlled (ar, or)</option>
+                    <option value="prefix">Prefixes</option>
+                    <option value="suffix">Suffixes</option>
+                    <option value="doubling">Doubling Rule</option>
+                    <option value="schwa">Schwa Sound</option>
                     <option value="multisyllable">Multisyllabic</option>
                 </select>
             </div>
-            
             <div class="filter-group small">
-                <label for="length-select" class="sr-only">Length</label>
-                <select id="length-select">
+                <select id="length-select" aria-label="Word Length">
                     <option value="any">Any Len</option>
-                    <option value="3">3 Lets</option>
-                    <option value="4">4 Lets</option>
-                    <option value="5">5 Lets</option>
-                    <option value="6">6 Lets</option>
+                    <option value="3">3 Letters</option>
+                    <option value="4">4 Letters</option>
+                    <option value="5">5 Letters</option>
+                    <option value="6">6 Letters</option>
                 </select>
             </div>
         </div>
 
         <div class="game-controls">
-            <button id="btn-hear-word" class="action-btn">🎧 Hear Word</button>
-            <button id="btn-hear-sentence" class="action-btn secondary">🗣️ Sentence</button>
+            <button id="btn-hear-word" class="action-btn">🎧 Hear It</button>
+            <button id="btn-hear-sentence" class="action-btn" style="background: #f8fafc;">🗣️ Sentence</button>
         </div>
 
         <div class="board-container">
@@ -90,66 +72,64 @@
         <div id="keyboard"></div>
     </div>
 
-    <div id="toast">Message Here</div>
+    <div id="toast">Message</div>
 
     <div id="welcome-modal-overlay" class="hidden">
         <div class="modal-content">
-            <span class="welcome-emoji">👋</span>
-            <h2>Let's Decode!</h2>
-            <p>Say the sounds as you type to find the hidden word.</p>
+            <div style="font-size: 3rem; margin-bottom: 10px;">👋</div>
+            <h2 style="margin-top:0; color: #4f46e5;">Let's Decode!</h2>
+            <p style="font-size: 1.1rem; line-height: 1.5;">Say the sounds as you type.</p>
             
-            <ul class="welcome-list">
-                <li><span class="color-dot green"></span> Right sound, right spot!</li>
-                <li><span class="color-dot yellow"></span> Right sound, wrong spot.</li>
-                <li><span class="color-dot gray"></span> Not in the word.</li>
+            <ul style="text-align: left; list-style: none; padding: 0; margin: 25px 0; font-size: 1.1rem;">
+                <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 24px; height: 24px; background: #16a34a; border-radius: 6px;"></div> Right sound, right spot
+                </li>
+                <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 24px; height: 24px; background: #ca8a04; border-radius: 6px;"></div> Right sound, wrong spot
+                </li>
+                <li style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 24px; height: 24px; background: #94a3b8; border-radius: 6px;"></div> Not in the word
+                </li>
             </ul>
 
             <button id="btn-welcome-start" class="primary-btn">Start Playing</button>
         </div>
     </div>
 
-    <div id="modal-overlay" class="hidden">
+    <div id="help-modal-overlay" class="hidden">
         <div class="modal-content">
-            <button id="modal-close" class="close-x">×</button>
-            <h2 id="modal-title">Great Job!</h2>
-            
-            <div class="word-reveal-card">
-                <div id="reveal-word">WORD</div>
-                <div id="reveal-tip" class="phonics-tip"></div>
-            </div>
-
-            <div class="definition-box">
-                <p class="label">Definition:</p>
-                <p id="reveal-def" class="large-text">...</p>
-            </div>
-
-            <div class="sentence-box">
-                <p class="label">Context Sentence:</p>
-                <p id="reveal-sentence" class="large-text">...</p>
-            </div>
-
-            <div id="fun-content-box" class="joke-box hidden">
-                <div id="fun-label" class="joke-label"></div>
-                <div id="fun-text" class="joke-text"></div>
-            </div>
-
-            <button id="btn-next-word" class="primary-btn">Next Word (Enter)</button>
+            <button class="close-x" id="help-close" style="position:absolute; right:20px; top:15px; background:none; border:none; font-size:1.5rem;">×</button>
+            <h2 style="color: #4f46e5; margin-top: 10px;">How to Play</h2>
+            <p style="font-size: 1.1rem; margin-bottom: 20px;">Use the clues to find the hidden word.</p>
+            <ul style="text-align: left; list-style: none; padding: 0; margin: 25px 0; font-size: 1rem;">
+                <li style="margin-bottom: 15px;"><strong>Say the sounds</strong> out loud as you type.</li>
+                <li style="margin-bottom: 15px;"><strong>Green</strong> means you found the right sound in the right place.</li>
+                <li style="margin-bottom: 15px;"><strong>Yellow</strong> means the sound is in the word, but moved.</li>
+            </ul>
         </div>
     </div>
 
-    <div id="help-modal-overlay" class="hidden">
+    <div id="modal-overlay" class="hidden">
         <div class="modal-content">
-            <button id="help-close" class="close-x">×</button>
-            <h2>How to Decode</h2>
-            <div class="instructional-content">
-                <p><strong>Goal:</strong> Map sounds to letters to find the hidden word.</p>
-                <ul class="instructional-list">
-                    <li><strong>Say the sounds aloud</strong> as you tap each key.</li>
-                    <li><span class="color-swatch green"></span> <strong>Green:</strong> Correct sound in the correct spot.</li>
-                    <li><span class="color-swatch yellow"></span> <strong>Yellow:</strong> Correct sound, but in the wrong spot.</li>
-                    <li><span class="color-swatch gray"></span> <strong>Gray:</strong> This spelling pattern isn't in the word.</li>
-                </ul>
+            <button id="modal-close" class="close-x" style="position:absolute; right:20px; top:15px; background:none; border:none; font-size:1.5rem;">×</button>
+            <h2 id="modal-title" style="margin-top: 10px;">Great Job!</h2>
+            
+            <div style="background: #eff6ff; padding: 20px; border-radius: 16px; margin: 20px 0; border: 2px solid #dbeafe;">
+                <div id="reveal-word" style="font-size: 2.5rem; font-weight: 800; color: #4f46e5; text-transform: lowercase;">word</div>
+                <div id="reveal-tip" style="margin-top: 10px; color: #1e40af; font-weight: 600;"></div>
             </div>
+
+            <div style="text-align: left; margin-bottom: 20px;">
+                <p id="reveal-def" style="margin: 0 0 5px 0; font-size: 1.1rem;">...</p>
+                <p id="reveal-sentence" style="margin: 0; color: #64748b; font-style: italic;">...</p>
+            </div>
+
+            <div id="fun-content-box" class="hidden" style="background: #fffbeb; padding: 15px; border-radius: 12px; border: 2px dashed #fcd34d; margin-bottom: 15px; text-align: left;">
+                <div id="fun-label" style="font-weight: 800; text-transform: uppercase; font-size: 0.8rem; color: #b45309;"></div>
+                <div id="fun-text" style="color: #92400e; font-weight: 500;"></div>
+            </div>
+
+            <button id="btn-next-word" class="primary-btn">Next Word</button>
         </div>
     </div>
 
