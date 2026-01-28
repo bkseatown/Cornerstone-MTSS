@@ -1,17 +1,3 @@
-This is the **Gold Master `words.js**`.
-
-It contains **225 carefully curated words**.
-
-### Why this specific list?
-
-1. **Volume:** It is large enough to prevent repetition for weeks of play, but small enough that every sentence has been manually vetted.
-2. **Safety:** Definitions are concrete. Sentences are decodable.
-3. **Cross-Tagging:** Words like `shape` appear in both **Digraphs** and **Magic-E**.
-4. **Tone:** It passes the "Tired Adult Test"—nothing cringe-worthy, just clear English.
-
-Replace your entire `words.js` file with this code.
-
-```javascript
 /* =========================================
    PHONICS WORDLE - GOLD MASTER WORD LIST
    ========================================= */
@@ -20,7 +6,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 1. CVC (Short Vowels)
-    // Pure, consistent sounds. No hidden rules.
     // ==========================================
     "cat": { syllables: "cat", tags: ["cvc"], def: "Small pet that meows.", sentence: "The cat sat on the mat." },
     "dog": { syllables: "dog", tags: ["cvc"], def: "Loyal animal friend.", sentence: "My dog loves to run." },
@@ -50,7 +35,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 2. DIGRAPHS (sh, ch, th, ck, wh)
-    // Two letters make one new sound.
     // ==========================================
     "ship": { syllables: "ship", tags: ["digraph"], def: "Large boat.", sentence: "The ship sails on the sea." },
     "fish": { syllables: "fish", tags: ["digraph"], def: "Animal that swims.", sentence: "The fish has scales." },
@@ -77,7 +61,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 3. BLENDS (st, bl, tr, nd, mp, cl...)
-    // Two letters, two sounds blending together.
     // ==========================================
     "stop": { syllables: "stop", tags: ["blend"], def: "To halt.", sentence: "Stop running." },
     "frog": { syllables: "frog", tags: ["blend"], def: "Green jumping animal.", sentence: "The frog eats flies." },
@@ -103,7 +86,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 4. FLOSS RULE (ff, ll, ss, zz)
-    // Double the ending consonant after short vowel.
     // ==========================================
     "hill": { syllables: "hill", tags: ["floss"], def: "Small mountain.", sentence: "Go up the hill." },
     "doll": { syllables: "doll", tags: ["floss"], def: "Toy person.", sentence: "Play with the doll." },
@@ -126,7 +108,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 5. MAGIC E (a-e, i-e, o-e, u-e)
-    // Silent E makes the vowel say its name.
     // ==========================================
     "cake": { syllables: "cake", tags: ["magic-e"], def: "Baked dessert.", sentence: "Eat the chocolate cake." },
     "bike": { syllables: "bike", tags: ["magic-e"], def: "Bicycle.", sentence: "Ride your bike." },
@@ -153,7 +134,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 6. VOWEL TEAMS (ai, ay, ea, ee, oa, ow, oo)
-    // Two vowels go walking, the first one does the talking.
     // ==========================================
     "rain": { syllables: "rain", tags: ["vowel-team"], def: "Water from clouds.", sentence: "The rain falls down." },
     "boat": { syllables: "boat", tags: ["vowel-team"], def: "Water vehicle.", sentence: "Row the boat." },
@@ -180,7 +160,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 7. R-CONTROLLED (ar, or, er, ir, ur)
-    // The Bossy R changes the vowel sound.
     // ==========================================
     "car": { syllables: "car", tags: ["r-controlled"], def: "Auto.", sentence: "Drive the car." },
     "star": { syllables: "star", tags: ["r-controlled", "blend"], def: "Night light.", sentence: "Twinkle, little star." },
@@ -207,7 +186,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 8. DOUBLING RULE & SUFFIXES
-    // 1-1-1 Rule: Double the consonant before adding suffix.
     // ==========================================
     "runner": { syllables: "run-ner", tags: ["doubling", "suffix"], def: "One who runs.", sentence: "She is a fast runner." },
     "hopping": { syllables: "hop-ping", tags: ["doubling", "suffix"], def: "Jumping.", sentence: "The bunny is hopping." },
@@ -229,7 +207,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 9. SCHWA (The 'uh' sound)
-    // Vowels in unstressed syllables often sound like 'uh'.
     // ==========================================
     "sofa": { syllables: "so-fa", tags: ["schwa"], def: "Couch.", sentence: "Sit on the sofa." },
     "banana": { syllables: "ba-nan-a", tags: ["schwa", "multisyllable"], def: "Yellow fruit.", sentence: "Peel the banana." },
@@ -250,7 +227,6 @@ window.WORD_ENTRIES = {
 
     // ==========================================
     // 10. MULTISYLLABLE & COMPOUND
-    // Breaking longer words into parts.
     // ==========================================
     "basket": { syllables: "bas-ket", tags: ["multisyllable"], def: "Woven container.", sentence: "Put apples in the basket." },
     "magnet": { syllables: "mag-net", tags: ["multisyllable"], def: "Attracts metal.", sentence: "The magnet sticks." },
@@ -277,5 +253,3 @@ window.WORD_ENTRIES = {
     "dentist": { syllables: "den-tist", tags: ["multisyllable"], def: "Tooth doctor.", sentence: "The dentist helps teeth." },
     "doctor": { syllables: "doc-tor", tags: ["multisyllable", "r-controlled"], def: "Heals sick people.", sentence: "The doctor helps you." }
 };
-
-```
