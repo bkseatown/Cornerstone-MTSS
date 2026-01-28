@@ -1,68 +1,74 @@
-body {
-  font-family: 'Lexend', sans-serif;
-  margin: 0;
-  background: #f4f6f8;
-}
+// Decode the Word – SAFE SCRIPT
+// This file is intentionally simple to avoid syntax errors
 
-#game-board {
-  display: grid;
-  gap: 6px;
-  justify-content: center;
-  margin: 20px;
-}
+document.addEventListener("DOMContentLoaded", function () {
 
-.tile {
-  width: 50px;
-  height: 50px;
-  border: 2px solid #ccc;
-}
+  // ----- MODAL SYSTEM -----
 
-/* Overlay */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
+  var overlay = document.getElementById("overlay");
+  var modals = document.querySelectorAll(".modal");
+  var focusAnchor = document.getElementById("focus-anchor");
 
-/* Modal */
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  width: 300px;
-  position: relative;
-}
+  function closeAllModals() {
+    for (var i = 0; i < modals.length; i++) {
+      modals[i].classList.add("hidden");
+    }
+    overlay.classList.add("hidden");
+    focusAnchor.focus();
+  }
 
-.hidden {
-  display: none;
-}
+  function openModal(name) {
+    closeAllModals();
+    overlay.classList.remove("hidden");
+    var modal = document.querySelector('.modal[data-modal="' + name + '"]');
+    if (modal) modal.classList.remove("hidden");
+  }
 
-.close-btn {
-  position: absolute;
-  right: 12px;
-  top: 10px;
-  font-size: 20px;
-  cursor: pointer;
-}
+  // Close buttons
+  var closeButtons = document.querySelectorAll(".close-btn");
+  for (var i = 0; i < closeButtons.length; i++) {
+    closeButtons[i].addEventListener("click", closeAllModals);
+  }
 
-/* Banner */
-.banner {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #2c3e50;
-  color: white;
-  padding: 14px 24px;
-  border-radius: 30px;
-  z-index: 200;
-}
+  // Overlay click
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) closeAllModals();
+  });
 
-.error {
-  color: red;
-  font-size: 0.85rem;
-}
+  // Esc / Enter closes modal
+  window.addEventListener("keydown", function (e) {
+    if (!overlay.classList.contains("hidden")) {
+      if (e.key === "Escape" || e.key === "Enter") {
+        closeAllModals();
+      }
+      e.preventDefault();
+    }
+  });
+
+  // ----- BUTTONS -----
+
+  var teacherBtn = document.getElementById("teacher-btn");
+  if (teacherBtn) {
+    teacherBtn.addEventListener("click", function () {
+      openModal("teacher");
+    });
+  }
+
+  var startBtn = document.getElementById("start-btn");
+  if (startBtn) {
+    startBtn.addEventListener("click", closeAllModals);
+  }
+
+  var playAgainBtn = document.getElementById("play-again-btn");
+  if (playAgainBtn) {
+    playAgainBtn.addEventListener("click", closeAllModals);
+  }
+
+  // ----- FIRST LOAD -----
+
+  if (!localStorage.getItem("decode_seen")) {
+    openModal("welcome");
+    localStorage.setItem("decode_seen", "1");
+  }
+
+});
