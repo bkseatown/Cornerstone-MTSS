@@ -116,11 +116,7 @@
     voiceToggleBtn.addEventListener("click", toggleVoice);
 
     teacherSetBtn.addEventListener("click", setTeacherWord);
-    teacherInput.addEventListener("keyup", (e) => e.stopPropagation());
-    teacherInput.addEventListener("keypress", (e) => e.stopPropagation());
-
     teacherInput.addEventListener("keydown", (e) => {
-      e.stopPropagation();
       if (e.key === "Enter") {
         e.preventDefault();
         setTeacherWord();
@@ -193,7 +189,6 @@
   function handleKeyDown(e) {
     if (howtoModal.classList.contains("open")) {
       if (e.key === "Enter" || e.key === "Escape") {
-        e.preventDefault();
         closeHowTo();
       }
       return;
@@ -201,17 +196,12 @@
 
     if (endModal.classList.contains("open")) {
       if (e.key === "Enter" || e.key === "Escape") {
-        e.preventDefault();
         closeEndModal();
       }
       return;
     }
 
     if (gameOver) return;
-
-    const t = e.target;
-    const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
-    if (tag === "input" || tag === "textarea" || tag === "select") return;
 
     if (e.key === "Enter") submitGuess();
     else if (e.key === "Backspace") removeLetter();
@@ -382,9 +372,7 @@
     currentEntry = DATA.WORD_ENTRIES[val];
 
     teacherInput.value = "";
-    showTeacherToast("✅ Word set! Ready to play ✨");
-    // ensure focus returns to gameplay
-    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    showTeacherToast("Teacher word set");
     resetGame(true);
   }
 
@@ -394,20 +382,7 @@
     setTimeout(() => teacherToast.classList.remove("show"), 1200);
   }
 
-  
-  function niceSentence(word, entry) {
-    const s = (entry && entry.sentence ? String(entry.sentence) : "").trim();
-    const low = s.toLowerCase();
-    if (low.startsWith("say ") && low.includes("slowly")) {
-      return `We used ${word} in a silly sentence today.`;
-    }
-    if (low.includes("schwa")) {
-      return `We played with the word ${word} and made a fun sentence with it.`;
-    }
-    return s || `Here is ${word} in a sentence.`;
-  }
-
-/* ======================================================
+  /* ======================================================
      MODALS + VOICE
   ====================================================== */
   function openHowTo() {
