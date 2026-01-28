@@ -50,16 +50,62 @@
     </div>
   </main>
 
+  <!-- How-to modal -->
   <div id="howto-modal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="modal-title">How to Play</div>
-      <div id="howto-text" class="modal-body"></div>
+
+      <div id="howto-text" class="modal-body">
+        <div><strong>Guess the word</strong> in the number of tries shown.</div>
+        <div>Use your keyboard or tap the on‑screen keys.</div>
+
+        <div class="howto-example" aria-label="Examples">
+          <div class="ex-row">
+            <div class="ex-tiles" aria-label="Example 1">
+              <div class="ex-tile ex-green">P</div>
+              <div class="ex-tile">L</div>
+              <div class="ex-tile">A</div>
+              <div class="ex-tile">N</div>
+              <div class="ex-tile">T</div>
+            </div>
+            <div class="ex-text">Green: <strong>P</strong> is correct and in the right spot.</div>
+          </div>
+
+          <div class="ex-row">
+            <div class="ex-tiles" aria-label="Example 2">
+              <div class="ex-tile">S</div>
+              <div class="ex-tile ex-yellow">L</div>
+              <div class="ex-tile">I</div>
+              <div class="ex-tile">P</div>
+              <div class="ex-tile">E</div>
+            </div>
+            <div class="ex-text">Yellow: <strong>L</strong> is in the word, but in the wrong spot.</div>
+          </div>
+
+          <div class="ex-row">
+            <div class="ex-tiles" aria-label="Example 3">
+              <div class="ex-tile">C</div>
+              <div class="ex-tile">R</div>
+              <div class="ex-tile ex-gray">U</div>
+              <div class="ex-tile">M</div>
+              <div class="ex-tile">B</div>
+            </div>
+            <div class="ex-text">Gray: <strong>U</strong> is not in the word.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px; color:#6b7280;">
+          Tip: Change <strong>Focus</strong> to practice a specific phonics pattern.
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button id="howto-close" class="btn primary" type="button">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- End-of-game modal -->
   <div id="end-modal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="modal-title" id="end-word"></div>
@@ -74,6 +120,7 @@
     </div>
   </div>
 
+  <!-- Path-safe: app-core contains embedded fallbacks, but we also ship these files -->
   <script src="./app-config.js"></script>
   <script src="./words.js"></script>
   <script src="./app-core.js"></script>
