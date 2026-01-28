@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Decode the Word</title>
 
   <link rel="stylesheet" href="style.css" />
@@ -10,113 +10,72 @@
 </head>
 
 <body tabindex="-1">
-  <!-- focus anchor for keyboard restore -->
+
+  <!-- Focus anchor to restore keyboard input -->
   <div id="focus-anchor" tabindex="-1" aria-hidden="true"></div>
 
-  <!-- Toast + Banner -->
-  <div id="toast-container"></div>
-  <div id="banner-container" class="banner hidden"></div>
+  <!-- Banner -->
+  <div id="banner" class="banner hidden"></div>
 
   <header>
-    <div class="header-top">
-      <h1>Decode the Word</h1>
-      <div class="header-actions">
-        <button id="case-toggle" class="text-btn">abc</button>
-        <button id="teacher-btn" class="icon-btn" title="Teacher Mode">🎓</button>
-      </div>
-    </div>
+    <h1>Decode the Word</h1>
 
     <div class="controls">
-      <div class="control-group">
-        <label>Focus</label>
-        <select id="pattern-select">
-          <option value="all">Mixed Review</option>
-          <option value="cvc">CVC (cat, sun)</option>
-          <option value="digraph">Digraphs (sh, ch)</option>
-          <option value="blend">Blends (st, bl)</option>
-          <option value="floss">FLOSS (ff, ll)</option>
-          <option value="magic-e">Magic E</option>
-          <option value="vowel-team">Vowel Teams</option>
-          <option value="r-controlled">R-Controlled</option>
-          <option value="prefix">Prefixes</option>
-          <option value="suffix">Suffixes</option>
-          <option value="doubling">Doubling Rule</option>
-          <option value="schwa">Schwa</option>
-          <option value="multisyllable">Multisyllable</option>
-        </select>
-      </div>
+      <button id="case-toggle">abc</button>
+      <button id="teacher-btn">🎓</button>
 
-      <div class="control-group">
-        <label>Length</label>
-        <select id="length-select">
-          <option value="any">Any</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5" selected>5</option>
-          <option value="6">6</option>
-        </select>
-      </div>
+      <label>Focus</label>
+      <select id="pattern-select">
+        <option value="all">Mixed Review</option>
+        <option value="cvc">CVC</option>
+        <option value="digraph">Digraphs</option>
+        <option value="blend">Blends</option>
+      </select>
+
+      <label>Length</label>
+      <select id="length-select">
+        <option value="5" selected>5</option>
+      </select>
 
       <button id="new-word-btn">New Word</button>
-    </div>
-
-    <div id="focus-info-panel" class="focus-panel">
-      <div class="focus-header">
-        <strong id="focus-title"></strong>
-        <span id="focus-examples"></span>
-      </div>
-      <p id="focus-desc"></p>
-      <p id="focus-hint" class="hint-text"></p>
     </div>
   </header>
 
   <main>
     <div id="game-board"></div>
-    <div id="quick-tiles-row" class="quick-row hidden"></div>
     <div id="keyboard"></div>
-
-    <div class="hint-actions">
-      <button id="hear-word-hint" class="hint-btn">🔊 Hear Word</button>
-      <button id="hear-sentence-hint" class="hint-btn">📝 Sentence</button>
-    </div>
   </main>
 
-  <!-- MODALS -->
-  <div id="modal-overlay" class="modal-overlay hidden">
+  <!-- OVERLAY (shared) -->
+  <div id="overlay" class="overlay hidden">
 
-    <!-- Welcome -->
-    <div id="welcome-modal" class="modal">
-      <span class="close-btn">×</span>
-      <h2>Welcome! 👋</h2>
+    <!-- WELCOME MODAL -->
+    <div class="modal hidden" data-modal="welcome">
+      <button class="close-btn">×</button>
+      <h2>Welcome 👋</h2>
       <p>Pick a focus and decode the word.</p>
-      <button id="start-playing-btn" class="primary-btn">Start</button>
+      <button id="start-btn">Start</button>
     </div>
 
-    <!-- Teacher -->
-    <div id="teacher-modal" class="modal">
-      <span class="close-btn">×</span>
+    <!-- TEACHER MODAL -->
+    <div class="modal hidden" data-modal="teacher">
+      <button class="close-btn">×</button>
       <h2>Teacher Mode</h2>
       <p>Set a hidden word (3–10 letters).</p>
 
-      <div class="masked-input-container">
-        <input id="custom-word-input" type="password" autocomplete="off" />
-        <button id="toggle-mask">👁️</button>
-      </div>
+      <input id="teacher-input" type="password" autocomplete="off" />
+      <p id="teacher-error" class="error"></p>
 
-      <p id="teacher-error" class="error-msg"></p>
-      <button id="set-word-btn" class="primary-btn">Set Word & Play</button>
+      <button id="set-word-btn">Set Word & Play</button>
     </div>
 
-    <!-- End Game -->
-    <div id="modal" class="modal">
-      <span class="close-btn">×</span>
-      <h2 id="modal-title"></h2>
-      <div id="modal-word"></div>
-      <div id="modal-syllables"></div>
-      <p id="modal-def"></p>
-      <p id="modal-sentence"></p>
-      <button id="play-again-btn" class="primary-btn">Play Again</button>
+    <!-- END MODAL -->
+    <div class="modal hidden" data-modal="end">
+      <button class="close-btn">×</button>
+      <h2 id="end-title"></h2>
+      <button id="play-again-btn">Play Again</button>
     </div>
+
   </div>
 
   <script src="words.js"></script>
