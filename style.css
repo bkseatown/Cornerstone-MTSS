@@ -1,81 +1,102 @@
-:root {
-  --correct:#6aaa64;
-  --present:#c9b458;
-  --absent:#787c7e;
-  --font-main:'Lexend', sans-serif;
-  --font-display:'Fredoka', sans-serif;
-}
-
 body {
-  margin:0;
-  font-family:var(--font-main);
-  background:#eef2f3;
+  margin: 0;
+  font-family: 'Lexend', sans-serif;
+  background: #f3f6f7;
+  color: #111;
 }
 
-header, main {
-  max-width:500px;
-  margin:auto;
+header {
+  text-align: center;
+  padding: 16px;
 }
 
-#game-board {
-  display:grid;
-  gap:6px;
-  justify-content:center;
-  margin:10px 0;
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2.5rem;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+button, select {
+  padding: 6px 10px;
+  font-size: 1rem;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 8px;
 }
 
 .tile {
-  width:50px;
-  height:50px;
-  border:2px solid #ccc;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.8rem;
-  font-family:var(--font-display);
+  width: 60px;
+  height: 60px;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-family: 'Fredoka', sans-serif;
+  background: white;
 }
 
-.tile.correct {background:var(--correct);color:#fff}
-.tile.present {background:var(--present);color:#fff}
-.tile.absent {background:var(--absent);color:#fff}
-
-/* Banner */
-.banner {
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#2c3e50;
-  color:#fff;
-  padding:16px 28px;
-  border-radius:30px;
-  font-size:1.1rem;
-  z-index:1000;
+#keyboard {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+  max-width: 500px;
 }
-.hidden {display:none}
 
-/* Modals */
-.modal-overlay {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:500;
+.key {
+  padding: 12px;
+  background: #ddd;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
 }
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none;
+}
+
 .modal {
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  width:90%;
-  max-width:380px;
-  position:relative;
+  background: white;
+  padding: 24px;
+  border-radius: 14px;
+  width: 300px;
+  text-align: center;
+  position: relative;
 }
-.close-btn {
-  position:absolute;
-  top:10px;
-  right:14px;
-  cursor:pointer;
-  font-size:22px;
+
+#close-modal {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  cursor: pointer;
 }

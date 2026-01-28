@@ -6,17 +6,13 @@
   <title>Decode the Word</title>
 
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500&family=Lexend&display=swap" rel="stylesheet">
+
+  <!-- kill favicon error -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>">
 </head>
 
-<body tabindex="-1">
-
-  <!-- Focus anchor to restore keyboard input -->
-  <div id="focus-anchor" tabindex="-1" aria-hidden="true"></div>
-
-  <!-- Banner -->
-  <div id="banner" class="banner hidden"></div>
-
+<body>
   <header>
     <h1>Decode the Word</h1>
 
@@ -25,16 +21,16 @@
       <button id="teacher-btn">🎓</button>
 
       <label>Focus</label>
-      <select id="pattern-select">
-        <option value="all">Mixed Review</option>
-        <option value="cvc">CVC</option>
-        <option value="digraph">Digraphs</option>
-        <option value="blend">Blends</option>
+      <select id="focus-select">
+        <option>Mixed Review</option>
+        <option>CVC</option>
+        <option>Digraphs</option>
+        <option>Blends</option>
       </select>
 
       <label>Length</label>
       <select id="length-select">
-        <option value="5" selected>5</option>
+        <option selected>5</option>
       </select>
 
       <button id="new-word-btn">New Word</button>
@@ -42,43 +38,20 @@
   </header>
 
   <main>
-    <div id="game-board"></div>
+    <div id="board"></div>
     <div id="keyboard"></div>
   </main>
 
-  <!-- OVERLAY (shared) -->
-  <div id="overlay" class="overlay hidden">
-
-    <!-- WELCOME MODAL -->
-    <div class="modal hidden" data-modal="welcome">
-      <button class="close-btn">×</button>
-      <h2>Welcome 👋</h2>
-      <p>Pick a focus and decode the word.</p>
-      <button id="start-btn">Start</button>
+  <!-- OVERLAY -->
+  <div id="overlay" class="hidden">
+    <div id="modal" class="modal">
+      <button id="close-modal">×</button>
+      <h2 id="modal-title">Welcome</h2>
+      <p id="modal-text">Pick a focus and decode the word.</p>
+      <button id="modal-action">Start</button>
     </div>
-
-    <!-- TEACHER MODAL -->
-    <div class="modal hidden" data-modal="teacher">
-      <button class="close-btn">×</button>
-      <h2>Teacher Mode</h2>
-      <p>Set a hidden word (3–10 letters).</p>
-
-      <input id="teacher-input" type="password" autocomplete="off" />
-      <p id="teacher-error" class="error"></p>
-
-      <button id="set-word-btn">Set Word & Play</button>
-    </div>
-
-    <!-- END MODAL -->
-    <div class="modal hidden" data-modal="end">
-      <button class="close-btn">×</button>
-      <h2 id="end-title"></h2>
-      <button id="play-again-btn">Play Again</button>
-    </div>
-
   </div>
 
-  <script src="words.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
