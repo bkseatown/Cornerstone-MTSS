@@ -21,7 +21,7 @@
       <button id="teacher-btn">🎓</button>
 
       <label>Focus</label>
-      <select id="focus-select">
+      <select>
         <option>Mixed Review</option>
         <option>CVC</option>
         <option>Digraphs</option>
@@ -29,7 +29,7 @@
       </select>
 
       <label>Length</label>
-      <select id="length-select">
+      <select>
         <option selected>5</option>
       </select>
 
@@ -40,7 +40,6 @@
   <main>
     <div id="board"></div>
 
-    <!-- HINT BUTTONS (RESTORED) -->
     <div class="hint-actions">
       <button id="hear-word">🔊 Hear Word</button>
       <button id="hear-sentence">📝 Sentence</button>
@@ -49,13 +48,13 @@
     <div id="keyboard"></div>
   </main>
 
-  <!-- OVERLAY + MODAL -->
-  <div id="overlay" class="hidden">
+  <!-- MODAL OVERLAY -->
+  <div id="overlay">
     <div class="modal">
-      <button id="close-modal">×</button>
-      <h2 id="modal-title">Welcome</h2>
-      <p id="modal-text">Pick a focus and decode the word.</p>
-      <button id="modal-action">Start</button>
+      <button id="close-modal" aria-label="Close">×</button>
+      <h2>Welcome 👋</h2>
+      <p>Pick a focus and decode the word.</p>
+      <button id="start-btn">Start</button>
     </div>
   </div>
 

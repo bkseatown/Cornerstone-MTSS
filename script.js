@@ -1,99 +1,66 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  /* ---------------- MODAL (ONE AT A TIME) ---------------- */
   var overlay = document.getElementById("overlay");
   var closeBtn = document.getElementById("close-modal");
-  var actionBtn = document.getElementById("modal-action");
-
-  function openModal(title, text, actionText) {
-    document.getElementById("modal-title").textContent = title;
-    document.getElementById("modal-text").textContent = text;
-    actionBtn.textContent = actionText;
-    overlay.classList.remove("hidden");
-  }
+  var startBtn = document.getElementById("start-btn");
 
   function closeModal() {
-    overlay.classList.add("hidden");
+    overlay.style.display = "none";
+    console.log("✅ Modal closed");
   }
 
-  closeBtn.onclick = closeModal;
-  actionBtn.onclick = closeModal;
+  function openModal() {
+    overlay.style.display = "flex";
+    console.log("✅ Modal opened");
+  }
 
-  overlay.onclick = function (e) {
+  // --- CLOSE HANDLERS (ALL ROUTE HERE) ---
+  closeBtn.addEventListener("click", closeModal);
+  startBtn.addEventListener("click", closeModal);
+
+  overlay.addEventListener("click", function (e) {
     if (e.target === overlay) closeModal();
-  };
+  });
 
   window.addEventListener("keydown", function (e) {
-    if (!overlay.classList.contains("hidden")) {
+    if (overlay.style.display !== "none") {
       if (e.key === "Escape" || e.key === "Enter") {
         closeModal();
       }
-      e.preventDefault();
     }
   });
 
-  /* ---------------- BOARD ---------------- */
+  // --- DEMO BOARD ---
   var board = document.getElementById("board");
-
-  function buildBoard() {
-    board.innerHTML = "";
-    for (var i = 0; i < 30; i++) {
-      var tile = document.createElement("div");
-      tile.className = "tile";
-      board.appendChild(tile);
-    }
+  for (var i = 0; i < 30; i++) {
+    var tile = document.createElement("div");
+    tile.className = "tile";
+    board.appendChild(tile);
   }
 
-  /* ---------------- KEYBOARD ---------------- */
+  // --- DEMO KEYBOARD ---
   var keyboard = document.getElementById("keyboard");
   var letters = "QWERTYUIOPASDFGHJKLZXCVBNM";
-
-  function buildKeyboard() {
-    keyboard.innerHTML = "";
-    for (var i = 0; i < letters.length; i++) {
-      var key = document.createElement("button");
-      key.className = "key";
-      key.textContent = letters[i];
-      keyboard.appendChild(key);
-    }
+  for (var j = 0; j < letters.length; j++) {
+    var key = document.createElement("button");
+    key.className = "key";
+    key.textContent = letters[j];
+    keyboard.appendChild(key);
   }
 
-  /* ---------------- HINT BUTTONS ---------------- */
-  var currentWord = "plant";
-  var currentSentence = "The plant grew in the sun.";
-
+  // --- SPEECH DEMO ---
   document.getElementById("hear-word").onclick = function () {
-    speak(currentWord);
+    speechSynthesis.speak(new SpeechSynthesisUtterance("plant"));
   };
 
   document.getElementById("hear-sentence").onclick = function () {
-    speak(currentSentence);
+    speechSynthesis.speak(
+      new SpeechSynthesisUtterance("The plant grew in the sun.")
+    );
   };
 
-  function speak(text) {
-    var utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.9;
-    speechSynthesis.speak(utter);
-  }
+  // --- FORCE MODAL OPEN ON LOAD ---
+  openModal();
 
-  /* ---------------- BUTTONS ---------------- */
-  document.getElementById("teacher-btn").onclick = function () {
-    openModal("Teacher Mode", "Teacher word setting coming next.", "OK");
-  };
-
-  document.getElementById("new-word-btn").onclick = function () {
-    buildBoard();
-  };
-
-  /* ---------------- INIT ---------------- */
-  buildBoard();
-  buildKeyboard();
-
-  // show welcome ONCE
-  if (!localStorage.getItem("decode_seen")) {
-    openModal("Welcome 👋", "Pick a focus and decode the word.", "Start");
-    localStorage.setItem("decode_seen", "1");
-  }
-
-  console.log("✅ Decode the Word loaded correctly");
+  console.log("✅ App fully loaded");
 });
