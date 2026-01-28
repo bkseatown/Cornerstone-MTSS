@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phonics Wordle - Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="header-top">
+                <h1>Phonics Wordle</h1>
+                <div class="toolbar">
+                    <button id="btn-voice" class="icon-btn" aria-label="Toggle Voice">
+                        <span class="icon">🔇</span>
+                        <span class="btn-label">OFF</span>
+                    </button>
+                    <button id="btn-size" class="icon-btn" aria-label="Toggle Text Size">
+                        <span class="icon">A+</span>
+                        <span class="btn-label">Size</span>
+                    </button>
+                    <button id="btn-teacher" class="icon-btn" aria-label="Teacher Tools">
+                        <span class="icon">🎓</span>
+                        <span class="btn-label">Teacher</span>
+                    </button>
+                    <button id="btn-help" class="icon-btn" aria-label="Help">
+                        <span class="icon">❓</span>
+                        <span class="btn-label">Help</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div id="teacher-menu" class="hidden tool-overlay">
+            <div class="modal-content">
+                <h3>Teacher Tools</h3>
+                <p>Set a custom target word (e.g., "mag-net-ic").<br>Students will type the word <strong>without dashes</strong>.</p>
+                <input type="text" id="teacher-input" placeholder="e.g. mag-net-ic" autocomplete="off">
+                <div class="btn-row">
+                    <button id="btn-teacher-set" class="primary-btn small">Set Word</button>
+                    <button id="btn-teacher-cancel" class="action-btn small">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-row">
+            <div class="filter-group">
+                <label for="filter-select" class="sr-only">Phonics Focus</label>
+                <select id="filter-select">
+                    <option value="all">Mixed Review (All)</option>
+                    <option value="cvc">CVC (Closed Syllables)</option>
+                    <option value="floss">FLOSS Rule (ff, ll, ss, zz)</option>
+                    <option value="blend">Blends (st, bl, tr...)</option>
+                    <option value="digraph">Digraphs (sh, ch, th...)</option>
+                    <option value="magic-e">Magic E (VCe)</option>
+                    <option value="vowel-team">Vowel Teams (ai, ea...)</option>
+                    <option value="r-controlled">R-Controlled (ar, or...)</option>
+                    <option value="prefix">Prefixes (re-, un-, dis-)</option>
+                    <option value="suffix">Suffixes (-ing, -ed, -ly)</option>
+                    <option value="doubling">Doubling Rule (1-1-1)</option>
+                    <option value="schwa">Schwa Sound (ə)</option>
+                    <option value="multisyllable">Multisyllabic</option>
+                </select>
+            </div>
+            
+            <div class="filter-group small">
+                <label for="length-select" class="sr-only">Length</label>
+                <select id="length-select">
+                    <option value="any">Any Len</option>
+                    <option value="3">3 Lets</option>
+                    <option value="4">4 Lets</option>
+                    <option value="5">5 Lets</option>
+                    <option value="6">6 Lets</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="game-controls">
+            <button id="btn-hear-word" class="action-btn">🎧 Hear Word</button>
+            <button id="btn-hear-sentence" class="action-btn secondary">🗣️ Sentence</button>
+        </div>
+
+        <div class="board-container">
+            <div id="game-board"></div>
+        </div>
+
+        <div id="keyboard"></div>
+    </div>
+
+    <div id="toast">Message Here</div>
+
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-content">
+            <button id="modal-close">×</button>
+            <h2 id="modal-title">Great Job!</h2>
+            
+            <div class="word-reveal-card">
+                <div id="reveal-word">WORD</div>
+                <div id="reveal-tip" class="phonics-tip"></div>
+            </div>
+
+            <div class="definition-box">
+                <p class="label">Definition:</p>
+                <p id="reveal-def" class="large-text">...</p>
+            </div>
+
+            <div class="sentence-box">
+                <p class="label">Context Sentence:</p>
+                <p id="reveal-sentence" class="large-text">...</p>
+            </div>
+
+            <div id="fun-content-box" class="joke-box hidden">
+                <div id="fun-label" class="joke-label"></div>
+                <div id="fun-text" class="joke-text"></div>
+            </div>
+
+            <button id="btn-next-word" class="primary-btn">Next Word (Enter)</button>
+        </div>
+    </div>
+
+    <div id="help-modal-overlay" class="hidden">
+        <div class="modal-content">
+            <button id="help-close">×</button>
+            <h2>How to Decode</h2>
+            <div class="instructional-content">
+                <p><strong>Goal:</strong> Map sounds to letters to find the hidden word.</p>
+                <ul class="instructional-list">
+                    <li><strong>Say the sounds aloud</strong> as you tap each key.</li>
+                    <li><span class="color-swatch green"></span> <strong>Green:</strong> Correct sound in the correct spot.</li>
+                    <li><span class="color-swatch yellow"></span> <strong>Yellow:</strong> Correct sound, but in the wrong spot.</li>
+                    <li><span class="color-swatch gray"></span> <strong>Gray:</strong> This spelling pattern isn't in the word.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
