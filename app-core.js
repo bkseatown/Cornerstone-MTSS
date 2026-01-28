@@ -116,10 +116,6 @@
     voiceToggleBtn.addEventListener("click", toggleVoice);
 
     teacherSetBtn.addEventListener("click", setTeacherWord);
-    teacherInput.addEventListener("keydown", (e) => {
-      e.stopPropagation();
-      if (e.key === "Enter") {
-    });
     teacherInput.addEventListener("keyup", (e) => e.stopPropagation());
     teacherInput.addEventListener("keypress", (e) => e.stopPropagation());
 
