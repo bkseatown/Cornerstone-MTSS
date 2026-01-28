@@ -239,3 +239,22 @@ button:focus {
     transition: none !important;
   }
 }
+
+/* VISUAL FIX: modal clarity */
+.modal{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.55);
+  display:none; align-items:center; justify-content:center;
+  z-index:1000;
+}
+.modal.open{ display:flex; }
+.modal-card{
+  background:#fff;
+  border-radius:16px;
+  max-width:520px;
+  width:92%;
+  padding:18px 18px 14px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+.modal-title{ font-size:1.25rem; font-weight:900; margin-bottom:10px; }
+.modal-actions{ display:flex; justify-content:center; margin-top:12px; }

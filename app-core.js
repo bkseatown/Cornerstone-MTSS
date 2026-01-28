@@ -1,7 +1,14 @@
 (() => {
   "use strict";
 
-  /* ======================================================
+  
+  // BACKDROP_CLOSE_PATCH
+  function wireBackdropClose(modal, closeFn){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) closeFn();
+    });
+  }
+/* ======================================================
      Phonics Wordle — Core Engine (Clean, Aligned, Stable)
      Aligned to canonical words.js schema
   ====================================================== */
