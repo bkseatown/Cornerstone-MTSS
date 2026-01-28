@@ -1,158 +1,268 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  /* ---------------- MODAL ---------------- */
-  var overlay = document.getElementById("overlay");
-  var closeBtn = document.getElementById("close-modal");
-  var startBtn = document.getElementById("start-btn");
+  /* ================= MODAL ================= */
+  const overlay = document.getElementById("overlay");
+  const closeBtn = document.getElementById("close-modal");
+  const startBtn = document.getElementById("start-btn");
 
+  function openModal(title, text, action = "OK") {
+    overlay.querySelector("h2").textContent = title;
+    overlay.querySelector("p").textContent = text;
+    startBtn.textContent = action;
+    overlay.style.display = "flex";
+  }
   function closeModal() {
     overlay.style.display = "none";
   }
 
   closeBtn.onclick = closeModal;
   startBtn.onclick = closeModal;
-
-  overlay.onclick = function (e) {
-    if (e.target === overlay) closeModal();
-  };
-
-  window.addEventListener("keydown", function (e) {
-    if (overlay.style.display !== "none") {
-      if (e.key === "Escape" || e.key === "Enter") closeModal();
+  overlay.onclick = e => e.target === overlay && closeModal();
+  window.addEventListener("keydown", e => {
+    if (overlay.style.display !== "none" && (e.key === "Escape" || e.key === "Enter")) {
+      closeModal();
+      e.preventDefault();
     }
   });
 
   overlay.style.display = "flex";
 
-  /* ---------------- FOCUS TAXONOMY ---------------- */
-
-  var FOCUS_INFO = {
+  /* ================= FOCUS TAXONOMY ================= */
+  const FOCUS_INFO = {
     mixed: {
       label: "Mixed Review",
-      desc: "A mix of common phonics patterns students have already learned.",
-      examples: ["cat", "ship", "tree"],
-      hint: "Encourage students to look all the way through the word."
+      desc: "A mix of previously learned phonics patterns.",
+      examples: ["cat", "ship", "train"],
+      hint: "Scan the whole word before guessing.",
+      words: ["plant", "ship", "train", "flag", "stone"]
     },
     cvc: {
       label: "CVC",
       desc: "Consonant–vowel–consonant words with short vowels.",
       examples: ["cat", "sun", "bed"],
-      hint: "Say each sound, then blend."
+      hint: "Say each sound, then blend.",
+      words: ["cat", "bed", "sun", "map", "top"]
     },
     digraphs: {
       label: "Digraphs",
       desc: "Two letters that make one sound.",
       examples: ["ship", "chop", "thin"],
-      hint: "Look for letters that stick together."
+      hint: "Look for letters that stick together.",
+      words: ["ship", "thin", "chop", "when", "that"]
     },
     blends: {
       label: "Blends",
       desc: "Two or three consonants blended together.",
       examples: ["stop", "flag", "clip"],
-      hint: "Each sound is heard, but they are said quickly."
+      hint: "Each sound is heard quickly.",
+      words: ["stop", "flag", "clip", "frog", "brisk"]
     },
     floss: {
       label: "FLOSS",
-      desc: "Short vowel words ending in ff, ll, ss, or zz.",
+      desc: "Short vowel words ending in ff, ll, ss, zz.",
       examples: ["hill", "buzz", "off"],
-      hint: "Double the last consonant."
+      hint: "Double the final consonant.",
+      words: ["hill", "buzz", "miss", "off", "fizz"]
     },
     magicE: {
       label: "Magic E",
       desc: "Silent e makes the vowel say its name.",
       examples: ["make", "time", "hope"],
-      hint: "The e is quiet, but powerful."
-    },
-    vowelTeams: {
-      label: "Vowel Teams",
-      desc: "Two vowels working together to make one sound.",
-      examples: ["rain", "boat", "seed"],
-      hint: "The vowels team up to make one sound."
-    },
-    rControlled: {
-      label: "R-Controlled",
-      desc: "Vowels followed by r that change the vowel sound.",
-      examples: ["car", "bird", "fork"],
-      hint: "The r changes the vowel sound."
+      hint: "The e is quiet but powerful.",
+      words: ["make", "time", "hope", "cake", "fine"]
     },
     prefixes: {
       label: "Prefixes",
-      desc: "Word parts added to the beginning of a base word.",
-      examples: ["redo", "unhappy", "preview"],
-      hint: "Prefixes change the meaning."
+      desc: "Word parts added to the beginning.",
+      examples: ["redo", "unhappy"],
+      hint: "Prefixes change meaning.",
+      words: ["redo", "unfair", "preview", "unlock", "replay"]
     },
     suffixes: {
       label: "Suffixes",
-      desc: "Word parts added to the end of a base word.",
-      examples: ["jumped", "playing", "cats"],
-      hint: "Suffixes often change tense or number."
+      desc: "Word parts added to the end.",
+      examples: ["jumped", "playing"],
+      hint: "Suffixes change tense or number.",
+      words: ["played", "jumped", "cats", "running", "helpful"]
     },
     schwa: {
       label: "Schwa",
       desc: "An unstressed vowel that sounds like /uh/.",
       examples: ["about", "animal"],
-      hint: "Say the word naturally and listen."
+      hint: "Say it naturally.",
+      words: ["about", "animal", "pencil", "problem", "family"]
+    },
+    multisyllabic: {
+      label: "Multisyllabic",
+      desc: "Words with two or more syllables.",
+      examples: ["robot", "basket", "important"],
+      hint: "Clap the syllables, then decode each part.",
+      words: ["robot", "basket", "sunset", "important", "fantastic"]
     }
   };
 
-  /* ---------------- BUILD FOCUS DROPDOWN ---------------- */
+  const focusSelect = document.getElementById("focus-select");
+  const focusTitle = document.getElementById("focus-title");
+  const focusDesc = document.getElementById("focus-desc");
+  const focusExamples = document.getElementById("focus-examples");
+  const focusHint = document.getElementById("focus-hint");
 
-  var focusSelect = document.getElementById("focus-select");
-  var focusTitle = document.getElementById("focus-title");
-  var focusDesc = document.getElementById("focus-desc");
-  var focusExamples = document.getElementById("focus-examples");
-  var focusHint = document.getElementById("focus-hint");
-
-  Object.keys(FOCUS_INFO).forEach(function (key) {
-    var opt = document.createElement("option");
+  Object.keys(FOCUS_INFO).forEach(key => {
+    const opt = document.createElement("option");
     opt.value = key;
-    opt.textContent = FOCUS_INFO[key].label + " (" + FOCUS_INFO[key].examples.join(", ") + ")";
+    opt.textContent = `${FOCUS_INFO[key].label} (${FOCUS_INFO[key].examples.join(", ")})`;
     focusSelect.appendChild(opt);
   });
 
   function updateFocusPanel(key) {
-    var info = FOCUS_INFO[key];
-    focusTitle.textContent = info.label;
-    focusDesc.textContent = info.desc;
-    focusExamples.textContent = info.examples.join(", ");
-    focusHint.textContent = "Tip: " + info.hint;
+    const f = FOCUS_INFO[key];
+    focusTitle.textContent = f.label;
+    focusDesc.textContent = f.desc;
+    focusExamples.textContent = f.examples.join(", ");
+    focusHint.textContent = "Tip: " + f.hint;
   }
-
-  focusSelect.onchange = function () {
-    updateFocusPanel(focusSelect.value);
-  };
 
   updateFocusPanel("mixed");
 
-  /* ---------------- DEMO BOARD + KEYBOARD ---------------- */
+  /* ================= WORDLE GAMEPLAY ================= */
+  const board = document.getElementById("board");
+  const keyboard = document.getElementById("keyboard");
 
-  var board = document.getElementById("board");
-  for (var i = 0; i < 30; i++) {
-    var tile = document.createElement("div");
-    tile.className = "tile";
-    board.appendChild(tile);
+  const ROWS = 6;
+  let COLS = 5;
+  let currentRow = 0;
+  let currentCol = 0;
+  let answer = "";
+  let guesses = Array.from({ length: ROWS }, () => []);
+
+  function lockFocus(lock) {
+    focusSelect.disabled = lock;
   }
 
-  var keyboard = document.getElementById("keyboard");
-  var letters = "QWERTYUIOPASDFGHJKLZXCVBNM";
-  for (var j = 0; j < letters.length; j++) {
-    var keyBtn = document.createElement("button");
-    keyBtn.className = "key";
-    keyBtn.textContent = letters[j];
-    keyboard.appendChild(keyBtn);
+  function chooseWord() {
+    const f = FOCUS_INFO[focusSelect.value];
+    const pool = f.words.filter(w => w.length === COLS);
+    answer = pool[Math.floor(Math.random() * pool.length)].toUpperCase();
   }
 
-  /* ---------------- SPEECH (DEMO) ---------------- */
+  function buildBoard() {
+    board.innerHTML = "";
+    board.style.gridTemplateColumns = `repeat(${COLS}, 60px)`;
+    for (let r = 0; r < ROWS * COLS; r++) {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      board.appendChild(tile);
+    }
+  }
 
-  document.getElementById("hear-word").onclick = function () {
-    speechSynthesis.speak(new SpeechSynthesisUtterance("plant"));
-  };
+  function resetGame() {
+    currentRow = 0;
+    currentCol = 0;
+    guesses = Array.from({ length: ROWS }, () => []);
+    COLS = Number(document.getElementById("length-select").value || 5);
+    buildBoard();
+    chooseWord();
+    lockFocus(true);
+  }
 
-  document.getElementById("hear-sentence").onclick = function () {
+  function getTile(r, c) {
+    return board.children[r * COLS + c];
+  }
+
+  function addLetter(l) {
+    if (currentCol >= COLS) return;
+    guesses[currentRow][currentCol] = l;
+    const tile = getTile(currentRow, currentCol);
+    tile.textContent = l;
+    currentCol++;
+  }
+
+  function removeLetter() {
+    if (currentCol === 0) return;
+    currentCol--;
+    guesses[currentRow][currentCol] = "";
+    getTile(currentRow, currentCol).textContent = "";
+  }
+
+  function submitGuess() {
+    if (currentCol < COLS) return;
+
+    const guess = guesses[currentRow].join("");
+    const answerArr = answer.split("");
+    const used = Array(COLS).fill(false);
+
+    // Greens
+    for (let i = 0; i < COLS; i++) {
+      const tile = getTile(currentRow, i);
+      if (guess[i] === answer[i]) {
+        tile.style.background = "#6aaa64";
+        tile.style.color = "#fff";
+        used[i] = true;
+      }
+    }
+    // Yellows / Grays
+    for (let i = 0; i < COLS; i++) {
+      const tile = getTile(currentRow, i);
+      if (tile.style.background) continue;
+      const idx = answerArr.findIndex((l, j) => l === guess[i] && !used[j]);
+      if (idx > -1) {
+        tile.style.background = "#c9b458";
+        tile.style.color = "#fff";
+        used[idx] = true;
+      } else {
+        tile.style.background = "#787c7e";
+        tile.style.color = "#fff";
+      }
+    }
+
+    if (guess === answer) {
+      openModal("Nice decoding! 🎉", `You decoded "${answer}".`, "Play Again");
+      lockFocus(false);
+      return;
+    }
+
+    currentRow++;
+    currentCol = 0;
+
+    if (currentRow === ROWS) {
+      openModal("Good try!", `The word was "${answer}".`, "Play Again");
+      lockFocus(false);
+    }
+  }
+
+  /* ================= INPUT ================= */
+  window.addEventListener("keydown", e => {
+    if (overlay.style.display !== "none") return;
+    const k = e.key.toUpperCase();
+    if (k === "ENTER") submitGuess();
+    else if (k === "BACKSPACE") removeLetter();
+    else if (/^[A-Z]$/.test(k)) addLetter(k);
+  });
+
+  "QWERTYUIOPASDFGHJKLZXCVBNM".split("").forEach(l => {
+    const b = document.createElement("button");
+    b.className = "key";
+    b.textContent = l;
+    b.onclick = () => addLetter(l);
+    keyboard.appendChild(b);
+  });
+
+  /* ================= SPEECH ================= */
+  document.getElementById("hear-word").onclick = () =>
+    speechSynthesis.speak(new SpeechSynthesisUtterance(answer.toLowerCase()));
+
+  document.getElementById("hear-sentence").onclick = () =>
     speechSynthesis.speak(
-      new SpeechSynthesisUtterance("The plant grew in the sun.")
+      new SpeechSynthesisUtterance(`The word is ${answer.toLowerCase()}.`)
     );
+
+  focusSelect.onchange = () => {
+    updateFocusPanel(focusSelect.value);
+    resetGame();
   };
 
-  console.log("✅ Focus taxonomy restored");
+  document.getElementById("new-word-btn").onclick = resetGame;
+
+  resetGame();
+  console.log("✅ Gameplay + multisyllabic focus restored");
 });
