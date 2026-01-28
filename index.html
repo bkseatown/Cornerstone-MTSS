@@ -5,22 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Phonics Wordle</title>
   <link rel="icon" href="./favicon.ico" />
+
   <link rel="stylesheet" href="./styles.css" />
-  <meta name="theme-color" content="#ffffff" />
+<!-- Optional: prevents weird caching behavior on GH Pages -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
 </head>
 
 <body>
+  <!-- IMPORTANT: your app-core.js expects these IDs to exist -->
   <header class="app-header">
     <h1 class="app-title">Phonics Wordle</h1>
 
     <div class="controls">
-      <button id="help-btn" class="btn" type="button">How to Play</button>
+      <button id="btn-help" class="btn">How to Play</button>
+      <button id="btn-word" class="btn">Word</button>
+      <button id="btn-sentence" class="btn">Sentence</button>
+      <button id="btn-voice" class="btn">Voice On</button>
 
-      <button id="hear-word" class="btn" type="button" aria-label="Hear word">🎧 Word</button>
-      <button id="hear-sentence" class="btn" type="button" aria-label="Hear sentence">🗣️ Sentence</button>
-      <button id="voice-toggle" class="btn" type="button">Voice On</button>
-
-      <label class="ctl" data-ctl="focus">
+      <label class="ctl">
         Focus
         <select id="focus-select"></select>
       </label>
@@ -32,45 +36,27 @@
 
       <label class="ctl">
         Guesses
-        <select id="guess-select"></select>
+        <select id="tries-select"></select>
       </label>
 
       <label class="ctl teacher">
         Teacher word (hidden)
-        <input id="teacher-word" type="password" inputmode="text" autocomplete="off"
+        <input id="teacher-input" type="password" inputmode="text" autocomplete="off"
                placeholder="Enter 2–10 letters" />
       </label>
-      <button id="set-teacher-word" class="btn" type="button">Set Word</button>
-      <div id="teacher-toast" role="status" aria-live="polite"></div>
+      <button id="teacher-set" class="btn">Set Word</button>
+
+      <button id="btn-next" class="btn">Next Word →</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="game-board" aria-label="Guess board"></section>
-    <section id="keyboard" aria-label="Keyboard"></section>
+    <section id="board" class="board" aria-label="Guess board"></section>
+    <section id="keyboard" class="keyboard" aria-label="Keyboard"></section>
   </main>
 
-  <!-- Modals -->
-  <div id="howto-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
-    <div class="modal-content">
-      <h2 id="howto-title">How to Play</h2>
-      <div id="howto-text"></div>
-      <p><button class="btn" type="button" onclick="document.getElementById('howto-modal').classList.remove('open')">Close</button></p>
-    </div>
-  </div>
-
-  <div id="end-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="end-title">
-    <div class="modal-content">
-      <h2 id="end-title">Answer</h2>
-      <div id="end-word"></div>
-      <div class="end-details">
-        <div id="end-definition"></div>
-        <div id="end-sentence"></div>
-        <div id="end-fun"></div>
-      </div>
-      <p><button class="btn" type="button" onclick="document.getElementById('end-modal').classList.remove('open')">Close</button></p>
-    </div>
-  </div>
+  <!-- LOAD ORDER MATTERS -->
+<!-- Word packs (MUST be relative ./ not / ) -->
 
   <script src="./app-config.js"></script>
   <script src="./words.js"></script>

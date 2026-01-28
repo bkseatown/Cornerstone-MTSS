@@ -60,59 +60,18 @@
   let row = 0;
   let col = 0;
   let gameOver = false;
-  let voiceEnabled = (CFG.FEATURES.enableVoice && (CFG.FEATURES.voiceStartsOn ?? false));
+  let voiceEnabled = CFG.FEATURES.enableVoice;
 
-  
   /* ======================================================
-     SAFETY / FEATURE FLAGS
-  ====================================================== */
-  function feature(name, fallback = false) {
-    return (CFG?.FEATURES?.[name] ?? fallback);
-  }
-
-  function applyFeatureFlags() {
-    // Focus filters
-    const showFocus = feature("showFocusFilters", true);
-    const focusCtl = document.querySelector('[data-ctl="focus"]');
-    if (focusCtl) focusCtl.style.display = showFocus ? "" : "none";
-    if (!showFocus) {
-      if (focusSelect) focusSelect.value = "none";
-    }
-
-    // End-of-game details (definition/sentence/fun)
-    const showEnd = feature("showEndDetails", true);
-    endDefEl?.parentElement?.classList.toggle("hidden", !showEnd);
-    endSentenceEl?.parentElement?.classList.toggle("hidden", !showEnd);
-    endFunEl?.parentElement?.classList.toggle("hidden", !showEnd);
-
-    // Voice controls
-    const allowVoice = feature("enableVoice", false);
-    voiceEnabled = allowVoice && voiceEnabled;
-    [hearWordBtn, hearSentenceBtn, voiceToggleBtn].forEach(btn => {
-      if (btn) btn.style.display = allowVoice ? "" : "none";
-    });
-  }
-
-  function isValidEntry(word) {
-    const e = DATA.WORD_ENTRIES?.[word];
-    if (!e) return false;
-    if (typeof e.definition !== "string" || !e.definition.trim()) return false;
-    if (typeof e.sentence !== "string" || !e.sentence.trim()) return false;
-    if (!Array.isArray(e.tags) || e.tags.length === 0) return false;
-    return true;
-  }
-/* ======================================================
      INIT
   ====================================================== */
   function init() {
     buildSelectors();
     bindEvents();
-    applyFeatureFlags();
-    if (voiceToggleBtn) voiceToggleBtn.textContent = voiceEnabled ? 'Voice On' : 'Voice Off';
     buildKeyboard();
     resetGame(true);
 
-    if ((CFG.FEATURES.showHelpOnLoad ?? CFG.FEATURES.enableHelpOnLoad)) {
+    if (CFG.FEATURES.showHelpOnLoad) {
       openHowTo();
     }
   }
@@ -158,6 +117,14 @@
 
     teacherSetBtn.addEventListener("click", setTeacherWord);
     teacherInput.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") {
+    });
+    teacherInput.addEventListener("keyup", (e) => e.stopPropagation());
+    teacherInput.addEventListener("keypress", (e) => e.stopPropagation());
+
+    teacherInput.addEventListener("keydown", (e) => {
+      e.stopPropagation();
       if (e.key === "Enter") {
         e.preventDefault();
         setTeacherWord();
@@ -189,13 +156,7 @@
 
     targetWord = pickWord();
     currentEntry = DATA.WORD_ENTRIES[targetWord];
-    if (!isValidEntry(targetWord)) {
-      console.warn("Invalid entry selected; repicking.", targetWord);
-      targetWord = pickWord();
-      currentEntry = DATA.WORD_ENTRIES[targetWord];
-    }
 
-    boardEl.style.setProperty('--word-length', wordLength);
     buildBoard();
   }
 
@@ -203,10 +164,10 @@
     const focus = focusSelect.value;
     const pool = DATA.ANSWER_POOLS[focus] || DATA.ANSWER_POOLS.none;
 
-    const filtered = pool.filter(w => w.length === wordLength && isValidEntry(w));
+    const filtered = pool.filter(w => w.length === wordLength);
     if (!filtered.length) {
       console.warn("No words found for focus/length; falling back.");
-      return (DATA.ANSWER_POOLS.none.find(w => w.length === wordLength && isValidEntry(w)) || filtered[0] || pool.find(isValidEntry) || pool[0]);
+      return DATA.ANSWER_POOLS.none.find(w => w.length === wordLength) || pool[0];
     }
     return filtered[Math.floor(Math.random() * filtered.length)];
   }
@@ -236,6 +197,7 @@
   function handleKeyDown(e) {
     if (howtoModal.classList.contains("open")) {
       if (e.key === "Enter" || e.key === "Escape") {
+        e.preventDefault();
         closeHowTo();
       }
       return;
@@ -243,12 +205,17 @@
 
     if (endModal.classList.contains("open")) {
       if (e.key === "Enter" || e.key === "Escape") {
+        e.preventDefault();
         closeEndModal();
       }
       return;
     }
 
     if (gameOver) return;
+
+    const t = e.target;
+    const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
 
     if (e.key === "Enter") submitGuess();
     else if (e.key === "Backspace") removeLetter();
@@ -330,9 +297,8 @@
     gameOver = true;
 
     endWordEl.textContent = targetWord;
-    const showEnd = feature("showEndDetails", true);
-    endDefEl.textContent = showEnd ? (currentEntry?.definition || "") : "";
-    endSentenceEl.textContent = showEnd ? (currentEntry?.sentence || "") : "";
+    endDefEl.textContent = currentEntry?.definition || "";
+    endSentenceEl.textContent = currentEntry?.sentence || "";
 
     if (DATA.FUN_CONTENT?.length) {
       endFunEl.textContent =
@@ -420,7 +386,9 @@
     currentEntry = DATA.WORD_ENTRIES[val];
 
     teacherInput.value = "";
-    showTeacherToast("Teacher word set");
+    showTeacherToast("✅ Word set! Ready to play ✨");
+    // ensure focus returns to gameplay
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     resetGame(true);
   }
 
@@ -430,7 +398,20 @@
     setTimeout(() => teacherToast.classList.remove("show"), 1200);
   }
 
-  /* ======================================================
+  
+  function niceSentence(word, entry) {
+    const s = (entry && entry.sentence ? String(entry.sentence) : "").trim();
+    const low = s.toLowerCase();
+    if (low.startsWith("say ") && low.includes("slowly")) {
+      return `We used ${word} in a silly sentence today.`;
+    }
+    if (low.includes("schwa")) {
+      return `We played with the word ${word} and made a fun sentence with it.`;
+    }
+    return s || `Here is ${word} in a sentence.`;
+  }
+
+/* ======================================================
      MODALS + VOICE
   ====================================================== */
   function openHowTo() {

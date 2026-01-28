@@ -240,5 +240,31 @@ button:focus {
   }
 }
 
+/* RC1 POLISH */
+body{background:linear-gradient(180deg,#f8fafc 0%, #eef2ff 100%)}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,0.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid #e5e7eb}
+h1{letter-spacing:0.3px}
+button, .btn{border-radius:12px}
+.controls .ctl{border-radius:12px}
+#game-board{margin-top:10px;padding:14px 16px;border-radius:20px;background:#fff;box-shadow:0 6px 22px rgba(0,0,0,0.08)}
+.tile{width:54px;height:54px;border-radius:14px;font-weight:800}
+.key{border-radius:14px;font-weight:700}
+#teacher-toast{left:50%;transform:translateX(-50%);max-width:92vw;font-weight:700}
 
-.hidden{display:none!important;}
+/* How-to modal */
+.howto-wrap{display:flex;flex-direction:column;gap:12px;text-align:center}
+.howto-title{font-size:1.35rem;font-weight:900;letter-spacing:.4px}
+.howto-text{font-size:1rem;opacity:.9}
+.howto-legend{display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin:0 auto}
+.legend-item{display:flex;gap:10px;align-items:center}
+.swatch{width:18px;height:18px;border-radius:6px;border:2px solid #d1d5db;display:inline-block}
+.swatch.correct{background:#4caf50;border-color:#4caf50}
+.swatch.present{background:#fbc02d;border-color:#fbc02d}
+.swatch.absent{background:#9ca3af;border-color:#9ca3af}
+.howto-example{display:flex;flex-direction:column;gap:10px;align-items:center}
+.ex-row{display:flex;gap:8px;justify-content:center}
+.ex-tile{width:42px;height:42px;border-radius:12px;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-weight:900}
+.ex-tile.correct{background:#4caf50;border-color:#4caf50;color:#fff}
+.ex-tile.present{background:#fbc02d;border-color:#fbc02d;color:#111}
+.ex-tile.absent{background:#9ca3af;border-color:#9ca3af;color:#fff}
+.howto-tip{font-size:.95rem;opacity:.9}
