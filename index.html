@@ -4,67 +4,71 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Phonics Wordle</title>
-  <link rel="icon" href="./favicon.ico" />
-
   <link rel="stylesheet" href="./styles.css" />
-<!-- Optional: prevents weird caching behavior on GH Pages -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  <link rel="icon" href="./favicon.ico" />
 </head>
-
 <body>
-  <!-- IMPORTANT: your app-core.js expects these IDs to exist -->
   <header class="app-header">
-    <h1 class="app-title">Phonics Wordle</h1>
+    <div class="app-title">Phonics Wordle</div>
 
     <div class="controls">
-      <button id="btn-help" class="btn">How to Play</button>
-      <button id="btn-word" class="btn">Word</button>
-      <button id="btn-sentence" class="btn">Sentence</button>
-      <button id="btn-voice" class="btn">Voice On</button>
+      <button id="help-btn" class="btn" type="button">How to Play</button>
+      <button id="hear-word" class="btn" type="button">Word</button>
+      <button id="hear-sentence" class="btn" type="button">Sentence</button>
+      <button id="voice-toggle" class="btn" type="button">Voice Off</button>
 
-      <label class="ctl">
-        Focus
-        <select id="focus-select"></select>
+      <label class="ctl">Focus
+        <select id="focus-select" aria-label="Focus"></select>
       </label>
 
-      <label class="ctl">
-        Letters
-        <select id="length-select"></select>
+      <label class="ctl">Letters
+        <select id="length-select" aria-label="Letters"></select>
       </label>
 
-      <label class="ctl">
-        Guesses
-        <select id="tries-select"></select>
+      <label class="ctl">Guesses
+        <select id="guess-select" aria-label="Guesses"></select>
       </label>
 
-      <label class="ctl teacher">
-        Teacher word (hidden)
-        <input id="teacher-input" type="password" inputmode="text" autocomplete="off"
-               placeholder="Enter 2–10 letters" />
+      <label class="ctl">Teacher word (hidden)
+        <input id="teacher-word" type="password" autocomplete="off" placeholder="Enter 2–10 letters" />
       </label>
-      <button id="teacher-set" class="btn">Set Word</button>
-
-      <button id="btn-next" class="btn">Next Word →</button>
+      <button id="set-teacher-word" class="btn" type="button">Set Word</button>
+      <button id="next-word" class="btn" type="button">Next Word →</button>
     </div>
   </header>
 
   <main class="app-main">
-    <section id="board" class="board" aria-label="Guess board"></section>
-    <section id="keyboard" class="keyboard" aria-label="Keyboard"></section>
+    <div id="teacher-toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="game-board" class="board" aria-label="Game board"></div>
+    <div id="keyboard" class="keyboard" aria-label="Keyboard"></div>
   </main>
 
-  <!-- LOAD ORDER MATTERS -->
+  <div id="howto-modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-title">How to Play</div>
+      <div id="howto-text" class="modal-body"></div>
+      <div class="modal-actions">
+        <button id="howto-close" class="btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="end-modal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-title" id="end-word"></div>
+      <div class="modal-body">
+        <div><strong>Definition:</strong> <span id="end-definition"></span></div>
+        <div><strong>Sentence:</strong> <span id="end-sentence"></span></div>
+        <div><strong>Fun:</strong> <span id="end-fun"></span></div>
+      </div>
+      <div class="modal-actions">
+        <button id="end-close" class="btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="./app-config.js"></script>
-
-  <!-- Word packs (MUST be relative ./ not / ) -->
-  <script src="./words-core-cvc.js"></script>
-  <script src="./words-core-blends.js"></script>
-  <script src="./words-core-heart.js"></script>
-  <script src="./words-fun-content.js"></script>
-  <script src="./words-loader.js"></script>
-
+  <script src="./words.js"></script>
   <script src="./app-core.js"></script>
 </body>
 </html>
