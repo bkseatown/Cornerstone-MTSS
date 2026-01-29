@@ -1,5 +1,5 @@
 /* =========================================
-   DECODE THE WORD - FINAL GOLD MASTER
+   DECODE THE WORD - FINAL GOLD MASTER (IOS SAFE)
    ========================================= */
 
 const MAX_GUESSES = 6;
@@ -19,64 +19,145 @@ const keyboard = document.getElementById("keyboard");
 const modalOverlay = document.getElementById("modal-overlay");
 const welcomeModal = document.getElementById("welcome-modal");
 const teacherModal = document.getElementById("teacher-modal");
+const studioModal = document.getElementById("recording-studio-modal");
 const gameModal = document.getElementById("modal");
 
+// --- AUDIO DATABASE SETUP (IndexedDB) ---
+const DB_NAME = "PhonicsAudioDB";
+const STORE_NAME = "audio_files";
+let db;
+
+function initDB() {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+        db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+        }
+    };
+    request.onsuccess = (event) => {
+        db = event.target.result;
+    };
+    request.onerror = (event) => {
+        console.error("DB Error", event);
+    };
+}
+
+function saveAudioToDB(key, blob) {
+    if (!db) return;
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.put(blob, key);
+}
+
+function getAudioFromDB(key) {
+    return new Promise((resolve) => {
+        if (!db) return resolve(null);
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    initDB();
     initControls();
     initKeyboard();
-    initVoiceLoader();
+    initVoiceLoader(); 
+    initStudio();
     
-    // Start game logic
     startNewGame();
     checkFirstTimeVisitor();
 });
 
-/* --- VOICE LOADING (Premium/Enhanced Fix) --- */
+/* --- VOICE LOADING & PICKER --- */
 function initVoiceLoader() {
+    const voiceSelect = document.getElementById("system-voice-select");
+
     const load = () => {
         cachedVoices = window.speechSynthesis.getVoices();
+        populateVoiceList();
     };
+
+    const populateVoiceList = () => {
+        if (!voiceSelect) return;
+        const saved = localStorage.getItem("preferred_voice_uri");
+        
+        voiceSelect.innerHTML = '<option value="">Auto-Select Best (Default)</option>';
+        const englishVoices = cachedVoices.filter(v => v.lang.startsWith("en"));
+        
+        englishVoices.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v.voiceURI;
+            opt.textContent = `${v.name} (${v.lang})`;
+            if (v.voiceURI === saved) opt.selected = true;
+            voiceSelect.appendChild(opt);
+        });
+    };
+
     load();
-    // Chrome/Safari often load voices asynchronously
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = load;
     }
+
+    if(voiceSelect) {
+        voiceSelect.onchange = () => {
+            localStorage.setItem("preferred_voice_uri", voiceSelect.value);
+        };
+    }
 }
 
-function speak(text) {
+async function speak(text, type = "word") {
     if (!text) return;
-    window.speechSynthesis.cancel(); // Stop any previous speech
+    window.speechSynthesis.cancel(); 
+
+    // 1. Check Studio Recording
+    let dbKey = "";
+    if (type === "word") {
+        dbKey = `${text.toLowerCase()}_word`;
+    } else {
+        if (currentEntry && text === currentEntry.sentence) {
+            dbKey = `${currentWord.toLowerCase()}_sentence`;
+        } else {
+            dbKey = "unknown"; 
+        }
+    }
+
+    const blob = await getAudioFromDB(dbKey);
+    
+    if (blob) {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+        audio.onended = () => URL.revokeObjectURL(url);
+        return; 
+    }
+
+    // 2. Fallback to System Voice
     const msg = new SpeechSynthesisUtterance(text);
-    
-    // 1. Get list of available voices
     let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
-    
-    // 2. Intelligent Voice Selection
     let preferred = null;
 
-    // A. Google Voices (Best for Chrome/Android)
-    preferred = voices.find(v => /Google US English/i.test(v.name));
-    if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US"));
+    const savedURI = localStorage.getItem("preferred_voice_uri");
+    if (savedURI) {
+        preferred = voices.find(v => v.voiceURI === savedURI);
+    }
 
-    // B. Apple "Enhanced" / "Premium" / "Siri" (Best for iOS/Mac)
-    // This fixes the "robotic" sound by asking for the high-quality version explicitly
-    if (!preferred) preferred = voices.find(v => (/Enhanced|Premium|Siri/i.test(v.name) && v.lang.startsWith("en-US")));
-
-    // C. Specific High-Quality Apple Voices (Ava, Samantha Enhanced)
-    if (!preferred) preferred = voices.find(v => /Ava/i.test(v.name) && v.lang.startsWith("en-US"));
-    if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name) && v.lang.startsWith("en-US"));
-
-    // D. Microsoft Voices (Windows)
-    if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en-US"));
-
-    // E. Fallback: Any US English voice
-    if (!preferred) preferred = voices.find(v => v.lang === "en-US");
-    
-    // F. Final Fallback: Any English voice
-    if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
+    if (!preferred) {
+        preferred = voices.find(v => /Google US English/i.test(v.name));
+        if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => (/Enhanced|Premium|Siri/i.test(v.name) && v.lang.startsWith("en-US")));
+        if (!preferred) preferred = voices.find(v => /Ava/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => v.lang === "en-US");
+        if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
+    }
 
     if (preferred) msg.voice = preferred;
-    msg.rate = 0.9; // 0.9 is the sweet spot for clarity
+    msg.rate = 0.9; 
     msg.pitch = 1.0;
 
     window.speechSynthesis.speak(msg);
@@ -84,7 +165,6 @@ function speak(text) {
 
 /* --- CONTROLS & EVENTS --- */
 function initControls() {
-    // Buttons
     document.getElementById("new-word-btn").onclick = () => {
         document.getElementById("new-word-btn").blur(); 
         startNewGame();
@@ -94,47 +174,42 @@ function initControls() {
         toggleCase();
     };
     
-    // Selects (Unlocked - Changing them restarts game immediately)
     document.getElementById("pattern-select").onchange = () => {
         document.getElementById("pattern-select").blur();
         startNewGame();
     };
+    
     document.getElementById("length-select").onchange = (e) => {
-        const val = e.target.value;
-        CURRENT_WORD_LENGTH = val === 'any' ? 5 : parseInt(val);
         e.target.blur();
         startNewGame();
     };
 
-    // Teacher Mode
     document.getElementById("teacher-btn").onclick = openTeacherMode;
     document.getElementById("set-word-btn").onclick = handleTeacherSubmit;
+    document.getElementById("open-studio-btn").onclick = openStudioSetup;
     document.getElementById("toggle-mask").onclick = () => {
         const inp = document.getElementById("custom-word-input");
         inp.type = inp.type === "password" ? "text" : "password";
         inp.focus();
     };
 
-    // Hints
     document.getElementById("hear-word-hint").onclick = () => {
-        if (!isModalOpen()) speak(currentWord);
+        if (!isModalOpen()) speak(currentWord, "word");
     };
     document.getElementById("hear-sentence-hint").onclick = () => {
         if (!isModalOpen() && currentEntry) {
-            // FIXED: Removed showToast() so no pop-up appears
-            speak(currentEntry.sentence);
+            speak(currentEntry.sentence, "sentence");
         }
     };
     document.getElementById("speak-btn").onclick = () => {
-        speak(currentWord);
+        speak(currentWord, "word");
     };
     document.getElementById("play-again-btn").onclick = () => {
         closeModal();
         startNewGame();
     };
 
-    // Modal Closing Logic (Click X or Buttons)
-    document.querySelectorAll(".close-btn, .close-teacher, #start-playing-btn").forEach(btn => {
+    document.querySelectorAll(".close-btn, .close-teacher, .close-studio, #start-playing-btn").forEach(btn => {
         btn.addEventListener("click", closeModal);
     });
 
@@ -142,19 +217,18 @@ function initControls() {
         if (e.target === modalOverlay) closeModal();
     };
 
-    // Global Keyboard Listener
     window.addEventListener("keydown", (e) => {
-        // MODAL HANDLING
         if (isModalOpen()) {
+            if (!studioModal.classList.contains("hidden")) return; 
+
             if (e.key === "Escape" || e.key === "Enter") {
-                // If teacher modal is open, Enter submits the word
                 if (!teacherModal.classList.contains("hidden") && e.key === "Enter") {
                     handleTeacherSubmit();
                 } else {
-                    closeModal(); // Otherwise just close
+                    closeModal(); 
                 }
             }
-            return; // STOP execution here
+            return; 
         }
 
         if (gameOver) return;
@@ -164,7 +238,6 @@ function initControls() {
         else if (/^[a-z]$/i.test(e.key)) handleInput(e.key.toLowerCase());
     });
 
-    // Teacher Input Specifics
     const tInput = document.getElementById("custom-word-input");
     tInput.addEventListener("keydown", (e) => {
         e.stopImmediatePropagation(); 
@@ -177,6 +250,192 @@ function isModalOpen() {
     return !modalOverlay.classList.contains("hidden");
 }
 
+/* --- STUDIO LOGIC (SAFARI SAFE) --- */
+let studioList = [];
+let studioIndex = 0;
+let mediaRecorder = null;
+let audioChunks = [];
+
+function initStudio() {
+    document.getElementById("studio-source-select").onchange = (e) => {
+        const pasteArea = document.getElementById("studio-paste-area");
+        pasteArea.classList.toggle("hidden", e.target.value !== "paste");
+    };
+
+    document.getElementById("start-studio-btn").onclick = startStudioSession;
+    document.getElementById("exit-studio-btn").onclick = closeModal;
+    
+    document.getElementById("record-word-btn").onclick = () => toggleRecording("word");
+    document.getElementById("record-sentence-btn").onclick = () => toggleRecording("sentence");
+    
+    document.getElementById("play-word-preview").onclick = () => playPreview("word");
+    document.getElementById("play-sentence-preview").onclick = () => playPreview("sentence");
+    
+    document.getElementById("next-item-btn").onclick = nextStudioItem;
+}
+
+function openStudioSetup() {
+    teacherModal.classList.add("hidden");
+    studioModal.classList.remove("hidden");
+    document.getElementById("studio-setup-view").classList.remove("hidden");
+    document.getElementById("studio-record-view").classList.add("hidden");
+}
+
+async function startStudioSession() {
+    const source = document.getElementById("studio-source-select").value;
+    const skipExisting = document.getElementById("studio-skip-existing").checked;
+    
+    let rawList = [];
+
+    if (source === "focus") {
+        const pattern = document.getElementById("pattern-select").value;
+        const allWords = Object.keys(window.WORD_ENTRIES);
+        rawList = allWords.filter(w => {
+            const e = window.WORD_ENTRIES[w];
+            return pattern === 'all' || (e.tags && e.tags.includes(pattern));
+        });
+    } else {
+        const text = document.getElementById("studio-paste-input").value;
+        rawList = text.split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s && /^[a-z]+$/.test(s));
+    }
+
+    if (rawList.length === 0) {
+        alert("No words found.");
+        return;
+    }
+
+    studioList = [];
+    for (let w of rawList) {
+        const entry = window.WORD_ENTRIES[w] || { sentence: `The word is ${w}.` };
+        
+        if (skipExisting) {
+            const hasWord = await getAudioFromDB(`${w}_word`);
+            const hasSent = await getAudioFromDB(`${w}_sentence`);
+            if (hasWord && hasSent) continue; 
+        }
+        studioList.push({ word: w, sentence: entry.sentence });
+    }
+
+    if (studioList.length === 0) {
+        alert("All words already have recordings!");
+        return;
+    }
+
+    studioIndex = 0;
+    document.getElementById("studio-setup-view").classList.add("hidden");
+    document.getElementById("studio-record-view").classList.remove("hidden");
+    loadStudioItem();
+}
+
+function loadStudioItem() {
+    if (studioIndex >= studioList.length) {
+        alert("Session Complete!");
+        closeModal();
+        return;
+    }
+
+    const item = studioList[studioIndex];
+    document.getElementById("studio-progress").textContent = `${studioIndex + 1} / ${studioList.length}`;
+    document.getElementById("studio-word-display").textContent = item.word.toUpperCase();
+    document.getElementById("studio-sentence-display").value = item.sentence;
+
+    resetRecordButtons();
+}
+
+function resetRecordButtons() {
+    const wordBtn = document.getElementById("record-word-btn");
+    const sentBtn = document.getElementById("record-sentence-btn");
+    const playW = document.getElementById("play-word-preview");
+    const playS = document.getElementById("play-sentence-preview");
+
+    wordBtn.textContent = "Record Word";
+    wordBtn.classList.remove("recording");
+    sentBtn.textContent = "Record Sentence";
+    sentBtn.classList.remove("recording");
+    
+    playW.disabled = true;
+    playS.disabled = true;
+
+    const w = studioList[studioIndex].word;
+    getAudioFromDB(`${w}_word`).then(b => { if(b) playW.disabled = false; });
+    getAudioFromDB(`${w}_sentence`).then(b => { if(b) playS.disabled = false; });
+}
+
+function toggleRecording(type) {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        // FIX: Check for Safari-friendly MP4 first
+        let mimeType = "audio/webm";
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
+            mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+            mimeType = "audio/webm;codecs=opus";
+        }
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+        
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: mimeType });
+            const word = studioList[studioIndex].word;
+            const key = type === "word" ? `${word}_word` : `${word}_sentence`;
+            
+            saveAudioToDB(key, blob);
+            
+            const btn = document.getElementById(type === "word" ? "record-word-btn" : "record-sentence-btn");
+            btn.textContent = "Re-Record";
+            btn.classList.remove("recording");
+            
+            const playBtn = document.getElementById(type === "word" ? "play-word-preview" : "play-sentence-preview");
+            playBtn.disabled = false;
+
+            document.getElementById("recording-status").textContent = "Saved!";
+            setTimeout(() => {
+                document.getElementById("recording-status").textContent = "";
+                if (document.getElementById("studio-auto-advance").checked) {
+                    getAudioFromDB(`${word}_word`).then(w => {
+                        getAudioFromDB(`${word}_sentence`).then(s => {
+                            if (w && s) setTimeout(nextStudioItem, 500);
+                        });
+                    });
+                }
+            }, 1000);
+        };
+
+        mediaRecorder.start();
+        
+        const btn = document.getElementById(type === "word" ? "record-word-btn" : "record-sentence-btn");
+        btn.textContent = "Stop ■";
+        btn.classList.add("recording");
+        document.getElementById("recording-status").textContent = "Recording...";
+
+    }).catch(err => {
+        console.error("Mic Error:", err);
+        alert("Could not access microphone. Check permissions.");
+    });
+}
+
+async function playPreview(type) {
+    const word = studioList[studioIndex].word;
+    const key = type === "word" ? `${word}_word` : `${word}_sentence`;
+    const blob = await getAudioFromDB(key);
+    if (blob) {
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
+    }
+}
+
+function nextStudioItem() {
+    studioIndex++;
+    loadStudioItem();
+}
+
 /* --- GAME LOGIC --- */
 function startNewGame(customWord = null) {
     gameOver = false;
@@ -186,7 +445,6 @@ function startNewGame(customWord = null) {
     clearKeyboardColors();
     updateFocusPanel();
     
-    // Pick word
     if (customWord) {
         currentWord = customWord.toLowerCase();
         CURRENT_WORD_LENGTH = currentWord.length;
@@ -197,13 +455,10 @@ function startNewGame(customWord = null) {
         const data = getWordFromDictionary();
         currentWord = data.word;
         currentEntry = data.entry;
-        // If we picked a random word, ensure grid matches its length
         CURRENT_WORD_LENGTH = currentWord.length;
     }
 
     isFirstLoad = false;
-    
-    // Build Grid
     board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 50px)`;
     for (let i = 0; i < MAX_GUESSES * CURRENT_WORD_LENGTH; i++) {
         const tile = document.createElement("div");
@@ -216,35 +471,40 @@ function startNewGame(customWord = null) {
 function getWordFromDictionary() {
     const pattern = document.getElementById("pattern-select").value;
     const lenVal = document.getElementById("length-select").value;
-    const targetLen = (lenVal === 'any') ? null : parseInt(lenVal);
+    
+    // NEW LOGIC: Traditional = 5, Any = Random
+    let targetLen = null;
+    if (lenVal === 'traditional') targetLen = 5;
+    else if (lenVal === 'any') targetLen = null;
+    else targetLen = parseInt(lenVal);
 
-    // Filter using your uploaded words.js data
     const pool = Object.keys(window.WORD_ENTRIES).filter(w => {
         const e = window.WORD_ENTRIES[w];
         const lenMatch = !targetLen || w.length === targetLen;
-        // Check tag match OR if pattern is 'all'
         const patMatch = pattern === 'all' || (e.tags && e.tags.includes(pattern));
         return lenMatch && patMatch;
     });
 
-    // Fallback if no words match criteria
     if (pool.length === 0) return { word: "apple", entry: window.WORD_ENTRIES["apple"] };
-
     const final = pool[Math.floor(Math.random() * pool.length)];
     return { word: final, entry: window.WORD_ENTRIES[final] };
 }
 
 function updateFocusPanel() {
     const pat = document.getElementById("pattern-select").value;
-    // Uses data from words.js (FOCUS_INFO)
     const info = window.FOCUS_INFO[pat] || window.FOCUS_INFO.all || { 
         title: "Practice", desc: "General Review", hint: "Do your best!", examples: "" 
     };
-    
     document.getElementById("focus-title").textContent = info.title;
     document.getElementById("focus-desc").textContent = info.desc;
     document.getElementById("focus-hint").textContent = info.hint;
-    document.getElementById("focus-examples").textContent = `Ex: ${info.examples}`;
+    
+    const exSpan = document.getElementById("focus-examples");
+    if (info.examples && info.examples.length > 0) {
+        exSpan.textContent = `Ex: ${info.examples}`;
+    } else {
+        exSpan.textContent = "";
+    }
 
     const quickRow = document.getElementById("quick-tiles-row");
     if (info.quick) {
@@ -265,7 +525,6 @@ function updateFocusPanel() {
     }
 }
 
-/* --- KEYBOARD & INPUT --- */
 function initKeyboard() {
     const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
     keyboard.innerHTML = "";
@@ -335,22 +594,20 @@ function toggleCase() {
     isUpperCase = !isUpperCase;
     document.getElementById("case-toggle").textContent = isUpperCase ? "ABC" : "abc";
     initKeyboard();
-    // Update existing grid text
     document.querySelectorAll(".tile").forEach(t => {
         if(t.textContent) t.textContent = isUpperCase ? t.textContent.toUpperCase() : t.textContent.toLowerCase();
     });
 }
 
-/* --- GUESS SUBMISSION --- */
 function submitGuess() {
     if (currentGuess.length !== CURRENT_WORD_LENGTH) {
-        // Shake animation
         const offset = guesses.length * CURRENT_WORD_LENGTH;
         const first = document.getElementById(`tile-${offset}`);
         if(first) {
             first.style.transform = "translateX(5px)";
             setTimeout(() => first.style.transform = "none", 100);
         }
+        showToast("Finish the word first."); // CLEAN TOAST
         return;
     }
     
@@ -360,7 +617,7 @@ function submitGuess() {
 
     if (currentGuess === currentWord) {
         gameOver = true;
-        confetti(); // Trigger confetti
+        confetti(); 
         setTimeout(() => showEndModal(true), 1500);
     } else if (guesses.length >= MAX_GUESSES) {
         gameOver = true;
@@ -375,7 +632,6 @@ function evaluate(guess, target) {
     const tArr = target.split("");
     const gArr = guess.split("");
 
-    // First pass: Correct
     gArr.forEach((c, i) => {
         if (c === tArr[i]) {
             res[i] = "correct";
@@ -383,7 +639,6 @@ function evaluate(guess, target) {
             gArr[i] = null;
         }
     });
-    // Second pass: Present
     gArr.forEach((c, i) => {
         if (c && tArr.includes(c)) {
             res[i] = "present";
@@ -400,8 +655,6 @@ function revealColors(result, guess) {
             const t = document.getElementById(`tile-${offset + i}`);
             t.classList.add(status);
             t.classList.add("pop");
-
-            // Keyboard coloring
             const k = document.querySelector(`.key[data-key="${guess[i]}"]`);
             if (k) {
                 if (status === "correct") {
@@ -422,13 +675,11 @@ function revealColors(result, guess) {
     });
 }
 
-/* --- MODALS & EFFECTS --- */
 function showEndModal(win) {
     modalOverlay.classList.remove("hidden");
     gameModal.classList.remove("hidden");
     document.getElementById("modal-title").textContent = win ? "Great Job!" : "Nice Try!";
     
-    // Populate Data
     document.getElementById("modal-word").textContent = currentWord.toUpperCase();
     document.getElementById("modal-syllables").textContent = currentEntry.syllables ? currentEntry.syllables.replace(/-/g, " • ") : currentWord;
     document.getElementById("modal-def").textContent = currentEntry.def;
@@ -460,6 +711,7 @@ function closeModal() {
     welcomeModal.classList.add("hidden");
     teacherModal.classList.add("hidden");
     gameModal.classList.add("hidden");
+    studioModal.classList.add("hidden");
     
     if (document.activeElement) document.activeElement.blur();
     document.body.focus();
@@ -476,16 +728,19 @@ function showBanner(msg) {
     }, 3000);
 }
 
+// FIX: New Non-Stacking Toast
 function showToast(msg) {
+    const container = document.getElementById("toast-container");
+    container.innerHTML = ""; // Clear existing
     const t = document.createElement("div");
     t.className = "toast";
     t.textContent = msg;
-    document.getElementById("toast-container").appendChild(t);
+    container.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
 
 function checkFirstTimeVisitor() {
-    if (!localStorage.getItem("decode_v5_visited")) { // Bumped version
+    if (!localStorage.getItem("decode_v5_visited")) {
         modalOverlay.classList.remove("hidden");
         welcomeModal.classList.remove("hidden");
         localStorage.setItem("decode_v5_visited", "true");
@@ -499,7 +754,6 @@ function clearKeyboardColors() {
 }
 
 function confetti() {
-    // Simple pure JS confetti
     for (let i = 0; i < 50; i++) {
         const c = document.createElement("div");
         c.style.position = "fixed";
