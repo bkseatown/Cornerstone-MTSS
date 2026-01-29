@@ -1,5 +1,5 @@
 /* =========================================
-   DECODE THE WORD - FINAL GOLD MASTER (IOS SAFE)
+   DECODE THE WORD - GOLD MASTER (IOS SAFE + FIXED STUDIO FLOW)
    ========================================= */
 
 const MAX_GUESSES = 6;
@@ -250,11 +250,12 @@ function isModalOpen() {
     return !modalOverlay.classList.contains("hidden");
 }
 
-/* --- STUDIO LOGIC (SAFARI SAFE) --- */
+/* --- STUDIO LOGIC --- */
 let studioList = [];
 let studioIndex = 0;
 let mediaRecorder = null;
 let audioChunks = [];
+let recordingType = ""; // Track what we are recording
 
 function initStudio() {
     document.getElementById("studio-source-select").onchange = (e) => {
@@ -368,7 +369,7 @@ function toggleRecording(type) {
     }
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        // FIX: Check for Safari-friendly MP4 first
+        // FIX: iOS/Safari Mime Check
         let mimeType = "audio/webm";
         if (MediaRecorder.isTypeSupported("audio/mp4")) {
             mimeType = "audio/mp4";
@@ -378,6 +379,7 @@ function toggleRecording(type) {
 
         mediaRecorder = new MediaRecorder(stream, { mimeType });
         audioChunks = [];
+        recordingType = type; // Track what we are recording
 
         mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
         
@@ -398,12 +400,11 @@ function toggleRecording(type) {
             document.getElementById("recording-status").textContent = "Saved!";
             setTimeout(() => {
                 document.getElementById("recording-status").textContent = "";
-                if (document.getElementById("studio-auto-advance").checked) {
-                    getAudioFromDB(`${word}_word`).then(w => {
-                        getAudioFromDB(`${word}_sentence`).then(s => {
-                            if (w && s) setTimeout(nextStudioItem, 500);
-                        });
-                    });
+                
+                // CRITICAL FIX: Only auto-advance if we just finished the SENTENCE.
+                // This ensures the user stays on the card after recording the Word.
+                if (document.getElementById("studio-auto-advance").checked && recordingType === 'sentence') {
+                    setTimeout(nextStudioItem, 500);
                 }
             }, 1000);
         };
@@ -472,7 +473,6 @@ function getWordFromDictionary() {
     const pattern = document.getElementById("pattern-select").value;
     const lenVal = document.getElementById("length-select").value;
     
-    // NEW LOGIC: Traditional = 5, Any = Random
     let targetLen = null;
     if (lenVal === 'traditional') targetLen = 5;
     else if (lenVal === 'any') targetLen = null;
