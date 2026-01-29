@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkFirstTimeVisitor();
 });
 
-/* --- VOICE LOADING (Premium Voice Fix) --- */
+/* --- VOICE LOADING (Premium/Enhanced Fix) --- */
 function initVoiceLoader() {
     const load = () => {
         cachedVoices = window.speechSynthesis.getVoices();
@@ -51,20 +51,32 @@ function speak(text) {
     // 1. Get list of available voices
     let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
     
-    // 2. Aggressive search for "Human-sounding" voices
-    // We check for these specific keywords that indicate high quality
-    let preferred = voices.find(v => /Google US English/i.test(v.name)); // Best Chrome voice
+    // 2. Intelligent Voice Selection
+    let preferred = null;
+
+    // A. Google Voices (Best for Chrome/Android)
+    preferred = voices.find(v => /Google US English/i.test(v.name));
+    if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US"));
+
+    // B. Apple "Enhanced" / "Premium" / "Siri" (Best for iOS/Mac)
+    // This fixes the "robotic" sound by asking for the high-quality version explicitly
+    if (!preferred) preferred = voices.find(v => (/Enhanced|Premium|Siri/i.test(v.name) && v.lang.startsWith("en-US")));
+
+    // C. Specific High-Quality Apple Voices (Ava, Samantha Enhanced)
+    if (!preferred) preferred = voices.find(v => /Ava/i.test(v.name) && v.lang.startsWith("en-US"));
+    if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name) && v.lang.startsWith("en-US"));
+
+    // D. Microsoft Voices (Windows)
+    if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en-US"));
+
+    // E. Fallback: Any US English voice
+    if (!preferred) preferred = voices.find(v => v.lang === "en-US");
     
-    if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en"));
-    if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name)); // Best Mac voice
-    if (!preferred) preferred = voices.find(v => /Daniel/i.test(v.name));   // Best iOS voice
-    if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en")); // Best Windows voice
-    
-    // 3. Fallback to any English voice if premium ones fail
+    // F. Final Fallback: Any English voice
     if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
 
     if (preferred) msg.voice = preferred;
-    msg.rate = 0.9; // 0.9 is the sweet spot for clarity without dragging
+    msg.rate = 0.9; // 0.9 is the sweet spot for clarity
     msg.pitch = 1.0;
 
     window.speechSynthesis.speak(msg);
@@ -89,7 +101,6 @@ function initControls() {
     };
     document.getElementById("length-select").onchange = (e) => {
         const val = e.target.value;
-        // If "any", default to 5, else use value
         CURRENT_WORD_LENGTH = val === 'any' ? 5 : parseInt(val);
         e.target.blur();
         startNewGame();
@@ -110,7 +121,7 @@ function initControls() {
     };
     document.getElementById("hear-sentence-hint").onclick = () => {
         if (!isModalOpen() && currentEntry) {
-            showToast("Sentence hint shared!");
+            // FIXED: Removed showToast() so no pop-up appears
             speak(currentEntry.sentence);
         }
     };
