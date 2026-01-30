@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Decode the Word</title>
-  <!-- Favicon optional. Remove to avoid 404 on GitHub Pages if you don't include favicon.ico -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body tabindex="-1">
 
     <div id="toast-container"></div>
+    <div id="banner-container" class="banner hidden"></div>
 
     <header>
         <div class="header-top">
@@ -44,50 +44,50 @@
             <div class="control-group">
                 <label for="length-select">Length:</label>
                 <select id="length-select">
-                    <option value="any">Any Length</option>
-                    <option value="3">3 Letters</option>
-                    <option value="4">4 Letters</option>
-                    <option value="5" selected>5 Letters</option>
-                    <option value="6">6 Letters</option>
+                    <option value="any">Any</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5" selected>5</option>
+                    <option value="6">6</option>
                 </select>
             </div>
             
-            <button id="new-word-btn">New Word</button>
+            <button id="new-word-btn" title="Skip / New Word">New Word ↻</button>
         </div>
 
-        <div id="focus-info-panel" class="focus-panel">
+        <div class="focus-panel">
             <div class="focus-header">
-                <strong id="focus-title">Mixed Review</strong>
-                <span id="focus-examples"></span>
+                <strong id="focus-title">Focus Title</strong>
+                <button id="hear-word-hint" class="icon-btn" title="Hear Word">🔊</button>
             </div>
-            <p id="focus-desc"></p>
-            <p id="focus-hint" class="hint-text"></p>
+            <div id="focus-desc">Description of the rule.</div>
+            <div id="focus-hint" class="hint-text">Hint text...</div>
+            <div id="focus-examples" style="margin-top:2px; color:#666; font-style:italic;">Ex: ...</div>
+            <div id="quick-tiles-row" class="quick-row hidden"></div>
         </div>
     </header>
 
     <main>
         <div id="game-board"></div>
-        <div id="quick-tiles-row" class="quick-row hidden"></div>
-        <div id="keyboard"></div>
-        <div class="hint-actions">
-            <button id="hear-word-hint" class="hint-btn">🔊 Hear Word</button>
-            <button id="hear-sentence-hint" class="hint-btn">📝 Sentence Hint</button>
-        </div>
+        <button id="hear-sentence-hint" class="text-btn" style="margin-bottom: 10px; width: 100%; max-width: 300px;">💡 Hear Sentence Hint</button>
     </main>
 
-    <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="keyboard"></div>
+
+    <div id="modal-overlay" class="hidden">
+        
         <div id="modal" class="modal hidden">
             <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h2 id="modal-title">Nice Try!</h2>
-                <div id="modal-word">WORD</div>
-                <div id="modal-syllables" class="syllable-hint"></div>
-                <div class="definition-box">
-                    <p id="modal-def"></p>
-                    <p id="modal-sentence" class="sentence-example"></p>
+                <span class="close-btn top-right-x">&times;</span>
+                <h2 id="modal-title">Great Job!</h2>
+                <div class="stat-box">
+                    <div id="modal-word" class="stat-word">WORD</div>
+                    <div id="modal-syllables" class="stat-syllables">w • o • r • d</div>
+                    <div id="modal-def" class="stat-def">Definition here.</div>
+                    <div id="modal-sentence" class="stat-sentence">"Sentence here."</div>
                 </div>
-                <div class="modal-actions">
-                    <button id="speak-btn" class="action-btn">🔊 Hear It</button>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button id="speak-btn" class="action-btn">🔊 Say Word</button>
                     <button id="play-again-btn" class="primary-btn">Play Again</button>
                 </div>
             </div>
@@ -95,9 +95,14 @@
 
         <div id="teacher-modal" class="modal hidden">
             <div class="modal-content teacher-content">
-                <span class="close-teacher">&times;</span>
+                <span class="close-teacher top-right-x">&times;</span>
                 <h2>Teacher Mode</h2>
-                <p>Set a masked word (3-10 letters) for the student.</p>
+                <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                     <button id="open-studio-btn" class="action-btn" style="width:100%; background:#673ab7;">🎙️ Open Recording Studio</button>
+                     <p style="font-size: 0.8rem; color:#666; margin-top:5px;">Override robotic voices with your own.</p>
+                </div>
+
+                <p><strong>Set a specific word:</strong></p>
                 <div class="masked-input-container">
                     <input type="password" id="custom-word-input" placeholder="Enter secret word" autocomplete="off">
                     <button id="toggle-mask" type="button">👁️</button>
@@ -107,8 +112,66 @@
             </div>
         </div>
 
+        <div id="recording-studio-modal" class="modal hidden" style="max-width: 500px; height: 90vh; display: flex; flex-direction: column;">
+             <div id="studio-setup-view" class="studio-view">
+                <span class="close-studio top-right-x">&times;</span>
+                <h2>🎙️ Recording Studio</h2>
+                <p>Create custom audio for words or sentences.</p>
+                
+                <div class="control-group" style="text-align:left; margin-bottom:15px;">
+                    <label><strong>Source:</strong></label>
+                    <select id="studio-source-select" style="width:100%; padding:8px; margin-top:5px;">
+                        <option value="focus">Current Focus List</option>
+                        <option value="paste">Paste Custom List (Words Their Way)</option>
+                    </select>
+                </div>
+
+                <div id="studio-paste-area" class="hidden" style="margin-bottom:15px;">
+                    <textarea id="studio-paste-input" placeholder="Paste words here (one per line)..." style="width:100%; height:100px; padding:8px;"></textarea>
+                </div>
+
+                <div class="control-group" style="text-align:left; margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="studio-skip-existing" checked> Skip items with existing audio</label>
+                    <label style="display:block;"><input type="checkbox" id="studio-auto-advance" checked> Auto-advance after save</label>
+                </div>
+
+                <button id="start-studio-btn" class="primary-btn">Start Recording Session</button>
+             </div>
+
+             <div id="studio-record-view" class="studio-view hidden" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <button id="exit-studio-btn" class="text-btn">Exit</button>
+                    <span id="studio-progress">1 / 10</span>
+                </div>
+
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:15px;">
+                    <div id="studio-word-display" style="font-size: 2.5rem; font-family: var(--font-fancy); color: #2c3e50; font-weight:bold;">WORD</div>
+                    
+                    <div class="record-card">
+                        <p class="record-label">Sentence:</p>
+                        <textarea id="studio-sentence-display" style="width:100%; padding:8px; font-family:var(--font-clean); border:1px solid #ccc; border-radius:4px;">The word is word.</textarea>
+                    </div>
+
+                    <div id="recording-status" style="height: 30px; font-weight:bold; color:#e74c3c;"></div>
+                </div>
+
+                <div class="studio-controls">
+                    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
+                        <button id="record-word-btn" class="record-btn" title="Record Word">Record Word</button>
+                        <button id="record-sentence-btn" class="record-btn" title="Record Sentence">Record Sentence</button>
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
+                         <button id="play-word-preview" class="icon-btn" disabled>🔊 Word</button>
+                         <button id="play-sentence-preview" class="icon-btn" disabled>💡 Sentence</button>
+                    </div>
+                    <button id="next-item-btn" class="primary-btn">Next Word &rarr;</button>
+                </div>
+             </div>
+        </div>
+
         <div id="welcome-modal" class="modal hidden">
             <div class="modal-content welcome-content">
+                <span class="close-btn top-right-x">&times;</span>
                 <h2>Welcome! 👋</h2>
                 <p>Let's practice decoding. Pick a focus and guess the secret word!</p>
                 <ul class="welcome-steps">
@@ -121,8 +184,12 @@
         </div>
     </div>
 
-  <script src="phonics_focus_data.js"></script>
-  <script src="jokes_facts_quotes_bank.js"></script>
-  <script src="script.js"></script>
+    
+    <script src="script.js"></script>
+
+<script src="phonics_focus_data.js"></script>
+<script src="jokes_facts_quotes_bank.js"></script>
+<script src="script.js"></script>
 </body>
+
 </html>
