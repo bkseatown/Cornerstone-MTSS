@@ -107,79 +107,83 @@
                      <button id="open-studio-btn" class="action-btn" style="width:100%; background:#673ab7; color: white; margin-bottom: 15px;">🎙️ Open Recording Studio</button>
                      
                      <div class="control-group" style="text-align: left;">
-                        <label for="system-voice-select" style="font-weight:bold;">Preferred Robot Voice:</label>
-                        <select id="system-voice-select" style="width: 100%; padding: 8px; font-size: 0.9rem;">
-                            <option value="">Auto-Select Best (Default)</option>
-                        </select>
-                        <p style="font-size: 0.75rem; color:#666; margin-top:2px;">Tip: Recordings always override this.</p>
+                        <label for="system-voice-select" style="font-weight:bold; display:block; margin-bottom: 6px;">System Voice (Fix Robot Voice):</label>
+                        <select id="system-voice-select" style="width:100%;"></select>
                      </div>
                 </div>
 
-                <p><strong>Set a specific word:</strong></p>
-                <div class="masked-input-container">
-                    <input type="password" id="custom-word-input" placeholder="Enter secret word" autocomplete="off">
-                    <button id="toggle-mask" type="button">👁️</button>
+                <p style="text-align:left; margin-top:0;">Set a custom word for students to guess.</p>
+
+                <div class="teacher-row">
+                    <input id="custom-word-input" type="password" placeholder="Type secret word..." autocomplete="off" autocapitalize="none" spellcheck="false" />
+                    <button id="toggle-mask" class="icon-btn" title="Show/Hide">👁️</button>
                 </div>
-                <p id="teacher-error" class="error-msg"></p>
-                <button id="set-word-btn" class="primary-btn">Set Word & Play</button>
+
+                <button id="set-word-btn" class="primary-btn" style="width:100%;">Set Word ✅</button>
             </div>
         </div>
 
-        <div id="recording-studio-modal" class="modal hidden" style="max-width: 500px; height: 90vh; display: flex; flex-direction: column;">
-             <div id="studio-setup-view" class="studio-view">
+        <div id="recording-studio-modal" class="modal hidden">
+            <div class="modal-content studio-content">
                 <span class="close-studio top-right-x">&times;</span>
-                <h2>🎙️ Recording Studio</h2>
-                <p>Create custom audio for words or sentences.</p>
-                
-                <div class="control-group" style="text-align:left; margin-bottom:15px;">
-                    <label><strong>Source:</strong></label>
-                    <select id="studio-source-select" style="width:100%; padding:8px; margin-top:5px;">
-                        <option value="focus">Current Focus List</option>
-                        <option value="paste">Paste Custom List</option>
-                    </select>
-                </div>
+                <h2>Teacher Recording Studio 🎙️</h2>
 
-                <div id="studio-paste-area" class="hidden" style="margin-bottom:15px;">
-                    <textarea id="studio-paste-input" placeholder="Paste words here (one per line)..." style="width:100%; height:100px; padding:8px;"></textarea>
-                </div>
+                <div id="studio-setup-view">
+                    <p style="margin-top: 0;">Record your own voice for words and sentence hints.</p>
 
-                <div class="control-group" style="text-align:left; margin-bottom:20px;">
-                    <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="studio-skip-existing" checked> Skip items with existing audio</label>
-                    <label style="display:block;"><input type="checkbox" id="studio-auto-advance" checked> Auto-advance after save</label>
-                </div>
-
-                <button id="start-studio-btn" class="primary-btn">Start Recording Session</button>
-             </div>
-
-             <div id="studio-record-view" class="studio-view hidden" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button id="exit-studio-btn" class="text-btn">Exit</button>
-                    <span id="studio-progress">1 / 10</span>
-                </div>
-
-                <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:15px;">
-                    <div id="studio-word-display" style="font-size: 2.5rem; font-family: var(--font-fancy); color: #2c3e50; font-weight:bold;">WORD</div>
-                    
-                    <div class="record-card">
-                        <p class="record-label">Sentence:</p>
-                        <textarea id="studio-sentence-display" style="width:100%; padding:8px; font-family:var(--font-clean); border:1px solid #ccc; border-radius:4px;">The word is word.</textarea>
+                    <div class="control-group" style="text-align:left;">
+                        <label for="studio-source-select" style="font-weight:bold; display:block; margin-bottom:6px;">Choose Word List:</label>
+                        <select id="studio-source-select" style="width:100%;">
+                            <option value="focus">Use Current Focus Word Bank</option>
+                            <option value="paste">Paste Your Own Word List</option>
+                        </select>
                     </div>
 
-                    <div id="recording-status" style="height: 30px; font-weight:bold; color:#e74c3c;"></div>
+                    <div id="studio-paste-area" class="hidden" style="text-align:left;">
+                        <label for="studio-paste-input" style="font-weight:bold; display:block; margin:10px 0 6px;">Paste Words (one per line):</label>
+                        <textarea id="studio-paste-input" rows="5" style="width:100%;" placeholder="cat&#10;ship&#10;robot"></textarea>
+                    </div>
+
+                    <label style="display:flex; gap:8px; align-items:center; justify-content:flex-start; margin-top:10px;">
+                        <input type="checkbox" id="studio-skip-existing" checked />
+                        Skip words that already have recordings
+                    </label>
+
+                    <button id="start-studio-btn" class="primary-btn" style="width:100%; margin-top:15px;">Start Session ▶️</button>
+                    <button id="exit-studio-btn" class="action-btn" style="width:100%; margin-top:10px;">Exit</button>
                 </div>
 
-                <div class="studio-controls">
-                    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
-                        <button id="record-word-btn" class="record-btn" title="Record Word">Record Word</button>
-                        <button id="record-sentence-btn" class="record-btn" title="Record Sentence">Record Sentence</button>
+                <div id="studio-record-view" class="hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div id="studio-progress" style="font-weight:bold;">1 / 10</div>
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" id="studio-auto-advance" checked />
+                            Auto-advance after sentence
+                        </label>
                     </div>
-                    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
-                         <button id="play-word-preview" class="icon-btn" disabled>🔊 Word</button>
-                         <button id="play-sentence-preview" class="icon-btn" disabled>💡 Sentence</button>
+
+                    <div class="studio-card">
+                        <div id="studio-word-display" class="studio-word">CAT</div>
+
+                        <div class="studio-controls">
+                            <button id="record-word-btn" class="record-btn">Record Word</button>
+                            <button id="play-word-preview" class="action-btn" disabled>▶ Preview</button>
+                        </div>
+
+                        <label style="font-weight:bold; display:block; text-align:left; margin-top:12px;">Sentence (edit if needed):</label>
+                        <textarea id="studio-sentence-display" rows="3" style="width:100%;"></textarea>
+
+                        <div class="studio-controls" style="margin-top:10px;">
+                            <button id="record-sentence-btn" class="record-btn">Record Sentence</button>
+                            <button id="play-sentence-preview" class="action-btn" disabled>▶ Preview</button>
+                        </div>
+
+                        <div id="recording-status" style="margin-top:10px; font-weight:bold;"></div>
                     </div>
-                    <button id="next-item-btn" class="primary-btn">Next Word &rarr;</button>
+
+                    <button id="next-item-btn" class="primary-btn" style="width:100%; margin-top:10px;">Next Word ➜</button>
                 </div>
-             </div>
+            </div>
         </div>
 
         <div id="welcome-modal" class="modal hidden">
@@ -197,7 +201,11 @@
         </div>
     </div>
 
-    <script src="words.js"></script>
+    <!-- DATA FILES MUST LOAD BEFORE script.js
+         If you rename any data file, update these script tags.
+         Keep data-only files separate to prevent regressions. -->
+    <script src="phonics_focus_data.js"></script>
+    <script src="jokes_facts_quotes_bank.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
