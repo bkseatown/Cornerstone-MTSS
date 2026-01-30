@@ -29,14 +29,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initControls() {
     // Buttons
-    document.getElementById("new-word-btn").onclick = () => startNewGame();
-    document.getElementById("case-toggle").onclick = toggleCase;
+    document.getElementById("new-word-btn").onclick = () => {
+        document.getElementById("new-word-btn").blur(); // Release focus
+        startNewGame();
+    };
+    document.getElementById("case-toggle").onclick = (e) => {
+        e.target.blur();
+        toggleCase();
+    };
     
     // Selects
-    document.getElementById("pattern-select").onchange = () => startNewGame();
+    document.getElementById("pattern-select").onchange = () => {
+        document.getElementById("pattern-select").blur();
+        startNewGame();
+    };
     document.getElementById("length-select").onchange = (e) => {
         const val = e.target.value;
         CURRENT_WORD_LENGTH = val === 'any' ? 5 : parseInt(val);
+        e.target.blur();
         startNewGame();
     };
 
@@ -46,19 +56,24 @@ function initControls() {
     document.getElementById("toggle-mask").onclick = () => {
         const inp = document.getElementById("custom-word-input");
         inp.type = inp.type === "password" ? "text" : "password";
-        // Re-focus to keep typing
         inp.focus();
     };
 
     // Hints
-    document.getElementById("hear-word-hint").onclick = () => speak(currentWord);
-    document.getElementById("hear-sentence-hint").onclick = () => {
-        showToast("Sentence hint shared!");
-        speak(currentEntry.sentence);
+    document.getElementById("hear-word-hint").onclick = () => {
+        if (!isModalOpen()) speak(currentWord);
     };
-    document.getElementById("speak-btn").onclick = () => speak(currentWord);
+    document.getElementById("hear-sentence-hint").onclick = () => {
+        if (!isModalOpen()) {
+            showToast("Sentence hint shared!");
+            speak(currentEntry.sentence);
+        }
+    };
+    document.getElementById("speak-btn").onclick = () => {
+        if (!isModalOpen()) speak(currentWord);
+    };
 
-    // Modal Closing Logic (Outside Click, Buttons, Esc)
+    // Modal Closing Logic
     document.querySelectorAll(".close-btn, .close-teacher, #start-playing-btn, #play-again-btn").forEach(btn => {
         btn.addEventListener("click", closeModal);
     });
@@ -69,11 +84,16 @@ function initControls() {
 
     // Global Keyboard Listener
     window.addEventListener("keydown", (e) => {
-        // If modal is open, only allow Escape or Enter (if valid context)
-        if (!modalOverlay.classList.contains("hidden")) {
+        // CRITICAL FIX: Block all game input if any modal is visible
+        if (isModalOpen()) {
             if (e.key === "Escape") closeModal();
-            if (e.key === "Enter" && !welcomeModal.classList.contains("hidden")) closeModal();
-            return;
+            if (e.key === "Enter") {
+                // Route Enter to specific modal actions
+                if (!welcomeModal.classList.contains("hidden")) closeModal();
+                else if (!teacherModal.classList.contains("hidden")) handleTeacherSubmit();
+                else if (!gameModal.classList.contains("hidden")) closeModal(); 
+            }
+            return; // STOP execution here
         }
 
         if (gameOver) return;
@@ -83,13 +103,17 @@ function initControls() {
         else if (/^[a-z]$/i.test(e.key)) handleInput(e.key.toLowerCase());
     });
 
-    // Teacher Input Specifics (Prevent background typing)
+    // Teacher Input Specifics
     const tInput = document.getElementById("custom-word-input");
     tInput.addEventListener("keydown", (e) => {
-        e.stopPropagation(); // Stop game board from receiving keys
+        e.stopImmediatePropagation(); // CRITICAL FIX: Stop bubbling to window
         if (e.key === "Enter") handleTeacherSubmit();
         if (e.key === "Escape") closeModal();
     });
+}
+
+function isModalOpen() {
+    return !modalOverlay.classList.contains("hidden");
 }
 
 function startNewGame(customWord = null) {
@@ -110,7 +134,6 @@ function startNewGame(customWord = null) {
         const data = getWordFromDictionary();
         currentWord = data.word;
         currentEntry = data.entry;
-        // If 'Any Length' is selected, update internal length to match the word
         if (document.getElementById("length-select").value === 'any') {
             CURRENT_WORD_LENGTH = currentWord.length;
         }
@@ -118,8 +141,10 @@ function startNewGame(customWord = null) {
 
     isFirstLoad = false;
     
-    // Build Grid
-    board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 1fr)`;
+    // Build Grid - CRITICAL FIX: Use fixed width columns to ensure centering works
+    // '1fr' causes left-alignment of small tiles in wide columns. '50px' packs them tight.
+    board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 50px)`;
+    
     for (let i = 0; i < MAX_GUESSES * CURRENT_WORD_LENGTH; i++) {
         const tile = document.createElement("div");
         tile.className = "tile";
@@ -129,55 +154,73 @@ function startNewGame(customWord = null) {
 }
 
 function getWordFromDictionary() {
-    const patternRaw = document.getElementById("pattern-select").value;
-    const pattern = (patternRaw === "all") ? "mixed" : patternRaw;
-    const lenVal = document.getElementById("length-select").value;
-    
-    // First load forces 5 letters if 'any' is selected to maintain grid look
-    let targetLen = (lenVal === 'any') ? (isFirstLoad ? 5 : null) : parseInt(lenVal);
+    if (!window.WORD_ENTRIES || typeof window.WORD_ENTRIES !== "object") {
+        console.error("WORD_ENTRIES is missing. Check your <script> order: phonics_focus_data.js must load before script.js");
+        return "cat";
+    }
 
-    const pool = Object.keys(window.WORD_ENTRIES).filter(w => {
-        const e = window.WORD_ENTRIES[w];
-        const lenMatch = !targetLen || w.length === targetLen;
-        const patMatch = pattern === 'all' || (e.tags && e.tags.includes(pattern));
-        return lenMatch && patMatch;
+    const pat = patternSelect.value;
+    const lenOption = lengthSelect.value;
+
+    const entries = window.WORD_ENTRIES;
+
+    // Filter by tag
+    let candidates = Object.keys(entries).filter(w => {
+        const e = entries[w];
+        return e && Array.isArray(e.tags) && e.tags.includes(pat);
     });
 
-    // Fallback if no words match filter
-    const final = pool.length ? pool[Math.floor(Math.random() * pool.length)] : "apple";
-    return { word: final, entry: window.WORD_ENTRIES[final] };
+    // Mixed review = allow anything
+    if (pat === "mixed") {
+        candidates = Object.keys(entries);
+    }
+
+    // Length handling
+    if (lenOption !== "any") {
+        const L = parseInt(lenOption, 10);
+        if (!Number.isNaN(L)) {
+            candidates = candidates.filter(w => w.length === L);
+        }
+    }
+
+    if (!candidates.length) {
+        // Safe fallback: try any word at requested length, else any word
+        const all = Object.keys(entries);
+        let fallback = all;
+        if (lenOption !== "any") {
+            const L = parseInt(lenOption, 10);
+            if (!Number.isNaN(L)) fallback = all.filter(w => w.length === L);
+        }
+        if (fallback.length) return fallback[Math.floor(Math.random() * fallback.length)];
+        return "cat";
+    }
+
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    return pick;
 }
 
 function updateFocusPanel() {
-    const rawPat = document.getElementById("pattern-select").value;
-    const pat = (rawPat === "all") ? "mixed" : rawPat;
-    const info = (window.FOCUS_INFO && (window.FOCUS_INFO[pat] || window.FOCUS_INFO.mixed || window.FOCUS_INFO.all)) || null;
-    if (!info) return;
+    const patSel = document.getElementById("pattern-select");
+    const pat = (patSel && patSel.value) ? patSel.value : "mixed";
+    const info = (window.FOCUS_INFO && window.FOCUS_INFO[pat]) ? window.FOCUS_INFO[pat]
+               : (window.FOCUS_INFO && window.FOCUS_INFO.mixed) ? window.FOCUS_INFO.mixed
+               : { title: "Practice", label: "Practice", desc: "", hint: "", examples: [] };
 
-    document.getElementById("focus-title").textContent = info.label || info.title || "Practice";
-    document.getElementById("focus-desc").textContent = info.desc || "";
-    document.getElementById("focus-hint").textContent = info.hint || "";
+    const titleText = info.title || info.label || "Practice";
+    const descText = info.desc || "";
+    const hintText = info.hint || "";
 
-    const ex = Array.isArray(info.examples) ? info.examples.join(", ") : (info.examples || "");
-    document.getElementById("focus-examples").textContent = ex ? `Try: ${ex}` : "";
-
-    const quickRow = document.getElementById("quick-tiles-row");
-    if (info.quick) {
-        quickRow.innerHTML = "";
-        info.quick.forEach(q => {
-            const b = document.createElement("button");
-            b.className = "q-tile";
-            b.textContent = q;
-            b.onclick = () => { 
-                // Insert full quick tile string
-                for(let c of q) handleInput(c); 
-            };
-            quickRow.appendChild(b);
-        });
-        quickRow.classList.remove("hidden");
-    } else {
-        quickRow.classList.add("hidden");
+    // Examples can be string or array
+    let ex = info.examples || info.examplesList || [];
+    if (typeof ex === "string") {
+        ex = ex.split(",").map(s => s.trim()).filter(Boolean);
     }
+    const exText = Array.isArray(ex) ? ex.join(", ") : "";
+
+    focusTitle.textContent = titleText;
+    focusDesc.textContent = descText;
+    focusExamples.textContent = exText ? ("Try: " + exText) : "";
+    focusHint.textContent = hintText;
 }
 
 // --- INPUT & GRID ---
@@ -190,10 +233,14 @@ function initKeyboard() {
         rowDiv.className = "keyboard-row";
         r.split("").forEach(char => {
             const k = document.createElement("button");
+            // Preserve vowel class correctly
             k.className = `key ${"aeiou".includes(char) ? 'vowel' : ''}`;
             k.textContent = isUpperCase ? char.toUpperCase() : char;
             k.dataset.key = char;
-            k.onclick = () => handleInput(char);
+            k.onclick = (e) => {
+                handleInput(char);
+                e.target.blur(); // Remove focus
+            };
             rowDiv.appendChild(k);
         });
         if (r === "zxcvbnm") {
@@ -210,7 +257,10 @@ function createKey(txt, action, wide) {
     const b = document.createElement("button");
     b.textContent = txt;
     b.className = `key ${wide ? 'wide' : ''}`;
-    b.onclick = action;
+    b.onclick = (e) => {
+        action();
+        e.target.blur();
+    };
     return b;
 }
 
@@ -229,14 +279,12 @@ function deleteLetter() {
 function updateGrid() {
     const offset = guesses.length * CURRENT_WORD_LENGTH;
     
-    // Clear current row
     for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
         const t = document.getElementById(`tile-${offset + i}`);
         t.textContent = "";
-        t.className = "tile"; // reset
+        t.className = "tile"; 
     }
     
-    // Fill current row
     for (let i = 0; i < currentGuess.length; i++) {
         const t = document.getElementById(`tile-${offset + i}`);
         const char = currentGuess[i];
@@ -250,8 +298,6 @@ function toggleCase() {
     document.getElementById("case-toggle").textContent = isUpperCase ? "ABC" : "abc";
     initKeyboard();
     
-    // Refresh board to show new case
-    // 1. Previous guesses
     guesses.forEach((g, rIdx) => {
         const off = rIdx * CURRENT_WORD_LENGTH;
         for(let i=0; i<CURRENT_WORD_LENGTH; i++) {
@@ -259,7 +305,6 @@ function toggleCase() {
             t.textContent = isUpperCase ? g[i].toUpperCase() : g[i];
         }
     });
-    // 2. Current guess
     const currOff = guesses.length * CURRENT_WORD_LENGTH;
     for(let i=0; i<currentGuess.length; i++) {
         const t = document.getElementById(`tile-${currOff+i}`);
@@ -271,7 +316,6 @@ function toggleCase() {
 
 function submitGuess() {
     if (currentGuess.length !== CURRENT_WORD_LENGTH) {
-        // Simple shake effect
         const offset = guesses.length * CURRENT_WORD_LENGTH;
         const first = document.getElementById(`tile-${offset}`);
         if(first) {
@@ -301,7 +345,6 @@ function evaluate(guess, target) {
     const tArr = target.split("");
     const gArr = guess.split("");
 
-    // Green pass
     gArr.forEach((c, i) => {
         if (c === tArr[i]) {
             res[i] = "correct";
@@ -309,7 +352,6 @@ function evaluate(guess, target) {
             gArr[i] = null;
         }
     });
-    // Yellow pass
     gArr.forEach((c, i) => {
         if (c && tArr.includes(c)) {
             res[i] = "present";
@@ -325,14 +367,24 @@ function revealColors(result, guess) {
         setTimeout(() => {
             const t = document.getElementById(`tile-${offset + i}`);
             t.classList.add(status);
-            t.classList.add("pop"); // Animation
+            t.classList.add("pop");
 
             const k = document.querySelector(`.key[data-key="${guess[i]}"]`);
             if (k) {
-                // Priority: correct > present > absent
-                if (status === "correct") k.className = `key ${isUpperCase?'':'vowel' in k.classList} correct`;
-                else if (status === "present" && !k.classList.contains("correct")) k.className = `key ${isUpperCase?'':'vowel' in k.classList} present`;
-                else if (status === "absent" && !k.classList.contains("correct") && !k.classList.contains("present")) k.className = `key ${isUpperCase?'':'vowel' in k.classList} absent`;
+                // CRITICAL FIX: Robust class handling without string injection errors
+                if (status === "correct") {
+                    k.classList.remove("present", "absent");
+                    k.classList.add("correct");
+                } else if (status === "present") {
+                    if (!k.classList.contains("correct")) {
+                        k.classList.remove("absent");
+                        k.classList.add("present");
+                    }
+                } else if (status === "absent") {
+                    if (!k.classList.contains("correct") && !k.classList.contains("present")) {
+                        k.classList.add("absent");
+                    }
+                }
             }
         }, i * 200);
     });
@@ -375,6 +427,8 @@ function closeModal() {
     welcomeModal.classList.add("hidden");
     teacherModal.classList.add("hidden");
     gameModal.classList.add("hidden");
+    // CRITICAL FIX: Release focus from last clicked button so typing works
+    if (document.activeElement) document.activeElement.blur();
 }
 
 function showToast(msg) {
@@ -396,18 +450,13 @@ function checkFirstTimeVisitor() {
 function clearKeyboardColors() {
     document.querySelectorAll(".key").forEach(k => {
         k.classList.remove("correct", "present", "absent");
-        // Maintain vowel class if needed, or re-init logic handles it
-        // The loop in initKeyboard handles base classes
+        // Vowel class is static, so we don't need to re-add it, just don't remove it.
     });
-    // Re-run init to reset clean slate or just remove classes manually. 
-    // Easier to just re-init if toggling cases, but simple remove works.
-    initKeyboard(); 
 }
 
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
     const voices = speechSynthesis.getVoices();
-    // Prefer natural sounding English voices (Google, Samantha, etc)
     const preferred = voices.find(v => (v.name.includes("Google") || v.name.includes("Samantha")) && v.lang.startsWith("en"));
     msg.voice = preferred || voices[0];
     msg.rate = 0.9;
