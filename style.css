@@ -892,3 +892,373 @@ h1 {
     transform: translateY(0);
   }
 }
+
+/* ================================
+   ADDITIONAL STYLES FOR FIXED VERSION
+   ================================ */
+
+/* Feature Buttons Container */
+.feature-buttons-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.feature-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-clean);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Teacher Section Styles */
+.teacher-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 20px 0;
+}
+
+.teacher-section {
+    text-align: left;
+}
+
+.teacher-section h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: #2c3e50;
+}
+
+.teacher-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.teacher-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.language-selector {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.language-selector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.language-selector select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.translation-notice {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 10px;
+}
+
+/* Passage Reader Modal */
+.passage-reader {
+    max-width: 600px;
+    text-align: left;
+}
+
+.passage-header h2 {
+    margin-bottom: 10px;
+}
+
+.passage-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.badge {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.passage-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.passage-content {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.passage-content .highlight-word {
+    background: #fff59d;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.passage-questions, .teaching-points {
+    margin-top: 15px;
+}
+
+.passage-questions h3, .teaching-points h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.passage-questions ul, .teaching-points ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.passage-questions li, .teaching-points li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+}
+
+.passage-footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Phoneme Practice Modal */
+.phoneme-practice {
+    max-width: 500px;
+}
+
+.phoneme-word-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.phoneme-word-display h3 {
+    font-size: 2.5rem;
+    color: var(--color-correct);
+    margin-bottom: 5px;
+}
+
+.phoneme-instruction {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.phoneme-sounds-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.phoneme-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--color-correct);
+    background: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.phoneme-btn:hover {
+    background: var(--color-correct);
+    color: white;
+    transform: scale(1.1);
+}
+
+.phoneme-articulation {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    min-height: 80px;
+}
+
+.articulation-card h4 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: var(--color-correct);
+}
+
+.phoneme-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Translation Box */
+.translation-box {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.translation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.translation-language-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.translation-language-badge .flag {
+    font-size: 1.5rem;
+}
+
+.translation-audio-btn {
+    background: var(--color-correct);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.translation-word {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.translation-phonetic {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.translation-def {
+    margin-bottom: 5px;
+}
+
+.translation-sentence {
+    font-style: italic;
+    color: #555;
+}
+
+.translation-unavailable {
+    background: #fff3e0;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #e65100;
+}
+
+/* Bonus Popup */
+.bonus-popup {
+    position: fixed;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 200;
+    max-width: 400px;
+    text-align: center;
+    transition: bottom 0.3s ease;
+    cursor: pointer;
+}
+
+.bonus-popup.show {
+    bottom: 20px;
+}
+
+.bonus-header {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--color-correct);
+}
+
+.bonus-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Primary Button Secondary Variant */
+.primary-btn.secondary {
+    background: #607d8b;
+    margin-top: 10px;
+}
+
+/* Studio checkbox styles */
+.studio-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+/* Modal overlay fix for multiple modals */
+#studio-modal, #passage-modal, #phoneme-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 150;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#studio-modal.hidden, #passage-modal.hidden, #phoneme-modal.hidden {
+    display: none !important;
+}
+
+#studio-modal .modal-content,
+#passage-modal .modal-content,
+#phoneme-modal .modal-content {
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}

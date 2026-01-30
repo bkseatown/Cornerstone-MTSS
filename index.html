@@ -6,7 +6,7 @@
     <title>Decode the Word</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="favicon.ico">
+    <link rel="icon" href="favicon.ico">
 </head>
 <body>
 
@@ -76,16 +76,15 @@
         
         <!-- Advanced Feature Buttons (Teacher-controlled) -->
         <div id="feature-buttons-container" class="feature-buttons-container hidden">
-          <button id="open-passage-btn" class="feature-btn">
-            📖 Read a Passage
-          </button>
-          <button id="open-phoneme-btn" class="feature-btn">
-            🔊 Practice Sounds
-          </button>
+            <button id="open-passage-btn" class="feature-btn">📖 Read a Passage</button>
+            <button id="open-phoneme-btn" class="feature-btn">🔊 Practice Sounds</button>
         </div>
     </main>
 
+    <!-- Modal Overlay Container -->
     <div id="modal-overlay" class="modal-overlay hidden">
+        
+        <!-- Game End Modal -->
         <div id="modal" class="modal hidden">
             <div class="modal-content">
                 <span class="close-btn">&times;</span>
@@ -96,6 +95,8 @@
                     <p id="modal-def"></p>
                     <p id="modal-sentence" class="sentence-example"></p>
                 </div>
+                <div id="translation-box" class="translation-box hidden"></div>
+                <div id="bonus-content" class="bonus-content hidden"></div>
                 <div class="modal-actions">
                     <button id="speak-btn" class="action-btn">🔊 Hear It</button>
                     <button id="play-again-btn" class="primary-btn">Play Again</button>
@@ -103,6 +104,7 @@
             </div>
         </div>
 
+        <!-- Teacher Mode Modal -->
         <div id="teacher-modal" class="modal hidden">
             <div class="modal-content teacher-content">
                 <span class="close-teacher">&times;</span>
@@ -114,66 +116,67 @@
                 </div>
                 <p id="teacher-error" class="error-msg"></p>
                 <button id="set-word-btn" class="primary-btn">Set Word & Play</button>
-      <button id="open-studio-btn" class="primary-btn secondary">🎙️ Recording Studio</button>
-      
-      <div class="teacher-divider"></div>
-      
-      <div class="teacher-section">
-        <h3>🚀 Advanced Features</h3>
-        
-        <label class="teacher-checkbox">
-          <input type="checkbox" id="enable-passages" />
-          <span>Enable Passage Reading</span>
-        </label>
-        
-        <label class="teacher-checkbox">
-          <input type="checkbox" id="enable-phoneme-practice" />
-          <span>Enable Sound Isolation Practice</span>
-        </label>
-        
-        <label class="teacher-checkbox">
-          <input type="checkbox" id="enable-mouth-positions" checked />
-          <span>Show Mouth Position Guides (EAL support)</span>
-        </label>
-        
-        <label class="teacher-checkbox">
-          <input type="checkbox" id="show-ipa" />
-          <span>Show IPA Symbols (Advanced)</span>
-        </label>
-      </div>
-      
-      <div class="teacher-divider"></div>
-      
-      <div class="teacher-section">
-        <h3>🌍 Translation Support (EAL)</h3>
-        
-        <label class="teacher-checkbox">
-          <input type="checkbox" id="enable-translations" />
-          <span>Enable Home Language Support</span>
-        </label>
-        
-        <div id="language-selector" class="language-selector hidden">
-          <label for="translation-language">Student's Home Language:</label>
-          <select id="translation-language">
-            <option value="">Select Language...</option>
-            <option value="es">🇪🇸 Spanish (Español)</option>
-            <option value="zh">🇨🇳 Mandarin (中文)</option>
-            <option value="ar">🇸🇦 Arabic (العربية)</option>
-            <option value="vi">🇻🇳 Vietnamese (Tiếng Việt)</option>
-            <option value="tl">🇵🇭 Tagalog (Tagalog)</option>
-            <option value="pt">🇧🇷 Portuguese (Português)</option>
-            <option value="fr">🇫🇷 French (Français)</option>
-            <option value="hi">🇮🇳 Hindi (हिन्दी)</option>
-          </select>
-          
-          <div class="translation-notice">
-            <p>📝 <strong>Note:</strong> Translations will appear below English definitions to support understanding. Audio pronunciation in home language available.</p>
-          </div>
-        </div>
-      </div>
+                <button id="open-studio-btn" class="primary-btn secondary">🎙️ Recording Studio</button>
+                
+                <div class="teacher-divider"></div>
+                
+                <div class="teacher-section">
+                    <h3>🚀 Advanced Features</h3>
+                    
+                    <label class="teacher-checkbox">
+                        <input type="checkbox" id="enable-passages" />
+                        <span>Enable Passage Reading</span>
+                    </label>
+                    
+                    <label class="teacher-checkbox">
+                        <input type="checkbox" id="enable-phoneme-practice" />
+                        <span>Enable Sound Isolation Practice</span>
+                    </label>
+                    
+                    <label class="teacher-checkbox">
+                        <input type="checkbox" id="enable-mouth-positions" checked />
+                        <span>Show Mouth Position Guides (EAL support)</span>
+                    </label>
+                    
+                    <label class="teacher-checkbox">
+                        <input type="checkbox" id="show-ipa" />
+                        <span>Show IPA Symbols (Advanced)</span>
+                    </label>
+                </div>
+                
+                <div class="teacher-divider"></div>
+                
+                <div class="teacher-section">
+                    <h3>🌍 Translation Support (EAL)</h3>
+                    
+                    <label class="teacher-checkbox">
+                        <input type="checkbox" id="enable-translations" />
+                        <span>Enable Home Language Support</span>
+                    </label>
+                    
+                    <div id="language-selector" class="language-selector hidden">
+                        <label for="translation-language">Student's Home Language:</label>
+                        <select id="translation-language">
+                            <option value="">Select Language...</option>
+                            <option value="es">🇪🇸 Spanish (Español)</option>
+                            <option value="zh">🇨🇳 Mandarin (中文)</option>
+                            <option value="ar">🇸🇦 Arabic (العربية)</option>
+                            <option value="vi">🇻🇳 Vietnamese (Tiếng Việt)</option>
+                            <option value="tl">🇵🇭 Tagalog (Tagalog)</option>
+                            <option value="pt">🇧🇷 Portuguese (Português)</option>
+                            <option value="fr">🇫🇷 French (Français)</option>
+                            <option value="hi">🇮🇳 Hindi (हिन्दी)</option>
+                        </select>
+                        
+                        <div class="translation-notice">
+                            <p>📝 <strong>Note:</strong> Translations will appear below English definitions to support understanding.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Welcome Modal -->
         <div id="welcome-modal" class="modal hidden">
             <div class="modal-content welcome-content">
                 <h2>Welcome! 👋</h2>
@@ -187,168 +190,152 @@
             </div>
         </div>
     </div>
-<script src="phonics_focus_data.js"></script>
-  <script src="jokes_facts_quotes_bank.js"></script>
-  <script src="script.js"></script>
 
-  <!-- Teacher Recording Studio -->
-  <div id="studio-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content studio">
-      <button id="close-studio" class="close-btn" aria-label="Close">×</button>
-      <h2>Teacher Recording Studio</h2>
+    <!-- Teacher Recording Studio Modal -->
+    <div id="studio-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content studio">
+            <button id="close-studio" class="close-btn" aria-label="Close">×</button>
+            <h2>Teacher Recording Studio</h2>
 
-      <div id="studio-setup-view">
-        <div class="studio-row">
-          <label for="studio-source-select">Word Source</label>
-          <select id="studio-source-select">
-            <option value="all">All Words</option>
-            <option value="focus">Current Focus Only</option>
-          </select>
-        </div>
+            <div id="studio-setup-view">
+                <div class="studio-row">
+                    <label for="studio-source-select">Word Source</label>
+                    <select id="studio-source-select">
+                        <option value="all">All Words</option>
+                        <option value="focus">Current Focus Only</option>
+                    </select>
+                </div>
 
-        <div class="studio-row">
-          <label for="studio-mode-select">Recording Mode</label>
-          <select id="studio-mode-select">
-            <option value="both">Word + Sentence</option>
-            <option value="word">Word Only</option>
-            <option value="sentence">Sentence Only</option>
-          </select>
-        </div>
+                <div class="studio-row">
+                    <label for="studio-mode-select">Recording Mode</label>
+                    <select id="studio-mode-select">
+                        <option value="both">Word + Sentence</option>
+                        <option value="word">Word Only</option>
+                        <option value="sentence">Sentence Only</option>
+                    </select>
+                </div>
 
-        <label class="studio-check">
-          <input type="checkbox" id="studio-auto-advance" checked>
-          Auto-advance after recording
-        </label>
-        <label class="studio-checkbox">
-          <input type="checkbox" id="record-word-checkbox" checked>
-          Record word
-        </label>
-        <label class="studio-checkbox">
-          <input type="checkbox" id="record-sentence-checkbox" checked>
-          Record sentence
-        </label>
+                <label class="studio-check">
+                    <input type="checkbox" id="studio-auto-advance" checked>
+                    Auto-advance after recording
+                </label>
+                <label class="studio-checkbox">
+                    <input type="checkbox" id="record-word-checkbox" checked>
+                    Record word
+                </label>
+                <label class="studio-checkbox">
+                    <input type="checkbox" id="record-sentence-checkbox" checked>
+                    Record sentence
+                </label>
 
-
-        <button id="studio-start-btn" class="primary-btn">Start Studio</button>
-        <div id="studio-progress" class="muted"></div>
-      </div>
-
-      <div id="studio-record-view" class="hidden">
-        <div class="studio-progress">
-          <span id="studio-counter"></span>
-          <button id="studio-exit-btn" class="text-btn">Exit</button>
-        </div>
-
-        <div class="studio-card">
-          <div class="studio-word" id="studio-word-display"></div>
-        </div>
-
-        <div class="studio-grid">
-          <div class="studio-card">
-            <div class="studio-card-title">📢 Record Word</div>
-            <div class="studio-actions">
-              <button id="record-word-btn" class="record-btn">Record</button>
-              <button id="play-word-preview" class="secondary-btn" disabled>▶ Preview</button>
+                <button id="studio-start-btn" class="primary-btn">Start Studio</button>
+                <div id="studio-progress" class="muted"></div>
             </div>
-          </div>
 
-          <div class="studio-card">
-            <div class="studio-card-title">📝 Sentence (edit if needed)</div>
-            <textarea id="studio-sentence-display" rows="3"></textarea>
-            <div class="studio-actions">
-              <button id="record-sentence-btn" class="record-btn">Record</button>
-              <button id="play-sentence-preview" class="secondary-btn" disabled>▶ Preview</button>
+            <div id="studio-record-view" class="hidden">
+                <div class="studio-progress">
+                    <span id="studio-counter"></span>
+                    <button id="studio-exit-btn" class="text-btn">Exit</button>
+                </div>
+
+                <div class="studio-card">
+                    <div class="studio-word" id="studio-word-display"></div>
+                </div>
+
+                <div class="studio-grid">
+                    <div class="studio-card">
+                        <div class="studio-card-title">🔢 Record Word</div>
+                        <div class="studio-actions">
+                            <button id="record-word-btn" class="record-btn">Record</button>
+                            <button id="play-word-preview" class="secondary-btn" disabled>▶ Preview</button>
+                        </div>
+                    </div>
+
+                    <div class="studio-card">
+                        <div class="studio-card-title">📝 Sentence (edit if needed)</div>
+                        <textarea id="studio-sentence-display" rows="3"></textarea>
+                        <div class="studio-actions">
+                            <button id="record-sentence-btn" class="record-btn">Record</button>
+                            <button id="play-sentence-preview" class="secondary-btn" disabled>▶ Preview</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="studio-footer">
+                    <div id="recording-status" class="muted"></div>
+                    <button id="studio-next-btn" class="primary-btn">Next Word →</button>
+                </div>
             </div>
-          </div>
         </div>
+    </div>
 
-        <div class="studio-footer">
-          <div id="recording-status" class="muted"></div>
-          <button id="studio-next-btn" class="primary-btn">Next Word →</button>
+    <!-- Passage Reader Modal -->
+    <div id="passage-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content passage-reader">
+            <button id="close-passage" class="close-btn" aria-label="Close">×</button>
+            <div class="passage-header">
+                <h2 id="passage-title"></h2>
+                <div class="passage-meta">
+                    <span id="passage-level" class="badge"></span>
+                    <span id="passage-focus" class="badge"></span>
+                </div>
+            </div>
+            
+            <div class="passage-controls">
+                <button id="passage-play-btn" class="primary-btn">🔊 Listen</button>
+                <button id="passage-highlight-btn" class="secondary-btn">👆 Highlight Pattern</button>
+                <button id="passage-questions-btn" class="secondary-btn">❓ Show Questions</button>
+            </div>
+            
+            <div id="passage-text" class="passage-content"></div>
+            
+            <div id="passage-questions" class="passage-questions hidden">
+                <h3>💭 Comprehension Questions:</h3>
+                <ul id="questions-list"></ul>
+            </div>
+            
+            <div id="passage-teaching" class="teaching-points">
+                <h3>📚 Teaching Points:</h3>
+                <ul id="teaching-list"></ul>
+            </div>
+            
+            <div class="passage-footer">
+                <button id="passage-another-btn" class="secondary-btn">🔄 Another Passage</button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Passage Reader Modal -->
-  <div id="passage-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content passage-reader">
-      <button id="close-passage" class="close-btn" aria-label="Close">×</button>
-      <div class="passage-header">
-        <h2 id="passage-title"></h2>
-        <div class="passage-meta">
-          <span id="passage-level" class="badge"></span>
-          <span id="passage-focus" class="badge"></span>
+    <!-- Phoneme Practice Modal -->
+    <div id="phoneme-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content phoneme-practice">
+            <button id="close-phoneme" class="close-btn" aria-label="Close">×</button>
+            <h2>🔊 Sound Practice</h2>
+            
+            <div class="phoneme-word-display">
+                <h3 id="phoneme-word"></h3>
+                <p class="phoneme-instruction">Click each sound to hear it and learn how to make it</p>
+            </div>
+            
+            <div class="phoneme-sounds-grid" id="phoneme-sounds"></div>
+            
+            <div class="phoneme-articulation" id="phoneme-articulation">
+                <p class="muted">👆 Click a sound above to see how to make it</p>
+            </div>
+            
+            <div class="phoneme-controls">
+                <button id="phoneme-play-all" class="primary-btn">▶ Hear Whole Word</button>
+                <button id="phoneme-slow-blend" class="secondary-btn">🐢 Slow Blend</button>
+            </div>
         </div>
-      </div>
-      
-      <div class="passage-controls">
-        <button id="passage-play-btn" class="primary-btn">🔊 Listen</button>
-        <button id="passage-highlight-btn" class="secondary-btn">👁 Highlight Pattern</button>
-        <button id="passage-questions-btn" class="secondary-btn">❓ Show Questions</button>
-      </div>
-      
-      <div id="passage-text" class="passage-content">
-        <!-- Text will be injected here -->
-      </div>
-      
-      <div id="passage-questions" class="passage-questions hidden">
-        <h3>💭 Comprehension Questions:</h3>
-        <ul id="questions-list"></ul>
-      </div>
-      
-      <div id="passage-teaching" class="teaching-points">
-        <h3>📚 Teaching Points:</h3>
-        <ul id="teaching-list"></ul>
-      </div>
-      
-      <div class="passage-footer">
-        <button id="passage-another-btn" class="secondary-btn">🔄 Another Passage</button>
-      </div>
     </div>
-  </div>
 
-  <!-- Phoneme Practice Modal -->
-  <div id="phoneme-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content phoneme-practice">
-      <button id="close-phoneme" class="close-btn" aria-label="Close">×</button>
-      <h2>🔊 Sound Practice</h2>
-      
-      <div class="phoneme-word-display">
-        <h3 id="phoneme-word"></h3>
-        <p class="phoneme-instruction">Click each sound to hear it and learn how to make it</p>
-      </div>
-      
-      <div class="phoneme-sounds-grid" id="phoneme-sounds">
-        <!-- Individual sound buttons will be generated here -->
-      </div>
-      
-      <div class="phoneme-articulation" id="phoneme-articulation">
-        <p class="muted">👆 Click a sound above to see how to make it</p>
-      </div>
-      
-      <div class="phoneme-controls">
-        <button id="phoneme-play-all" class="primary-btn">▶ Hear Whole Word</button>
-        <button id="phoneme-slow-blend" class="secondary-btn">🐢 Slow Blend</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Feature Access Buttons (shown in main game area) -->
-  <div id="feature-buttons" class="feature-buttons hidden">
-    <button id="open-passage-btn" class="feature-btn">
-      📖 Read a Passage
-    </button>
-    <button id="open-phoneme-btn" class="feature-btn">
-      🔊 Practice Sounds
-    </button>
-  </div>
-
-<script src="phonics_focus_data.js"></script>
-  <script src="jokes_facts_quotes_bank.js"></script>
-  <script src="decodable_passages.js"></script>
-  <script src="phoneme_data.js"></script>
-  <script src="translations.js"></script>
-  <script src="script.js"></script>
+    <!-- Load data files FIRST (order matters!) -->
+    <script src="phonics_focus_data.js"></script>
+    <script src="jokes_facts_quotes_bank.js"></script>
+    <script src="decodable_passages.js"></script>
+    <script src="phoneme_data.js"></script>
+    <script src="translations.js"></script>
+    <!-- Main game logic LAST (depends on data files) -->
+    <script src="script.js"></script>
 </body>
 </html>
