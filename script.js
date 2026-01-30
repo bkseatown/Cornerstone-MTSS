@@ -1,3 +1,10 @@
+/* Decode the Word - script.js
+   Wrapped in an IIFE to prevent global redeclare errors if loaded twice.
+*/
+(function () {
+  if (window.__DTW_SCRIPT_RUNNING__) return;
+  window.__DTW_SCRIPT_RUNNING__ = true;
+
 /* =========================================
    DECODE THE WORD - CORE LOGIC (GOLD MASTER)
    ========================================= */
@@ -21,7 +28,7 @@ const teacherModal = document.getElementById("teacher-modal");
 const gameModal = document.getElementById("modal");
 
 // Focus panel elements (assigned on DOMContentLoaded for safety)
-let focusTitleEl = null, focusDescEl = null, focusHintEl = null, focusExamplesEl = null, patternSelect = null, lengthSelect = null;
+let focusTitleEl = null;
 let focusDescEl = null;
 let focusExamplesEl = null;
 let focusHintEl = null;
@@ -31,10 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
     focusTitleEl = document.getElementById("focus-title");
     focusDescEl = document.getElementById("focus-desc");
     focusExamplesEl = document.getElementById("focus-examples");
-
-  // Cache dropdowns
-  patternSelect = document.getElementById('pattern-select');
-  lengthSelect = document.getElementById('length-select');
     focusHintEl = document.getElementById("focus-hint");
 
     initControls();
@@ -175,8 +178,10 @@ function getWordFromDictionary() {
         return "cat";
     }
 
-    const pat = patternSelect.value;
-    const lenOption = lengthSelect.value;
+    const patternSelect = document.getElementById('pattern-select');
+    const lengthSelect = document.getElementById('length-select');
+    const pat = (patternSelect && patternSelect.value) ? patternSelect.value : 'mixed';
+    const lenOption = (lengthSelect && lengthSelect.value) ? lengthSelect.value : '5';
 
     const entries = window.WORD_ENTRIES;
 
@@ -478,3 +483,4 @@ function speak(text) {
     msg.rate = 0.9;
     speechSynthesis.speak(msg);
 }
+})();
