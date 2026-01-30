@@ -3,6 +3,14 @@
    ========================================= */
 
 const MAX_GUESSES = 6;
+
+// --- CONTENT NON-REGRESSION GUARDRAILS ---
+// If any future edit shrinks these banks below minimums, we show a visible warning.
+const CONTENT_MINIMUMS = {
+    factsMin: 40,
+    jokesMin: 20,
+    quotesMinEachBand: 5
+};
 let CURRENT_WORD_LENGTH = 5;
 let currentWord = "";
 let currentEntry = null;
@@ -68,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initVoiceLoader(); 
     initStudio();
     validateContentBanks();
-    
+
     startNewGame();
     checkFirstTimeVisitor();
 });
@@ -252,42 +260,40 @@ function isModalOpen() {
 }
 
 function validateContentBanks() {
-    // Guardrail to prevent accidental "shrinking" of jokes/facts/quotes in future revisions.
-    // If counts are too small, we show a visible warning so it doesn't silently regress.
     const banner = document.getElementById("banner-container");
 
     const facts = (window.BONUS_BANK && Array.isArray(window.BONUS_BANK.facts)) ? window.BONUS_BANK.facts : [];
     const jokes = (window.BONUS_BANK && Array.isArray(window.BONUS_BANK.jokes)) ? window.BONUS_BANK.jokes : [];
-    const quotes = (window.QUOTE_BANK && typeof window.QUOTE_BANK === "object") ? window.QUOTE_BANK : {};
+    const qb = (window.QUOTE_BANK && typeof window.QUOTE_BANK === "object") ? window.QUOTE_BANK : {};
 
-    const minFacts = CONTENT_MINIMUMS.facts;
-    const minJokes = CONTENT_MINIMUMS.jokes;
-    const minQuotesPerBand = CONTENT_MINIMUMS.quotesPerBand;
-    const bands = CONTENT_MINIMUMS.quoteBands;
+    const bands = ["k2", "g3_5", "g6_8", "g9_12"];
+    const bandCounts = bands.map(b => Array.isArray(qb[b]) ? qb[b].length : 0);
 
-    const quoteBandCounts = bands.map(b => (Array.isArray(quotes[b]) ? quotes[b].length : 0));
-    const quotesOK = quoteBandCounts.every(n => n >= minQuotesPerBand);
+    const problems = [];
+    if (facts.length < CONTENT_MINIMUMS.factsMin) problems.push(`Facts: ${facts.length} < ${CONTENT_MINIMUMS.factsMin}`);
+    if (jokes.length < CONTENT_MINIMUMS.jokesMin) problems.push(`Jokes: ${jokes.length} < ${CONTENT_MINIMUMS.jokesMin}`);
 
-    const ok = (facts.length >= minFacts) && (jokes.length >= minJokes) && quotesOK;
-
-    if (!ok) {
-        const parts = [];
-        if (facts.length < minFacts) parts.push(`Facts: ${facts.length} (min ${minFacts})`);
-        if (jokes.length < minJokes) parts.push(`Jokes: ${jokes.length} (min ${minJokes})`);
-        if (!quotesOK) {
-            parts.push(`Quotes: ${bands.map((b,i)=>`${b}=${quoteBandCounts[i]}`).join(", ")} (min ${minQuotesPerBand} each)`);
+    bands.forEach((b, i) => {
+        if (bandCounts[i] < CONTENT_MINIMUMS.quotesMinEachBand) {
+            problems.push(`Quotes ${b}: ${bandCounts[i]} < ${CONTENT_MINIMUMS.quotesMinEachBand}`);
         }
+    });
 
-        const msg = `⚠️ Content bank looks smaller than expected. ${parts.join(" • ")}`;
-
+    if (problems.length) {
+        const msg = "⚠️ Content regression detected (banks smaller than expected):\n" + problems.join("\n");
+        console.warn(msg);
         if (banner) {
             banner.textContent = msg;
             banner.classList.remove("hidden");
+        } else {
+            alert(msg);
         }
-        console.warn(msg);
     } else if (banner) {
-        banner.classList.add("hidden");
-        banner.textContent = "";
+        // Hide any old warning
+        if (!banner.classList.contains("hidden")) {
+            banner.classList.add("hidden");
+            banner.textContent = "";
+        }
     }
 }
 
@@ -532,37 +538,30 @@ function getWordFromDictionary() {
 }
 
 function updateFocusPanel() {
-    const raw = document.getElementById("pattern-select").value;
-
-    // Support legacy "all" in the UI, while allowing the data file to use "mixed".
-    const pat = (raw === "all" && window.FOCUS_INFO && window.FOCUS_INFO.mixed) ? "mixed" : raw;
-
-    const info = (window.FOCUS_INFO && window.FOCUS_INFO[pat]) || (window.FOCUS_INFO && window.FOCUS_INFO.all) || {
-        label: "Mixed Review",
-        desc: "General review across patterns.",
-        hint: "Try your best and notice the spelling pattern.",
-        examples: []
+    const pat = document.getElementById("pattern-select").value;
+    const info = window.FOCUS_INFO[pat] || window.FOCUS_INFO.all || { 
+        title: "Practice", desc: "General Review", hint: "Do your best!", examples: "" 
     };
-
-    const title = info.label || info.title || "Mixed Review";
-    document.getElementById("focus-title").textContent = title;
-    document.getElementById("focus-desc").textContent = info.desc || "";
-    document.getElementById("focus-hint").textContent = info.hint || "";
-
+    document.getElementById("focus-title").textContent = info.title;
+    document.getElementById("focus-desc").textContent = info.desc;
+    document.getElementById("focus-hint").textContent = info.hint;
+    
     const exSpan = document.getElementById("focus-examples");
-    const ex = Array.isArray(info.examples) ? info.examples : (info.examples ? [String(info.examples)] : []);
-    exSpan.textContent = ex.length ? `Try: ${ex.join(", ")}` : "";
+    if (info.examples && info.examples.length > 0) {
+        exSpan.textContent = `Ex: ${info.examples}`;
+    } else {
+        exSpan.textContent = "";
+    }
 
     const quickRow = document.getElementById("quick-tiles-row");
-    const quick = Array.isArray(info.quick) ? info.quick : null;
-    if (quick && quick.length) {
+    if (info.quick) {
         quickRow.innerHTML = "";
-        quick.forEach(q => {
+        info.quick.forEach(q => {
             const b = document.createElement("button");
             b.className = "q-tile";
             b.textContent = q;
-            b.onclick = () => {
-                for (let c of q) handleInput(c);
+            b.onclick = () => { 
+                for(let c of q) handleInput(c); 
                 b.blur();
             };
             quickRow.appendChild(b);
@@ -570,7 +569,6 @@ function updateFocusPanel() {
         quickRow.classList.remove("hidden");
     } else {
         quickRow.classList.add("hidden");
-        quickRow.innerHTML = "";
     }
 }
 
@@ -601,94 +599,198 @@ function initKeyboard() {
     });
 }
 
-/* --- REMAINDER OF GAME LOGIC (UNCHANGED) --- */
-function createKey(label, action, wide=false) {
-    const k = document.createElement("button");
-    k.className = `key ${wide ? 'wide' : ''}`;
-    k.textContent = label;
-    k.onclick = (e) => { action(); e.target.blur(); };
-    return k;
+function createKey(txt, action, wide) {
+    const b = document.createElement("button");
+    b.textContent = txt;
+    b.className = `key ${wide ? 'wide' : ''}`;
+    b.onclick = (e) => {
+        action();
+        e.target.blur();
+    };
+    return b;
+}
+
+function handleInput(char) {
+    if (currentGuess.length < CURRENT_WORD_LENGTH && !gameOver) {
+        currentGuess += char;
+        updateGrid();
+    }
+}
+
+function deleteLetter() {
+    currentGuess = currentGuess.slice(0, -1);
+    updateGrid();
+}
+
+function updateGrid() {
+    const offset = guesses.length * CURRENT_WORD_LENGTH;
+    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
+        const t = document.getElementById(`tile-${offset + i}`);
+        t.textContent = "";
+        t.className = "tile"; 
+    }
+    for (let i = 0; i < currentGuess.length; i++) {
+        const t = document.getElementById(`tile-${offset + i}`);
+        const char = currentGuess[i];
+        t.textContent = isUpperCase ? char.toUpperCase() : char;
+        t.className = "tile active";
+    }
 }
 
 function toggleCase() {
     isUpperCase = !isUpperCase;
     document.getElementById("case-toggle").textContent = isUpperCase ? "ABC" : "abc";
     initKeyboard();
-}
-
-function handleInput(letter) {
-    if (gameOver) return;
-    if (currentGuess.length >= CURRENT_WORD_LENGTH) return;
-    currentGuess += letter;
-    updateBoard();
-}
-
-function deleteLetter() {
-    if (gameOver) return;
-    currentGuess = currentGuess.slice(0, -1);
-    updateBoard();
-}
-
-function updateBoard() {
-    const guessIndex = guesses.length * CURRENT_WORD_LENGTH;
-    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
-        const tile = document.getElementById(`tile-${guessIndex + i}`);
-        tile.textContent = currentGuess[i] ? (isUpperCase ? currentGuess[i].toUpperCase() : currentGuess[i]) : "";
-    }
+    document.querySelectorAll(".tile").forEach(t => {
+        if(t.textContent) t.textContent = isUpperCase ? t.textContent.toUpperCase() : t.textContent.toLowerCase();
+    });
 }
 
 function submitGuess() {
-    if (gameOver) return;
     if (currentGuess.length !== CURRENT_WORD_LENGTH) {
-        showToast("Not enough letters!");
+        const offset = guesses.length * CURRENT_WORD_LENGTH;
+        const first = document.getElementById(`tile-${offset}`);
+        if(first) {
+            first.style.transform = "translateX(5px)";
+            setTimeout(() => first.style.transform = "none", 100);
+        }
+        showToast("Finish the word first."); // CLEAN TOAST
         return;
     }
-
+    
+    const result = evaluate(currentGuess, currentWord);
+    revealColors(result, currentGuess);
     guesses.push(currentGuess);
-    checkGuess(currentGuess);
-    currentGuess = "";
 
-    if (guesses.length === MAX_GUESSES && !gameOver) {
-        endGame(false);
+    if (currentGuess === currentWord) {
+        gameOver = true;
+        confetti(); 
+        setTimeout(() => showEndModal(true), 1500);
+    } else if (guesses.length >= MAX_GUESSES) {
+        gameOver = true;
+        setTimeout(() => showEndModal(false), 1500);
+    } else {
+        currentGuess = "";
     }
 }
 
-function checkGuess(guess) {
-    const wordArr = currentWord.split("");
-    const guessArr = guess.split("");
-    const result = new Array(CURRENT_WORD_LENGTH).fill("absent");
+function evaluate(guess, target) {
+    const res = Array(CURRENT_WORD_LENGTH).fill("absent");
+    const tArr = target.split("");
+    const gArr = guess.split("");
 
-    // First pass: correct
-    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
-        if (guessArr[i] === wordArr[i]) {
-            result[i] = "correct";
-            wordArr[i] = null;
+    gArr.forEach((c, i) => {
+        if (c === tArr[i]) {
+            res[i] = "correct";
+            tArr[i] = null;
+            gArr[i] = null;
         }
-    }
-
-    // Second pass: present
-    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
-        if (result[i] === "correct") continue;
-        const idx = wordArr.indexOf(guessArr[i]);
-        if (idx !== -1) {
-            result[i] = "present";
-            wordArr[idx] = null;
+    });
+    gArr.forEach((c, i) => {
+        if (c && tArr.includes(c)) {
+            res[i] = "present";
+            tArr[tArr.indexOf(c)] = null;
         }
-    }
-
-    colorTiles(result, guessArr);
-
-    if (guess === currentWord) {
-        endGame(true);
-    }
+    });
+    return res;
 }
 
-function colorTiles(result, guessArr) {
-    const guessIndex = (guesses.length - 1) * CURRENT_WORD_LENGTH;
-    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
-        const tile = document.getElementById(`tile-${guessIndex + i}`);
-        tile.classList.add(result[i]);
-        updateKeyboardColor(guessArr[i], result[i]);
+function revealColors(result, guess) {
+    const offset = (guesses.length) * CURRENT_WORD_LENGTH;
+    result.forEach((status, i) => {
+        setTimeout(() => {
+            const t = document.getElementById(`tile-${offset + i}`);
+            t.classList.add(status);
+            t.classList.add("pop");
+            const k = document.querySelector(`.key[data-key="${guess[i]}"]`);
+            if (k) {
+                if (status === "correct") {
+                    k.classList.remove("present", "absent");
+                    k.classList.add("correct");
+                } else if (status === "present") {
+                    if (!k.classList.contains("correct")) {
+                        k.classList.remove("absent");
+                        k.classList.add("present");
+                    }
+                } else if (status === "absent") {
+                    if (!k.classList.contains("correct") && !k.classList.contains("present")) {
+                        k.classList.add("absent");
+                    }
+                }
+            }
+        }, i * 200);
+    });
+}
+
+function showEndModal(win) {
+    modalOverlay.classList.remove("hidden");
+    gameModal.classList.remove("hidden");
+    document.getElementById("modal-title").textContent = win ? "Great Job!" : "Nice Try!";
+    
+    document.getElementById("modal-word").textContent = currentWord.toUpperCase();
+    document.getElementById("modal-syllables").textContent = currentEntry.syllables ? currentEntry.syllables.replace(/-/g, " • ") : currentWord;
+    document.getElementById("modal-def").textContent = currentEntry.def;
+    document.getElementById("modal-sentence").textContent = `"${currentEntry.sentence}"`;
+}
+
+function openTeacherMode() {
+    modalOverlay.classList.remove("hidden");
+    teacherModal.classList.remove("hidden");
+    const inp = document.getElementById("custom-word-input");
+    inp.value = "";
+    document.getElementById("teacher-error").textContent = "";
+    inp.focus();
+}
+
+function handleTeacherSubmit() {
+    const val = document.getElementById("custom-word-input").value.trim().toLowerCase();
+    if (val.length < 3 || val.length > 10 || !/^[a-z]+$/.test(val)) {
+        document.getElementById("teacher-error").textContent = "3-10 letters, no spaces.";
+        return;
+    }
+    closeModal();
+    showBanner("Word Set! Class is Ready.");
+    startNewGame(val);
+}
+
+function closeModal() {
+    modalOverlay.classList.add("hidden");
+    welcomeModal.classList.add("hidden");
+    teacherModal.classList.add("hidden");
+    gameModal.classList.add("hidden");
+    studioModal.classList.add("hidden");
+    
+    if (document.activeElement) document.activeElement.blur();
+    document.body.focus();
+}
+
+function showBanner(msg) {
+    const b = document.getElementById("banner-container");
+    b.textContent = msg;
+    b.classList.remove("hidden");
+    b.classList.add("visible"); 
+    setTimeout(() => {
+        b.classList.remove("visible");
+        b.classList.add("hidden");
+    }, 3000);
+}
+
+// FIX: New Non-Stacking Toast
+function showToast(msg) {
+    const container = document.getElementById("toast-container");
+    container.innerHTML = ""; // Clear existing
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    container.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+function checkFirstTimeVisitor() {
+    if (!localStorage.getItem("decode_v5_visited")) {
+        modalOverlay.classList.remove("hidden");
+        welcomeModal.classList.remove("hidden");
+        localStorage.setItem("decode_v5_visited", "true");
     }
 }
 
@@ -698,99 +800,22 @@ function clearKeyboardColors() {
     });
 }
 
-function updateKeyboardColor(letter, status) {
-    const key = document.querySelector(`.key[data-key="${letter}"]`);
-    if (!key) return;
-
-    const priority = { correct: 3, present: 2, absent: 1 };
-    const current = key.classList.contains("correct") ? "correct" :
-                    key.classList.contains("present") ? "present" :
-                    key.classList.contains("absent") ? "absent" : null;
-
-    if (!current || priority[status] > priority[current]) {
-        key.classList.remove("correct", "present", "absent");
-        key.classList.add(status);
-    }
-}
-
-function endGame(won) {
-    gameOver = true;
-    showModal(won);
-}
-
-function showModal(won) {
-    modalOverlay.classList.remove("hidden");
-    gameModal.classList.remove("hidden");
-
-    document.getElementById("modal-title").textContent = won ? "Great Job!" : "Nice Try!";
-    document.getElementById("modal-word").textContent = currentWord.toUpperCase();
-
-    const syllText = (currentEntry && currentEntry.syllableText) ? currentEntry.syllableText : currentWord;
-    document.getElementById("modal-syllables").textContent = syllText.split("-").join(" • ");
-
-    document.getElementById("modal-def").textContent = (currentEntry && currentEntry.def) ? currentEntry.def : "Definition not available.";
-    document.getElementById("modal-sentence").textContent = (currentEntry && currentEntry.sentence) ? `"${currentEntry.sentence}"` : `"Sentence not available."`;
-}
-
-function closeModal() {
-    modalOverlay.classList.add("hidden");
-    gameModal.classList.add("hidden");
-    teacherModal.classList.add("hidden");
-    studioModal.classList.add("hidden");
-    welcomeModal.classList.add("hidden");
-}
-
-function openTeacherMode() {
-    modalOverlay.classList.remove("hidden");
-    teacherModal.classList.remove("hidden");
-    gameModal.classList.add("hidden");
-    welcomeModal.classList.add("hidden");
-    studioModal.classList.add("hidden");
-
-    const input = document.getElementById("custom-word-input");
-    input.value = "";
-    input.type = "password";
-    setTimeout(() => input.focus(), 0);
-}
-
-function handleTeacherSubmit() {
-    const input = document.getElementById("custom-word-input");
-    const word = (input.value || "").trim().toLowerCase();
-
-    if (!/^[a-z]+$/.test(word)) {
-        showToast("Letters only (A–Z).");
-        return;
-    }
-
-    closeModal();
-    startNewGame(word);
-    showBanner("✅ Teacher word accepted. Game ready!");
-}
-
-function showToast(msg) {
-    const container = document.getElementById("toast-container");
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.textContent = msg;
-    container.appendChild(t);
-    setTimeout(() => t.remove(), 2200);
-}
-
-function showBanner(msg) {
-    const banner = document.getElementById("banner-container");
-    banner.textContent = msg;
-    banner.classList.remove("hidden");
-    setTimeout(() => {
-        banner.classList.add("hidden");
-        banner.textContent = "";
-    }, 2200);
-}
-
-function checkFirstTimeVisitor() {
-    const seen = localStorage.getItem("dtw_seen_welcome");
-    if (!seen) {
-        modalOverlay.classList.remove("hidden");
-        welcomeModal.classList.remove("hidden");
-        localStorage.setItem("dtw_seen_welcome", "1");
+function confetti() {
+    for (let i = 0; i < 50; i++) {
+        const c = document.createElement("div");
+        c.style.position = "fixed";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.top = "-10px";
+        c.style.width = "8px";
+        c.style.height = "8px";
+        c.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        c.style.zIndex = "2000";
+        c.style.transition = "top 1.5s ease-in, opacity 1.5s ease-in";
+        document.body.appendChild(c);
+        setTimeout(() => {
+            c.style.top = "110vh";
+            c.style.opacity = "0";
+        }, 10);
+        setTimeout(() => c.remove(), 1600);
     }
 }

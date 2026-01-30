@@ -1,211 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Decode the Word</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Decode the Word</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body tabindex="-1">
 
-    <div id="toast-container"></div>
-    <div id="banner-container" class="banner hidden"></div>
+  <div id="toast-container"></div>
+  <div id="banner-container" class="banner hidden"></div>
 
-    <header>
-        <div class="header-top">
-            <h1>Decode the Word</h1>
-            <div class="header-actions">
-                <button id="case-toggle" class="text-btn">abc</button>
-                <button id="teacher-btn" class="icon-btn" title="Teacher Mode">🎓</button>
-            </div>
-        </div>
-        
-        <div class="controls">
-            <div class="control-group">
-                <label for="pattern-select">Focus:</label>
-                <select id="pattern-select">
-                    <option value="all">Mixed Review</option> 
-                    <option value="cvc">CVC (Short Vowels)</option>
-                    <option value="digraph">Digraphs (sh, ch)</option>
-                    <option value="blend">Blends (st, bl)</option>
-                    <option value="floss">FLOSS Rule</option>
-                    <option value="magic-e">Magic E</option>
-                    <option value="vowel-team">Vowel Teams</option>
-                    <option value="r-controlled">R-Controlled</option>
-                    <option value="prefix">Prefixes (un, re)</option>
-                    <option value="suffix">Suffixes (ed, ing)</option>
-                    <option value="doubling">Doubling (1-1-1)</option>
-                    <option value="schwa">Schwa</option>
-                    <option value="multisyllable">Multisyllable</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="length-select">Length:</label>
-                <select id="length-select">
-                    <option value="traditional" selected>Traditional (5)</option>
-                    <option value="any">Any Length (Mixed)</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-            
-            <button id="new-word-btn" title="Skip / New Word">New Word ↻</button>
-        </div>
-
-        <div class="focus-panel">
-            <div class="focus-header">
-                <strong id="focus-title">Focus Title</strong>
-                <button id="hear-word-hint" class="icon-btn" title="Hear Word">🔊</button>
-            </div>
-            <div id="focus-desc">Description of the rule.</div>
-            <div id="focus-hint" class="hint-text">Hint text...</div>
-            <div id="focus-examples" style="margin-top:2px; color:#666; font-style:italic;"></div>
-            <div id="quick-tiles-row" class="quick-row hidden"></div>
-        </div>
-    </header>
-
-    <main>
-        <div id="game-board"></div>
-        <button id="hear-sentence-hint" class="text-btn" style="margin-bottom: 10px; width: 100%; max-width: 300px;">💡 Hear Sentence Hint</button>
-    </main>
-
-    <div id="keyboard"></div>
-
-    <div id="modal-overlay" class="hidden">
-        
-        <div id="modal" class="modal hidden">
-            <div class="modal-content">
-                <span class="close-btn top-right-x">&times;</span>
-                <h2 id="modal-title">Great Job!</h2>
-                <div class="stat-box">
-                    <div id="modal-word" class="stat-word">WORD</div>
-                    <div id="modal-syllables" class="stat-syllables">w • o • r • d</div>
-                    <div id="modal-def" class="stat-def">Definition here.</div>
-                    <div id="modal-sentence" class="stat-sentence">"Sentence here."</div>
-                </div>
-                <div style="display:flex; gap:10px; justify-content:center;">
-                    <button id="speak-btn" class="action-btn">🔊 Say Word</button>
-                    <button id="play-again-btn" class="primary-btn">Play Again</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="teacher-modal" class="modal hidden">
-            <div class="modal-content teacher-content">
-                <span class="close-teacher top-right-x">&times;</span>
-                <h2>Teacher Mode</h2>
-                
-                <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-                     <button id="open-studio-btn" class="action-btn" style="width:100%; background:#673ab7; color: white; margin-bottom: 15px;">🎙️ Open Recording Studio</button>
-                     
-                     <div class="control-group" style="text-align: left;">
-                        <label for="system-voice-select" style="font-weight:bold; display:block; margin-bottom: 6px;">System Voice (Fix Robot Voice):</label>
-                        <select id="system-voice-select" style="width:100%;"></select>
-                     </div>
-                </div>
-
-                <p style="text-align:left; margin-top:0;">Set a custom word for students to guess.</p>
-
-                <div class="teacher-row">
-                    <input id="custom-word-input" type="password" placeholder="Type secret word..." autocomplete="off" autocapitalize="none" spellcheck="false" />
-                    <button id="toggle-mask" class="icon-btn" title="Show/Hide">👁️</button>
-                </div>
-
-                <button id="set-word-btn" class="primary-btn" style="width:100%;">Set Word ✅</button>
-            </div>
-        </div>
-
-        <div id="recording-studio-modal" class="modal hidden">
-            <div class="modal-content studio-content">
-                <span class="close-studio top-right-x">&times;</span>
-                <h2>Teacher Recording Studio 🎙️</h2>
-
-                <div id="studio-setup-view">
-                    <p style="margin-top: 0;">Record your own voice for words and sentence hints.</p>
-
-                    <div class="control-group" style="text-align:left;">
-                        <label for="studio-source-select" style="font-weight:bold; display:block; margin-bottom:6px;">Choose Word List:</label>
-                        <select id="studio-source-select" style="width:100%;">
-                            <option value="focus">Use Current Focus Word Bank</option>
-                            <option value="paste">Paste Your Own Word List</option>
-                        </select>
-                    </div>
-
-                    <div id="studio-paste-area" class="hidden" style="text-align:left;">
-                        <label for="studio-paste-input" style="font-weight:bold; display:block; margin:10px 0 6px;">Paste Words (one per line):</label>
-                        <textarea id="studio-paste-input" rows="5" style="width:100%;" placeholder="cat&#10;ship&#10;robot"></textarea>
-                    </div>
-
-                    <label style="display:flex; gap:8px; align-items:center; justify-content:flex-start; margin-top:10px;">
-                        <input type="checkbox" id="studio-skip-existing" checked />
-                        Skip words that already have recordings
-                    </label>
-
-                    <button id="start-studio-btn" class="primary-btn" style="width:100%; margin-top:15px;">Start Session ▶️</button>
-                    <button id="exit-studio-btn" class="action-btn" style="width:100%; margin-top:10px;">Exit</button>
-                </div>
-
-                <div id="studio-record-view" class="hidden">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div id="studio-progress" style="font-weight:bold;">1 / 10</div>
-                        <label style="display:flex; gap:8px; align-items:center;">
-                            <input type="checkbox" id="studio-auto-advance" checked />
-                            Auto-advance after sentence
-                        </label>
-                    </div>
-
-                    <div class="studio-card">
-                        <div id="studio-word-display" class="studio-word">CAT</div>
-
-                        <div class="studio-controls">
-                            <button id="record-word-btn" class="record-btn">Record Word</button>
-                            <button id="play-word-preview" class="action-btn" disabled>▶ Preview</button>
-                        </div>
-
-                        <label style="font-weight:bold; display:block; text-align:left; margin-top:12px;">Sentence (edit if needed):</label>
-                        <textarea id="studio-sentence-display" rows="3" style="width:100%;"></textarea>
-
-                        <div class="studio-controls" style="margin-top:10px;">
-                            <button id="record-sentence-btn" class="record-btn">Record Sentence</button>
-                            <button id="play-sentence-preview" class="action-btn" disabled>▶ Preview</button>
-                        </div>
-
-                        <div id="recording-status" style="margin-top:10px; font-weight:bold;"></div>
-                    </div>
-
-                    <button id="next-item-btn" class="primary-btn" style="width:100%; margin-top:10px;">Next Word ➜</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="welcome-modal" class="modal hidden">
-            <div class="modal-content welcome-content">
-                <span class="close-btn top-right-x">&times;</span>
-                <h2>Welcome! 👋</h2>
-                <p>Let's practice decoding. Pick a focus and guess the secret word!</p>
-                <ul class="welcome-steps">
-                    <li>1. Pick a <strong>Phonics Focus</strong>.</li>
-                    <li>2. Type your guess.</li>
-                    <li>3. Green means <strong>Perfect</strong>!</li>
-                </ul>
-                <button id="start-playing-btn" class="primary-btn">Start Decoding</button>
-            </div>
-        </div>
+  <header>
+    <div class="header-top">
+      <h1>Decode the Word</h1>
+      <div class="header-actions">
+        <button id="case-toggle" class="text-btn">abc</button>
+        <button id="teacher-btn" class="icon-btn" title="Teacher Mode">🎓</button>
+      </div>
     </div>
 
-    <!-- DATA FILES MUST LOAD BEFORE script.js
-         If you rename any data file, update these script tags.
-         Keep data-only files separate to prevent regressions. -->
-    <script src="phonics_focus_data.js"></script>
-    <script src="jokes_facts_quotes_bank.js"></script>
-    <script src="script.js"></script>
+    <div class="controls">
+      <div class="control-group">
+        <label for="pattern-select">Focus:</label>
+        <select id="pattern-select">
+          <option value="all">Mixed Review</option>
+          <option value="cvc">CVC (Short Vowels)</option>
+          <option value="digraph">Digraphs (sh, ch)</option>
+          <option value="blend">Blends (st, bl)</option>
+          <option value="floss">FLOSS Rule</option>
+          <option value="magic-e">Magic E</option>
+          <option value="vowel-team">Vowel Teams</option>
+          <option value="r-controlled">R-Controlled</option>
+          <option value="prefix">Prefixes (un, re)</option>
+          <option value="suffix">Suffixes (ed, ing)</option>
+          <option value="doubling">Doubling (1-1-1)</option>
+          <option value="schwa">Schwa</option>
+          <option value="multisyllable">Multisyllable</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="length-select">Length:</label>
+        <select id="length-select">
+          <option value="traditional" selected>Traditional (5)</option>
+          <option value="any">Any Length (Mixed)</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+
+      <button id="new-word-btn" title="Skip / New Word">New Word ↻</button>
+    </div>
+
+    <div class="focus-panel">
+      <div class="focus-header">
+        <strong id="focus-title">Focus Title</strong>
+        <button id="hear-word-hint" class="icon-btn" title="Hear Word">🔊</button>
+      </div>
+      <div id="focus-desc">Description of the rule.</div>
+      <div id="focus-hint" class="hint-text">Hint text...</div>
+      <div id="focus-examples" style="margin-top:2px; color:#666; font-style:italic;"></div>
+      <div id="quick-tiles-row" class="quick-row hidden"></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="game-board"></div>
+    <button id="hear-sentence-hint" class="text-btn" style="margin-bottom: 10px; width: 100%; max-width: 300px;">💡 Hear Sentence Hint</button>
+  </main>
+
+  <div id="keyboard"></div>
+
+  <div id="modal-overlay" class="hidden">
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn top-right-x">&times;</span>
+        <h2 id="modal-title">Great Job!</h2>
+        <div class="stat-box">
+          <div id="modal-word" class="stat-word">WORD</div>
+          <div id="modal-syllables" class="stat-syllables">w • o • r • d</div>
+          <div id="modal-def" class="stat-def">Definition here.</div>
+          <div id="modal-sentence" class="stat-sentence">"Sentence here."</div>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button id="speak-btn" class="action-btn">🔊 Say Word</button>
+          <button id="play-again-btn" class="primary-btn">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="teacher-modal" class="modal hidden">
+      <div class="modal-content teacher-content">
+        <span class="close-teacher top-right-x">&times;</span>
+        <h2>Teacher Mode</h2>
+
+        <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+          <button id="open-studio-btn" class="action-btn" style="width:100%; background:#673ab7; color: white; margin-bottom: 15px;">🎙️ Open Recording Studio</button>
+
+          <div class="control-group" style="text-align: left;">
+            <label for="system-voice-select" style="font-weight:bold; display:block; margin-bottom: 6px;">System Voice (Fix Robot Voice):</label>
+            <select id="system-voice-select" style="width:100%;"></select>
+          </div>
+        </div>
+
+        <p style="text-align:left; margin-top:0;">Set a custom word for students to guess.</p>
+
+        <div class="teacher-row">
+          <input id="custom-word-input" type="password" placeholder="Type secret word..." autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <button id="toggle-mask" class="icon-btn" title="Show/Hide">👁️</button>
+        </div>
+
+        <button id="set-word-btn" class="primary-btn" style="width:100%;">Set Word ✅</button>
+      </div>
+    </div>
+
+    <div id="recording-studio-modal" class="modal hidden">
+      <div class="modal-content studio-content">
+        <span class="close-studio top-right-x">&times;</span>
+        <h2>Teacher Recording Studio 🎙️</h2>
+
+        <div id="studio-setup-view">
+          <p style="margin-top: 0;">Record your own voice for words and sentence hints.</p>
+
+          <div class="control-group" style="text-align:left;">
+            <label for="studio-source-select" style="font-weight:bold; display:block; margin-bottom:6px;">Choose Word List:</label>
+            <select id="studio-source-select" style="width:100%;">
+              <option value="focus">Use Current Focus Word Bank</option>
+              <option value="paste">Paste Your Own Word List</option>
+            </select>
+          </div>
+
+          <div id="studio-paste-area" class="hidden" style="text-align:left;">
+            <label for="studio-paste-input" style="font-weight:bold; display:block; margin:10px 0 6px;">Paste Words (one per line):</label>
+            <textarea id="studio-paste-input" rows="5" style="width:100%;" placeholder="cat&#10;ship&#10;robot"></textarea>
+          </div>
+
+          <label style="display:flex; gap:8px; align-items:center; justify-content:flex-start; margin-top:10px;">
+            <input type="checkbox" id="studio-skip-existing" checked />
+            Skip words that already have recordings
+          </label>
+
+          <button id="start-studio-btn" class="primary-btn" style="width:100%; margin-top:15px;">Start Session ▶️</button>
+          <button id="exit-studio-btn" class="action-btn" style="width:100%; margin-top:10px;">Exit</button>
+        </div>
+
+        <div id="studio-record-view" class="hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div id="studio-progress" style="font-weight:bold;">1 / 10</div>
+            <label style="display:flex; gap:8px; align-items:center;">
+              <input type="checkbox" id="studio-auto-advance" checked />
+              Auto-advance after sentence
+            </label>
+          </div>
+
+          <div class="studio-card">
+            <div id="studio-word-display" class="studio-word">CAT</div>
+
+            <div class="studio-controls">
+              <button id="record-word-btn" class="record-btn">Record Word</button>
+              <button id="play-word-preview" class="action-btn" disabled>▶ Preview</button>
+            </div>
+
+            <label style="font-weight:bold; display:block; text-align:left; margin-top:12px;">Sentence (edit if needed):</label>
+            <textarea id="studio-sentence-display" rows="3" style="width:100%;"></textarea>
+
+            <div class="studio-controls" style="margin-top:10px;">
+              <button id="record-sentence-btn" class="record-btn">Record Sentence</button>
+              <button id="play-sentence-preview" class="action-btn" disabled>▶ Preview</button>
+            </div>
+
+            <div id="recording-status" style="margin-top:10px; font-weight:bold;"></div>
+          </div>
+
+          <button id="next-item-btn" class="primary-btn" style="width:100%; margin-top:10px;">Next Word ➜</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="welcome-modal" class="modal hidden">
+      <div class="modal-content welcome-content">
+        <span class="close-btn top-right-x">&times;</span>
+        <h2>Welcome! 👋</h2>
+        <p>Let's practice decoding. Pick a focus and guess the secret word!</p>
+        <ul class="welcome-steps">
+          <li>1. Pick a <strong>Phonics Focus</strong>.</li>
+          <li>2. Type your guess.</li>
+          <li>3. Green means <strong>Perfect</strong>!</li>
+        </ul>
+        <button id="start-playing-btn" class="primary-btn">Start Decoding</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="phonics_focus_data.js"></script>
+  <script src="jokes_facts_quotes_bank.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
