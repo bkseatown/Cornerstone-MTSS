@@ -20,7 +20,31 @@ const welcomeModal = document.getElementById("welcome-modal");
 const teacherModal = document.getElementById("teacher-modal");
 const gameModal = document.getElementById("modal");
 
+// Focus panel elements (assigned on DOMContentLoaded for safety)
+let focusTitleEl = null;
+let focusDescEl = null;
+let focusExamplesEl = null;
+let focusHintEl = null;
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Cache focus panel elements (these IDs live in index.html)
+    focusTitleEl = document.getElementById("focus-title");
+    focusDescEl = document.getElementById("focus-desc");
+    focusExamplesEl = document.getElementById("focus-examples");
+    focusHintEl = document.getElementById("focus-hint");
+
+    // Sanity checks: make sure data files loaded
+    if (!window.FOCUS_INFO || typeof window.FOCUS_INFO !== "object") {
+        console.error("FOCUS_INFO is missing. Check that phonics_focus_data.js (or words.js) is loaded before script.js.");
+        alert("Data file missing: FOCUS_INFO. Please ensure phonics_focus_data.js is loaded.");
+        return;
+    }
+    if (!window.WORD_ENTRIES || typeof window.WORD_ENTRIES !== "object") {
+        console.error("WORD_ENTRIES is missing. Check that phonics_focus_data.js (or words.js) is loaded before script.js.");
+        alert("Data file missing: WORD_ENTRIES. Please ensure phonics_focus_data.js is loaded.");
+        return;
+    }
+
     initControls();
     initKeyboard();
     startNewGame();
@@ -154,6 +178,7 @@ function startNewGame(customWord = null) {
 }
 
 function getWordFromDictionary() {
+  if (!window.WORD_ENTRIES || typeof window.WORD_ENTRIES !== "object") return null;
     if (!window.WORD_ENTRIES || typeof window.WORD_ENTRIES !== "object") {
         console.error("WORD_ENTRIES is missing. Check your <script> order: phonics_focus_data.js must load before script.js");
         return "cat";
@@ -217,10 +242,10 @@ function updateFocusPanel() {
     }
     const exText = Array.isArray(ex) ? ex.join(", ") : "";
 
-    focusTitle.textContent = titleText;
-    focusDesc.textContent = descText;
-    focusExamples.textContent = exText ? ("Try: " + exText) : "";
-    focusHint.textContent = hintText;
+    if (focusTitleEl) focusTitleEl.textContent = titleText;
+    if (focusDescEl) focusDescEl.textContent = descText;
+    if (focusExamplesEl) focusExamplesEl.textContent = exText ? ("Try: " + exText) : "";
+    if (focusHintEl) focusHintEl.textContent = hintText;
 }
 
 // --- INPUT & GRID ---
