@@ -298,7 +298,7 @@ window.WORD_ENTRIES = {
         enrichment: "Mutual funds allow people to invest in many companies at once.",
         fun: "A fund is a piggy bank with a job.",
         decodableSentence: "Fund the trip."
-    }
+    },
 // --- FLOSS RULE (ff, ll, ss, zz) ---
     "bluff": {
         syllables: "bluff",
@@ -4048,32 +4048,6 @@ window.WORD_ENTRIES = {
     }
 })();
 
-// ==========================================
-// DECODABLE TEXTS (For Cloze Reading)
-// ==========================================
-window.DECODABLE_TEXTS = [
-    {
-        title: "The Red Fox",
-        level: "Foundations",
-        tags: ["cvc"],
-        content: "The red fox sat on a log. The sun was hot. The fox had a nap."
-    },
-    {
-        title: "The Lost Ship",
-        level: "Level 1",
-        tags: ["blend", "digraph"],
-        content: "The ship was lost in the mist. The wind was swift. They found the port at last."
-    },
-    {
-        title: "Space Mission",
-        level: "Level 2",
-        tags: ["science", "multisyllable", "soft-c"],
-        content: "The rocket went into space. The crew had a mission. They saw the huge moon."
-    }
-];
-
-}; // <--- END OF WORD_ENTRIES
-
 
 // =========================================
 // PART B: DECODABLE TEXTS (SoR Aligned)
@@ -4099,8 +4073,6 @@ window.DECODABLE_TEXTS = [
         content: `The solar project was complex. We had to construct a model of the planets. Logic told us to start with the sun. It is a huge star with a magnetic field. We used plastic to make the solid shapes. The teacher said our report was valid. We were joyful to finish the task.`
     }
 ];
-
-}; // --- END OF WORD ENTRIES ---
 
 // =========================================
 // FOCUS CONFIGURATION (Matches New Tags)
