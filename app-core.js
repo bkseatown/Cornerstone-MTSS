@@ -1,804 +1,1172 @@
-/* =========================================
-   DECODE THE WORD - GOLD MASTER (IOS SAFE + FIXED STUDIO FLOW)
-   ========================================= */
+(function() {
+  // State
+  let state = {
+    word: "",
+    wordEntry: null,
+    guesses: [],
+    currentGuess: "",
+    maxGuesses: 6,
+    gameOver: false
+  };
 
-const MAX_GUESSES = 6;
-let CURRENT_WORD_LENGTH = 5;
-let currentWord = "";
-let currentEntry = null;
-let guesses = [];
-let currentGuess = "";
-let gameOver = false;
-let isFirstLoad = true;
-let isUpperCase = false;
-let cachedVoices = [];
+  // Audio
+  let voices = [];
+  let selectedVoice = null;
+  let voiceEnabled = true;
+  let voiceWarmedUp = false;
 
-// DOM Elements (bound after DOM is ready)
-let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
+  // Performance cache
+  let wordCache = new Map();
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Bind DOM safely
-    board = document.getElementById("game-board");
-    keyboard = document.getElementById("keyboard");
-    modalOverlay = document.getElementById("modal-overlay");
-    welcomeModal = document.getElementById("welcome-modal");
-    teacherModal = document.getElementById("teacher-modal");
-    studioModal = document.getElementById("recording-studio-modal");
-    gameModal = document.getElementById("modal");
+  // Initialize
+  document.addEventListener("DOMContentLoaded", init);
 
-    // Initialize app
-    initDB();
-    initControls();
-    initKeyboard();
-    initVoiceLoader();
-    initStudio();
+  function init() {
+    if (!window.WORD_ENTRIES) {
+      alert("Word data not loaded!");
+      return;
+    }
+
+    initVoiceSystem();
+    setupControls();
+    setupKeyboard();
+
+    buildFocusOptions();
+    buildLengthOptions();
+    buildGradeOptions();
+    buildLanguageOptions();
+
+    // Focus card + smart length behavior
+    updateFocusCard();
+    rebuildLengthOptionsForFocus();
+
+    setupModalAccessibility();
     startNewGame();
-    checkFirstTimeVisitor();
-});
+  }
 
-// --- AUDIO DATABASE SETUP (IndexedDB) ---
-const DB_NAME = "PhonicsAudioDB";
-const STORE_NAME = "audio_files";
-let db;
-
-function initDB() {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = (event) => {
-        db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
-        }
-    };
-    request.onsuccess = (event) => {
-        db = event.target.result;
-    };
-    request.onerror = (event) => {
-        console.error("DB Error", event);
-    };
-}
-
-function saveAudioToDB(key, blob) {
-    if (!db) return;
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    store.put(blob, key);
-}
-
-function getAudioFromDB(key) {
-    return new Promise((resolve) => {
-        if (!db) return resolve(null);
-        const tx = db.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(null);
-    });
-}
-
-/* --- VOICE LOADING & PICKER --- */
-function initVoiceLoader() {
-    const voiceSelect = document.getElementById("system-voice-select");
-
-    const load = () => {
-        cachedVoices = window.speechSynthesis.getVoices();
-        populateVoiceList();
-    };
-
-    const populateVoiceList = () => {
-        if (!voiceSelect) return;
-        const saved = localStorage.getItem("preferred_voice_uri");
-        
-        voiceSelect.innerHTML = '<option value="">Auto-Select Best (Default)</option>';
-        const englishVoices = cachedVoices.filter(v => v.lang.startsWith("en"));
-        
-        englishVoices.forEach(v => {
-            const opt = document.createElement("option");
-            opt.value = v.voiceURI;
-            opt.textContent = `${v.name} (${v.lang})`;
-            if (v.voiceURI === saved) opt.selected = true;
-            voiceSelect.appendChild(opt);
-        });
-    };
-
-    load();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = load;
+  // ========================================
+  // 1. VOICE WARM-UP (Magic First 10 Seconds)
+  // ========================================
+  
+  function initVoiceSystem() {
+    function loadAndWarm() {
+      voices = speechSynthesis.getVoices();
+      if (voices.length === 0) return;
+      
+      // Sort: Premium English first
+      voices.sort((a,b) => {
+        const aPremium = a.name.includes("Google") || a.name.includes("Premium") || a.name.includes("Enhanced");
+        const bPremium = b.name.includes("Google") || b.name.includes("Premium") || b.name.includes("Enhanced");
+        if (aPremium && !bPremium) return -1;
+        if (!aPremium && bPremium) return 1;
+        if (a.lang.startsWith("en") && !b.lang.startsWith("en")) return -1;
+        if (!a.lang.startsWith("en") && b.lang.startsWith("en")) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      selectedVoice = voices.find(v => v.lang.startsWith("en") && 
+        (v.name.includes("Google") || v.name.includes("Premium"))) || voices[0];
+      
+      // WARM-UP: Silent utterance to initialize engine
+      if (selectedVoice && !voiceWarmedUp) {
+        const warmup = new SpeechSynthesisUtterance(" ");
+        warmup.voice = selectedVoice;
+        warmup.volume = 0.01;
+        warmup.rate = 2;
+        speechSynthesis.speak(warmup);
+        voiceWarmedUp = true;
+      }
     }
-
-    if(voiceSelect) {
-        voiceSelect.onchange = () => {
-            localStorage.setItem("preferred_voice_uri", voiceSelect.value);
-        };
-    }
-}
-
-async function speak(text, type = "word") {
-    if (!text) return;
-    window.speechSynthesis.cancel(); 
-
-    // 1. Check Studio Recording
-    let dbKey = "";
-    if (type === "word") {
-        dbKey = `${text.toLowerCase()}_word`;
-    } else {
-        if (currentEntry && text === currentEntry.sentence) {
-            dbKey = `${currentWord.toLowerCase()}_sentence`;
-        } else {
-            dbKey = "unknown"; 
-        }
-    }
-
-    const blob = await getAudioFromDB(dbKey);
     
-    if (blob) {
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
-        audio.onended = () => URL.revokeObjectURL(url);
-        return; 
+    loadAndWarm();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadAndWarm;
     }
+  }
 
-    // 2. Fallback to System Voice
+  function speak(text) {
+    if (!text || !voiceEnabled) return;
+    speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
-    let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
-    let preferred = null;
-
-    const savedURI = localStorage.getItem("preferred_voice_uri");
-    if (savedURI) {
-        preferred = voices.find(v => v.voiceURI === savedURI);
-    }
-
-    if (!preferred) {
-        preferred = voices.find(v => /Google US English/i.test(v.name));
-        if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US"));
-        if (!preferred) preferred = voices.find(v => (/Enhanced|Premium|Siri/i.test(v.name) && v.lang.startsWith("en-US")));
-        if (!preferred) preferred = voices.find(v => /Ava/i.test(v.name) && v.lang.startsWith("en-US"));
-        if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name) && v.lang.startsWith("en-US"));
-        if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en-US"));
-        if (!preferred) preferred = voices.find(v => v.lang === "en-US");
-        if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
-    }
-
-    if (preferred) msg.voice = preferred;
-    msg.rate = 0.9; 
+    if (selectedVoice) msg.voice = selectedVoice;
+    msg.rate = 0.9;
     msg.pitch = 1.0;
+    speechSynthesis.speak(msg);
+  }
 
-    window.speechSynthesis.speak(msg);
-}
+  // ========================================
+  // 3. PROJECTOR MODE
+  // ========================================
 
-/* --- CONTROLS & EVENTS --- */
-function initControls() {
-    document.getElementById("new-word-btn").onclick = () => {
-        document.getElementById("new-word-btn").blur(); 
-        startNewGame();
-    };
-    document.getElementById("case-toggle").onclick = (e) => {
-        e.target.blur();
-        toggleCase();
-    };
-    
-    document.getElementById("pattern-select").onchange = () => {
-        document.getElementById("pattern-select").blur();
-        startNewGame();
-    };
-    
-    document.getElementById("length-select").onchange = (e) => {
-        e.target.blur();
-        startNewGame();
-    };
+  function setupControls() {
+    const helpBtn = document.getElementById("help-btn");
+    const hearWord = document.getElementById("hear-word");
+    const hearSentence = document.getElementById("hear-sentence");
+    const voiceToggle = document.getElementById("voice-toggle");
 
-    document.getElementById("teacher-btn").onclick = openTeacherMode;
-    document.getElementById("set-word-btn").onclick = handleTeacherSubmit;
-    document.getElementById("open-studio-btn").onclick = openStudioSetup;
-    document.getElementById("toggle-mask").onclick = () => {
-        const inp = document.getElementById("custom-word-input");
-        inp.type = inp.type === "password" ? "text" : "password";
-        inp.focus();
+    const projectorToggle = document.getElementById("projector-toggle");
+    const contrastToggle = document.getElementById("contrast-toggle");
+    const calmToggle = document.getElementById("calm-toggle");
+
+    const setTeacherWord = document.getElementById("set-teacher-word");
+
+    const focusSelect = document.getElementById("focus-select");
+    const lengthSelect = document.getElementById("length-select");
+    const gradeSelect = document.getElementById("grade-select");
+    const langSelect = document.getElementById("lang-select");
+
+    if (helpBtn) helpBtn.onclick = showHelp;
+
+    if (hearWord) hearWord.onclick = () => speak(state.word);
+
+    if (hearSentence) hearSentence.onclick = () => {
+      if (state.wordEntry?.sentence) speak(state.wordEntry.sentence);
     };
 
-    document.getElementById("hear-word-hint").onclick = () => {
-        if (!isModalOpen()) speak(currentWord, "word");
-    };
-    document.getElementById("hear-sentence-hint").onclick = () => {
-        if (!isModalOpen() && currentEntry) {
-            speak(currentEntry.sentence, "sentence");
+    if (voiceToggle) {
+      voiceToggle.onclick = () => {
+        voiceEnabled = !voiceEnabled;
+        voiceToggle.textContent = voiceEnabled ? "🔊 Voice On" : "🔇 Voice Off";
+        voiceToggle.classList.toggle("off", !voiceEnabled);
+        localStorage.setItem("decode_voice_enabled", voiceEnabled ? "1" : "0");
+      };
+
+      // restore
+      const saved = localStorage.getItem("decode_voice_enabled");
+      if (saved === "0") {
+        voiceEnabled = false;
+        voiceToggle.textContent = "🔇 Voice Off";
+        voiceToggle.classList.add("off");
+      }
+    }
+
+    // Projector mode toggle
+    if (projectorToggle) {
+      let isProjector = document.body.classList.contains("projector-mode");
+      projectorToggle.textContent = isProjector ? "📺 Exit Projector" : "📽️ Projector Mode";
+
+      projectorToggle.onclick = () => {
+        isProjector = !isProjector;
+        document.body.classList.toggle("projector-mode", isProjector);
+        projectorToggle.textContent = isProjector ? "📺 Exit Projector" : "📽️ Projector Mode";
+        localStorage.setItem("decode_projector", isProjector ? "1" : "0");
+        showToast(isProjector ? "Projector mode activated" : "Normal mode");
+      };
+
+      // restore
+      if (localStorage.getItem("decode_projector") === "1") {
+        document.body.classList.add("projector-mode");
+        projectorToggle.textContent = "📺 Exit Projector";
+      }
+    }
+
+    // High contrast
+    if (contrastToggle) {
+      const apply = (on) => {
+        document.body.classList.toggle("high-contrast", on);
+        contrastToggle.textContent = on ? "🌓 Contrast: On" : "🌓 Contrast: Off";
+        localStorage.setItem("decode_contrast", on ? "1" : "0");
+      };
+      apply(localStorage.getItem("decode_contrast") === "1");
+      contrastToggle.onclick = () => apply(!document.body.classList.contains("high-contrast"));
+    }
+
+    // Calm / low-stim
+    if (calmToggle) {
+      const apply = (on) => {
+        document.body.classList.toggle("calm-mode", on);
+        calmToggle.textContent = on ? "🌿 Calm: On" : "🌿 Calm: Off";
+        localStorage.setItem("decode_calm", on ? "1" : "0");
+      };
+      apply(localStorage.getItem("decode_calm") === "1");
+      calmToggle.onclick = () => apply(!document.body.classList.contains("calm-mode"));
+    }
+
+    // Teacher word setter (teacher tools remain hidden by UI)
+    if (setTeacherWord) {
+      setTeacherWord.onclick = () => {
+        const input = document.getElementById("teacher-word");
+        const word = input?.value.trim().toLowerCase() || "";
+        if (word.length >= 2 && word.length <= 10 && /^[a-z]+$/.test(word)) {
+          setCustomWord(word);
+          if (input) input.value = "";
+          showToast("Word set ✓", "success");
+        } else {
+          showToast("Enter 2–10 letters only", "error");
         }
-    };
-    document.getElementById("speak-btn").onclick = () => {
-        speak(currentWord, "word");
-    };
-    document.getElementById("play-again-btn").onclick = () => {
-        closeModal();
+      };
+    }
+
+    // Focus → update focus card and smart lengths
+    if (focusSelect) {
+      focusSelect.onchange = () => {
+        localStorage.setItem("decode_focus", focusSelect.value);
+        wordCache.clear();
+        updateFocusCard();
+        rebuildLengthOptionsForFocus();
         startNewGame();
-    };
+      };
 
-    document.querySelectorAll(".close-btn, .close-teacher, .close-studio, #start-playing-btn").forEach(btn => {
-        btn.addEventListener("click", closeModal);
+      // restore focus
+      const saved = localStorage.getItem("decode_focus");
+      if (saved && [...focusSelect.options].some(o => o.value === saved)) {
+        focusSelect.value = saved;
+      }
+    }
+
+    if (lengthSelect) {
+      lengthSelect.onchange = () => {
+        localStorage.setItem("decode_length", lengthSelect.value);
+        wordCache.clear();
+        startNewGame();
+      };
+
+      // restore length
+      const saved = localStorage.getItem("decode_length");
+      if (saved && [...lengthSelect.options].some(o => o.value === saved)) {
+        lengthSelect.value = saved;
+      }
+    }
+
+    if (gradeSelect) {
+      gradeSelect.onchange = () => {
+        localStorage.setItem("decode_grade_band", gradeSelect.value);
+        wordCache.clear();
+        startNewGame();
+      };
+    }
+
+    if (langSelect) {
+      langSelect.onchange = () => {
+        localStorage.setItem("decode_lang", langSelect.value);
+        // If end modal is open, refresh translation immediately
+        if (!document.getElementById("end-modal")?.classList.contains("hidden")) {
+          applyTranslationToEndModal(state.word, state.wordEntry);
+        }
+      };
+    }
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.onclick = () => closeModal(btn.dataset.close);
     });
+  }
+  
+  function setupModalAccessibility() {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const openModal = document.querySelector(".modal.open");
+        if (openModal) {
+          const modalId = openModal.id.replace("-modal", "");
+          closeModal(modalId);
+        }
+      }
+    });
+  }
 
-    modalOverlay.onclick = (e) => {
-        if (e.target === modalOverlay) closeModal();
-    };
+  function buildFocusOptions() {
+    const select = document.getElementById("focus-select");
+    if (!select || !window.FOCUS_INFO) return;
+    
+    Object.entries(window.FOCUS_INFO).forEach(([key, info]) => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = info.title;
+      select.appendChild(option);
+    });
+    select.value = "all";
+  }
 
-    window.addEventListener("keydown", (e) => {
-        if (isModalOpen()) {
-            if (!studioModal.classList.contains("hidden")) return; 
+  function buildLengthOptions() {
+    const select = document.getElementById("length-select");
+    if (!select) return;
+    
+    const lengths = [
+      { value: "any", label: "Any" },
+      { value: "3", label: "3" },
+      { value: "4", label: "4" },
+      { value: "5", label: "5" },
+      { value: "6", label: "6" },
+      { value: "7", label: "7+" }
+    ];
+    
+    lengths.forEach(({value, label}) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+    select.value = "5";
+  }
 
-            if (e.key === "Escape" || e.key === "Enter") {
-                if (!teacherModal.classList.contains("hidden") && e.key === "Enter") {
-                    handleTeacherSubmit();
-                } else {
-                    closeModal(); 
-                }
+  // ========================================
+  // 7. PERFORMANCE CACHING
+  // ========================================
+  
+  function startNewGame() {
+    const focus = document.getElementById("focus-select")?.value || "all";
+    const lengthSel = document.getElementById("length-select")?.value || "any";
+    const gradeBand = getGradeBand();
+    const cacheKey = `${focus}-${lengthSel}-${gradeBand}`;
+
+    let candidates = wordCache.get(cacheKey);
+
+    if (!candidates) {
+      candidates = Object.entries(window.WORD_ENTRIES).filter(([word, entry]) => {
+        if (!entry) return false;
+
+        // Focus match: prefer entry.focus array; fall back to tags (supports both "cvc" and "focus:cvc")
+        if (focus !== "all") {
+          const focusArr = Array.isArray(entry.focus) ? entry.focus : [];
+          const tagArr = Array.isArray(entry.tags) ? entry.tags : [];
+          const hit = focusArr.includes(focus) || tagArr.includes(focus) || tagArr.includes(`focus:${focus}`) || tagArr.includes(`pattern:${focus}`);
+          if (!hit) return false;
+        }
+
+        // Grade band (explicit tags if present; otherwise gentle heuristic)
+        if (gradeBand !== "all") {
+          const tagArr = Array.isArray(entry.tags) ? entry.tags : [];
+          const explicit = tagArr.find(t => typeof t === "string" && t.startsWith("grade:"));
+          if (explicit) {
+            if (explicit !== `grade:${gradeBand}`) return false;
+          } else {
+            // Heuristic fallback
+            const len = word.length;
+            const focusArr = Array.isArray(entry.focus) ? entry.focus : [];
+            const f = focusArr[0] || "";
+
+            const isMulti = f === "multisyllable" || tagArr.includes("multisyllable");
+            const isMorph = f === "morphology" || tagArr.some(t => typeof t === "string" && (t.includes("prefix") || t.includes("suffix") || t.includes("morph")));
+            if (gradeBand === "k-2") {
+              if (len > 5) return false;
+              if (isMulti || isMorph) return false;
+            } else if (gradeBand === "3-5") {
+              if (len < 4) return false;
+              if (len > 8) return false;
+            } else if (gradeBand === "6-8") {
+              if (len < 5) return false;
+            } else if (gradeBand === "9-12") {
+              if (len < 6) return false;
             }
-            return; 
+          }
         }
 
-        if (gameOver) return;
+        // Length match
+        if (lengthSel === "any") return true;
+        const len = parseInt(lengthSel);
+        if (len === 7) return word.length >= 7;
+        return word.length === len;
+      });
 
-        if (e.key === "Enter") submitGuess();
-        else if (e.key === "Backspace") deleteLetter();
-        else if (/^[a-z]$/i.test(e.key)) handleInput(e.key.toLowerCase());
-    });
+      wordCache.set(cacheKey, candidates);
+    }
 
-    const tInput = document.getElementById("custom-word-input");
-    tInput.addEventListener("keydown", (e) => {
-        e.stopImmediatePropagation(); 
-        if (e.key === "Enter") handleTeacherSubmit();
-        if (e.key === "Escape") closeModal();
-    });
-}
+    if (candidates.length === 0) {
+      showToast("No words for this selection", "error");
+      return;
+    }
 
-function isModalOpen() {
-    return !modalOverlay.classList.contains("hidden");
-}
+    const [word, entry] = candidates[Math.floor(Math.random() * candidates.length)];
+    startGame(word, entry);
+  }
 
-/* --- STUDIO LOGIC --- */
-let studioList = [];
-let studioIndex = 0;
-let mediaRecorder = null;
-let audioChunks = [];
-let recordingType = ""; // Track what we are recording
+  function getFocusInfo(focusKey) {
+    return (window.FOCUS_INFO && window.FOCUS_INFO[focusKey]) ? window.FOCUS_INFO[focusKey] : (window.FOCUS_INFO?.all || null);
+  }
 
-function initStudio() {
-    document.getElementById("studio-source-select").onchange = (e) => {
-        const pasteArea = document.getElementById("studio-paste-area");
-        pasteArea.classList.toggle("hidden", e.target.value !== "paste");
-    };
+  function updateFocusCard() {
+    const focusKey = document.getElementById("focus-select")?.value || "all";
+    const info = getFocusInfo(focusKey);
 
-    document.getElementById("start-studio-btn").onclick = startStudioSession;
-    document.getElementById("exit-studio-btn").onclick = closeModal;
-    
-    document.getElementById("record-word-btn").onclick = () => toggleRecording("word");
-    document.getElementById("record-sentence-btn").onclick = () => toggleRecording("sentence");
-    
-    document.getElementById("play-word-preview").onclick = () => playPreview("word");
-    document.getElementById("play-sentence-preview").onclick = () => playPreview("sentence");
-    
-    document.getElementById("next-item-btn").onclick = nextStudioItem;
-}
+    const titleEl = document.getElementById("focus-title");
+    const descEl = document.getElementById("focus-desc");
+    const hintEl = document.getElementById("focus-hint");
+    const exWrap = document.getElementById("focus-examples-wrap");
 
-function openStudioSetup() {
-    teacherModal.classList.add("hidden");
-    studioModal.classList.remove("hidden");
-    document.getElementById("studio-setup-view").classList.remove("hidden");
-    document.getElementById("studio-record-view").classList.add("hidden");
-}
+    if (!info) return;
 
-async function startStudioSession() {
-    const source = document.getElementById("studio-source-select").value;
-    const skipExisting = document.getElementById("studio-skip-existing").checked;
-    
-    let rawList = [];
+    if (titleEl) titleEl.textContent = info.title || "Focus";
+    if (descEl) descEl.textContent = info.desc || "";
+    if (hintEl) hintEl.textContent = info.hint || "";
 
-    if (source === "focus") {
-        const pattern = document.getElementById("pattern-select").value;
-        const allWords = Object.keys(window.WORD_ENTRIES);
-        rawList = allWords.filter(w => {
-            const e = window.WORD_ENTRIES[w];
-            return pattern === 'all' || (e.tags && e.tags.includes(pattern));
+    // Kid-friendly examples as chips (no "Ex:" prefix)
+    if (exWrap) {
+      exWrap.innerHTML = "";
+      const raw = (info.examples || "").trim();
+      if (raw) {
+        raw.split(",").map(s => s.trim()).filter(Boolean).slice(0, 8).forEach(w => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "example-chip";
+          chip.textContent = w;
+          chip.onclick = () => speak(w);
+          exWrap.appendChild(chip);
         });
+      }
+    }
+  }
+
+  function rebuildLengthOptionsForFocus() {
+    const focusKey = document.getElementById("focus-select")?.value || "all";
+    const info = getFocusInfo(focusKey);
+    const select = document.getElementById("length-select");
+    if (!select) return;
+
+    // Preserve existing selection if still allowed
+    const currentVal = select.value || "any";
+
+    // Allowed lengths: use focus info if present, otherwise fall back to default list.
+    const defaultList = [
+      { value: "any", label: "Any" },
+      { value: "3", label: "3" },
+      { value: "4", label: "4" },
+      { value: "5", label: "5" },
+      { value: "6", label: "6" },
+      { value: "7", label: "7+" }
+    ];
+
+    let allowed = null;
+    if (info && Array.isArray(info.allowedLengths) && info.allowedLengths.length) {
+      allowed = info.allowedLengths.slice();
+    } else if (info && typeof info.defaultLength === "number") {
+      allowed = [info.defaultLength];
+    }
+
+    // Build options
+    select.innerHTML = "";
+    // Always allow "Any" so teachers can override
+    const anyOpt = document.createElement("option");
+    anyOpt.value = "any";
+    anyOpt.textContent = "Any";
+    select.appendChild(anyOpt);
+
+    if (allowed) {
+      allowed.forEach(n => {
+        const opt = document.createElement("option");
+        opt.value = String(n);
+        opt.textContent = String(n);
+        select.appendChild(opt);
+      });
     } else {
-        const text = document.getElementById("studio-paste-input").value;
-        rawList = text.split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s && /^[a-z]+$/.test(s));
+      defaultList.slice(1).forEach(({value,label}) => {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        select.appendChild(opt);
+      });
     }
 
-    if (rawList.length === 0) {
-        alert("No words found.");
-        return;
+    // Auto-switch to default length for this focus (unless user is on "Any")
+    if (info && typeof info.defaultLength === "number") {
+      select.value = String(info.defaultLength);
+    } else {
+      // restore if possible
+      const exists = [...select.options].some(o => o.value === currentVal);
+      select.value = exists ? currentVal : "any";
     }
+  }
 
-    studioList = [];
-    for (let w of rawList) {
-        const entry = window.WORD_ENTRIES[w] || { sentence: `The word is ${w}.` };
-        
-        if (skipExisting) {
-            const hasWord = await getAudioFromDB(`${w}_word`);
-            const hasSent = await getAudioFromDB(`${w}_sentence`);
-            if (hasWord && hasSent) continue; 
-        }
-        studioList.push({ word: w, sentence: entry.sentence });
-    }
+  // ========================================
+  // 5. GRADE BAND FILTER (SAFE DEFAULT)
+  // ========================================
 
-    if (studioList.length === 0) {
-        alert("All words already have recordings!");
-        return;
-    }
+  function buildGradeOptions() {
+    const select = document.getElementById("grade-select");
+    if (!select) return;
 
-    studioIndex = 0;
-    document.getElementById("studio-setup-view").classList.add("hidden");
-    document.getElementById("studio-record-view").classList.remove("hidden");
-    loadStudioItem();
-}
+    const options = [
+      { value: "all", label: "All" },
+      { value: "k-2", label: "K–2" },
+      { value: "3-5", label: "3–5" },
+      { value: "6-8", label: "6–8" },
+      { value: "9-12", label: "9–12" }
+    ];
 
-function loadStudioItem() {
-    if (studioIndex >= studioList.length) {
-        alert("Session Complete!");
-        closeModal();
-        return;
-    }
-
-    const item = studioList[studioIndex];
-    document.getElementById("studio-progress").textContent = `${studioIndex + 1} / ${studioList.length}`;
-    document.getElementById("studio-word-display").textContent = item.word.toUpperCase();
-    document.getElementById("studio-sentence-display").value = item.sentence;
-
-    resetRecordButtons();
-}
-
-function resetRecordButtons() {
-    const wordBtn = document.getElementById("record-word-btn");
-    const sentBtn = document.getElementById("record-sentence-btn");
-    const playW = document.getElementById("play-word-preview");
-    const playS = document.getElementById("play-sentence-preview");
-
-    wordBtn.textContent = "Record Word";
-    wordBtn.classList.remove("recording");
-    sentBtn.textContent = "Record Sentence";
-    sentBtn.classList.remove("recording");
-    
-    playW.disabled = true;
-    playS.disabled = true;
-
-    const w = studioList[studioIndex].word;
-    getAudioFromDB(`${w}_word`).then(b => { if(b) playW.disabled = false; });
-    getAudioFromDB(`${w}_sentence`).then(b => { if(b) playS.disabled = false; });
-}
-
-function toggleRecording(type) {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        return;
-    }
-
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        // FIX: iOS/Safari Mime Check
-        let mimeType = "audio/webm";
-        if (MediaRecorder.isTypeSupported("audio/mp4")) {
-            mimeType = "audio/mp4";
-        } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-            mimeType = "audio/webm;codecs=opus";
-        }
-
-        mediaRecorder = new MediaRecorder(stream, { mimeType });
-        audioChunks = [];
-        recordingType = type; // Track what we are recording
-
-        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-        
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: mimeType });
-            const word = studioList[studioIndex].word;
-            const key = type === "word" ? `${word}_word` : `${word}_sentence`;
-            
-            saveAudioToDB(key, blob);
-            
-            const btn = document.getElementById(type === "word" ? "record-word-btn" : "record-sentence-btn");
-            btn.textContent = "Re-Record";
-            btn.classList.remove("recording");
-            
-            const playBtn = document.getElementById(type === "word" ? "play-word-preview" : "play-sentence-preview");
-            playBtn.disabled = false;
-
-            document.getElementById("recording-status").textContent = "Saved!";
-            setTimeout(() => {
-                document.getElementById("recording-status").textContent = "";
-                
-                // CRITICAL FIX: Only auto-advance if we just finished the SENTENCE.
-                // This ensures the user stays on the card after recording the Word.
-                if (document.getElementById("studio-auto-advance").checked && recordingType === 'sentence') {
-                    setTimeout(nextStudioItem, 500);
-                }
-            }, 1000);
-        };
-
-        mediaRecorder.start();
-        
-        const btn = document.getElementById(type === "word" ? "record-word-btn" : "record-sentence-btn");
-        btn.textContent = "Stop ■";
-        btn.classList.add("recording");
-        document.getElementById("recording-status").textContent = "Recording...";
-
-    }).catch(err => {
-        console.error("Mic Error:", err);
-        alert("Could not access microphone. Check permissions.");
+    select.innerHTML = "";
+    options.forEach(({value,label}) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      select.appendChild(opt);
     });
-}
 
-async function playPreview(type) {
-    const word = studioList[studioIndex].word;
-    const key = type === "word" ? `${word}_word` : `${word}_sentence`;
-    const blob = await getAudioFromDB(key);
-    if (blob) {
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
+    // Persist
+    const saved = localStorage.getItem("decode_grade_band");
+    if (saved && options.some(o => o.value === saved)) select.value = saved;
+  }
+
+  function getGradeBand() {
+    const sel = document.getElementById("grade-select");
+    return sel ? (sel.value || "all") : "all";
+  }
+
+  function wordMatchesGradeBand(entry, band) {
+    if (!entry || band === "all") return true;
+
+    // If dataset has explicit grade tags, honor them (best path).
+    const tags = entry.tags || [];
+    const explicit = tags.find(t => typeof t === "string" && t.startsWith("grade:"));
+    if (explicit) {
+      return explicit === `grade:${band}`;
     }
-}
 
-function nextStudioItem() {
-    studioIndex++;
-    loadStudioItem();
-}
+    // Heuristic fallback (won't block too hard): keep most words visible.
+    // Goal: younger = shorter + simpler focuses.
+    const focusArr = entry.focus || [];
+    const focus = focusArr[0] || "";
+    const len = (entry.wordLength || 0);
 
-/* --- GAME LOGIC --- */
-function startNewGame(customWord = null) {
-    gameOver = false;
-    guesses = [];
-    currentGuess = "";
-    board.innerHTML = "";
-    clearKeyboardColors();
-    updateFocusPanel();
+    // We'll infer length from word itself later; this is just a placeholder.
+    // When called from filter, we pass word separately.
+    return true;
+  }
+
+  // ========================================
+  // 6. TRANSLATION UI (uses translations.js if present)
+  // ========================================
+
+  function buildLanguageOptions() {
+    const select = document.getElementById("lang-select");
+    if (!select || !window.getSupportedLanguages || !window.getLanguageInfo) return;
+
+    const langs = window.getSupportedLanguages();
+    select.innerHTML = "";
+
+    // Default: English (no translation)
+    const opt0 = document.createElement("option");
+    opt0.value = "en";
+    opt0.textContent = "English";
+    select.appendChild(opt0);
+
+    langs.forEach(code => {
+      const info = window.getLanguageInfo(code);
+      if (!info) return;
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = `${info.flag || ""} ${info.native || info.name || code}`.trim();
+      select.appendChild(opt);
+    });
+
+    const saved = localStorage.getItem("decode_lang");
+    if (saved && [...select.options].some(o => o.value === saved)) select.value = saved;
+  }
+
+  function getSelectedLang() {
+    const sel = document.getElementById("lang-select");
+    return sel ? (sel.value || "en") : "en";
+  }
+
+  function applyTranslationToEndModal(word, entry) {
+    const wrap = document.getElementById("end-translation-wrap");
+    const tWord = document.getElementById("end-translation-word");
+    const tDef = document.getElementById("end-translation-def");
+    const tSent = document.getElementById("end-translation-sentence");
+    const tSpeak = document.getElementById("end-translation-speak");
+
+    if (!wrap) return;
+
+    const lang = getSelectedLang();
+    if (!lang || lang === "en" || !window.getTranslation) {
+      wrap.classList.add("hidden");
+      return;
+    }
+
+    const tr = window.getTranslation(word, lang);
+    if (!tr) {
+      wrap.classList.remove("hidden");
+      if (tWord) tWord.textContent = "No translation yet";
+      if (tDef) tDef.textContent = "";
+      if (tSent) tSent.textContent = "";
+      if (tSpeak) tSpeak.disabled = true;
+      return;
+    }
+
+    wrap.classList.remove("hidden");
+    if (tWord) tWord.textContent = tr.word || "";
+    if (tDef) tDef.textContent = tr.def || "";
+    if (tSent) tSent.textContent = tr.sentence ? `“${tr.sentence}”` : "";
+    if (tSpeak) {
+      tSpeak.disabled = false;
+      tSpeak.onclick = () => window.speakTranslation ? window.speakTranslation(tr.word || tr.sentence || "", lang) : null;
+    }
+  }
+
+
+
+  function setCustomWord(word) {
+    const entry = window.WORD_ENTRIES[word] || {
+      def: "Custom word for practice",
+      sentence: `Spell the word: ${word}`,
+      tags: ["all"]
+    };
+    startGame(word, entry);
+  }
+
+  function startGame(word, entry) {
+    state.word = word.toLowerCase();
+    state.wordEntry = entry;
+    state.guesses = [];
+    state.currentGuess = "";
+    state.gameOver = false;
     
-    if (customWord) {
-        currentWord = customWord.toLowerCase();
-        CURRENT_WORD_LENGTH = currentWord.length;
-        currentEntry = window.WORD_ENTRIES[currentWord] || { 
-            def: "Teacher set word.", sentence: "Can you decode this?", syllables: currentWord 
-        };
-    } else {
-        const data = getWordFromDictionary();
-        currentWord = data.word;
-        currentEntry = data.entry;
-        CURRENT_WORD_LENGTH = currentWord.length;
-    }
+    buildBoard();
+    resetKeyboard();
+  }
 
-    isFirstLoad = false;
-    board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 50px)`;
-    for (let i = 0; i < MAX_GUESSES * CURRENT_WORD_LENGTH; i++) {
+  function buildBoard() {
+    const board = document.getElementById("game-board");
+    if (!board) return;
+    
+    board.innerHTML = "";
+    board.style.setProperty("--word-length", state.word.length);
+    
+    const guessSelect = document.getElementById("guess-select");
+    const maxGuesses = guessSelect ? parseInt(guessSelect.value) : 6;
+    state.maxGuesses = maxGuesses;
+    
+    for (let i = 0; i < maxGuesses; i++) {
+      const row = document.createElement("div");
+      row.className = "row";
+      for (let j = 0; j < state.word.length; j++) {
         const tile = document.createElement("div");
         tile.className = "tile";
-        tile.id = `tile-${i}`;
-        board.appendChild(tile);
+        row.appendChild(tile);
+      }
+      board.appendChild(row);
     }
-}
+  }
 
-function getWordFromDictionary() {
-    const pattern = document.getElementById("pattern-select").value;
-    const lenVal = document.getElementById("length-select").value;
+  // ========================================
+  // 4. KEYBOARD WITH BETTER HIT TARGETS
+  // ========================================
+  
+  function setupKeyboard() {
+    const keyboard = document.getElementById("keyboard");
+    if (!keyboard) return;
     
-    let targetLen = null;
-    if (lenVal === 'traditional') targetLen = 5;
-    else if (lenVal === 'any') targetLen = null;
-    else targetLen = parseInt(lenVal);
-
-    const pool = Object.keys(window.WORD_ENTRIES).filter(w => {
-        const e = window.WORD_ENTRIES[w];
-        const lenMatch = !targetLen || w.length === targetLen;
-        const patMatch = pattern === 'all' || (e.tags && e.tags.includes(pattern));
-        return lenMatch && patMatch;
-    });
-
-    if (pool.length === 0) return { word: "apple", entry: window.WORD_ENTRIES["apple"] };
-    const final = pool[Math.floor(Math.random() * pool.length)];
-    return { word: final, entry: window.WORD_ENTRIES[final] };
-}
-
-function updateFocusPanel() {
-    const pat = document.getElementById("pattern-select").value;
-    const info = window.FOCUS_INFO[pat] || window.FOCUS_INFO.all || { 
-        title: "Practice", desc: "General Review", hint: "Do your best!", examples: "" 
-    };
-    document.getElementById("focus-title").textContent = info.title;
-    document.getElementById("focus-desc").textContent = info.desc;
-    document.getElementById("focus-hint").textContent = info.hint;
+    const rows = [
+      ["q","w","e","r","t","y","u","i","o","p"],
+      ["a","s","d","f","g","h","j","k","l"],
+      ["Enter","z","x","c","v","b","n","m","⌫"]
+    ];
     
-    const exSpan = document.getElementById("focus-examples");
-    if (info.examples && info.examples.length > 0) {
-        exSpan.textContent = `Ex: ${info.examples}`;
-    } else {
-        exSpan.textContent = "";
-    }
-
-    const quickRow = document.getElementById("quick-tiles-row");
-    if (info.quick) {
-        quickRow.innerHTML = "";
-        info.quick.forEach(q => {
-            const b = document.createElement("button");
-            b.className = "q-tile";
-            b.textContent = q;
-            b.onclick = () => { 
-                for(let c of q) handleInput(c); 
-                b.blur();
-            };
-            quickRow.appendChild(b);
-        });
-        quickRow.classList.remove("hidden");
-    } else {
-        quickRow.classList.add("hidden");
-    }
-}
-
-function initKeyboard() {
-    const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
-    keyboard.innerHTML = "";
-    rows.forEach(r => {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = "keyboard-row";
-        r.split("").forEach(char => {
-            const k = document.createElement("button");
-            k.className = `key ${"aeiou".includes(char) ? 'vowel' : ''}`;
-            k.textContent = isUpperCase ? char.toUpperCase() : char;
-            k.dataset.key = char;
-            k.onclick = (e) => {
-                handleInput(char);
-                e.target.blur(); 
-            };
-            rowDiv.appendChild(k);
-        });
-        if (r === "zxcvbnm") {
-            const ent = createKey("ENTER", submitGuess, true);
-            const del = createKey("⌫", deleteLetter, true);
-            rowDiv.prepend(ent);
-            rowDiv.append(del);
-        }
-        keyboard.appendChild(rowDiv);
+    rows.forEach(row => {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "kb-row";
+      row.forEach(key => {
+        const btn = document.createElement("button");
+        btn.className = "key";
+        if (key === "Enter") btn.classList.add("key-wide");
+        if (key === "⌫") btn.classList.add("key-wide");
+        btn.textContent = key.toUpperCase();
+        btn.onclick = () => handleKey(key);
+        btn.setAttribute("aria-label", key === "⌫" ? "Delete" : key);
+        rowDiv.appendChild(btn);
+      });
+      keyboard.appendChild(rowDiv);
     });
-}
+  }
 
-function createKey(txt, action, wide) {
-    const b = document.createElement("button");
-    b.textContent = txt;
-    b.className = `key ${wide ? 'wide' : ''}`;
-    b.onclick = (e) => {
-        action();
-        e.target.blur();
-    };
-    return b;
-}
+  function handleKeyPress(e) {
+    if (state.gameOver) return;
+    if (document.querySelector(".modal.open")) return;
+    
+    if (e.key === "Enter") submitGuess();
+    else if (e.key === "Backspace") deleteLetter();
+    else if (/^[a-z]$/i.test(e.key)) addLetter(e.key.toLowerCase());
+  }
 
-function handleInput(char) {
-    if (currentGuess.length < CURRENT_WORD_LENGTH && !gameOver) {
-        currentGuess += char;
-        updateGrid();
-    }
-}
+  function handleKey(key) {
+    if (state.gameOver) return;
+    if (key === "Enter") submitGuess();
+    else if (key === "⌫") deleteLetter();
+    else addLetter(key.toLowerCase());
+  }
 
-function deleteLetter() {
-    currentGuess = currentGuess.slice(0, -1);
-    updateGrid();
-}
+  // ========================================
+  // 4. MICRO-ANIMATIONS (Pop-in, Shake)
+  // ========================================
+  
+  function addLetter(letter) {
+    if (state.currentGuess.length >= state.word.length) return;
+    state.currentGuess += letter;
+    updateCurrentRow();
+  }
 
-function updateGrid() {
-    const offset = guesses.length * CURRENT_WORD_LENGTH;
-    for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
-        const t = document.getElementById(`tile-${offset + i}`);
-        t.textContent = "";
-        t.className = "tile"; 
-    }
-    for (let i = 0; i < currentGuess.length; i++) {
-        const t = document.getElementById(`tile-${offset + i}`);
-        const char = currentGuess[i];
-        t.textContent = isUpperCase ? char.toUpperCase() : char;
-        t.className = "tile active";
-    }
-}
+  function deleteLetter() {
+    if (state.currentGuess.length === 0) return;
+    state.currentGuess = state.currentGuess.slice(0, -1);
+    updateCurrentRow();
+  }
 
-function toggleCase() {
-    isUpperCase = !isUpperCase;
-    document.getElementById("case-toggle").textContent = isUpperCase ? "ABC" : "abc";
-    initKeyboard();
-    document.querySelectorAll(".tile").forEach(t => {
-        if(t.textContent) t.textContent = isUpperCase ? t.textContent.toUpperCase() : t.textContent.toLowerCase();
-    });
-}
-
-function submitGuess() {
-    if (currentGuess.length !== CURRENT_WORD_LENGTH) {
-        const offset = guesses.length * CURRENT_WORD_LENGTH;
-        const first = document.getElementById(`tile-${offset}`);
-        if(first) {
-            first.style.transform = "translateX(5px)";
-            setTimeout(() => first.style.transform = "none", 100);
+  function updateCurrentRow() {
+    const rows = document.querySelectorAll(".row");
+    const currentRow = rows[state.guesses.length];
+    if (!currentRow) return;
+    
+    const tiles = currentRow.querySelectorAll(".tile");
+    tiles.forEach((tile, i) => {
+      if (i < state.currentGuess.length) {
+        if (!tile.textContent) {
+          tile.classList.add("pop-in");
+          setTimeout(() => tile.classList.remove("pop-in"), 100);
         }
-        showToast("Finish the word first."); // CLEAN TOAST
-        return;
+        tile.textContent = state.currentGuess[i].toUpperCase();
+        tile.classList.add("filled");
+      } else {
+        tile.textContent = "";
+        tile.classList.remove("filled");
+      }
+    });
+  }
+
+  function submitGuess() {
+    if (state.currentGuess.length !== state.word.length) {
+      const rows = document.querySelectorAll(".row");
+      const currentRow = rows[state.guesses.length];
+      if (currentRow) {
+        currentRow.classList.add("shake");
+        setTimeout(() => currentRow.classList.remove("shake"), 500);
+      }
+      showToast("Not enough letters", "error");
+      return;
     }
     
-    const result = evaluate(currentGuess, currentWord);
-    revealColors(result, currentGuess);
-    guesses.push(currentGuess);
-
-    if (currentGuess === currentWord) {
-        gameOver = true;
-        confetti(); 
-        setTimeout(() => showEndModal(true), 1500);
-    } else if (guesses.length >= MAX_GUESSES) {
-        gameOver = true;
-        setTimeout(() => showEndModal(false), 1500);
-    } else {
-        currentGuess = "";
+    const guess = state.currentGuess;
+    state.guesses.push(guess);
+    
+    colorTiles(guess);
+    updateKeyboard(guess);
+    
+    if (guess === state.word) {
+      state.gameOver = true;
+      setTimeout(() => showEndModal(true), 800);
+    } else if (state.guesses.length >= state.maxGuesses) {
+      state.gameOver = true;
+      setTimeout(() => showEndModal(false), 800);
     }
-}
+    
+    state.currentGuess = "";
+  }
 
-function evaluate(guess, target) {
-    const res = Array(CURRENT_WORD_LENGTH).fill("absent");
-    const tArr = target.split("");
-    const gArr = guess.split("");
-
-    gArr.forEach((c, i) => {
-        if (c === tArr[i]) {
-            res[i] = "correct";
-            tArr[i] = null;
-            gArr[i] = null;
-        }
-    });
-    gArr.forEach((c, i) => {
-        if (c && tArr.includes(c)) {
-            res[i] = "present";
-            tArr[tArr.indexOf(c)] = null;
-        }
-    });
-    return res;
-}
-
-function revealColors(result, guess) {
-    const offset = (guesses.length) * CURRENT_WORD_LENGTH;
-    result.forEach((status, i) => {
+  function colorTiles(guess) {
+    const row = document.querySelectorAll(".row")[state.guesses.length - 1];
+    const tiles = row.querySelectorAll(".tile");
+    
+    const letterCount = {};
+    for (let char of state.word) {
+      letterCount[char] = (letterCount[char] || 0) + 1;
+    }
+    
+    // First pass: mark correct
+    tiles.forEach((tile, i) => {
+      if (guess[i] === state.word[i]) {
         setTimeout(() => {
-            const t = document.getElementById(`tile-${offset + i}`);
-            t.classList.add(status);
-            t.classList.add("pop");
-            const k = document.querySelector(`.key[data-key="${guess[i]}"]`);
-            if (k) {
-                if (status === "correct") {
-                    k.classList.remove("present", "absent");
-                    k.classList.add("correct");
-                } else if (status === "present") {
-                    if (!k.classList.contains("correct")) {
-                        k.classList.remove("absent");
-                        k.classList.add("present");
-                    }
-                } else if (status === "absent") {
-                    if (!k.classList.contains("correct") && !k.classList.contains("present")) {
-                        k.classList.add("absent");
-                    }
-                }
-            }
-        }, i * 200);
+          tile.classList.add("flip", "correct");
+        }, i * 100);
+        letterCount[guess[i]]--;
+      }
     });
-}
+    
+    // Second pass: mark present/absent
+    tiles.forEach((tile, i) => {
+      if (guess[i] !== state.word[i]) {
+        setTimeout(() => {
+          tile.classList.add("flip");
+          if (state.word.includes(guess[i]) && letterCount[guess[i]] > 0) {
+            tile.classList.add("present");
+            letterCount[guess[i]]--;
+          } else {
+            tile.classList.add("absent");
+          }
+        }, i * 100);
+      }
+    });
+  }
 
-function showEndModal(win) {
-    modalOverlay.classList.remove("hidden");
-    gameModal.classList.remove("hidden");
+  function updateKeyboard(guess) {
+    guess.split("").forEach((letter, i) => {
+      const keys = document.querySelectorAll(".key");
+      const key = Array.from(keys).find(k => k.textContent.toLowerCase() === letter);
+      if (!key) return;
+      
+      if (state.word[i] === letter) {
+        key.classList.remove("present", "absent");
+        key.classList.add("correct");
+      } else if (state.word.includes(letter) && !key.classList.contains("correct")) {
+        key.classList.remove("absent");
+        key.classList.add("present");
+      } else if (!key.classList.contains("correct") && !key.classList.contains("present")) {
+        key.classList.add("absent");
+      }
+    });
+  }
 
-    const titleEl = document.getElementById("modal-title");
-    const wordEl = document.getElementById("modal-word");
-    const sylEl = document.getElementById("modal-syllables");
-    const defEl = document.getElementById("modal-def");
-    const sentEl = document.getElementById("modal-sentence");
+  function resetKeyboard() {
+    document.querySelectorAll(".key").forEach(key => {
+      key.classList.remove("correct", "present", "absent");
+    });
+  }
 
-    if (titleEl) titleEl.textContent = win ? "Great Job!" : "Nice Try!";
-    if (wordEl) wordEl.textContent = (currentWord || "").toUpperCase();
+  function showEndModal(won) {
+    const modal = document.getElementById("end-modal");
+    const wordEl = document.getElementById("end-word");
+    const defEl = document.getElementById("end-definition");
+    const sentEl = document.getElementById("end-sentence");
+    const enrichEl = document.getElementById("end-enrichment");
+    const funEl = document.getElementById("end-fun-entry");
+    const titleEl = document.getElementById("end-title");
+    const sylEl = document.getElementById("end-syllables");
 
-    // Syllables can be: syllableText (string), syllables (array), or syllables (string)
+    const entry = state.wordEntry || {};
+    const defText = (entry.def || entry.definition || "").trim();
+    const sentText = (entry.sentence || "").trim();
+
+    // Syllables may be: syllableText (string), syllables (array), or syllables (string)
     let sylText = "";
-    if (currentEntry) {
-        if (typeof currentEntry.syllableText === "string" && currentEntry.syllableText.trim()) {
-            sylText = currentEntry.syllableText.trim();
-        } else if (Array.isArray(currentEntry.syllables) && currentEntry.syllables.length) {
-            sylText = currentEntry.syllables.join("-");
-        } else if (typeof currentEntry.syllables === "string" && currentEntry.syllables.trim()) {
-            sylText = currentEntry.syllables.trim();
-        }
+    if (typeof entry.syllableText === "string" && entry.syllableText.trim()) {
+      sylText = entry.syllableText.trim();
+    } else if (Array.isArray(entry.syllables) && entry.syllables.length) {
+      sylText = entry.syllables.join("-");
+    } else if (typeof entry.syllables === "string" && entry.syllables.trim()) {
+      sylText = entry.syllables.trim();
     }
-    if (!sylText) sylText = currentWord || "";
 
-    // Display syllables with bullets
-    if (sylEl) sylEl.textContent = sylText.replace(/-/g, " • ");
-
-    // Definition can be def or definition
-    const defText = (currentEntry && (currentEntry.def || currentEntry.definition)) ? (currentEntry.def || currentEntry.definition) : "";
+    if (titleEl) titleEl.textContent = won ? "🎉 Great Job!" : "Nice Try!";
+    if (wordEl) wordEl.textContent = (state.word || "").toUpperCase();
+    if (sylEl) sylEl.textContent = sylText ? sylText.replace(/-/g, " • ") : "";
     if (defEl) defEl.textContent = defText || "";
+    if (sentEl) sentEl.textContent = sentText ? `“${sentText}”` : "";
 
-    // Sentence (safe quoting)
-const sentenceText = (currentEntry && typeof currentEntry.sentence === "string") ? currentEntry.sentence : "";
-if (sentEl) sentEl.textContent = sentenceText ? `"${sentenceText}"` : "";
-}
-
-function openTeacherMode() {
-    modalOverlay.classList.remove("hidden");
-    teacherModal.classList.remove("hidden");
-    const inp = document.getElementById("custom-word-input");
-    inp.value = "";
-    document.getElementById("teacher-error").textContent = "";
-    inp.focus();
-}
-
-function handleTeacherSubmit() {
-    const val = document.getElementById("custom-word-input").value.trim().toLowerCase();
-    if (val.length < 3 || val.length > 10 || !/^[a-z]+$/.test(val)) {
-        document.getElementById("teacher-error").textContent = "3-10 letters, no spaces.";
-        return;
+    if (enrichEl) {
+      enrichEl.textContent = (entry.enrichment || "").trim();
     }
-    closeModal();
-    showBanner("Word Set! Class is Ready.");
-    startNewGame(val);
-}
 
-function closeModal() {
-    modalOverlay.classList.add("hidden");
-    welcomeModal.classList.add("hidden");
-    teacherModal.classList.add("hidden");
-    gameModal.classList.add("hidden");
-    studioModal.classList.add("hidden");
-    
-    if (document.activeElement) document.activeElement.blur();
-    document.body.focus();
-}
+    if (funEl && window.BONUS_BANK) {
+      const bonus = getRandomBonus();
+      if (bonus) funEl.textContent = bonus;
+    }
 
-function showBanner(msg) {
-    const b = document.getElementById("banner-container");
-    b.textContent = msg;
-    b.classList.remove("hidden");
-    b.classList.add("visible"); 
+    // Apply translation (if translations.js present and a language is selected)
+    applyTranslationToEndModal(state.word, entry);
+
+    const moreBtn = document.getElementById("end-more");
+    const moreWrap = document.getElementById("end-more-wrap");
+    if (moreBtn && moreWrap) {
+      moreBtn.onclick = () => {
+        moreWrap.style.display = "block";
+        moreBtn.style.display = "none";
+      };
+      moreWrap.style.display = "none";
+      moreBtn.style.display = "block";
+    }
+
+    if (modal) {
+      modal.classList.add("open");
+      trapFocus(modal);
+    }
+
     setTimeout(() => {
-        b.classList.remove("visible");
-        b.classList.add("hidden");
-    }, 3000);
-}
+      if (voiceEnabled) {
+        const spoken = sentText ? `The word is ${state.word}. ${sentText}` : `The word is ${state.word}.`;
+        speak(spoken);
+      }
+    }, 200);
+  }
 
-// FIX: New Non-Stacking Toast
-function showToast(msg) {
-    const container = document.getElementById("toast-container");
-    container.innerHTML = ""; // Clear existing
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.textContent = msg;
-    container.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
-}
-
-function checkFirstTimeVisitor() {
-    if (!localStorage.getItem("decode_v5_visited")) {
-        modalOverlay.classList.remove("hidden");
-        welcomeModal.classList.remove("hidden");
-        localStorage.setItem("decode_v5_visited", "true");
+  function getRandomBonus() {
+    if (!window.BONUS_BANK) return "";
+    const { facts, jokes } = window.BONUS_BANK;
+    
+    const useJoke = Math.random() < 0.3;
+    if (useJoke && jokes && jokes.length > 0) {
+      const joke = jokes[Math.floor(Math.random() * jokes.length)];
+      return `${joke.q} ${joke.a}`;
     }
-}
+    
+    if (facts && facts.length > 0) {
+      return facts[Math.floor(Math.random() * facts.length)];
+    }
+    
+    return "";
+  }
 
-function clearKeyboardColors() {
-    document.querySelectorAll(".key").forEach(k => {
-        k.classList.remove("correct", "present", "absent");
+  function showHelp() {
+    const modal = document.getElementById("howto-modal");
+    const textEl = document.getElementById("howto-text");
+    
+    if (textEl) {
+      textEl.innerHTML = `
+        <p><strong>Guess the word!</strong></p>
+        <p>Each guess must match the word length. Colors show how close you are:</p>
+        <ul>
+          <li><span class="demo-correct">Green</span> = correct letter, correct spot</li>
+          <li><span class="demo-present">Orange</span> = correct letter, wrong spot</li>
+          <li><span class="demo-absent">Gray</span> = letter not in word</li>
+        </ul>
+        <p>Use the controls to adjust focus, word length, and number of guesses.</p>
+        <p>Teachers: Set custom words using the password field.</p>
+      `;
+    }
+    
+    if (modal) {
+      modal.classList.add("open");
+      trapFocus(modal);
+    }
+  }
+
+  function closeModal(which) {
+    const modal = document.getElementById(`${which}-modal`);
+    if (modal) {
+      modal.classList.remove("open");
+      releaseFocus();
+    }
+    
+    if (which === "end") {
+      startNewGame();
+    }
+  }
+
+  function trapFocus(modal) {
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    
+    function handleTab(e) {
+      if (e.key !== "Tab") return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    
+    modal.addEventListener("keydown", handleTab);
+    if (first) first.focus();
+  }
+
+  function releaseFocus() {
+    const board = document.getElementById("game-board");
+    if (board) board.focus();
+  }
+
+  function showToast(message, type = "info") {
+    const toast = document.getElementById("teacher-toast");
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.add("show");
+    
+    setTimeout(() => toast.classList.remove("show"), 2500);
+/* ======================================================
+   RECORDING STUDIO (PERSISTENT + CLEAN MIC LIFECYCLE)
+   - additive / safe
+   - uses IndexedDB
+====================================================== */
+(function initRecordingStudio() {
+  const studio = document.getElementById("studio-modal");
+  if (!studio) return;
+
+  const micStatus = document.getElementById("mic-status");
+
+  let mediaRecorder = null;
+  let mediaStream = null;
+  let audioChunks = [];
+
+  // In-memory cache (fast UI); persisted in IndexedDB (real storage)
+  const recordings = { word: null, sentence: null };
+
+  // ---- IndexedDB (tiny + reliable) ----
+  const DB_NAME = "decode_the_word_audio";
+  const DB_VERSION = 1;
+  const STORE = "clips";
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) {
+          db.createObjectStore(STORE, { keyPath: "id" });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
     });
-}
+  }
 
-function confetti() {
-    for (let i = 0; i < 50; i++) {
-        const c = document.createElement("div");
-        c.style.position = "fixed";
-        c.style.left = Math.random() * 100 + "vw";
-        c.style.top = "-10px";
-        c.style.width = "8px";
-        c.style.height = "8px";
-        c.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-        c.style.zIndex = "2000";
-        c.style.transition = "top 1.5s ease-in, opacity 1.5s ease-in";
-        document.body.appendChild(c);
-        setTimeout(() => {
-            c.style.top = "110vh";
-            c.style.opacity = "0";
-        }, 10);
-        setTimeout(() => c.remove(), 1600);
+  async function idbPut(id, blob) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put({ id, blob, savedAt: Date.now() });
+      tx.oncomplete = () => { db.close(); resolve(true); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  }
+
+  async function idbGet(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readonly");
+      const req = tx.objectStore(STORE).get(id);
+      req.onsuccess = () => {
+        const val = req.result ? req.result.blob : null;
+        db.close();
+        resolve(val);
+      };
+      req.onerror = () => { db.close(); reject(req.error); };
+    });
+  }
+
+  // ---- Helpers ----
+  function getCurrentTargetWord() {
+    // Prefer your app state if it exists; fall back to what’s shown in the end modal / board.
+    try {
+      if (typeof state === "object" && state && typeof state.word === "string" && state.word) return state.word;
+    } catch (_) {}
+    const endWord = document.getElementById("end-word")?.textContent?.trim();
+    if (endWord) return endWord;
+    return "current"; // safe fallback (still stores, but not per-word)
+  }
+
+  function keyFor(type) {
+    return `${getCurrentTargetWord().toLowerCase()}|${type}`;
+  }
+
+  function setMic(on, label = "") {
+    if (!micStatus) return;
+    micStatus.textContent = on ? `Recording ${label}…` : "Mic OFF";
+    micStatus.classList.toggle("on", on);
+    micStatus.classList.toggle("off", !on);
+  }
+
+  function stopStream() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(t => t.stop());
+      mediaStream = null;
     }
-}
+  }
+
+  function stopRecorderSafely() {
+    try {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+    } catch (_) {}
+  }
+
+  // ---- Wire each block (word / sentence) ----
+  studio.querySelectorAll(".studio-block").forEach(async (block) => {
+    const type = block.dataset.type; // REQUIRED: data-type="word" / "sentence"
+    if (type !== "word" && type !== "sentence") return;
+
+    const buttons = block.querySelectorAll("button");
+    if (buttons.length < 3) return;
+
+    const [recordBtn, stopBtn, playBtn] = buttons;
+    const savedLabel = block.querySelector(".studio-saved");
+
+    // Initial UI state
+    stopBtn.disabled = true;
+    playBtn.disabled = true;
+    if (savedLabel) savedLabel.style.display = "none";
+
+    // Load existing recording (if any) for this word/type
+    try {
+      const existing = await idbGet(keyFor(type));
+      if (existing) {
+        recordings[type] = existing;
+        playBtn.disabled = false;
+        if (savedLabel) savedLabel.style.display = "block";
+      }
+    } catch (_) {
+      // If IDB fails (private mode edge cases), app still works in-memory.
+    }
+
+    recordBtn.addEventListener("click", async () => {
+      // If something is already recording, stop it cleanly first
+      stopRecorderSafely();
+      stopStream();
+      setMic(false);
+
+      // Request mic
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        alert("Microphone access denied.");
+        return;
+      }
+
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(mediaStream);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: "audio/webm" });
+        recordings[type] = blob;
+
+        // Persist (per word + type)
+        try { await idbPut(keyFor(type), blob); } catch (_) {}
+
+        if (savedLabel) savedLabel.style.display = "block";
+        playBtn.disabled = false;
+
+        // Reset mic + UI
+        setMic(false);
+        stopStream();
+
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+
+      // Update UI immediately
+      setMic(true, type);
+      if (savedLabel) savedLabel.style.display = "none";
+      recordBtn.disabled = true;
+      stopBtn.disabled = false;
+      playBtn.disabled = true;
+
+      mediaRecorder.start();
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      } else {
+        // If stop is hit with no active recorder, reset UI safely
+        setMic(false);
+        stopStream();
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+
+    playBtn.addEventListener("click", () => {
+      const blob = recordings[type];
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => URL.revokeObjectURL(url);
+      audio.play();
+    });
+  });
+
+  // If studio closes while recording, stop cleanly (prevents “mic stuck on”)
+  studio.addEventListener("click", (e) => {
+    const closeBtn = e.target.closest("[data-close]");
+    if (!closeBtn) return;
+    stopRecorderSafely();
+    stopStream();
+    setMic(false);
+  });
+})();
+

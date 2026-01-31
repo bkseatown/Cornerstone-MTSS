@@ -2,17 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f7fb" />
   <title>Decode the Word</title>
 
   <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Load order matters -->
+  <!--
+    IMPORTANT LOAD ORDER (do not change):
+    1) app-config.js
+    2) words.js
+    3) phonics_focus_data.js
+    4) jokes_facts_quotes_bank.js
+    5) app-core.js
+
+    APP-CORE PATCH NOTES (for your next step, in app-core.js):
+    - Replace hardcoded "audio/webm" blob type with feature-detected MIME (webm/opus → webm → mp4 → aac).
+    - Persist voice preference (store voiceURI + name + lang), restore on load, and add iOS gesture warm-up.
+    - Ensure mic cleanup runs on stop + when studio modal closes.
+  -->
+
+  <!-- Global helper for recording MIME detection (app-core.js can call pickAudioMime()) -->
+  <script>
+    function pickAudioMime() {
+      const candidates = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/aac"
+      ];
+      for (const m of candidates) {
+        try {
+          if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) {
+            return m;
+          }
+        } catch (_) {}
+      }
+      return "";
+    }
+  </script>
+
+  <!-- DATASETS + APP (defer preserves order) -->
   <script src="app-config.js" defer></script>
   <script src="words.js" defer></script>
   <script src="phonics_focus_data.js" defer></script>
   <script src="jokes_facts_quotes_bank.js" defer></script>
+  <script src="translations.js" defer></script>
+  <script src="phoneme_data.js" defer></script>
+  <script src="decodable_passages.js" defer></script>
   <script src="app-core.js" defer></script>
 </head>
 
@@ -21,203 +59,159 @@
     <h1>Decode the Word</h1>
 
     <div class="controls">
-      <button id="case-toggle" type="button">abc</button>
+      <div class="row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button id="help-btn" type="button" aria-label="How to play">❓ Help</button>
+        <button id="voice-toggle" type="button" aria-label="Toggle voice">🔊 Voice On</button>
+        <button id="hear-word" type="button" aria-label="Hear the word">🔁 Hear Word</button>
+        <button id="hear-sentence" type="button" aria-label="Hear the sentence">🗣️ Hear Sentence</button>
+        <button id="projector-toggle" type="button" aria-label="Projector mode">📽️ Projector Mode</button>
+      </div>
 
-      <label>Focus:
-        <!-- app-core expects this to already have options -->
-        <select id="pattern-select">
-          <option value="all" selected>Mixed Review</option>
-          <option value="cvc">CVC (Short Vowels)</option>
-          <option value="cvcc">CVCC (Final Blends)</option>
-          <option value="ccvc">CCVC (Initial Blends)</option>
-          <option value="digraph">Digraphs</option>
-          <option value="blend">Blends</option>
-          <option value="floss">FLOSS (ff, ll, ss, zz)</option>
-          <option value="diphthongs">Diphthongs (oi, oy, ou, ow)</option>
-          <option value="prefix">Prefixes</option>
-          <option value="suffix">Suffixes</option>
-          <option value="doubling">Doubling Rule (1-1-1)</option>
-          <option value="schwa">Schwa (Lazy Vowel)</option>
-          <option value="multisyllable">Multisyllabic Words</option>
-        </select>
-      </label>
+      <div class="row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px;">
+        <label for="focus-select" style="font-weight:600;">Focus</label>
+        <select id="focus-select" aria-label="Select focus"></select>
 
-      <label>Length:
-        <!-- Default 5x6 Wordle board -->
-        <select id="length-select">
-          <option value="traditional" selected>Traditional (5)</option>
-          <option value="any">Any Length</option>
-          <option value="3">3</option>
+        <label for="length-select" style="font-weight:600;">Length</label>
+        <select id="length-select" aria-label="Select word length"></select>
+
+        <label for="guess-select" style="font-weight:600;">Guesses</label>
+        <select id="guess-select" aria-label="Select number of guesses">
           <option value="4">4</option>
           <option value="5">5</option>
-          <option value="6">6</option>
+          <option value="6" selected>6</option>
           <option value="7">7</option>
           <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
         </select>
-      </label>
+      </div>
 
-      <button id="new-word-btn" type="button">New Word</button>
+      <!-- Teacher-only: hidden in UI by default. (App logic currently uses teacher-word + set-teacher-word.) -->
+      <div class="row" style="margin-top:10px;">
+        <details>
+          <summary style="cursor:pointer; font-weight:700;">Teacher Tools</summary>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px;">
+            <label for="teacher-word" style="font-weight:600;">Set Word</label>
+            <input id="teacher-word" type="password" autocomplete="off" inputmode="text"
+                   placeholder="Type a custom word…" aria-label="Teacher custom word" />
+            <button id="set-teacher-word" type="button">Set</button>
 
-      <!-- Teacher tools entry point -->
-      <button id="teacher-btn" type="button">🎓 Teacher</button>
+            <!-- Recording Studio lives in a modal; app-core initializes it if #studio-modal exists.
+                 (Opening the modal can be done by teachers via your preferred trigger.) -->
+            <button type="button" onclick="document.getElementById('studio-modal')?.classList.add('open');">
+              🎙️ Recording Studio
+            </button>
+          </div>
+          <div style="margin-top:6px; color:#555; font-size:0.9rem;">
+            Tip: Keep this collapsed when students are playing.
+          </div>
+        </details>
+      </div>
     </div>
   </header>
 
-  <main>
-    <!-- Focus Panel -->
-    <section id="focus-panel" class="focus-panel">
-      <div class="focus-header">
-        <div id="focus-title" class="focus-title">Practice</div>
+
+  <section id="focus-card" class="focus-card" aria-label="Focus details">
+    <div class="focus-card-top">
+      <div>
+        <div id="focus-title" class="focus-title">Focus</div>
         <div id="focus-desc" class="focus-desc"></div>
       </div>
       <div id="focus-hint" class="focus-hint"></div>
-      <div id="focus-examples" class="focus-examples"></div>
-      <div id="quick-tiles-row" class="quick-tiles-row hidden"></div>
-    </section>
-
-    <!-- Game -->
-    <div id="game-board"></div>
-    <div id="keyboard"></div>
-
-    <div class="hint-actions">
-      <button id="hear-word-hint" type="button">🔊 Hear Word</button>
-      <button id="hear-sentence-hint" type="button">📝 Sentence</button>
     </div>
+    <div id="focus-examples-wrap" class="focus-examples" aria-label="Example words"></div>
+  </section>
 
-    <div id="banner-container" class="banner hidden"></div>
-    <div id="toast-container" class="toast-container"></div>
+  <main>
+    <div id="game-board" tabindex="0" aria-label="Game board"></div>
+    <div id="keyboard" aria-label="Keyboard"></div>
   </main>
 
-  <!-- Overlay -->
-  <div id="modal-overlay" class="modal-overlay hidden"></div>
+  <!-- Toast (teacher feedback / system messages) -->
+  <div id="teacher-toast" class="toast" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- End / Reveal Modal -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-btn" type="button">×</button>
+  <!-- HOW TO MODAL -->
+  <div id="howto-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="howto-title">How to Play</h2>
+        <button class="icon-btn" type="button" data-close="howto" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="howto-text"></div>
+    </div>
+  </div>
 
-      <h2 id="modal-title"></h2>
-      <div id="modal-word"></div>
-      <div id="modal-syllables" class="modal-syllables"></div>
-
-      <div class="definition-box">
-        <p id="modal-def"></p>
-        <p id="modal-sentence"></p>
+  <!-- END MODAL -->
+  <div id="end-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="end-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="end-title">Nice Try!</h2>
+        <button class="icon-btn" type="button" data-close="end" aria-label="Close">✕</button>
       </div>
 
-      <div class="modal-actions">
-        <button id="speak-btn" type="button">🔊 Hear</button>
-        <button id="play-again-btn" type="button">Play Again</button>
+      <div class="modal-body">
+        <div style="font-size:1.6rem; font-weight:800; letter-spacing:0.08em;" id="end-word">WORD</div>
+        <div style="margin-top:8px; font-weight:700;">Definition</div>
+        <div id="end-definition" style="color:#333;"></div>
+
+        <div style="margin-top:10px; font-weight:700;">Sentence</div>
+        <div id="end-sentence" style="color:#333;"></div>
+
+        <button id="end-more" type="button" class="primary-btn" style="margin-top:12px;">
+          More (Joke / Fact / Extra)
+        </button>
+
+        <div id="end-more-wrap" style="margin-top:12px;">
+          <div style="font-weight:700;">Enrichment</div>
+          <div id="end-enrichment" style="color:#333;"></div>
+
+          <div style="margin-top:10px; font-weight:700;">Fun</div>
+          <div id="end-fun-entry" style="color:#333;"></div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button type="button" class="primary-btn" data-close="end">Play Again</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Welcome Modal -->
-  <div id="welcome-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Welcome to Decode the Word!</h2>
-      <p>Guess the word by typing letters. Green = correct spot, yellow = wrong spot, gray = not in word.</p>
-      <button id="start-playing-btn" type="button">Start Playing</button>
-    </div>
-  </div>
-
-  <!-- Teacher Modal -->
-  <div id="teacher-modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-teacher" type="button">×</button>
-      <h2>Teacher Settings</h2>
-
-      <div class="teacher-block">
-        <label>Custom Word:</label>
-        <div class="teacher-row">
-          <input id="custom-word-input" type="password" placeholder="Enter word" autocomplete="off" />
-          <button id="toggle-mask" type="button">👁</button>
-        </div>
-        <div id="teacher-error" class="teacher-error"></div>
-
-        <div class="teacher-actions">
-          <button id="set-word-btn" type="button">Set Word</button>
-          <button id="open-studio-btn" type="button">🎙️ Recording Studio</button>
-        </div>
+  <!-- RECORDING STUDIO MODAL -->
+  <div id="studio-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="studio-title">
+    <div class="modal-card studio-card">
+      <div class="modal-head">
+        <h2 id="studio-title">🎙️ Recording Studio</h2>
+        <button class="icon-btn" type="button" data-close="studio" aria-label="Close">✕</button>
       </div>
 
-      <div class="teacher-block">
-        <label for="system-voice-select">System Voice (TTS):</label>
-        <select id="system-voice-select">
-          <option value="">Auto-Select Best (Default)</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recording Studio Modal -->
-  <div id="recording-studio-modal" class="modal hidden">
-    <div class="modal-content studio-card">
-      <button class="close-studio" type="button">×</button>
-      <h2>🎙️ Recording Studio</h2>
-
-      <!-- SETUP VIEW -->
-      <div id="studio-setup-view">
-        <div class="studio-row">
-          <label for="studio-source-select">Source:</label>
-          <select id="studio-source-select">
-            <option value="focus">Use current Focus list</option>
-            <option value="paste">Paste my own list</option>
-          </select>
+      <div class="modal-body studio-body">
+        <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+          <div style="font-weight:700;">Mic Status</div>
+          <div id="mic-status" class="mic-status off">Mic OFF</div>
         </div>
 
-        <div id="studio-paste-area" class="studio-row hidden">
-          <label for="studio-paste-input">Paste words (one per line):</label>
-          <textarea id="studio-paste-input" rows="6" placeholder="cat&#10;ship&#10;rain"></textarea>
-        </div>
-
-        <div class="studio-row studio-checks">
-          <label><input id="studio-skip-existing" type="checkbox" /> Skip words that already have both recordings</label>
-          <label><input id="studio-auto-advance" type="checkbox" checked /> Auto-advance after sentence recording</label>
-        </div>
-
-        <div class="studio-actions">
-          <button id="start-studio-btn" type="button">Start Session</button>
-          <button id="exit-studio-btn" type="button">Exit</button>
-        </div>
-      </div>
-
-      <!-- RECORD VIEW -->
-      <div id="studio-record-view" class="hidden">
-        <div class="studio-progress">
-          <span id="studio-progress"></span>
-        </div>
-
-        <div class="studio-word">
-          <div class="label">Word</div>
-          <div id="studio-word-display" class="studio-word-display"></div>
-        </div>
-
-        <div class="studio-sentence">
-          <label for="studio-sentence-display">Sentence</label>
-          <textarea id="studio-sentence-display" rows="3"></textarea>
-        </div>
-
-        <div id="recording-status" class="recording-status"></div>
-
-        <div class="studio-controls">
-          <div class="control-group">
-            <div class="group-title">Word Recording</div>
-            <button id="record-word-btn" type="button">Record Word</button>
-            <button id="play-word-preview" type="button" disabled>Play Word</button>
+        <div class="studio-block" data-type="word">
+          <h3>Word Recording</h3>
+          <p>Record yourself saying the target word clearly.</p>
+          <div class="studio-controls">
+            <button type="button">● Record</button>
+            <button type="button">■ Stop</button>
+            <button type="button">▶ Play</button>
           </div>
-
-          <div class="control-group">
-            <div class="group-title">Sentence Recording</div>
-            <button id="record-sentence-btn" type="button">Record Sentence</button>
-            <button id="play-sentence-preview" type="button" disabled>Play Sentence</button>
-          </div>
+          <div class="studio-saved">Saved ✓</div>
         </div>
 
-        <div class="studio-actions">
-          <button id="next-item-btn" type="button">Next</button>
+        <div class="studio-block" data-type="sentence">
+          <h3>Sentence Recording</h3>
+          <p>Record yourself reading the decodable sentence.</p>
+          <div class="studio-controls">
+            <button type="button">● Record</button>
+            <button type="button">■ Stop</button>
+            <button type="button">▶ Play</button>
+          </div>
+          <div class="studio-saved">Saved ✓</div>
+        </div>
+
+        <div style="font-size:0.9rem; color:#555;">
+          Recordings are stored locally on this device (IndexedDB). Students can play them back during practice.
         </div>
       </div>
     </div>
