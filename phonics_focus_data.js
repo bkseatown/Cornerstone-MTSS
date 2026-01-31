@@ -708,13 +708,6 @@
     dude: { syllables:["dude"], syllableText:"dude", tags:["magic-e"], def:"A person (informal).", sentence:"Dude is slang that became popular in California surf culture originally." },
     rude: { syllables:["rude"], syllableText:"rude", tags:["magic-e"], def:"Impolite or offensive.", sentence:"Being rude damages relationships and makes cooperation harder for everyone involved." },
 
-    /* I'll continue with vowel teams, r-controlled, and other patterns... Due to length, I'll create this as a complete comprehensive file */
-
-  }; // End WORD_ENTRIES
-
-  console.log("✓ Comprehensive word bank loaded:", Object.keys(window.WORD_ENTRIES).length, "words");
-
-})();
 
     /* ================================
        VOWEL TEAMS (ai, ay, ee, ea, oa, ow, etc.)
