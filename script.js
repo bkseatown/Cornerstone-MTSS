@@ -286,6 +286,12 @@ async function startStudioSession() {
     const source = document.getElementById("studio-source-select").value;
     const skipExisting = document.getElementById("studio-skip-existing").checked;
     
+    // Safety check
+    if (!window.WORD_ENTRIES) {
+        alert("Word database not loaded yet. Please wait and try again.");
+        return;
+    }
+    
     let rawList = [];
 
     if (source === "focus") {
@@ -473,6 +479,12 @@ function getWordFromDictionary() {
     const pattern = document.getElementById("pattern-select").value;
     const lenVal = document.getElementById("length-select").value;
     
+    // Safety check: ensure word database is loaded
+    if (!window.WORD_ENTRIES) {
+        console.error("Word database not loaded yet");
+        return { word: "apple", entry: { def: "Loading...", sentence: "Please wait.", syllables: "ap-ple" } };
+    }
+    
     let targetLen = null;
     if (lenVal === 'traditional') targetLen = 5;
     else if (lenVal === 'any') targetLen = null;
@@ -492,6 +504,13 @@ function getWordFromDictionary() {
 
 function updateFocusPanel() {
     const pat = document.getElementById("pattern-select").value;
+    
+    // Safety check: ensure FOCUS_INFO is loaded
+    if (!window.FOCUS_INFO) {
+        console.error("FOCUS_INFO not loaded yet");
+        return;
+    }
+    
     const info = window.FOCUS_INFO[pat] || window.FOCUS_INFO.all || { 
         title: "Practice", desc: "General Review", hint: "Do your best!", examples: "" 
     };
