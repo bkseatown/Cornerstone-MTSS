@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Decode the Word — Phonics Wordle</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Banner (Success Messages) -->
+    <div id="banner-container" class="banner hidden"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <h1>🔤 Decode the Word</h1>
+            <div class="header-actions">
+                <button class="text-btn" id="teacher-btn">Teacher</button>
+                <button class="icon-btn" id="case-toggle" title="Toggle Case">abc</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="pattern-select">Focus:</label>
+                <select id="pattern-select">
+                    <option value="all">All Words</option>
+                    <option value="cvc">CVC (cat, dog)</option>
+                    <option value="cvce">CVCe (cake, hope)</option>
+                    <option value="digraph">Digraphs (sh, ch, th)</option>
+                    <option value="blend">Blends (fl, st, br)</option>
+                    <option value="vowel_team">Vowel Teams (ai, oa, ee)</option>
+                    <option value="r_controlled">R-Controlled (ar, or, er)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="length-select">Length:</label>
+                <select id="length-select">
+                    <option value="traditional">5 Letters</option>
+                    <option value="any">Any Length</option>
+                    <option value="3">3 Letters</option>
+                    <option value="4">4 Letters</option>
+                    <option value="6">6 Letters</option>
+                    <option value="7">7 Letters</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="system-voice-select">Voice:</label>
+                <select id="system-voice-select">
+                    <option value="">Auto-Select</option>
+                </select>
+            </div>
+
+            <button id="new-word-btn">New Word</button>
+        </div>
+
+        <div class="focus-panel">
+            <div class="focus-header">
+                <strong id="focus-title">Loading...</strong>
+                <span id="focus-examples"></span>
+            </div>
+            <div id="focus-desc">Preparing your practice session...</div>
+            <div class="hint-text">
+                🔊 <span id="hear-word-hint" style="cursor: pointer; text-decoration: underline;">Hear the word</span> • 
+                💬 <span id="hear-sentence-hint" style="cursor: pointer; text-decoration: underline;">Hear a sentence</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Game Board -->
+    <main>
+        <div class="quick-row" id="quick-tiles-row"></div>
+        <div id="game-board"></div>
+    </main>
+
+    <!-- Keyboard -->
+    <div id="keyboard"></div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="hidden"></div>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal hidden">
+        <span class="close-btn top-right-x">×</span>
+        <div class="modal-content welcome-content">
+            <h2>👋 Welcome to Decode the Word!</h2>
+            <p>A research-aligned phonics game that makes learning to read engaging and effective.</p>
+            <ol class="welcome-steps">
+                <li>🎯 <strong>Choose your focus</strong> — Practice specific phonics patterns</li>
+                <li>⌨️ <strong>Type your guesses</strong> — Green = correct, Yellow = wrong spot</li>
+                <li>🔊 <strong>Listen & learn</strong> — Tap hints to hear words and sentences</li>
+                <li>🎓 <strong>Teachers:</strong> Set custom words for your class</li>
+            </ol>
+            <button class="primary-btn" id="start-playing-btn">Start Playing!</button>
+        </div>
+    </div>
+
+    <!-- Teacher Modal -->
+    <div id="teacher-modal" class="modal hidden">
+        <span class="close-teacher top-right-x">×</span>
+        <div class="modal-content">
+            <h2>🎓 Teacher Mode</h2>
+            <p>Set a custom word for your class to practice. 3-10 letters, no spaces.</p>
+            
+            <div class="masked-input-container">
+                <input type="password" id="custom-word-input" placeholder="Enter word..." maxlength="10" autocomplete="off">
+                <button id="toggle-mask">👁️</button>
+            </div>
+            
+            <div class="error-msg" id="teacher-error"></div>
+            
+            <button class="primary-btn" id="set-word-btn">Set Word & Start Game</button>
+            <button class="action-btn" id="open-studio-btn" style="margin-top: 10px; width: 100%;">🎙️ Open Recording Studio</button>
+        </div>
+    </div>
+
+    <!-- Recording Studio Modal -->
+    <div id="recording-studio-modal" class="modal hidden">
+        <span class="close-studio top-right-x">×</span>
+        <div class="modal-content">
+            <h2>🎙️ Recording Studio</h2>
+            
+            <!-- Setup View -->
+            <div id="studio-setup-view">
+                <p>Record authentic pronunciation for words and sentences.</p>
+                
+                <div style="margin: 15px 0;">
+                    <label><strong>Word Source:</strong></label>
+                    <select id="studio-source-select" style="width: 100%; padding: 8px; margin-top: 5px;">
+                        <option value="focus">Current Focus Pattern</option>
+                        <option value="paste">Paste Custom List</option>
+                    </select>
+                </div>
+                
+                <div id="studio-paste-area" class="hidden" style="margin: 15px 0;">
+                    <label><strong>Paste Words (one per line):</strong></label>
+                    <textarea id="studio-paste-input" rows="5" style="width: 100%; padding: 8px; margin-top: 5px;"></textarea>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label>
+                        <input type="checkbox" id="studio-skip-existing" checked>
+                        Skip words that already have recordings
+                    </label>
+                </div>
+                
+                <button class="primary-btn" id="start-studio-btn">Start Recording Session</button>
+            </div>
+            
+            <!-- Recording View -->
+            <div id="studio-record-view" class="hidden studio-view">
+                <div style="text-align: right; font-size: 0.9rem; color: #666; margin-bottom: 10px;">
+                    <span id="studio-progress">1 / 10</span>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="font-size: 2rem; font-weight: bold; margin-bottom: 10px;" id="studio-word-display">APPLE</div>
+                    <textarea id="studio-sentence-display" rows="2" style="width: 100%; padding: 8px; font-size: 0.95rem;" readonly></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <button class="record-btn" id="record-word-btn" style="width: 100%; height: 80px;">Record Word</button>
+                        <button style="margin-top: 5px; width: 100%;" id="play-word-preview" disabled>▶ Preview</button>
+                    </div>
+                    <div style="flex: 1;">
+                        <button class="record-btn" id="record-sentence-btn" style="width: 100%; height: 80px;">Record Sentence</button>
+                        <button style="margin-top: 5px; width: 100%;" id="play-sentence-preview" disabled>▶ Preview</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; height: 20px; margin-bottom: 10px;">
+                    <span id="recording-status" style="font-weight: bold; color: #2c3e50;"></span>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label>
+                        <input type="checkbox" id="studio-auto-advance" checked>
+                        Auto-advance after recording sentence
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn" id="next-item-btn" style="flex: 1;">Next Word →</button>
+                    <button class="action-btn" id="exit-studio-btn" style="flex: 1;">Exit Studio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game End Modal -->
+    <div id="modal" class="modal hidden">
+        <span class="close-btn top-right-x">×</span>
+        <div class="modal-content">
+            <h2 id="modal-title">Great Job!</h2>
+            <div class="stat-box">
+                <div class="stat-word" id="modal-word">APPLE</div>
+                <div class="stat-syllables" id="modal-syllables">ap • ple</div>
+                <div class="stat-def" id="modal-def">A round fruit that grows on trees.</div>
+                <div class="stat-sentence" id="modal-sentence">"An apple a day keeps the doctor away."</div>
+            </div>
+            <button class="action-btn" id="speak-btn">🔊 Hear the Word</button>
+            <button class="primary-btn" id="play-again-btn" style="margin-top: 10px;">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
