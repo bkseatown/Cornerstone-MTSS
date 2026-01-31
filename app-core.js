@@ -13,14 +13,28 @@ let isFirstLoad = true;
 let isUpperCase = false;
 let cachedVoices = [];
 
-// DOM Elements
-const board = document.getElementById("game-board");
-const keyboard = document.getElementById("keyboard");
-const modalOverlay = document.getElementById("modal-overlay");
-const welcomeModal = document.getElementById("welcome-modal");
-const teacherModal = document.getElementById("teacher-modal");
-const studioModal = document.getElementById("recording-studio-modal");
-const gameModal = document.getElementById("modal");
+// DOM Elements (bound after DOM is ready)
+let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Bind DOM safely
+    board = document.getElementById("game-board");
+    keyboard = document.getElementById("keyboard");
+    modalOverlay = document.getElementById("modal-overlay");
+    welcomeModal = document.getElementById("welcome-modal");
+    teacherModal = document.getElementById("teacher-modal");
+    studioModal = document.getElementById("recording-studio-modal");
+    gameModal = document.getElementById("modal");
+
+    // Initialize app
+    initDB();
+    initControls();
+    initKeyboard();
+    initVoiceLoader();
+    initStudio();
+    startNewGame();
+    checkFirstTimeVisitor();
+});
 
 // --- AUDIO DATABASE SETUP (IndexedDB) ---
 const DB_NAME = "PhonicsAudioDB";
@@ -60,17 +74,6 @@ function getAudioFromDB(key) {
         req.onerror = () => resolve(null);
     });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    initDB();
-    initControls();
-    initKeyboard();
-    initVoiceLoader(); 
-    initStudio();
-    
-    startNewGame();
-    checkFirstTimeVisitor();
-});
 
 /* --- VOICE LOADING & PICKER --- */
 function initVoiceLoader() {
