@@ -94,14 +94,16 @@
         </div>
     </header>
 
-    <!-- Game Board -->
-    <main>
-        <div class="quick-row" id="quick-tiles-row"></div>
-        <div id="game-board"></div>
-    </main>
+    <!-- Unified Game Canvas (Board + Keyboard as ONE) -->
+    <div id="game-canvas">
+        <main>
+            <div class="quick-row" id="quick-tiles-row"></div>
+            <div id="game-board"></div>
+        </main>
 
-    <!-- Keyboard -->
-    <div id="keyboard"></div>
+        <!-- Keyboard -->
+        <div id="keyboard"></div>
+    </div>
 
     <!-- Toast Notifications -->
     <div id="toast-container"></div>

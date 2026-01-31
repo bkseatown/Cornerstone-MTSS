@@ -560,7 +560,7 @@ function updateFocusPanel() {
     
     const exSpan = document.getElementById("focus-examples");
     if (info.examples && info.examples.length > 0) {
-        exSpan.textContent = `Ex: ${info.examples}`;
+        exSpan.textContent = `Try words like: ${info.examples}`;
     } else {
         exSpan.textContent = "";
     }
@@ -913,23 +913,29 @@ function initNewFeatures() {
     // Translation select
     const translateSelect = document.getElementById('translate-to');
     if (translateSelect) {
-        translateSelect.onchange = async () => {
+        translateSelect.onchange = () => {
             const lang = translateSelect.value;
             if (!lang) return;
             
             const resultDiv = document.getElementById('translation-result');
-            resultDiv.textContent = 'Translating...';
-            
-            // Use the word and definition
             const word = currentWord;
             const def = currentEntry.def || '';
             
-            try {
-                // Simple translation using browser's built-in (if available)
-                // In production, you'd call a translation API
-                resultDiv.innerHTML = `<strong>${word}</strong> (${lang}): <i>Translation feature requires API key</i><br><small>Meaning: ${def}</small>`;
-            } catch (e) {
-                resultDiv.textContent = 'Translation unavailable';
+            // Use curated translations for high-frequency words
+            const translation = getWordTranslation(word, lang);
+            
+            if (translation) {
+                resultDiv.innerHTML = `
+                    <strong>${word}</strong> → <strong>${translation.word}</strong>
+                    <br><small style="color: #666;">${translation.meaning}</small>
+                `;
+            } else {
+                // Fallback: Show English definition clearly
+                resultDiv.innerHTML = `
+                    <strong>${word}</strong> (English)
+                    <br><small style="color: #666;">Meaning: ${def}</small>
+                    <br><br><em style="font-size: 0.85rem;">Translation for this word is not yet available. Working on English meaning helps build vocabulary!</em>
+                `;
             }
         };
     }
@@ -1093,5 +1099,73 @@ function openPhonemeGuide() {
     modalOverlay.classList.remove('hidden');
     const phonemeModal = document.getElementById('phoneme-modal');
     phonemeModal.classList.remove('hidden');
+}
+
+
+/* ==========================================
+   MULTILINGUAL GLOSSARY (No API Required)
+   Curated translations for high-frequency words
+   ========================================== */
+
+// Curated multilingual glossary
+const MULTILINGUAL_GLOSSARY = {
+    // High-frequency words with translations
+    "cat": {
+        es: { word: "gato", meaning: "un animal pequeño con bigotes" },
+        zh: { word: "猫", meaning: "小动物，有胡须" },
+        ar: { word: "قطة", meaning: "حيوان صغير" },
+        vi: { word: "mèo", meaning: "con vật nhỏ" },
+        tl: { word: "pusa", meaning: "maliit na hayop" },
+        fr: { word: "chat", meaning: "un petit animal" }
+    },
+    "dog": {
+        es: { word: "perro", meaning: "un animal que ladra" },
+        zh: { word: "狗", meaning: "会叫的动物" },
+        ar: { word: "كلب", meaning: "حيوان ينبح" },
+        vi: { word: "chó", meaning: "con vật sủa" },
+        tl: { word: "aso", meaning: "hayop na tumatahol" },
+        fr: { word: "chien", meaning: "un animal qui aboie" }
+    },
+    "sun": {
+        es: { word: "sol", meaning: "luz brillante en el cielo" },
+        zh: { word: "太阳", meaning: "天空中的明亮光" },
+        ar: { word: "شمس", meaning: "ضوء ساطع في السماء" },
+        vi: { word: "mặt trời", meaning: "ánh sáng trên trời" },
+        tl: { word: "araw", meaning: "maliwanag sa langit" },
+        fr: { word: "soleil", meaning: "lumière dans le ciel" }
+    },
+    "run": {
+        es: { word: "correr", meaning: "moverse rápido" },
+        zh: { word: "跑", meaning: "快速移动" },
+        ar: { word: "يركض", meaning: "يتحرك بسرعة" },
+        vi: { word: "chạy", meaning: "di chuyển nhanh" },
+        tl: { word: "takbo", meaning: "mabilis na galaw" },
+        fr: { word: "courir", meaning: "bouger vite" }
+    },
+    "big": {
+        es: { word: "grande", meaning: "de tamaño mayor" },
+        zh: { word: "大", meaning: "尺寸大" },
+        ar: { word: "كبير", meaning: "حجم كبير" },
+        vi: { word: "lớn", meaning: "kích thước lớn" },
+        tl: { word: "malaki", meaning: "malaking laki" },
+        fr: { word: "grand", meaning: "de grande taille" }
+    },
+    "hot": {
+        es: { word: "caliente", meaning: "temperatura alta" },
+        zh: { word: "热", meaning: "高温" },
+        ar: { word: "ساخن", meaning: "درجة حرارة عالية" },
+        vi: { word: "nóng", meaning: "nhiệt độ cao" },
+        tl: { word: "mainit", meaning: "mataas na temperatura" },
+        fr: { word: "chaud", meaning: "température élevée" }
+    }
+    // More words can be added by teachers
+};
+
+function getWordTranslation(word, langCode) {
+    const wordLower = word.toLowerCase();
+    if (MULTILINGUAL_GLOSSARY[wordLower] && MULTILINGUAL_GLOSSARY[wordLower][langCode]) {
+        return MULTILINGUAL_GLOSSARY[wordLower][langCode];
+    }
+    return null;
 }
 

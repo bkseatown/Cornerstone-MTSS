@@ -141,7 +141,17 @@ Edit `words.js` and add entries following the schema above:
 
 ## 🌍 Multilingual Support
 
-The architecture supports translation files for UI elements while keeping phonics instruction in English (as per SoR best practices).
+The architecture supports translation through a **curated glossary approach** (no API required):
+- High-frequency words have pre-translated definitions
+- Works offline and on GitHub Pages
+- FERPA/COPPA compliant (no external services)
+- Teachers can expand the glossary by editing `script.js`
+
+**Why no API?** Translation APIs require secret keys that can't be safely stored in client-side code. Our curated approach provides:
+- ✅ Privacy (no data sent externally)
+- ✅ Reliability (always works offline)
+- ✅ Pedagogy (focus on English phonics + meaning connections)
+- ✅ Cost (completely free)
 
 ## 🎤 Audio System
 
