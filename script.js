@@ -13,14 +13,8 @@ let isFirstLoad = true;
 let isUpperCase = false;
 let cachedVoices = [];
 
-// DOM Elements
-const board = document.getElementById("game-board");
-const keyboard = document.getElementById("keyboard");
-const modalOverlay = document.getElementById("modal-overlay");
-const welcomeModal = document.getElementById("welcome-modal");
-const teacherModal = document.getElementById("teacher-modal");
-const studioModal = document.getElementById("recording-studio-modal");
-const gameModal = document.getElementById("modal");
+// DOM Elements - will be initialized after DOM loads
+let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
 
 // --- AUDIO DATABASE SETUP (IndexedDB) ---
 const DB_NAME = "PhonicsAudioDB";
@@ -62,6 +56,15 @@ function getAudioFromDB(key) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Initialize DOM elements
+    board = document.getElementById("game-board");
+    keyboard = document.getElementById("keyboard");
+    modalOverlay = document.getElementById("modal-overlay");
+    welcomeModal = document.getElementById("welcome-modal");
+    teacherModal = document.getElementById("teacher-modal");
+    studioModal = document.getElementById("recording-studio-modal");
+    gameModal = document.getElementById("modal");
+    
     initDB();
     initControls();
     initKeyboard();
@@ -514,9 +517,20 @@ function updateFocusPanel() {
     const info = window.FOCUS_INFO[pat] || window.FOCUS_INFO.all || { 
         title: "Practice", desc: "General Review", hint: "Do your best!", examples: "" 
     };
-    document.getElementById("focus-title").textContent = info.title;
-    document.getElementById("focus-desc").textContent = info.desc;
-    document.getElementById("focus-hint").textContent = info.hint;
+    
+    // Safety check: ensure DOM elements exist
+    const titleEl = document.getElementById("focus-title");
+    const descEl = document.getElementById("focus-desc");
+    const hintEl = document.getElementById("focus-hint");
+    
+    if (!titleEl || !descEl || !hintEl) {
+        console.error("Focus panel elements not found in DOM");
+        return;
+    }
+    
+    titleEl.textContent = info.title;
+    descEl.textContent = info.desc;
+    hintEl.textContent = info.hint;
     
     const exSpan = document.getElementById("focus-examples");
     if (info.examples && info.examples.length > 0) {
