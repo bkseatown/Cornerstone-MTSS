@@ -13,11 +13,6 @@ let isFirstLoad = true;
 let isUpperCase = false;
 let cachedVoices = [];
 
-// Phoneme recording (Aa Sounds Guide)
-let phonemeRecorder = null;
-let phonemeAudioChunks = [];
-let currentPhonemeForRecording = null;
-
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
 
@@ -60,31 +55,6 @@ function getAudioFromDB(key) {
     });
 }
 
-
-function deleteAudioFromDB(key) {
-    return new Promise((resolve) => {
-        if (!db) return resolve(false);
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.delete(key);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => resolve(false);
-    });
-}
-
-async function hasAudioInDB(key) {
-    const blob = await getAudioFromDB(key);
-    return !!blob;
-}
-
-// --- TEACHER RECORDING TOGGLE ---
-function getTeacherRecordingsEnabled() {
-    const v = localStorage.getItem("use_teacher_recordings");
-    return v === null ? true : v === "true";
-}
-function setTeacherRecordingsEnabled(enabled) {
-    localStorage.setItem("use_teacher_recordings", enabled ? "true" : "false");
-}
 document.addEventListener("DOMContentLoaded", () => {
     // Initialize DOM elements
     board = document.getElementById("game-board");
@@ -97,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     initDB();
     initControls();
-    updateTeacherVoiceButton();
     initKeyboard();
     initVoiceLoader(); 
     initStudio();
@@ -174,203 +143,60 @@ function initVoiceLoader() {
     }
 }
 
-
 async function speak(text, type = "word") {
     if (!text) return;
+    window.speechSynthesis.cancel(); 
 
-    // Always stop any queued system speech first
-    window.speechSynthesis.cancel();
-
-    const useTeacher = getTeacherRecordingsEnabled();
-
-    // 1) Try Teacher Recording (IndexedDB)
-    if (useTeacher) {
-        let dbKey = "";
-        if (type === "word") {
-            dbKey = `${text.toLowerCase()}_word`;
-        } else if (type === "sentence") {
-            // Prefer current word's sentence key when possible (keeps studio flow consistent)
-            const keyBase = currentWord ? currentWord.toLowerCase() : text.toLowerCase();
-            dbKey = `${keyBase}_sentence`;
-        } else if (type === "phoneme") {
-            dbKey = `${text.toLowerCase()}_phoneme`;
-        }
-
-        if (dbKey) {
-            const blob = await getAudioFromDB(dbKey);
-            if (blob) {
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audio.play();
-                audio.onended = () => URL.revokeObjectURL(url);
-                return;
-            }
+    // 1. Check Studio Recording
+    let dbKey = "";
+    if (type === "word") {
+        dbKey = `${text.toLowerCase()}_word`;
+    } else {
+        if (currentEntry && text === currentEntry.sentence) {
+            dbKey = `${currentWord.toLowerCase()}_sentence`;
+        } else {
+            dbKey = "unknown"; 
         }
     }
 
-    // 2) Fallback to System Voice
-    const msg = new SpeechSynthesisUtterance(text);
+    const blob = await getAudioFromDB(dbKey);
+    
+    if (blob) {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+        audio.onended = () => URL.revokeObjectURL(url);
+        return; 
+    }
 
-    // Keep voices fresh but stable
+    // 2. Fallback to System Voice
+    const msg = new SpeechSynthesisUtterance(text);
     let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
     let preferred = null;
 
     const savedURI = localStorage.getItem("preferred_voice_uri");
-    if (savedURI) preferred = voices.find(v => v.voiceURI === savedURI);
+    if (savedURI) {
+        preferred = voices.find(v => v.voiceURI === savedURI);
+    }
 
     if (!preferred) {
-        preferred = voices.find(v => /Google US English/i.test(v.name)) ||
-                    voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US")) ||
-                    voices.find(v => v.lang.startsWith("en")) ||
-                    voices[0] || null;
+        preferred = voices.find(v => /Google US English/i.test(v.name));
+        if (!preferred) preferred = voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => (/Enhanced|Premium|Siri/i.test(v.name) && v.lang.startsWith("en-US")));
+        if (!preferred) preferred = voices.find(v => /Ava/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => /Samantha/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => /Microsoft/i.test(v.name) && v.lang.startsWith("en-US"));
+        if (!preferred) preferred = voices.find(v => v.lang === "en-US");
+        if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
     }
 
     if (preferred) msg.voice = preferred;
-    msg.rate = 0.95;
+    msg.rate = 0.9; 
     msg.pitch = 1.0;
 
     window.speechSynthesis.speak(msg);
 }
 
-
-function playBlobOnce(blob) {
-    return new Promise((resolve) => {
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.onended = () => {
-            URL.revokeObjectURL(url);
-            resolve();
-        };
-        audio.onerror = () => {
-            URL.revokeObjectURL(url);
-            resolve();
-        };
-        audio.play();
-    });
-}
-
-async function speakSequence(items) {
-    // items: [{text, type}]
-    const useTeacher = getTeacherRecordingsEnabled();
-
-    // If teacher recordings are enabled, attempt sequential playback from DB first
-    if (useTeacher) {
-        for (const item of items) {
-            const t = (item.text || "").trim();
-            if (!t) continue;
-
-            let key = "";
-            if (item.type === "word") key = `${t.toLowerCase()}_word`;
-            if (item.type === "sentence") key = `${t.toLowerCase()}_sentence`;
-            if (item.type === "phoneme") key = `${t.toLowerCase()}_phoneme`;
-
-            if (key) {
-                const blob = await getAudioFromDB(key);
-                if (blob) {
-                    await playBlobOnce(blob);
-                    continue;
-                }
-            }
-
-            // No blob — fall back per item
-            await new Promise((resolve) => {
-                const msg = new SpeechSynthesisUtterance(t);
-                let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
-                let preferred = null;
-
-                const savedURI = localStorage.getItem("preferred_voice_uri");
-                if (savedURI) preferred = voices.find(v => v.voiceURI === savedURI);
-
-                if (!preferred) {
-                    preferred = voices.find(v => /Google US English/i.test(v.name)) ||
-                                voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US")) ||
-                                voices.find(v => v.lang.startsWith("en")) ||
-                                voices[0] || null;
-                }
-
-                if (preferred) msg.voice = preferred;
-                msg.rate = 0.95;
-
-                msg.onend = () => resolve();
-                msg.onerror = () => resolve();
-                window.speechSynthesis.speak(msg);
-            });
-        }
-        return;
-    }
-
-    // Teacher recordings OFF: just use system voice, chained
-    for (const item of items) {
-        const t = (item.text || "").trim();
-        if (!t) continue;
-        await new Promise((resolve) => {
-            const msg = new SpeechSynthesisUtterance(t);
-            let voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
-            let preferred = null;
-
-            const savedURI = localStorage.getItem("preferred_voice_uri");
-            if (savedURI) preferred = voices.find(v => v.voiceURI === savedURI);
-
-            if (!preferred) {
-                preferred = voices.find(v => /Google US English/i.test(v.name)) ||
-                            voices.find(v => /Google/i.test(v.name) && v.lang.startsWith("en-US")) ||
-                            voices.find(v => v.lang.startsWith("en")) ||
-                            voices[0] || null;
-            }
-
-            if (preferred) msg.voice = preferred;
-            msg.rate = 0.95;
-
-            msg.onend = () => resolve();
-            msg.onerror = () => resolve();
-            window.speechSynthesis.speak(msg);
-        });
-    }
-}
-
-function getFocusSound(word, focusTag) {
-    if (!word) return "";
-    const w = word.toLowerCase();
-    const tag = (focusTag || "all").toLowerCase();
-
-    const DIGRAPHS = ["sh","ch","th","wh","ck","ph","ng"];
-    const BLENDS = ["bl","cl","fl","gl","pl","sl","br","cr","dr","fr","gr","pr","tr","sk","sm","sn","sp","st","sw","tw","scr","spl","spr","str"];
-    const WELDED = ["ang","ing","ong","ung","ank","ink","onk","unk","all","am","an","ell","em","en","ill","im","in","oll","om","on","ull","um","un"];
-    const VOWEL_TEAMS = ["ai","ay","ee","ea","oa","ow","ie","igh","oo","ue","ui","au","aw","oi","oy","ou","ew"];
-    const R_CONTROLLED = ["ar","er","ir","or","ur"];
-    const FLOSS = ["ff","ll","ss","zz"];
-
-    const firstMatchFrom = (arr) => arr.find(p => w.includes(p)) || "";
-
-    if (tag === "digraph") return firstMatchFrom(DIGRAPHS);
-    if (tag === "blend") return firstMatchFrom(BLENDS);
-    if (tag === "welded") return firstMatchFrom(WELDED);
-    if (tag === "vowel-team") return firstMatchFrom(VOWEL_TEAMS);
-    if (tag === "r-controlled") return firstMatchFrom(R_CONTROLLED);
-    if (tag === "floss") return firstMatchFrom(FLOSS);
-    if (tag === "magic-e") return (w.length >= 4 && w.endsWith("e")) ? w[1] : "";
-    if (tag === "cvc") return (w.length === 3) ? w[1] : "";
-
-    return "";
-}
-
-
-function updateTeacherVoiceButton() {
-    const btn = document.getElementById("toggle-teacher-voice");
-    if (!btn) return;
-    const enabled = getTeacherRecordingsEnabled();
-    btn.textContent = enabled ? "🎙️" : "🎙️🚫";
-    btn.setAttribute("aria-pressed", enabled ? "true" : "false");
-    btn.title = enabled ? "Teacher recordings: ON" : "Teacher recordings: OFF";
-}
-
-function toggleTeacherRecordings() {
-    const enabled = getTeacherRecordingsEnabled();
-    setTeacherRecordingsEnabled(!enabled);
-    updateTeacherVoiceButton();
-    showToast(!enabled ? "Teacher recordings ON" : "Teacher recordings OFF", 2200);
-}
-    
 /* --- CONTROLS & EVENTS --- */
 function initControls() {
     document.getElementById("new-word-btn").onclick = () => {
@@ -394,23 +220,7 @@ function initControls() {
     };
 
     document.getElementById("teacher-btn").onclick = openTeacherMode;
-    const tvBtn = document.getElementById("toggle-teacher-voice");
-    if (tvBtn) tvBtn.onclick = toggleTeacherRecordings;
-
     document.getElementById("set-word-btn").onclick = handleTeacherSubmit;
-
-    // Prevent teacher typing from ever leaking into the game layer
-    const teacherInput = document.getElementById("custom-word-input");
-    if (teacherInput) {
-        teacherInput.addEventListener("keydown", (e) => {
-            e.stopPropagation();
-            if (e.key === "Enter") {
-                e.preventDefault();
-                handleTeacherSubmit();
-            }
-        });
-    }
-
     document.getElementById("open-studio-btn").onclick = openStudioSetup;
     document.getElementById("toggle-mask").onclick = () => {
         const inp = document.getElementById("custom-word-input");
@@ -426,152 +236,7 @@ function initControls() {
             speak(currentEntry.sentence, "sentence");
         }
     };
-    
-    const soundBtn = document.getElementById("hear-sound-word-hint");
-    if (soundBtn) soundBtn.onclick = async () => {
-        if (isModalOpen()) return;
-        const focusTag = document.getElementById("pattern-select")?.value || "all";
-        const sound = getFocusSound(currentWord, focusTag);
-        if (!sound) {
-            speak(currentWord, "word");
-            return;
-        }
-        await speakSequence([
-            { text: sound, type: "phoneme" },
-            { text: currentWord, type: "word" }
-        ]);
-    };
-
-    
-
-/* --- FOCUS UX (adaptive actions + embedded mouth panel) --- */
-function updateFocusActionsVisibility() {
-    const row = document.querySelector('.focus-actions');
-    if (!row) return;
-
-    const btnWord = document.getElementById('hear-word-hint');
-    const btnSentence = document.getElementById('hear-sentence-hint');
-    const btnSoundWord = document.getElementById('hear-sound-word-hint');
-    const btnMouth = document.getElementById('open-mouth-guide');
-
-    const pat = document.getElementById("pattern-select")?.value || "all";
-    const hasWord = !!(currentWord && currentWord.trim().length > 0);
-    const hasSentence = !!(currentEntry && currentEntry.sentence && String(currentEntry.sentence).trim().length > 0);
-    const focusSound = hasWord ? (getFocusSound(currentWord, pat) || "") : "";
-    const showSoundWord = !!focusSound;
-    const showMouth = !!getPhonemeCardForSound(focusSound);
-
-    if (btnWord) btnWord.style.display = hasWord ? "" : "none";
-    if (btnSentence) btnSentence.style.display = (hasWord && hasSentence) ? "" : "none";
-    if (btnSoundWord) btnSoundWord.style.display = (hasWord && showSoundWord) ? "" : "none";
-    if (btnMouth) btnMouth.style.display = (hasWord && showMouth) ? "" : "none";
-
-    // Clean separators: only show when between two visible action buttons
-    const kids = Array.from(row.children);
-    for (let i = 0; i < kids.length; i++) {
-        const el = kids[i];
-        if (!el.classList.contains('focus-action-separator')) continue;
-
-        // find previous visible action
-        let prevVisible = false;
-        for (let j = i - 1; j >= 0; j--) {
-            const p = kids[j];
-            if (p.classList.contains('focus-action-btn')) {
-                prevVisible = (p.style.display !== 'none');
-                break;
-            }
-        }
-        // find next visible action
-        let nextVisible = false;
-        for (let j = i + 1; j < kids.length; j++) {
-            const n = kids[j];
-            if (n.classList.contains('focus-action-btn')) {
-                nextVisible = (n.style.display !== 'none');
-                break;
-            }
-        }
-        el.style.display = (prevVisible && nextVisible) ? "" : "none";
-    }
-}
-
-function getPhonemeCardForSound(sound) {
-    if (!sound) return null;
-    const modal = document.getElementById("phoneme-modal");
-    if (!modal) return null;
-    const s = String(sound).toLowerCase();
-    return modal.querySelector(`.phoneme-card[data-sound="${s}"]`)
-        || modal.querySelector(`.phoneme-card[data-sound="${(s[0] || "")}"]`);
-}
-
-function jumpToPhonemeCard(sound) {
-    const card = getPhonemeCardForSound(sound);
-    if (!card) return;
-    if (card.scrollIntoView) {
-        card.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-    card.classList.add("flash");
-    setTimeout(() => card.classList.remove("flash"), 900);
-}
-
-function updateMouthEmbed() {
-    const embed = document.getElementById("focus-mouth-embed");
-    if (!embed) return;
-
-    const pat = document.getElementById("pattern-select")?.value || "all";
-    const focusSound = (currentWord ? (getFocusSound(currentWord, pat) || "") : "");
-    const card = getPhonemeCardForSound(focusSound);
-
-    if (!currentWord || !card) {
-        embed.classList.add("hidden");
-        return;
-    }
-
-    const soundEl = document.getElementById("focus-mouth-sound");
-    const exEl = document.getElementById("focus-mouth-example");
-    if (soundEl) soundEl.textContent = String(card.dataset.sound || focusSound).toUpperCase();
-    if (exEl) exEl.textContent = String(card.dataset.example || "").toLowerCase();
-
-    embed.classList.remove("hidden");
-}
-
-function initMouthEmbedHandlers() {
-    const playBtn = document.getElementById("focus-mouth-play");
-    const openBtn = document.getElementById("focus-mouth-open");
-    if (playBtn) playBtn.onclick = () => {
-        const pat = document.getElementById("pattern-select")?.value || "all";
-        const focusSound = (currentWord ? (getFocusSound(currentWord, pat) || "") : "");
-        const card = getPhonemeCardForSound(focusSound);
-        if (card) card.click();
-    };
-    if (openBtn) openBtn.onclick = () => {
-        const pat = document.getElementById("pattern-select")?.value || "all";
-        const focusSound = (currentWord ? (getFocusSound(currentWord, pat) || "") : "");
-        openPhonemeGuide();
-        setTimeout(() => jumpToPhonemeCard(focusSound), 80);
-    };
-}
-
-const mouthBtn = document.getElementById("open-mouth-guide");
-    if (mouthBtn) mouthBtn.onclick = () => {
-        if (isModalOpen()) return;
-        const focusTag = document.getElementById("pattern-select")?.value || "all";
-        const sound = getFocusSound(currentWord, focusTag) || (currentWord ? currentWord[0] : "");
-        openPhonemeGuide();
-        // Jump to the most relevant sound card (if it exists)
-        setTimeout(() => {
-            const phonemeModal = document.getElementById("phoneme-modal");
-            if (!phonemeModal) return;
-            const target = phonemeModal.querySelector(`[data-sound="${sound.toLowerCase()}"]`) 
-                        || phonemeModal.querySelector(`[data-sound="${(sound[0]||"").toLowerCase()}"]`);
-            if (target && target.scrollIntoView) {
-                target.scrollIntoView({ behavior: "smooth", block: "center" });
-                target.classList.add("flash");
-                setTimeout(() => target.classList.remove("flash"), 900);
-            }
-        }, 80);
-    };
-
-document.getElementById("speak-btn").onclick = () => {
+    document.getElementById("speak-btn").onclick = () => {
         speak(currentWord, "word");
     };
     document.getElementById("play-again-btn").onclick = () => {
@@ -636,13 +301,6 @@ document.getElementById("speak-btn").onclick = () => {
         if (e.key === "Enter") handleTeacherSubmit();
         if (e.key === "Escape") closeModal();
     });
-
-    // Embedded mouth panel
-    initMouthEmbedHandlers();
-
-    // Ensure focus actions reflect initial state
-    updateFocusActionsVisibility();
-    updateMouthEmbed();
 }
 
 function isModalOpen() {
@@ -695,11 +353,6 @@ function initStudio() {
     document.getElementById("play-word-preview").onclick = () => playPreview("word");
     document.getElementById("play-sentence-preview").onclick = () => playPreview("sentence");
     
-    const delW = document.getElementById("delete-word-recording");
-    if (delW) delW.onclick = () => clearStudioRecording("word");
-    const delS = document.getElementById("delete-sentence-recording");
-    if (delS) delS.onclick = () => clearStudioRecording("sentence");
-
     document.getElementById("next-item-btn").onclick = nextStudioItem;
 }
 
@@ -777,52 +430,23 @@ function loadStudioItem() {
     resetRecordButtons();
 }
 
-
 function resetRecordButtons() {
     const wordBtn = document.getElementById("record-word-btn");
     const sentBtn = document.getElementById("record-sentence-btn");
     const playW = document.getElementById("play-word-preview");
     const playS = document.getElementById("play-sentence-preview");
-    const delW = document.getElementById("delete-word-recording");
-    const delS = document.getElementById("delete-sentence-recording");
 
     wordBtn.textContent = "Record Word";
     wordBtn.classList.remove("recording");
     sentBtn.textContent = "Record Sentence";
     sentBtn.classList.remove("recording");
-
+    
     playW.disabled = true;
     playS.disabled = true;
-    if (delW) delW.disabled = true;
-    if (delS) delS.disabled = true;
 
-    const w = studioList[studioIndex]?.word;
-    if (!w) return;
-
-    getAudioFromDB(`${w}_word`).then(b => {
-        if (b) {
-            playW.disabled = false;
-            if (delW) delW.disabled = false;
-        }
-    });
-    getAudioFromDB(`${w}_sentence`).then(b => {
-        if (b) {
-            playS.disabled = false;
-            if (delS) delS.disabled = false;
-        }
-    });
-}
-
-async function clearStudioRecording(type) {
-    const w = studioList[studioIndex]?.word;
-    if (!w) return;
-
-    const key = type === "word" ? `${w}_word` : `${w}_sentence`;
-    const ok = await deleteAudioFromDB(key);
-    if (ok) {
-        showToast(`Cleared saved ${type}`, 2000);
-    }
-    resetRecordButtons();
+    const w = studioList[studioIndex].word;
+    getAudioFromDB(`${w}_word`).then(b => { if(b) playW.disabled = false; });
+    getAudioFromDB(`${w}_sentence`).then(b => { if(b) playS.disabled = false; });
 }
 
 function toggleRecording(type) {
@@ -884,20 +508,17 @@ function toggleRecording(type) {
         alert("Could not access microphone. Check permissions.");
     });
 }
-async function playPreview(type) {
-    const word = studioList[studioIndex]?.word;
-    if (!word) return;
 
+async function playPreview(type) {
+    const word = studioList[studioIndex].word;
     const key = type === "word" ? `${word}_word` : `${word}_sentence`;
     const blob = await getAudioFromDB(key);
-    if (!blob) return;
-
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.play();
-    audio.onended = () => URL.revokeObjectURL(url);
-    audio.onerror = () => URL.revokeObjectURL(url);
+    if (blob) {
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
+    }
 }
+
 function nextStudioItem() {
     studioIndex++;
     loadStudioItem();
@@ -910,6 +531,7 @@ function startNewGame(customWord = null) {
     currentGuess = "";
     board.innerHTML = "";
     clearKeyboardColors();
+    updateFocusPanel();
     
     if (customWord) {
         currentWord = customWord.toLowerCase();
@@ -923,8 +545,6 @@ function startNewGame(customWord = null) {
         currentEntry = data.entry;
         CURRENT_WORD_LENGTH = currentWord.length;
     }
-
-    updateFocusPanel();
 
     isFirstLoad = false;
     board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 50px)`;
@@ -1014,10 +634,6 @@ function updateFocusPanel() {
     } else {
         quickRow.classList.add("hidden");
     }
-
-    // Adaptive Focus actions + embedded mouth panel
-    updateFocusActionsVisibility();
-    updateMouthEmbed();
 }
 
 function initKeyboard() {
@@ -1212,56 +828,10 @@ function handleTeacherSubmit() {
         return;
     }
     closeModal();
-    showTeacherConfirm(val);
+    showBanner("Word Set! Class is Ready.");
+    startNewGame(val);
 }
 
-
-
-
-/* --- Teacher full-screen confirmation --- */
-let pendingTeacherWord = null;
-
-function showTeacherConfirm(word) {
-    pendingTeacherWord = String(word || "").toLowerCase();
-    const overlay = document.getElementById("teacher-confirm-overlay");
-    const wordEl = document.getElementById("teacher-confirm-word");
-    const startBtn = document.getElementById("teacher-confirm-start");
-    if (!overlay) {
-        // fallback: old banner behavior
-        showBanner("Word Set! Class is Ready.");
-        startNewGame(pendingTeacherWord);
-        pendingTeacherWord = null;
-        return;
-    }
-    if (wordEl) wordEl.textContent = pendingTeacherWord.toUpperCase();
-    overlay.classList.remove("hidden");
-
-    const startNow = () => {
-        if (!pendingTeacherWord) return;
-        overlay.classList.add("hidden");
-        const w = pendingTeacherWord;
-        pendingTeacherWord = null;
-        startNewGame(w);
-    };
-
-    // One-click start (button or tap anywhere)
-    overlay.onclick = startNow;
-    if (startBtn) startBtn.onclick = (e) => { e.stopPropagation(); startNow(); };
-
-    // Keyboard escape closes overlay without starting
-    const onKey = (e) => {
-        if (e.key === "Escape") {
-            overlay.classList.add("hidden");
-            pendingTeacherWord = null;
-            document.removeEventListener("keydown", onKey, true);
-        }
-        if (e.key === "Enter") {
-            startNow();
-            document.removeEventListener("keydown", onKey, true);
-        }
-    };
-    document.addEventListener("keydown", onKey, true);
-}
 function closeModal() {
     const wasGameModalOpen = !gameModal.classList.contains("hidden");
     
@@ -1802,6 +1372,9 @@ function getWordTranslation(word, langCode) {
 
 
 /* Self-Contained Phoneme Voice Management */
+let phonemeRecorder = null;
+let phonemeAudioChunks = [];
+let currentPhonemeForRecording = null;
 
 function initVoiceSourceControls() {
     // Toggle voice source

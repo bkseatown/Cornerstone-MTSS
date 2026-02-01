@@ -30,7 +30,6 @@
                 <button class="text-btn" id="progress-btn" title="View Progress">📊</button>
                 <button class="text-btn" id="phoneme-btn" title="Phonics & Sounds Reference"><span style="font-size: 1.3rem;">Aa</span> Sounds</button>
                 <button class="text-btn" id="teacher-btn">Teacher</button>
-                <button class="icon-btn" id="toggle-teacher-voice" title="Toggle Teacher Recordings">🎙️</button>
                 <button class="icon-btn" id="case-toggle" title="Toggle Case">abc</button>
             </div>
         </div>
@@ -102,19 +101,6 @@
                 <span class="focus-action-btn" id="hear-word-hint">🔊 Hear word</span>
                 <span class="focus-action-separator">•</span>
                 <span class="focus-action-btn" id="hear-sentence-hint">💬 Hear sentence</span>
-            <span class="focus-action-separator">•</span>
-                <span class="focus-action-btn" id="hear-sound-word-hint">🔤 Hear sound + word</span>
-            <span class="focus-action-separator">•</span>
-            <span class="focus-action-btn" id="open-mouth-guide">👄 Mouth / sound</span>
-</div>
-
-            <div id="focus-mouth-embed" class="focus-mouth-embed hidden" aria-label="Mouth visual quick panel">
-                <button id="focus-mouth-play" class="focus-mouth-play" title="Play sound">👄</button>
-                <div class="focus-mouth-text">
-                    <div id="focus-mouth-sound" class="focus-mouth-sound">Sound</div>
-                    <div id="focus-mouth-example" class="focus-mouth-example">Example</div>
-                </div>
-                <button id="focus-mouth-open" class="focus-mouth-open" title="Open Aa Sounds Guide">Open guide</button>
             </div>
         </div>
     </header>
@@ -283,12 +269,10 @@
                     <div style="flex: 1;">
                         <button class="record-btn" id="record-word-btn" style="width: 100%; height: 80px;">Record Word</button>
                         <button style="margin-top: 5px; width: 100%;" id="play-word-preview" disabled>▶ Preview</button>
-                        <button style="margin-top: 5px; width: 100%;" id="delete-word-recording" class="danger-btn" disabled>🗑️ Clear Saved Word</button>
                     </div>
                     <div style="flex: 1;">
                         <button class="record-btn" id="record-sentence-btn" style="width: 100%; height: 80px;">Record Sentence</button>
                         <button style="margin-top: 5px; width: 100%;" id="play-sentence-preview" disabled>▶ Preview</button>
-                        <button style="margin-top: 5px; width: 100%;" id="delete-sentence-recording" class="danger-btn" disabled>🗑️ Clear Saved Sentence</button>
                     </div>
                 </div>
                 
@@ -529,16 +513,5 @@
     <script src="words.js"></script>
     <script src="translations.js"></script>
     <script src="script.js"></script>
-
-    <!-- Teacher Confirm Overlay -->
-    <div id="teacher-confirm-overlay" class="teacher-confirm-overlay hidden" role="dialog" aria-modal="true">
-        <div class="teacher-confirm-card">
-            <div class="teacher-confirm-title">✅ Word accepted</div>
-            <div id="teacher-confirm-word" class="teacher-confirm-word"></div>
-            <div class="teacher-confirm-sub">Game ready. Tap anywhere to begin.</div>
-            <button id="teacher-confirm-start" class="primary-btn" style="margin-top: 14px; width: 100%;">Start</button>
-        </div>
-    </div>
-
 </body>
 </html>
