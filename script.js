@@ -233,14 +233,9 @@ function initControls() {
         inp.focus();
     };
 
-    document.getElementById("hear-word-hint").onclick = () => {
-        if (!isModalOpen()) speak(currentWord, "word");
-    };
-    document.getElementById("hear-sentence-hint").onclick = () => {
-        if (!isModalOpen() && currentEntry) {
-            speak(currentEntry.sentence, "sentence");
-        }
-    };
+    // Old hear-word-hint and hear-sentence-hint buttons removed
+    // Now using adaptive action buttons wired in updateAdaptiveActions()
+    
     document.getElementById("speak-btn").onclick = () => {
         speak(currentWord, "word");
     };
@@ -1134,9 +1129,11 @@ function closeModal() {
     const decodableModal = document.getElementById("decodable-modal");
     const progressModal = document.getElementById("progress-modal");
     const phonemeModal = document.getElementById("phoneme-modal");
+    const helpModal = document.getElementById("help-modal");
     if (decodableModal) decodableModal.classList.add("hidden");
     if (progressModal) progressModal.classList.add("hidden");
     if (phonemeModal) phonemeModal.classList.add("hidden");
+    if (helpModal) helpModal.classList.add("hidden");
     
     if (document.activeElement) document.activeElement.blur();
     document.body.focus();
@@ -1449,6 +1446,12 @@ function initNewFeatures() {
         decodableBtn.onclick = openDecodableTexts;
     }
     
+    // Help button
+    const helpBtn = document.getElementById('help-btn');
+    if (helpBtn) {
+        helpBtn.onclick = openHelpModal;
+    }
+    
     // Progress button
     const progressBtn = document.getElementById('progress-btn');
     if (progressBtn) {
@@ -1462,7 +1465,7 @@ function initNewFeatures() {
     }
     
     // Close buttons for new modals
-    document.querySelectorAll('.close-decodable, .close-progress, .close-phoneme').forEach(btn => {
+    document.querySelectorAll('.close-decodable, .close-progress, .close-phoneme, .close-help').forEach(btn => {
         btn.addEventListener('click', closeModal);
     });
     
@@ -1579,6 +1582,14 @@ function readDecodableText(title) {
 }
 
 // Open progress modal
+function openHelpModal() {
+    modalOverlay.classList.remove('hidden');
+    const helpModal = document.getElementById('help-modal');
+    if (helpModal) {
+        helpModal.classList.remove('hidden');
+    }
+}
+
 function openProgressModal() {
     modalOverlay.classList.remove('hidden');
     const progressModal = document.getElementById('progress-modal');

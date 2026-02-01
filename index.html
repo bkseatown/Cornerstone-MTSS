@@ -27,6 +27,7 @@
         <div class="header-top">
             <h1>🔤 Decode the Word</h1>
             <div class="header-actions">
+                <button class="text-btn" id="help-btn" title="How to Play">❓</button>
                 <button class="text-btn" id="progress-btn" title="View Progress">📊</button>
                 <button class="text-btn" id="phoneme-btn" title="Phonics & Sounds Reference"><span style="font-size: 1.3rem;">Aa</span> Sounds</button>
                 <button class="text-btn" id="teacher-btn">Teacher</button>
@@ -138,76 +139,108 @@
     <!-- Modal Overlay -->
     <div id="modal-overlay" class="hidden"></div>
 
-    <!-- Welcome Modal -->
+    <!-- Welcome Modal - Simple Wordle Style -->
     <div id="welcome-modal" class="modal hidden">
         <span class="close-welcome">×</span>
-        <div class="modal-content">
-            <h2>Welcome to Decode the Word! 🎯</h2>
-            <p style="font-size: 1.05rem; margin-bottom: 20px;">A research-based phonics game for building reading skills</p>
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 20px;">HOW TO PLAY</h2>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0;">Quick Start Guide</h3>
+            <p style="text-align: left; font-size: 1rem; margin-bottom: 20px;">
+                Guess the word in 6 tries. After each guess, the tile colors show how close you are.
+            </p>
+            
+            <!-- Examples -->
+            <div style="text-align: left; margin-bottom: 15px;">
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                        <div style="width: 45px; height: 45px; background: var(--color-correct); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">W</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">E</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">A</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">R</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">Y</div>
+                    </div>
+                    <p style="font-size: 0.9rem; margin: 0; color: #666;"><strong>W</strong> is in the word and in the correct spot.</p>
+                </div>
                 
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <div style="display: flex; gap: 12px; align-items: start;">
-                        <div style="font-size: 2rem; min-width: 40px;">🎮</div>
-                        <div>
-                            <strong>Play Like Wordle</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Type letters to guess the word. Green = correct, yellow = wrong spot, gray = not in word.</p>
-                        </div>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">P</div>
+                        <div style="width: 45px; height: 45px; background: var(--color-present); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">I</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">L</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">L</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">S</div>
                     </div>
-                    
-                    <div style="display: flex; gap: 12px; align-items: start;">
-                        <div style="font-size: 2rem; min-width: 40px;">ℹ️</div>
-                        <div>
-                            <strong>Show Hints (Optional)</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click "Show Hints" button above the game to see word patterns and hear pronunciation.</p>
-                        </div>
+                    <p style="font-size: 0.9rem; margin: 0; color: #666;"><strong>I</strong> is in the word but in the wrong spot.</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">V</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">A</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">G</div>
+                        <div style="width: 45px; height: 45px; background: var(--color-absent); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">U</div>
+                        <div style="width: 45px; height: 45px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; border-radius: 4px;">E</div>
                     </div>
-                    
-                    <div style="display: flex; gap: 12px; align-items: start;">
-                        <div style="font-size: 2rem; min-width: 40px;">🎵</div>
-                        <div>
-                            <strong>Sound Guide</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click "Aa Sounds" to hear letter sounds and see mouth positions.</p>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 12px; align-items: start;">
-                        <div style="font-size: 2rem; min-width: 40px;">📊</div>
-                        <div>
-                            <strong>Track Progress</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click the chart icon to see your wins, streaks, and patterns practiced.</p>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 12px; align-items: start;">
-                        <div style="font-size: 2rem; min-width: 40px;">👨‍🏫</div>
-                        <div>
-                            <strong>Teacher Tools</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Access advanced features: change word patterns, record your voice, and more.</p>
-                        </div>
-                    </div>
+                    <p style="font-size: 0.9rem; margin: 0; color: #666;"><strong>U</strong> is not in the word in any spot.</p>
                 </div>
             </div>
             
-            <button class="action-btn" id="start-playing-btn" style="width: 100%; font-size: 1.1rem; padding: 14px;">
-                🎯 Start Playing!
+            <button class="primary-btn" id="start-playing-btn" style="width: 100%; font-size: 1.1rem; padding: 14px; margin-bottom: 12px;">
+                PLAY
             </button>
             
-            <label style="display: flex; align-items: center; justify-content: center; margin-top: 12px; font-size: 0.9rem; color: #666; cursor: pointer;">
+            <label style="display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #666; cursor: pointer;">
                 <input type="checkbox" id="dont-show-tutorial" style="margin-right: 8px;">
-                Don't show this again
+                Don't show again
             </label>
         </div>
     </div>
 
-    <!-- Original Welcome Modal (Keep for Reference) -->
-    <div id="welcome-modal" class="modal hidden">
-        <span class="close-btn top-right-x">×</span>
-        <div class="modal-content welcome-content">
-            <h2>👋 Welcome to Decode the Word!</h2>
-            <p>A research-aligned phonics game that makes learning to read engaging and effective.</p>
+    <!-- Help Modal - Detailed Guide -->
+    <div id="help-modal" class="modal hidden">
+        <span class="close-help top-right-x">×</span>
+        <div class="modal-content">
+            <h2>📚 Complete Guide</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="font-size: 2rem; min-width: 40px;">ℹ️</div>
+                    <div>
+                        <strong>Show Hints</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click "Show Hints" button to see word patterns and hear pronunciation.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="font-size: 2rem; min-width: 40px;">🎵</div>
+                    <div>
+                        <strong>Sound Guide</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click "Aa Sounds" to hear letter sounds and see mouth positions.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="font-size: 2rem; min-width: 40px;">📊</div>
+                    <div>
+                        <strong>Track Progress</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Click the chart icon to see your wins and patterns practiced.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="font-size: 2rem; min-width: 40px;">👨‍🏫</div>
+                    <div>
+                        <strong>Teacher Tools</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 0.95rem; color: #666;">Set custom words, record your voice, and control settings.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="document.getElementById('help-modal').classList.add('hidden'); document.getElementById('modal-overlay').classList.add('hidden');" style="width: 100%; margin-top: 20px;">
+                Got it!
+            </button>
+        </div>
+    </div>
             <ol class="welcome-steps">
                 <li>🎯 <strong>Choose your focus</strong> — Practice specific phonics patterns</li>
                 <li>⌨️ <strong>Type your guesses</strong> — Green = correct, Yellow = wrong spot</li>
