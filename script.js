@@ -13,6 +13,11 @@ let isFirstLoad = true;
 let isUpperCase = false;
 let cachedVoices = [];
 
+// Phoneme recording (Aa Sounds Guide)
+let phonemeRecorder = null;
+let phonemeAudioChunks = [];
+let currentPhonemeForRecording = null;
+
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
 
@@ -879,8 +884,6 @@ function toggleRecording(type) {
         alert("Could not access microphone. Check permissions.");
     });
 }
-
-async 
 async function playPreview(type) {
     const word = studioList[studioIndex]?.word;
     if (!word) return;
@@ -1799,9 +1802,6 @@ function getWordTranslation(word, langCode) {
 
 
 /* Self-Contained Phoneme Voice Management */
-let phonemeRecorder = null;
-let phonemeAudioChunks = [];
-let currentPhonemeForRecording = null;
 
 function initVoiceSourceControls() {
     // Toggle voice source
