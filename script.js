@@ -270,14 +270,20 @@ function initControls() {
 
         // Add visual feedback to on-screen keyboard
         const key = e.key.toLowerCase();
-        const keyElement = document.querySelector(`.key[onclick*="${key}"]`);
-        if (keyElement && /^[a-z]$/i.test(e.key)) {
-            keyElement.classList.add('key-pressed');
-            setTimeout(() => keyElement.classList.remove('key-pressed'), 150);
+        
+        if (/^[a-z]$/i.test(key)) {
+            // Find key by data-key attribute
+            const keyElement = document.querySelector(`.key[data-key="${key}"]`);
+            if (keyElement) {
+                keyElement.classList.add('key-pressed');
+                setTimeout(() => keyElement.classList.remove('key-pressed'), 150);
+            }
+            handleInput(key);
         }
-
-        if (e.key === "Enter") {
-            const enterKey = document.querySelector('.key.wide[onclick*="submitGuess"]');
+        else if (e.key === "Enter") {
+            const enterKey = Array.from(document.querySelectorAll('.key.wide')).find(k => 
+                k.textContent === 'ENTER'
+            );
             if (enterKey) {
                 enterKey.classList.add('key-pressed');
                 setTimeout(() => enterKey.classList.remove('key-pressed'), 150);
@@ -285,14 +291,15 @@ function initControls() {
             submitGuess();
         }
         else if (e.key === "Backspace") {
-            const backKey = document.querySelector('.key.wide[onclick*="deleteLetter"]');
+            const backKey = Array.from(document.querySelectorAll('.key.wide')).find(k => 
+                k.textContent.includes('⌫')
+            );
             if (backKey) {
                 backKey.classList.add('key-pressed');
                 setTimeout(() => backKey.classList.remove('key-pressed'), 150);
             }
             deleteLetter();
         }
-        else if (/^[a-z]$/i.test(e.key)) handleInput(e.key.toLowerCase());
     });
 
     const tInput = document.getElementById("custom-word-input");
@@ -794,6 +801,10 @@ function initKeyboard() {
             k.textContent = isUpperCase ? char.toUpperCase() : char;
             k.dataset.key = char;
             k.onclick = (e) => {
+                // Add visual feedback
+                e.target.classList.add('key-pressed');
+                setTimeout(() => e.target.classList.remove('key-pressed'), 150);
+                
                 handleInput(char);
                 e.target.blur(); 
             };
@@ -814,6 +825,10 @@ function createKey(txt, action, wide) {
     b.textContent = txt;
     b.className = `key ${wide ? 'wide' : ''}`;
     b.onclick = (e) => {
+        // Add visual feedback
+        e.target.classList.add('key-pressed');
+        setTimeout(() => e.target.classList.remove('key-pressed'), 150);
+        
         action();
         e.target.blur();
     };
