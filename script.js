@@ -1049,15 +1049,47 @@ function initNewFeatures() {
         };
     }
     
-    // Phoneme card clicks
+    // Phoneme card clicks - respect voice source selection
     document.addEventListener('click', (e) => {
         const card = e.target.closest('.phoneme-card');
         if (card) {
             const sound = card.dataset.sound;
             const example = card.dataset.example;
-            speak(example, 'word');
+            
+            // Check which voice source is selected
+            const voiceSource = document.querySelector('input[name="guide-voice-source"]:checked')?.value;
+            
+            if (voiceSource === 'system') {
+                // Force system voice - bypass any recordings
+                speakWithSystemVoice(example);
+            } else {
+                // Use recorded voice if available, fallback to system
+                speak(example, 'word');
+            }
         }
     });
+}
+
+// Force system voice (ignore recordings)
+function speakWithSystemVoice(text) {
+    if (!('speechSynthesis' in window)) return;
+    
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Use selected system voice
+    const voiceSelect = document.getElementById("system-voice-select");
+    const selectedVoiceURI = voiceSelect?.value;
+    
+    if (selectedVoiceURI && cachedVoices) {
+        const voice = cachedVoices.find(v => v.voiceURI === selectedVoiceURI);
+        if (voice) {
+            utterance.voice = voice;
+        }
+    }
+    
+    utterance.rate = 0.9;
+    speechSynthesis.speak(utterance);
 }
 
 // Open decodable texts
@@ -1212,144 +1244,7 @@ function initVoiceSourceControls() {
         });
     });
     
-    // Show/Hide Recording Interface
-    const showRecordingBtn = document.getElementById('show-recording-interface-btn');
-    const recordingInterface = document.getElementById('phoneme-recording-interface');
-    
-    if (showRecordingBtn) {
-        showRecordingBtn.onclick = () => {
-            if (recordingInterface.style.display === 'none') {
-                recordingInterface.style.display = 'block';
-                showRecordingBtn.textContent = '✓ Recording Interface';
-                showRecordingBtn.style.background = 'var(--color-correct)';
-            } else {
-                recordingInterface.style.display = 'none';
-                showRecordingBtn.textContent = '🎤 Record Sounds';
-                showRecordingBtn.style.background = '#2c3e50';
-            }
-        };
-    }
-    
-    // Record Button
-    const recordBtn = document.getElementById('phoneme-record-btn');
-    const stopBtn = document.getElementById('phoneme-stop-btn');
-    const saveBtn = document.getElementById('phoneme-save-btn');
-    const deleteBtn = document.getElementById('phoneme-delete-btn');
-    
-    if (recordBtn) {
-        recordBtn.onclick = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                phonemeAudioChunks = [];
-                phonemeRecorder = new MediaRecorder(stream);
-                
-                phonemeRecorder.ondataavailable = (e) => {
-                    phonemeAudioChunks.push(e.data);
-                };
-                
-                phonemeRecorder.onstop = () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    saveBtn.style.display = 'block';
-                    deleteBtn.style.display = 'block';
-                };
-                
-                phonemeRecorder.start();
-                recordBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-                stopBtn.classList.add('recording');
-                showToast('Recording... Say the sound clearly');
-                
-            } catch (err) {
-                alert('Microphone access denied. Please allow microphone access.');
-            }
-        };
-    }
-    
-    if (stopBtn) {
-        stopBtn.onclick = () => {
-            if (phonemeRecorder && phonemeRecorder.state === 'recording') {
-                phonemeRecorder.stop();
-                stopBtn.style.display = 'none';
-                recordBtn.style.display = 'block';
-                stopBtn.classList.remove('recording');
-                showToast('Recording stopped. Save or delete.');
-            }
-        };
-    }
-    
-    if (saveBtn) {
-        saveBtn.onclick = async () => {
-            if (phonemeAudioChunks.length === 0) {
-                alert('No recording to save');
-                return;
-            }
-            
-            const audioBlob = new Blob(phonemeAudioChunks, { type: 'audio/webm' });
-            const phoneme = document.getElementById('current-phoneme-recording').textContent;
-            
-            // Save to IndexedDB
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64 = reader.result.split(',')[1];
-                if (window.audioDB) {
-                    const transaction = audioDB.transaction(["audio"], "readwrite");
-                    const store = transaction.objectStore("audio");
-                    store.put({ id: `phoneme_${phoneme}`, data: base64 });
-                    showToast(`Saved recording for "${phoneme}"`);
-                    
-                    // Reset interface
-                    saveBtn.style.display = 'none';
-                    deleteBtn.style.display = 'none';
-                    phonemeAudioChunks = [];
-                }
-            };
-            reader.readAsDataURL(audioBlob);
-        };
-    }
-    
-    if (deleteBtn) {
-        deleteBtn.onclick = () => {
-            phonemeAudioChunks = [];
-            saveBtn.style.display = 'none';
-            deleteBtn.style.display = 'none';
-            showToast('Recording discarded');
-        };
-    }
-    
-    // Clear All Recordings
-    const clearAllBtn = document.getElementById('clear-all-phoneme-recordings-btn');
-    if (clearAllBtn) {
-        clearAllBtn.onclick = () => {
-            if (confirm('Delete all your phoneme recordings? This cannot be undone.')) {
-                if (window.audioDB) {
-                    const transaction = audioDB.transaction(["audio"], "readwrite");
-                    const store = transaction.objectStore("audio");
-                    
-                    // Delete all phoneme recordings
-                    const request = store.openCursor();
-                    request.onsuccess = (e) => {
-                        const cursor = e.target.result;
-                        if (cursor) {
-                            if (cursor.key.startsWith('phoneme_')) {
-                                store.delete(cursor.key);
-                            }
-                            cursor.continue();
-                        } else {
-                            showToast('All phoneme recordings cleared');
-                            // Switch to system voice
-                            const systemRadio = document.querySelector('input[name="guide-voice-source"][value="system"]');
-                            if (systemRadio) {
-                                systemRadio.checked = true;
-                                systemRadio.closest('.voice-option').click();
-                            }
-                        }
-                    };
-                }
-            }
-        };
-    }
-    
-    // When clicking a phoneme card, set it as current for recording
+    // When clicking a phoneme card, set it as current for recording (Teacher Studio only)
     document.addEventListener('click', (e) => {
         const card = e.target.closest('.phoneme-card');
         if (card && card.dataset.sound) {

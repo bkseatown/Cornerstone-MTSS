@@ -403,55 +403,22 @@
             <div style="background: #f8f9fa; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e0e0e0;">
                 <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Voice for Sounds:</div>
                 
-                <!-- Simple Toggle -->
-                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-                    <label style="flex: 1; padding: 10px; border: 2px solid #d0d0d0; border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.2s;" class="voice-option" data-voice="system">
+                <!-- Simple Toggle - Students Only See This -->
+                <div style="display: flex; gap: 12px;">
+                    <label style="flex: 1; padding: 12px; border: 2px solid #d0d0d0; border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.2s;" class="voice-option" data-voice="system">
                         <input type="radio" name="guide-voice-source" value="system" checked style="margin-right: 6px;"> 
                         <strong>System Voice</strong>
-                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">Use computer voice</div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">Computer voice</div>
                     </label>
-                    <label style="flex: 1; padding: 10px; border: 2px solid #d0d0d0; border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.2s;" class="voice-option" data-voice="recorded">
+                    <label style="flex: 1; padding: 12px; border: 2px solid #d0d0d0; border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.2s;" class="voice-option" data-voice="recorded">
                         <input type="radio" name="guide-voice-source" value="recorded" style="margin-right: 6px;"> 
-                        <strong>My Voice</strong>
-                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">Use my recordings</div>
+                        <strong>My Recordings</strong>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">Teacher's voice</div>
                     </label>
                 </div>
                 
-                <!-- Recording Interface (Hidden by Default) -->
-                <div id="phoneme-recording-interface" style="display: none; border-top: 1px solid #e0e0e0; padding-top: 12px; margin-top: 12px;">
-                    <div style="margin-bottom: 10px;">
-                        <strong style="font-size: 0.9rem;">Record for: <span id="current-phoneme-recording">a</span></strong>
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <button class="action-btn" id="phoneme-record-btn" style="flex: 1; font-size: 0.9rem; padding: 10px; background: #e74c3c;">
-                            🎤 Record
-                        </button>
-                        <button class="action-btn" id="phoneme-stop-btn" style="flex: 1; font-size: 0.9rem; padding: 10px; display: none;">
-                            ⏹️ Stop
-                        </button>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="action-btn" id="phoneme-save-btn" style="flex: 1; font-size: 0.85rem; padding: 8px; background: var(--color-correct); display: none;">
-                            ✓ Save Recording
-                        </button>
-                        <button class="action-btn" id="phoneme-delete-btn" style="flex: 1; font-size: 0.85rem; padding: 8px; background: #999; display: none;">
-                            🗑️ Delete
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <button class="action-btn" id="show-recording-interface-btn" style="flex: 1; font-size: 0.85rem; padding: 8px; background: #2c3e50;">
-                        🎤 Record Sounds
-                    </button>
-                    <button class="action-btn" id="clear-all-phoneme-recordings-btn" style="flex: 1; font-size: 0.85rem; padding: 8px; background: #666;">
-                        🗑️ Clear All
-                    </button>
-                </div>
-                
-                <div style="font-size: 0.8rem; color: #666; margin-top: 10px; line-height: 1.4;">
-                    📍 Recordings saved on this device only. Switch between your voice and system voice anytime.
+                <div style="font-size: 0.8rem; color: #888; margin-top: 12px; text-align: center; line-height: 1.4;">
+                    💡 Teachers can record custom sounds in Teacher Mode → Recording Studio
                 </div>
             </div>
             
