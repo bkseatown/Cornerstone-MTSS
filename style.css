@@ -328,46 +328,60 @@ main {
 .tile {
     width: min(60px, 12vw);
     height: min(60px, 12vw);
-    border: 2px solid var(--color-neutral);
+    border: 3px solid var(--color-neutral);
     display: flex; 
     justify-content: center; 
     align-items: center;
     font-family: var(--font-fancy); 
     font-size: min(2rem, 5vw);
     font-weight: 600;
-    border-radius: 6px; 
+    border-radius: 8px; 
     background: white; 
     transition: all 0.2s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1), 
+                0 1px 3px rgba(0,0,0,0.08),
+                inset 0 -2px 0 rgba(0,0,0,0.1);
+    transform: translateZ(0);
 }
 
 .tile.active { 
     border-color: #878a8c; 
     animation: pulse 0.1s; 
-    transform: scale(1.02);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .tile.pop { 
     animation: pop 0.3s; 
 }
 
-/* COLORS - Soft, clear feedback */
+/* COLORS - Soft, clear feedback with depth */
 .correct { 
     background-color: var(--color-correct); 
     border-color: var(--color-correct); 
-    color: white; 
+    color: white;
+    box-shadow: 0 4px 8px rgba(46, 204, 113, 0.4),
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 -2px 0 rgba(0,0,0,0.2);
 }
 
 .present { 
     background-color: var(--color-present); 
     border-color: var(--color-present); 
-    color: white; 
+    color: white;
+    box-shadow: 0 4px 8px rgba(241, 196, 15, 0.4),
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 -2px 0 rgba(0,0,0,0.2);
 }
 
 .absent { 
     background-color: var(--color-absent); 
     border-color: var(--color-absent); 
-    color: white; 
+    color: white;
+    box-shadow: 0 4px 8px rgba(52, 73, 94, 0.3),
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 -2px 0 rgba(0,0,0,0.2);
+}
 }
 
 /* ANIMATIONS - Gentle, not jarring */
@@ -430,30 +444,57 @@ main {
     height: min(50px, 10vw);
     flex: 1; 
     max-width: 60px;
-    border-radius: 6px; 
+    border-radius: 8px; 
     border: none; 
-    background: #d3d6da; 
+    background: linear-gradient(180deg, #e8e8e8 0%, #d3d6da 100%);
     cursor: pointer; 
-    font-weight: 600; 
+    font-weight: 700; 
     font-size: min(1.1rem, 3.5vw);
     display: flex; 
     justify-content: center; 
     align-items: center; 
     font-family: var(--font-clean); 
     touch-action: manipulation;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 
+        0 4px 0 0 #a8a8a8,
+        0 4px 8px rgba(0,0,0,0.2);
     transition: all 0.1s;
+    position: relative;
+    top: 0;
 }
 
 .key:hover {
-    background: #c0c0c0;
-    transform: translateY(-1px);
+    background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0 0 #a8a8a8,
+        0 6px 12px rgba(0,0,0,0.25);
 }
 
 .key:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transform: translateY(2px);
+    box-shadow: 
+        0 2px 0 0 #a8a8a8,
+        0 2px 4px rgba(0,0,0,0.15);
+    top: 2px;
 }
+
+/* Absent/Gray keys - Much more visible with better contrast */
+.key.absent {
+    background: linear-gradient(180deg, #4a4a4c 0%, #3a3a3c 100%) !important;
+    color: #888888 !important;
+    opacity: 0.85;
+    border: 2px solid #2a2a2c;
+    box-shadow: 
+        0 4px 0 0 #2a2a2c,
+        0 4px 8px rgba(0,0,0,0.3);
+    font-weight: 600;
+}
+
+.key.absent:hover {
+    background: linear-gradient(180deg, #4a4a4c 0%, #3a3a3c 100%) !important;
+}
+
 
 .key.wide { 
     flex: 1.5; 

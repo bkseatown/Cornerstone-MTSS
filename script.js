@@ -707,7 +707,10 @@ function submitGuess() {
     if (currentGuess === currentWord) {
         gameOver = true;
         confetti(); 
-        setTimeout(() => showEndModal(true), 1500);
+        setTimeout(() => {
+            showBonusContent();  // Show joke/fact/quote
+            setTimeout(() => showEndModal(true), 6500);  // Show modal after bonus
+        }, 1500);
     } else if (guesses.length >= MAX_GUESSES) {
         gameOver = true;
         setTimeout(() => showEndModal(false), 1500);
@@ -781,6 +784,11 @@ function showEndModal(win) {
     document.getElementById("translation-section").style.display = 'none';
     document.getElementById('translate-to').value = '';
     document.getElementById('translation-result').textContent = '';
+    
+    // Show bonus content if won
+    if (win) {
+        setTimeout(showBonusContent, 800);
+    }
 }
 
 function openTeacherMode() {
@@ -859,24 +867,136 @@ function clearKeyboardColors() {
 }
 
 function confetti() {
-    for (let i = 0; i < 50; i++) {
+    // Create more confetti pieces spread across screen
+    for (let i = 0; i < 80; i++) {
         const c = document.createElement("div");
         c.style.position = "fixed";
-        c.style.left = Math.random() * 100 + "vw";
-        c.style.top = "-10px";
-        c.style.width = "8px";
-        c.style.height = "8px";
-        c.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        c.style.left = (Math.random() * 100) + "vw"; // Spread across full width
+        c.style.top = "-20px";
+        c.style.width = (Math.random() * 6 + 6) + "px"; // Varied sizes 6-12px
+        c.style.height = (Math.random() * 6 + 6) + "px";
+        c.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        c.style.borderRadius = Math.random() > 0.5 ? "50%" : "0"; // Mix circles and squares
         c.style.zIndex = "2000";
-        c.style.transition = "top 1.5s ease-in, opacity 1.5s ease-in";
+        c.style.opacity = "1";
+        // Varied fall speeds for more natural effect
+        const duration = (Math.random() * 0.8 + 1.2); // 1.2-2s
+        c.style.transition = `top ${duration}s ease-in, opacity ${duration}s ease-in, transform ${duration}s ease-in`;
         document.body.appendChild(c);
+        
         setTimeout(() => {
             c.style.top = "110vh";
             c.style.opacity = "0";
+            c.style.transform = `rotate(${Math.random() * 360}deg)`; // Spin while falling
         }, 10);
-        setTimeout(() => c.remove(), 1600);
+        
+        setTimeout(() => c.remove(), duration * 1000 + 100);
     }
 }
+
+/* ==========================================
+   BONUS CONTENT SYSTEM
+   ========================================== */
+
+const BONUS_CONTENT = {
+    jokes: [
+        "Why did the bicycle fall over? Because it was two-tired!",
+        "What do you call a bear with no teeth? A gummy bear!",
+        "Why don't scientists trust atoms? Because they make up everything!",
+        "What do you call a fish wearing a bowtie? Sofishticated!",
+        "Why did the math book look sad? Because it had too many problems!",
+        "What do you call a sleeping bull? A bulldozer!",
+        "Why did the cookie go to the doctor? Because it felt crumbly!",
+        "What do you call a dinosaur that crashes his car? Tyrannosaurus Wrecks!",
+        "Why can't you give Elsa a balloon? Because she will let it go!",
+        "What do you call a snowman in summer? A puddle!"
+    ],
+    facts: [
+        "Honey never spoils! Archaeologists have found 3,000-year-old honey that's still edible.",
+        "A group of flamingos is called a 'flamboyance'!",
+        "Octopuses have three hearts and blue blood.",
+        "Bananas are berries, but strawberries aren't!",
+        "Lightning strikes Earth about 100 times every second.",
+        "The shortest war in history lasted only 38 minutes.",
+        "Your brain generates enough electricity to power a small light bulb.",
+        "A cloud can weigh more than a million pounds!",
+        "Butterflies taste with their feet.",
+        "The dot over 'i' and 'j' is called a 'tittle'."
+    ],
+    quotes: [
+        "The more that you read, the more things you will know. — Dr. Seuss",
+        "Today a reader, tomorrow a leader. — Margaret Fuller",
+        "A person who never made a mistake never tried anything new. — Albert Einstein",
+        "Be yourself; everyone else is already taken. — Oscar Wilde",
+        "In a world where you can be anything, be kind.",
+        "You're braver than you believe, stronger than you seem. — A.A. Milne",
+        "The expert in anything was once a beginner.",
+        "Every mistake is a chance to learn something new.",
+        "Believe you can and you're halfway there. — Theodore Roosevelt",
+        "What you do today can improve all your tomorrows."
+    ]
+};
+
+function showBonusContent() {
+    // Randomly choose joke, fact, or quote
+    const types = ['jokes', 'facts', 'quotes'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const content = BONUS_CONTENT[type][Math.floor(Math.random() * BONUS_CONTENT[type].length)];
+    
+    const emoji = type === 'jokes' ? '😄' : type === 'facts' ? '🌟' : '💭';
+    const title = type === 'jokes' ? 'Joke Time!' : type === 'facts' ? 'Fun Fact!' : 'Quote of the Day';
+    
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.5);
+        z-index: 3000;
+        max-width: 500px;
+        text-align: center;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        animation: bonusSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    `;
+    
+    popup.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 12px;">${emoji}</div>
+        <div style="font-weight: 700; font-size: 1.3rem; margin-bottom: 12px;">${title}</div>
+        <div style="font-size: 1.05rem; font-weight: 400;">${content}</div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    setTimeout(() => {
+        popup.style.opacity = '0';
+        popup.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        popup.style.transition = 'all 0.3s ease-out';
+        setTimeout(() => popup.remove(), 300);
+    }, 6000);
+}
+
+// Add bonus animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes bonusSlideIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -60%) scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+`;
+document.head.appendChild(style);
+
 /* ==========================================
    NEW FEATURES: Translation, Decodable Texts, Progress, Phoneme Guide
    ========================================== */
@@ -951,8 +1071,16 @@ function initNewFeatures() {
             const word = currentWord;
             const def = currentEntry.def || '';
             
+            // Debug: Check if translations are loaded
+            console.log('Translation requested for:', word, 'Language:', lang);
+            console.log('window.TRANSLATIONS exists:', !!window.TRANSLATIONS);
+            if (window.TRANSLATIONS) {
+                console.log('Available words:', Object.keys(window.TRANSLATIONS));
+            }
+            
             // Use curated translations for high-frequency words
             const translation = getWordTranslation(word, lang);
+            console.log('Translation found:', translation);
             
             if (translation) {
                 // Rich translation available from translations.js
@@ -960,7 +1088,7 @@ function initNewFeatures() {
                     <div style="padding: 12px; background: #e8f5e9; border-radius: 8px; border: 2px solid var(--color-correct);">
                         <div style="color: var(--color-correct); font-weight: 600; margin-bottom: 8px;">✓ Translation Available</div>
                         
-                        <div style="font-size: 1.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <div style="font-size: 1.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <strong>${word}</strong> 
                             <span style="color: #999;">→</span> 
                             <strong style="color: var(--color-correct);">${translation.word}</strong>
@@ -968,7 +1096,7 @@ function initNewFeatures() {
                         </div>
                         
                         <div style="font-size: 0.95rem; color: #555; margin-bottom: 10px; line-height: 1.5;">
-                            ${translation.def || translation.meaning}
+                            ${translation.def || translation.meaning || ''}
                         </div>
                         
                         ${translation.sentence ? `
