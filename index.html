@@ -140,7 +140,7 @@
     <div id="modal-overlay" class="hidden"></div>
 
     <!-- Welcome Modal - Simple Wordle Style -->
-    <div id="welcome-modal" class="modal hidden">
+    <div id="welcome-modal" class="modal hidden no-close-btn">
         <div class="modal-content" style="max-width: 420px; text-align: center;">
             <h2 style="font-size: 1.8rem; margin-bottom: 20px;">HOW TO PLAY</h2>
             
@@ -261,11 +261,11 @@
                     When OFF, the app uses computer voice for all sounds.
                 </div>
                 
-                <div id="teacher-recording-status" style="font-size: 0.85rem; color: #888; padding: 8px; background: white; border-radius: 4px;">
-                    📊 Status: <span id="recording-count">No recordings yet</span>
+                <div id="teacher-recording-status" style="font-size: 0.85rem; color: #888; padding: 8px; background: white; border-radius: 4px; margin-bottom: 10px;">
+                    📊 Status: <span id="recording-count">Checking...</span>
                 </div>
                 
-                <button class="action-btn" id="clear-all-recordings" style="width: 100%; margin-top: 10px; background: #e74c3c; color: white; display: none;">
+                <button class="action-btn" id="clear-all-recordings" style="width: 100%; background: #e74c3c; color: white;" disabled>
                     🗑️ Delete All My Recordings
                 </button>
             </div>

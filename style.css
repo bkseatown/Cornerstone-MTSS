@@ -204,25 +204,27 @@ option:checked {
 
 /* Focus Panel - Collapsible */
 .focus-panel { 
+    position: fixed;
+    top: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
     background: white; 
     padding: 14px 16px; 
-    border-radius: 8px; 
-    border: 1px solid #d0d0d0; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    margin-top: 12px;
+    border-radius: 12px; 
+    border: 2px solid #667eea; 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     transition: all 0.3s ease;
-    overflow: hidden;
-    max-height: 500px;
     opacity: 1;
+    z-index: 100;
+    pointer-events: all;
 }
 
 .focus-panel.hidden {
-    max-height: 0;
-    padding: 0 16px;
-    margin-top: 0;
     opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
     pointer-events: none;
-    border: none;
 }
 
 
@@ -579,6 +581,11 @@ main {
     line-height: 1;
     color: #999;
     transition: color 0.2s;
+}
+
+/* Hide close button on welcome modal */
+.modal.no-close-btn .top-right-x {
+    display: none;
 }
 
 .top-right-x:hover { 

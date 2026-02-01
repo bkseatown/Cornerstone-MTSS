@@ -967,9 +967,9 @@ function showEndModal(win) {
     document.getElementById('translate-to').value = '';
     document.getElementById('translation-result').textContent = '';
     
-    // Show bonus content if won (after user has time to read word)
+    // Store that we should show bonus when modal closes (if won)
     if (win) {
-        setTimeout(showBonusContent, 3000);  // 3 seconds instead of 800ms
+        sessionStorage.setItem('showBonusOnClose', 'true');
     }
 }
 
@@ -1037,11 +1037,13 @@ function updateRecordingStatus() {
     checkRecordingCount().then(count => {
         if (count > 0) {
             statusText.textContent = `${count} word${count === 1 ? '' : 's'} recorded`;
-            clearBtn.style.display = 'block';
+            clearBtn.disabled = false;
+            clearBtn.style.opacity = '1';
             localStorage.setItem('hasRecordings', 'true');
         } else {
             statusText.textContent = 'No recordings yet';
-            clearBtn.style.display = 'none';
+            clearBtn.disabled = true;
+            clearBtn.style.opacity = '0.5';
             localStorage.setItem('hasRecordings', 'false');
         }
     });
@@ -1152,6 +1154,12 @@ function closeModal() {
     
     if (document.activeElement) document.activeElement.blur();
     document.body.focus();
+    
+    // Show bonus content if closing word modal after win
+    if (wasGameModalOpen && sessionStorage.getItem('showBonusOnClose') === 'true') {
+        sessionStorage.removeItem('showBonusOnClose');
+        setTimeout(() => showBonusContent(), 500);  // Brief delay after modal closes
+    }
     
     // Auto-start new game after closing win/loss modal
     if (wasGameModalOpen && gameOver) {
@@ -1734,7 +1742,6 @@ function initTutorial() {
     const welcomeModal = document.getElementById('welcome-modal');
     const startBtn = document.getElementById('start-playing-btn');
     const dontShowCheckbox = document.getElementById('dont-show-tutorial');
-    const closeBtn = document.querySelector('.close-welcome');
     
     if (!tutorialShown && welcomeModal) {
         welcomeModal.classList.remove('hidden');
