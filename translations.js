@@ -18,9 +18,8 @@
     hi: { name: "Hindi", native: "हिन्दी", flag: "🇮🇳", dir: "ltr" }
   };
 
-  // Translation data structure (sample - expandable)
+  // Translation data structure
   window.TRANSLATIONS = {
-    // High-frequency words first
     cat: {
       es: { 
         word: "gato", 
