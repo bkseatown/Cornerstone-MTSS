@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Decode the Word — Phonics Wordle</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔤</text></svg>">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Banner (Success Messages) -->
+    <div id="banner-container" class="banner hidden"></div>
+    
+    <!-- Toast Container for non-stacking messages -->
+    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <h1>🔤 Decode the Word</h1>
+            <div class="header-actions">
+                <button class="text-btn" id="help-btn" title="How to Play">❓</button>
+                <button class="text-btn" id="progress-btn" title="View Progress">📊</button>
+                <button class="text-btn" id="phoneme-btn" title="Phonics & Sounds Reference"><span style="font-size: 1.3rem;">Aa</span> Sounds</button>
+                <button class="text-btn" id="teacher-btn">Teacher</button>
+                <button class="icon-btn" id="case-toggle" title="Toggle Case">abc</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="pattern-select">Focus:</label>
+                <select id="pattern-select">
+                    <option value="all">All Words</option>
+                    
+                    <!-- Foundation Skills -->
+                    <optgroup label="Foundation Skills">
+                        <option value="consonants">Individual Consonants (b, c, d, f, g...)</option>
+                        <option value="short-vowels">Short Vowels (a, e, i, o, u)</option>
+                    </optgroup>
+                    
+                    <!-- CVC Words -->
+                    <optgroup label="CVC Words">
+                        <option value="cvc">Simple CVC (cat, dog, sun, pen)</option>
+                    </optgroup>
+                    
+                    <!-- Consonant Blends -->
+                    <optgroup label="Consonant Blends">
+                        <option value="blend-s">S-Blends (st, sp, sc, sk, sm, sn, sw, sl)</option>
+                        <option value="blend-l">L-Blends (bl, cl, fl, gl, pl)</option>
+                        <option value="blend-r">R-Blends (br, cr, dr, fr, gr, pr, tr)</option>
+                        <option value="blend-final">Final Blends (st, mp, nd, nt, nk, lt)</option>
+                        <option value="blend">All Blends</option>
+                    </optgroup>
+                    
+                    <!-- Digraphs -->
+                    <optgroup label="Consonant Digraphs">
+                        <option value="digraph-common">Common Digraphs (sh, ch, th, wh)</option>
+                        <option value="digraph-other">Other Digraphs (ck, ng, ph)</option>
+                        <option value="digraph">All Digraphs</option>
+                    </optgroup>
+                    
+                    <!-- Vowel Patterns -->
+                    <optgroup label="Vowel Patterns">
+                        <option value="magic-e">Silent E / Magic E (cake, hope, time, cute)</option>
+                        <option value="vowel-team-long">Long Vowel Teams (ai, ay, ee, ea, oa)</option>
+                        <option value="r-controlled">R-Controlled Vowels (ar, er, ir, or, ur)</option>
+                        <option value="diphthongs">Diphthongs (oi, oy, ou, ow, au, aw)</option>
+                        <option value="vowel-team">All Vowel Teams</option>
+                    </optgroup>
+                    
+                    <!-- Advanced Patterns -->
+                    <optgroup label="Advanced & Multisyllabic">
+                        <option value="trigraphs">Trigraphs & Complex (tch, dge, scr, str, spl)</option>
+                        <option value="prefixes">Common Prefixes (un-, re-, dis-, pre-)</option>
+                        <option value="suffixes">Common Suffixes (-ing, -ed, -ly, -ful, -less)</option>
+                        <option value="compound">Compound Words</option>
+                        <option value="morphology">All Morphology</option>
+                    </optgroup>
+                    
+                    <!-- Legacy options for compatibility -->
+                    <optgroup label="Quick Options">
+                        <option value="floss">FLOSS Rule (stuff, hill, pass)</option>
+                        <option value="welded">Welded Sounds (king, bank, song)</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="length-select">Length:</label>
+                <select id="length-select">
+                    <option value="traditional">5 Letters</option>
+                    <option value="any">Any Length</option>
+                    <option value="3">3 Letters</option>
+                    <option value="4">4 Letters</option>
+                    <option value="6">6 Letters</option>
+                    <option value="7">7 Letters</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="system-voice-select">Voice:</label>
+                <select id="system-voice-select">
+                    <option value="">Auto-Select</option>
+                </select>
+            </div>
+
+            <button id="new-word-btn">New Word</button>
+        </div>
+
+        <!-- Simple Focus Info (Inline) -->
+        <div style="text-align: center; padding: 12px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 12px auto; max-width: 600px;">
+            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;" id="simple-focus-title">Mixed Review</div>
+            <div style="font-size: 0.9rem; color: #555;" id="simple-focus-desc">Review words from all categories</div>
+            <div style="font-size: 0.85rem; color: #888; font-style: italic; margin-top: 4px;" id="simple-focus-examples">Try words like: shift, yield, scope</div>
+        </div>
+        
+        <!-- Audio Controls with Phoneme Option -->
+        <div style="text-align: center; margin: 12px auto;">
+            <button class="audio-play-btn" id="simple-hear-word" title="Hear the word">
+                🔊 Hear Word
+            </button>
+            <button class="audio-play-btn" id="simple-hear-phoneme" title="Hear individual sounds">
+                🔤 Hear Phonemes
+            </button>
+            <button class="audio-play-btn" id="simple-hear-sentence" title="Hear the sentence">
+                💬 Hear Sentence
+            </button>
+        </div>
+        
+        <!-- Voice Indicator -->
+        <div id="voice-indicator" class="voice-indicator" style="display: none;">
+            <span id="voice-indicator-text">🎤 Using teacher's voice</span>
+        </div>
+        
+        <!-- Adaptive Action Row - Context-aware Quick Actions -->
+        <div id="adaptive-actions" style="display: none; text-align: center; margin: 15px auto; max-width: 700px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                <button class="quick-action-btn" id="action-hear-word" title="Hear the word">🔊</button>
+                <button class="quick-action-btn" id="action-hear-sentence" title="Hear example sentence">💬</button>
+                <button class="quick-action-btn" id="action-hear-sound" title="Hear target sound">🔤</button>
+                <button class="quick-action-btn" id="action-mouth-position" title="Show mouth position">👄</button>
+            </div>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 6px;" id="adaptive-hint"></div>
+        </div>
+    </header>
+
+    <!-- Game Board -->
+    <main>
+        <div id="game-board"></div>
+        <div id="keyboard"></div>
+    </main>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🔤 Welcome to Decode the Word!</h2>
+            <p>A research-based phonics game that makes learning fun and effective.</p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <h3 style="margin-bottom: 10px;">How to Play:</h3>
+                <ul style="text-align: left; font-size: 0.95rem;">
+                    <li>Pick your <strong>Focus Pattern</strong> (CVC, Blends, Digraphs, etc.)</li>
+                    <li>Guess the hidden word by typing letters</li>
+                    <li>🟢 Green = right letter, right spot</li>
+                    <li>🟡 Yellow = right letter, wrong spot</li>
+                    <li>⚪ Gray = letter not in the word</li>
+                    <li>Use <strong>🔊 Hear Word</strong> and <strong>💬 Hear Sentence</strong> for hints!</li>
+                </ul>
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                    <input type="checkbox" id="dont-show-tutorial">
+                    Don't show this again
+                </label>
+            </div>
+            
+            <button class="primary-btn" id="start-playing-btn">Start Playing! 🎮</button>
+        </div>
+    </div>
+
+    <!-- Teacher Modal with Improved Voice Controls -->
+    <div id="teacher-modal" class="modal hidden">
+        <span class="close-btn top-right-x">×</span>
+        <div class="modal-content">
+            <h2>🍎 Teacher Mode</h2>
+            
+            <!-- Custom Word Input -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px;">Custom Word Practice</h3>
+                <input type="text" id="custom-word-input" placeholder="Enter any word (3-10 letters)" 
+                       style="width: 100%; padding: 8px; margin-bottom: 8px;">
+                <div id="teacher-error" style="color: #dc3545; font-size: 0.9rem; margin-bottom: 8px;"></div>
+                <button class="primary-btn" style="width: 100%;" onclick="handleTeacherSubmit()">Set Word & Start Game</button>
+            </div>
+            
+            <!-- IMPROVED VOICE CONTROLS SECTION -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <h3 style="margin-bottom: 15px; color: #856404;">🎙️ Your Voice Recordings</h3>
+                
+                <!-- Voice Recording Toggle -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
+                        <input type="checkbox" id="teacher-voice-toggle" checked>
+                        <span>Use my voice recordings (when available)</span>
+                    </label>
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                        When enabled, students hear your recorded voice instead of computer voice
+                    </div>
+                </div>
+                
+                <!-- Recording Status Display -->
+                <div id="recording-status-display" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                    <div style="font-weight: 500; margin-bottom: 5px;">Recording Status:</div>
+                    <div id="recording-count" style="color: #28a745;">✓ No recordings yet</div>
+                </div>
+                
+                <!-- Voice Management Actions -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="action-btn" onclick="openStudioSetup()" style="flex: 1;">
+                        🎤 Record New Words
+                    </button>
+                    <button class="action-btn" id="preview-voice-btn" onclick="previewTeacherVoice()" style="flex: 1;" disabled>
+                        🎧 Preview My Voice
+                    </button>
+                    <button class="danger-btn" id="clear-all-recordings" onclick="confirmClearAllVoice()" style="flex: 1;">
+                        🗑️ Delete All Recordings
+                    </button>
+                </div>
+                
+                <div style="font-size: 0.8rem; color: #666; margin-top: 8px; font-style: italic;">
+                    💡 Tip: Your voice recordings are stored safely on this device only - never uploaded to servers
+                </div>
+            </div>
+            
+            <!-- BONUS CONTENT SETTINGS -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;">
+                <h3 style="margin-bottom: 15px; color: #1565c0;">🎪 Fun Facts & Jokes</h3>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
+                        <input type="checkbox" id="bonus-content-toggle" checked>
+                        <span>Show fun facts and jokes after successful words</span>
+                    </label>
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                        Provides engaging content that stays until dismissed - perfect for discussion!
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="bonus-frequency" style="font-weight: 500; margin-bottom: 5px; display: block;">Show frequency:</label>
+                    <select id="bonus-frequency" style="width: 100%; padding: 6px;">
+                        <option value="every-word">Every successful word</option>
+                        <option value="every-3rd" selected>Every 3rd successful word</option>
+                        <option value="every-5th">Every 5th successful word</option>
+                        <option value="random">Random (about 50% of the time)</option>
+                    </select>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 0.85rem; color: #666;">
+                    <strong>Teacher Control:</strong> Fun facts appear AFTER the word reveal is closed, stay visible for discussion, and can be dismissed when ready to continue.
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="closeModal()" style="width: 100%;">Close Teacher Mode</button>
+        </div>
+    </div>
+
+    <!-- Recording Studio Modal -->
+    <div id="recording-studio-modal" class="modal hidden">
+        <span class="close-btn top-right-x">×</span>
+        <div class="modal-content">
+            <h2>🎤 Recording Studio</h2>
+            
+            <!-- Setup View -->
+            <div id="studio-setup-view">
+                <p>Record your voice for words to create a personalized learning experience!</p>
+                
+                <div style="margin: 20px 0;">
+                    <label for="studio-source-select"><strong>Choose words to record:</strong></label>
+                    <select id="studio-source-select" style="width: 100%; padding: 8px;">
+                        <option value="current">Current Focus Pattern</option>
+                        <option value="paste">Paste Custom Word List</option>
+                    </select>
+                    
+                    <textarea id="studio-paste-area" class="hidden" 
+                              placeholder="Enter words separated by commas: cat, dog, sun, fun"
+                              style="width: 100%; height: 80px; margin-top: 10px; padding: 8px;"></textarea>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label>
+                        <input type="checkbox" id="studio-skip-existing" checked>
+                        Skip words I've already recorded
+                    </label>
+                </div>
+                
+                <button class="primary-btn" onclick="startStudioSession()" style="width: 100%;">
+                    Start Recording Session
+                </button>
+            </div>
+            
+            <!-- Recording View -->
+            <div id="studio-record-view" class="hidden">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 0.9rem; color: #666;">Recording <span id="studio-progress">1 of 10</span></div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="font-size: 2rem; font-weight: bold; margin-bottom: 10px;" id="studio-word-display">APPLE</div>
+                    <textarea id="studio-sentence-display" rows="2" style="width: 100%; padding: 8px; font-size: 0.95rem;" readonly></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <button class="record-btn" id="record-word-btn" style="width: 100%; height: 80px;">Record Word</button>
+                        <button style="margin-top: 5px; width: 100%;" id="play-word-preview" disabled>▶ Preview</button>
+                    </div>
+                    <div style="flex: 1;">
+                        <button class="record-btn" id="record-sentence-btn" style="width: 100%; height: 80px;">Record Sentence</button>
+                        <button style="margin-top: 5px; width: 100%;" id="play-sentence-preview" disabled>▶ Preview</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; height: 20px; margin-bottom: 10px;">
+                    <span id="recording-status" style="font-weight: bold; color: #2c3e50;"></span>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label>
+                        <input type="checkbox" id="studio-auto-advance" checked>
+                        Auto-advance after recording sentence
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn" id="next-item-btn" style="flex: 1;">Next Word →</button>
+                    <button class="action-btn" id="exit-studio-btn" style="flex: 1;" onclick="closeModal()">Exit Studio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game End Modal -->
+    <div id="modal" class="modal hidden">
+        <span class="close-btn top-right-x">×</span>
+        <div class="modal-content">
+            <h2 id="modal-title">Great Job!</h2>
+            <div class="stat-box">
+                <div class="stat-word" id="modal-word">APPLE</div>
+                <div class="stat-syllables" id="modal-syllables">ap • ple</div>
+                <div class="stat-def" id="modal-def">A round fruit that grows on trees.</div>
+                <div class="stat-sentence" id="modal-sentence">"An apple a day keeps the doctor away."</div>
+                
+                <!-- Translation Section -->
+                <div id="translation-section" style="margin-top: 12px; padding: 8px; background: #f0f8ff; border-radius: 4px; display: none;">
+                    <label for="translate-to" style="font-size: 0.85rem; font-weight: 600;">Translate to:</label>
+                    <select id="translate-to" style="width: 100%; padding: 4px; margin: 4px 0;">
+                        <option value="">Choose Language...</option>
+                        <option value="es">Spanish / Español</option>
+                        <option value="zh">Chinese / 中文</option>
+                        <option value="ar">Arabic / العربية</option>
+                        <option value="vi">Vietnamese / Tiếng Việt</option>
+                        <option value="tl">Tagalog / Filipino</option>
+                        <option value="fr">French / Français</option>
+                        <option value="ko">Korean / 한국어</option>
+                        <option value="ru">Russian / Русский</option>
+                        <option value="pt">Portuguese / Português</option>
+                        <option value="hi">Hindi / हिन्दी</option>
+                    </select>
+                    <div id="translation-result" style="margin-top: 8px; font-size: 0.95rem; color: #2c3e50;"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="action-btn" id="speak-btn" style="flex: 1;">🔊 Hear Word</button>
+                <button class="action-btn" id="translate-btn" style="flex: 1;">🌍 Translate</button>
+                <button class="action-btn" id="decodable-btn" style="flex: 1;">📖 Read Text</button>
+            </div>
+            <button class="primary-btn" id="play-again-btn" style="margin-top: 10px;">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Remaining modals kept the same for now -->
+    <!-- Decodable Texts Modal -->
+    <div id="decodable-modal" class="modal hidden">
+        <span class="close-decodable top-right-x">×</span>
+        <div class="modal-content">
+            <h2>📖 Decodable Reading Practice</h2>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Practice reading with texts that use words from your focus pattern.</p>
+            
+            <div id="decodable-text-list" style="max-height: 400px; overflow-y: auto;">
+                <!-- Texts will be populated here -->
+            </div>
+            
+            <button class="action-btn" id="close-decodable-btn" style="margin-top: 12px; width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Progress Monitoring Modal -->
+    <div id="progress-modal" class="modal hidden">
+        <span class="close-progress top-right-x">×</span>
+        <div class="modal-content">
+            <h2>📊 Student Progress</h2>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Track learning over time</p>
+            
+            <div id="progress-stats" style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;" id="words-correct">0</div>
+                        <div style="font-size: 0.8rem; color: #666;">Words Correct</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;" id="words-attempted">0</div>
+                        <div style="font-size: 0.8rem; color: #666;">Words Attempted</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;" id="accuracy-rate">0%</div>
+                        <div style="font-size: 0.8rem; color: #666;">Accuracy</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #17a2b8;" id="avg-guesses">0</div>
+                        <div style="font-size: 0.8rem; color: #666;">Avg Guesses</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h4 style="margin: 15px 0 8px 0;">Recent Words:</h4>
+            <div id="recent-words-list" style="max-height: 200px; overflow-y: auto; font-size: 0.9rem;">
+                <!-- Recent words will be listed here -->
+            </div>
+            
+            <button class="action-btn" onclick="exportProgressData()" style="margin-top: 12px; width: 100%;">📈 Export Data</button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal hidden">
+        <span class="close-help top-right-x">×</span>
+        <div class="modal-content">
+            <h2>❓ How to Play</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>🎯 Your Goal</h3>
+                <p>Guess the hidden word in 6 tries or fewer!</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>🔤 How it Works</h3>
+                <ul style="text-align: left;">
+                    <li><strong>🟢 Green tile</strong> = Right letter in the right spot</li>
+                    <li><strong>🟡 Yellow tile</strong> = Right letter but wrong spot</li>
+                    <li><strong>⚪ Gray tile</strong> = Letter not in the word</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>💡 Get Hints</h3>
+                <ul style="text-align: left;">
+                    <li><strong>🔊 Hear Word</strong> - Listen to the pronunciation</li>
+                    <li><strong>💬 Hear Sentence</strong> - Hear it used in context</li>
+                    <li><strong>🔤 Hear Phonemes</strong> - Listen to individual sounds</li>
+                </ul>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>🎨 Teacher Features</h3>
+                <ul style="text-align: left;">
+                    <li>Set custom words for targeted practice</li>
+                    <li>Record your own voice for authentic pronunciation</li>
+                    <li>Choose specific phonics patterns to focus on</li>
+                    <li>Control when fun facts and jokes appear</li>
+                </ul>
+            </div>
+            
+            <button class="primary-btn" onclick="closeModal()" style="width: 100%;">Got it!</button>
+        </div>
+    </div>
+
+    <!-- Phoneme Guide Modal -->
+    <div id="phoneme-modal" class="modal hidden">
+        <span class="close-phoneme top-right-x">×</span>
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>🔤 Phonics & Sounds Guide</h2>
+            <p style="margin-bottom: 20px; color: #666;">Click any sound to hear it and see the mouth position:</p>
+            
+            <div id="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <!-- Phoneme cards will be dynamically generated here -->
+            </div>
+            
+            <!-- Voice Source Selection for Phonemes -->
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="margin-bottom: 10px;">Phoneme Voice:</h4>
+                <div style="display: flex; gap: 15px;">
+                    <label class="voice-option">
+                        <input type="radio" name="guide-voice-source" value="teacher" checked>
+                        <span>🎤 Teacher's Voice</span>
+                    </label>
+                    <label class="voice-option">
+                        <input type="radio" name="guide-voice-source" value="system">
+                        <span>🔊 System Voice</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="words.js?v=1770042343"></script>
+    <script src="phoneme-data.js?v=1770042343"></script>
+    <script src="script.js?v=1770042343"></script>
+    
+    <script>
+        // Initialize enhanced features after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize phoneme cards when modal opens
+            document.getElementById('phoneme-btn').addEventListener('click', function() {
+                setTimeout(initPhonemeCards, 100); // Small delay to ensure modal is rendered
+            });
+            
+            // Close button handlers
+            document.querySelectorAll('.close-btn, .close-help, .close-progress, .close-phoneme, .close-decodable').forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+            
+            // Initialize enhanced teacher controls
+            initEnhancedTeacherControls();
+        });
+    </script>
+</body>
+</html>
