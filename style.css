@@ -1277,3 +1277,384 @@ main {
     color: #888;
 }
 
+/* Enhanced styles for the improved voice controls and teacher interface */
+
+/* Toast notifications */
+.toast {
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0; 
+        transform: translateX(100%); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateX(0); 
+    }
+}
+
+/* Enhanced voice controls */
+.voice-indicator {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    margin: 8px auto;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Teacher modal enhancements */
+.danger-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.danger-btn:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.danger-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Phoneme audio button */
+.audio-play-btn {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.audio-play-btn:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Enhanced pattern select dropdown */
+#pattern-select {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: #495057;
+    transition: border-color 0.2s ease;
+    max-width: 400px;
+}
+
+#pattern-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#pattern-select optgroup {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #6c757d;
+    background: #f8f9fa;
+}
+
+#pattern-select option {
+    padding: 6px;
+    font-size: 0.9rem;
+}
+
+/* Recording status display enhancements */
+#recording-status-display {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+/* Voice option styling for phoneme modal */
+.voice-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.voice-option:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.voice-option.active {
+    border-color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.voice-option input[type="radio"] {
+    margin: 0;
+}
+
+/* Enhanced phoneme cards */
+.phoneme-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.phoneme-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    transition: left 0.5s;
+}
+
+.phoneme-card:hover::before {
+    left: 100%;
+}
+
+.phoneme-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.phoneme-card-sound {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 8px;
+}
+
+.phoneme-card-example {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Mouth animation display */
+#phoneme-mouth-display {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: 3px solid #007bff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    text-align: center;
+    min-width: 200px;
+    animation: bounceIn 0.6s ease;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.mouth-animation {
+    font-size: 4rem;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+/* Mouth position classes */
+.mouth-open-wide { content: "😮"; }
+.mouth-slight-smile { content: "😊"; }
+.mouth-relaxed { content: "😐"; }
+.mouth-rounded-open { content: "😯"; }
+.mouth-neutral-open { content: "😐"; }
+.lips-closed { content: "😙"; }
+.tongue-up { content: "😛"; }
+.throat { content: "😮"; }
+.teeth-together { content: "😬"; }
+.lip-teeth { content: "😤"; }
+.tongue-back { content: "😋"; }
+.rounded-forward { content: "😗"; }
+.tongue-out { content: "😛"; }
+
+/* Enhanced bonus content popup */
+.bonus-content-popup {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Quick action buttons for adaptive actions */
+.quick-action-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #007bff;
+    color: #007bff;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-action-btn:hover {
+    background: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Teacher settings sections */
+.teacher-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.teacher-section.voice {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.teacher-section.bonus {
+    background: #e3f2fd;
+    border-left-color: #2196f3;
+}
+
+.teacher-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* Modal content max-width for better reading */
+.modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .voice-option {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    #phoneme-mouth-display {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        min-width: 180px;
+    }
+    
+    .phoneme-card {
+        min-height: 100px;
+    }
+    
+    .quick-action-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+/* Focus animations */
+button:focus,
+select:focus,
+input:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
