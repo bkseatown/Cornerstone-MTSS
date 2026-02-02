@@ -1650,3 +1650,58 @@ button:active:not(:disabled) {
   background: #d1d5db !important;
 }
 
+
+/* ========================================
+   PHONEME GRID STYLES
+   ======================================== */
+
+#phoneme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.phoneme-card {
+  padding: 16px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.phoneme-card:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.phoneme-card:active {
+  transform: translateY(0);
+}
+
+.phoneme-letter {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.phoneme-example {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.phoneme-description {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 6px;
+  font-style: italic;
+}
+

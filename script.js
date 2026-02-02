@@ -1721,33 +1721,47 @@ function exportProgressData() {
 
 function populatePhonemeGrid() {
     const grid = document.getElementById('phoneme-grid');
-    if (!grid || !window.PHONEME_DATA) return;
-    if (grid.dataset.built === '1') return;
+    if (!grid) {
+        console.error('phoneme-grid element not found!');
+        return;
+    }
+    
+    if (!window.PHONEME_DATA) {
+        console.error('PHONEME_DATA not loaded!');
+        return;
+    }
+    
+    // Don't rebuild if already built
+    if (grid.dataset.built === '1') {
+        console.log('Phoneme grid already populated');
+        return;
+    }
 
     const sounds = Object.keys(window.PHONEME_DATA);
-    // Sort: vowels first by isVowel
-    sounds.sort((a,b)=>{
-        const A = window.PHONEME_DATA[a] || {};
-        const B = window.PHONEME_DATA[b] || {};
-        return (B.isVowel?1:0) - (A.isVowel?1:0);
-    });
-
+    console.log(`Populating phoneme grid with ${sounds.length} sounds...`);
+    
     grid.innerHTML = '';
-    sounds.forEach(sound=>{
+    
+    sounds.forEach(sound => {
         const p = window.PHONEME_DATA[sound];
         const card = document.createElement('div');
-        card.className = 'phoneme-card' + (p && p.isVowel ? ' vowel-card' : '');
+        card.className = 'phoneme-card';
         card.dataset.sound = sound;
-        card.dataset.example = (p && p.example) ? p.example : '';
+        card.dataset.example = p.example || '';
+        
         card.innerHTML = `
-            <div class="phoneme-letter">${(p && p.grapheme) ? p.grapheme : sound.toUpperCase()}</div>
-            <div class="phoneme-example">${(p && p.example) ? p.example : ''}</div>
-            <div class="phoneme-example" style="margin-top:4px;">${(p && p.description) ? p.description : ''}</div>
+            <div class="phoneme-letter" style="font-size: 2rem; font-weight: 700; margin-bottom: 4px;">${sound.toUpperCase()}</div>
+            <div class="phoneme-example" style="font-size: 0.85rem; color: #666;">${p.example || ''}</div>
+            <div class="phoneme-description" style="font-size: 0.75rem; color: #888; margin-top: 4px;">${p.description || ''}</div>
         `;
+        
         grid.appendChild(card);
     });
 
     grid.dataset.built = '1';
+    console.log(`✓ Phoneme grid populated with ${sounds.length} cards`);
+    
+    // Initialize click handlers
     initPhonemeCards();
 }
 
