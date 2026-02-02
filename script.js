@@ -557,6 +557,16 @@ function nextStudioItem() {
 
 /* --- GAME LOGIC --- */
 function startNewGame(customWord = null) {
+    // Safety check: ensure board element exists
+    if (!board) {
+        console.error("Game board element not found! Cannot start game.");
+        board = document.getElementById("game-board");
+        if (!board) {
+            console.error("Still cannot find #game-board element!");
+            return;
+        }
+    }
+    
     gameOver = false;
     guesses = [];
     currentGuess = "";
@@ -585,6 +595,8 @@ function startNewGame(customWord = null) {
         tile.id = `tile-${i}`;
         board.appendChild(tile);
     }
+    
+    console.log(`✓ Game started: word="${currentWord}" (${CURRENT_WORD_LENGTH} letters)`);
     
     // Update adaptive actions for new word
     if (typeof updateAdaptiveActions === 'function') {
@@ -1828,8 +1840,23 @@ function showPhonemeMouth(sound, phonemeData) {
 function openPhonemeGuide() {
     modalOverlay.classList.remove('hidden');
     const phonemeModal = document.getElementById('phoneme-modal');
+    if (!phonemeModal) {
+        console.error("phoneme-modal element not found!");
+        return;
+    }
     phonemeModal.classList.remove('hidden');
-    try { populatePhonemeGrid && populatePhonemeGrid(); } catch(e) {}
+    
+    // Force populate the grid
+    console.log("Opening Sounds Guide - populating phoneme grid...");
+    try {
+        if (typeof populatePhonemeGrid === 'function') {
+            populatePhonemeGrid();
+        } else {
+            console.error("populatePhonemeGrid function not found!");
+        }
+    } catch(e) {
+        console.error("Error populating phoneme grid:", e);
+    }
 }
 
 
