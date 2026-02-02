@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="style.css" />
 
   <!-- Load scripts -->
-  <script src="words.js?v=1770045855" defer></script>
-  <script src="phoneme-data.js?v=1770045855" defer></script>
-  <script src="focus-info.js?v=1770045855" defer></script>
-  <script src="translations.js?v=1770045855" defer></script>
-  <script src="script.js?v=1770045855" defer></script>
+  <script src="words.js?v=1770071385" defer></script>
+  <script src="phoneme-data.js?v=1770071385" defer></script>
+  <script src="focus-info.js?v=1770071385" defer></script>
+  <script src="translations.js?v=1770071385" defer></script>
+  <script src="script.js?v=1770071385" defer></script>
 </head>
 
 <body>
@@ -75,7 +75,7 @@
 
       <!-- Utility buttons -->
       <button id="help-btn" type="button" title="Help">?</button>
-      <button id="focus-toggle-btn" class="mini-btn" type="button">ℹ️ Hints</button>
+      <button id="focus-toggle-btn" class="mini-btn" type="button">ℹ️ Show Hints</button>
       <button id="progress-btn" type="button" title="Progress">📊</button>
       <button id="phoneme-btn" type="button" title="Sounds Guide">Aa</button>
       
@@ -97,10 +97,9 @@
     <div id="game-canvas">
       <div id="game-board"></div>
 
-      <div class="hint-actions">
-        <button id="simple-hear-word" type="button" class="hint-btn" aria-label="Hear word">🔊 Hear</button>
-        <button id="simple-hear-sentence" type="button" class="hint-btn" aria-label="Hear sentence">🗣️ Sentence</button>
-        <button id="phoneme-btn" type="button" class="hint-btn" aria-label="Sounds guide">👄 Sounds</button>
+      <div class="hint-actions" style="display: flex; gap: 10px; justify-content: center; margin: 16px 0;">
+        <button id="simple-hear-word" type="button" class="hint-btn" aria-label="Hear word" style="font-size: 0.9rem; padding: 8px 16px;">🔊 Hear</button>
+        <button id="simple-hear-sentence" type="button" class="hint-btn" aria-label="Hear sentence" style="font-size: 0.9rem; padding: 8px 16px;">💬 Sentence</button>
       </div>
 
       <div id="keyboard"></div>

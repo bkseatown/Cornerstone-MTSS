@@ -1933,4 +1933,12 @@ function initFocusToggle() {
 window.addEventListener('DOMContentLoaded', () => {
     initTutorial();
     initFocusToggle();
+    
+    // Populate phoneme grid when modal opens
+    const phonemeBtn = document.getElementById('phoneme-btn');
+    if (phonemeBtn) {
+        phonemeBtn.addEventListener('click', () => {
+            setTimeout(() => populatePhonemeGrid(), 100);
+        });
+    }
 });

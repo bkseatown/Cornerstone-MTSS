@@ -1485,3 +1485,108 @@ button.primary{
 }
 
 
+
+/* ========================================
+   POLISHED LAYOUT FIXES
+   ======================================== */
+
+/* Make main use flex layout so keyboard fits */
+main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px); /* Account for header */
+  overflow: hidden;
+}
+
+#game-canvas {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* Important for flex shrinking */
+}
+
+#game-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hint-actions {
+  flex-shrink: 0;
+}
+
+#keyboard {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+/* Focus panel - collapsed by default, minimal when shown */
+.focus-panel {
+  flex-shrink: 0;
+  padding: 12px;
+  margin: 0 auto 12px;
+  max-width: 600px;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.focus-panel.hidden {
+  display: none;
+}
+
+/* Quick tiles styling */
+.quick-tiles-row button {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-tiles-row button:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+/* Hint buttons - discrete but usable */
+.hint-btn {
+  background: white;
+  border: 1px solid #ddd;
+  color: #555;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.hint-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.hint-btn:active {
+  transform: scale(0.95);
+}
+
+/* Mobile responsive adjustments */
+@media (max-height: 700px) {
+  main {
+    height: calc(100vh - 120px);
+  }
+  
+  #game-board {
+    padding: 8px;
+  }
+  
+  .hint-actions {
+    margin: 8px 0;
+  }
+}
+
