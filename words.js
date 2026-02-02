@@ -20642,10 +20642,67 @@ const WORDS_DATA =
 };
 
 
-// --- GLOBAL WORD DB (required by script.js) ---
-try {
-  if (!window.WORD_ENTRIES) window.WORD_ENTRIES = WORDS_DATA;
-  console.log(`Word database loaded with ${Object.keys(window.WORD_ENTRIES).length} words`);
-} catch(e) {
-  // fail quietly
-}
+/* Build a simple runtime word database for the game */
+(function(){
+  'use strict';
+
+  function normalizeTag(raw){
+    if(!raw) return null;
+    const s = String(raw).toLowerCase().replace(/[^a-z0-9_]+/g,'_');
+
+    // Core normalization rules
+    if (s.includes('cvc')) return 'cvc';
+    if (s.includes('digraph')) return 'digraph';
+    if (s.includes('trigraph')) return 'trigraph';
+    if (s.includes('ccvc') || s.includes('initial_blend') || s.includes('blend_initial')) return 'ccvc';
+    if (s.includes('cvcc') || s.includes('final_blend') || s.includes('blend_final')) return 'cvcc';
+    if (s.includes('magic_e') || s.includes('cvce') || s.includes('silent_e')) return 'cvce';
+    if (s.includes('vowel_team') || s.includes('vowelteam')) return 'vowel_team';
+    if (s.includes('r_control') || s.includes('rcontrolled')) return 'r_controlled';
+    if (s.includes('diphthong')) return 'diphthong';
+    if (s.includes('floss') || s.includes('double_final')) return 'floss';
+    if (s.includes('weld')) return 'welded';
+    if (s.includes('schwa')) return 'schwa';
+    if (s.includes('prefix')) return 'prefix';
+    if (s.includes('suffix')) return 'suffix';
+    if (s.includes('compound')) return 'compound';
+    if (s.includes('multi')) return 'multisyllable';
+
+    return s;
+  }
+
+  const entries = {};
+  const data = (typeof WORDS_DATA !== 'undefined') ? WORDS_DATA : null;
+
+  if (data && typeof data === 'object') {
+    Object.keys(data).forEach(word => {
+      const item = data[word] || {};
+      const en = item.en || {};
+      const phonics = item.phonics || {};
+
+      const tags = new Set();
+
+      // Collect raw tag sources
+      const raw = []
+        .concat(phonics.patterns || [])
+        .concat(phonics.scope_sequence || [])
+        .concat([phonics.primary_level || '']);
+
+      raw.forEach(r => {
+        const t = normalizeTag(r);
+        if (t) tags.add(t);
+      });
+
+      entries[word.toLowerCase()] = {
+        def: en.def || item.definition || "",
+        sentence: en.sentence || item.sentence || "",
+        syllables: item.syllableText || item.syllables || "",
+        tags: Array.from(tags)
+      };
+    });
+  }
+
+  window.WORD_ENTRIES = entries;
+  console.log('✓ Word database loaded with', Object.keys(entries).length, 'words');
+})();
+

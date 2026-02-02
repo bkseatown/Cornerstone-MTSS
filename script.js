@@ -449,7 +449,7 @@ function loadStudioItem() {
     const item = studioList[studioIndex];
     document.getElementById("studio-progress").textContent = `${studioIndex + 1} / ${studioList.length}`;
     document.getElementById("studio-word-display").textContent = item.word.toUpperCase();
-    document.getElementById("studio-sentence-display").value = item.sentence;
+    document.getElementById("studio-sentence-display").value = item.sentence || "";
 
     resetRecordButtons();
 }
@@ -571,7 +571,7 @@ function startNewGame(customWord = null) {
     }
 
     isFirstLoad = false;
-    board.style.gridTemplateColumns = `repeat(${CURRENT_WORD_LENGTH}, 50px)`;
+    board.style.setProperty("--word-length", CURRENT_WORD_LENGTH);
     for (let i = 0; i < MAX_GUESSES * CURRENT_WORD_LENGTH; i++) {
         const tile = document.createElement("div");
         tile.className = "tile";
@@ -649,7 +649,7 @@ function updateFocusPanel() {
     // Quick tiles row is optional; never crash if missing
     const quickRow = document.getElementById("quick-tiles-row");
     if (quickRow) {
-        if (info.quick && Array.isArray(info.quick) && info.quick.length) {
+        if (pat !== "all" && info.quick && Array.isArray(info.quick) && info.quick.length) {
             quickRow.innerHTML = "";
             info.quick.forEach(q => {
                 const b = document.createElement("button");
@@ -762,6 +762,7 @@ function openPhonemeGuideToSound(sound) {
     if (phonemeModal && modalOverlay) {
         modalOverlay.classList.remove('hidden');
         phonemeModal.classList.remove('hidden');
+    try { populatePhonemeGrid && populatePhonemeGrid(); } catch(e) {}
         
         // Scroll to matching card and highlight
         setTimeout(() => {
@@ -1214,12 +1215,7 @@ function showToast(msg) {
 function checkFirstTimeVisitor() {
     if (!localStorage.getItem("decode_v5_visited")) {
         modalOverlay.classList.remove("hidden");
-        try {
-        const hide = localStorage.getItem("dtw_hide_welcome") === "1";
-        if (!hide) welcomeModal.classList.remove("hidden");
-    } catch(e) {
         welcomeModal.classList.remove("hidden");
-    }
         localStorage.setItem("decode_v5_visited", "true");
     }
 }
@@ -1698,6 +1694,39 @@ function exportProgressData() {
    PHONEME CARD INITIALIZATION WITH MOUTH ANIMATIONS
    ========================================== */
 
+
+function populatePhonemeGrid() {
+    const grid = document.getElementById('phoneme-grid');
+    if (!grid || !window.PHONEME_DATA) return;
+    if (grid.dataset.built === '1') return;
+
+    const sounds = Object.keys(window.PHONEME_DATA);
+    // Sort: vowels first by isVowel
+    sounds.sort((a,b)=>{
+        const A = window.PHONEME_DATA[a] || {};
+        const B = window.PHONEME_DATA[b] || {};
+        return (B.isVowel?1:0) - (A.isVowel?1:0);
+    });
+
+    grid.innerHTML = '';
+    sounds.forEach(sound=>{
+        const p = window.PHONEME_DATA[sound];
+        const card = document.createElement('div');
+        card.className = 'phoneme-card' + (p && p.isVowel ? ' vowel-card' : '');
+        card.dataset.sound = sound;
+        card.dataset.example = (p && p.example) ? p.example : '';
+        card.innerHTML = `
+            <div class="phoneme-letter">${(p && p.grapheme) ? p.grapheme : sound.toUpperCase()}</div>
+            <div class="phoneme-example">${(p && p.example) ? p.example : ''}</div>
+            <div class="phoneme-example" style="margin-top:4px;">${(p && p.description) ? p.description : ''}</div>
+        `;
+        grid.appendChild(card);
+    });
+
+    grid.dataset.built = '1';
+    initPhonemeCards();
+}
+
 function initPhonemeCards() {
     const cards = document.querySelectorAll('.phoneme-card');
     
@@ -1788,6 +1817,7 @@ function openPhonemeGuide() {
     modalOverlay.classList.remove('hidden');
     const phonemeModal = document.getElementById('phoneme-modal');
     phonemeModal.classList.remove('hidden');
+    try { populatePhonemeGrid && populatePhonemeGrid(); } catch(e) {}
 }
 
 

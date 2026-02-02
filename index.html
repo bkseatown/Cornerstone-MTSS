@@ -75,6 +75,7 @@
 
       <!-- Utility buttons -->
       <button id="help-btn" type="button" title="Help">?</button>
+      <button id="focus-toggle-btn" class="mini-btn" type="button">ℹ️ Hints</button>
       <button id="progress-btn" type="button" title="Progress">📊</button>
       <button id="phoneme-btn" type="button" title="Sounds Guide">Aa</button>
       
@@ -85,23 +86,26 @@
 
   <main>
     <!-- Minimal Focus Info -->
-    <section id="focus-panel" class="focus-panel">
-      <div id="focus-title" class="focus-title"></div>
-      <div id="focus-desc" class="focus-desc"></div>
-      <div id="focus-examples" class="focus-examples hidden"></div>
+    <section id="focus-panel" class="focus-panel hidden">
+      <div id="focus-title" class="focus-title" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;"></div>
+      <div id="focus-desc" class="focus-desc" style="font-size: 0.85rem; color: #666;"></div>
+      <div id="focus-examples" class="focus-examples hidden" style="font-size: 0.85rem; margin-top: 6px; color: #444;"></div>
       <div id="quick-tiles-row" class="quick-tiles-row hidden" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;"></div>
     </section>
 
     <!-- Game -->
-    <div id="game-board"></div>
-    <div id="keyboard"></div>
+    <div id="game-canvas">
+      <div id="game-board"></div>
 
-    <div class="hint-actions" style="display: flex; gap: 8px; justify-content: center; margin: 12px 0;">
-      <button id="hear-word-hint" type="button" style="font-size: 0.85rem; padding: 6px 12px; background: transparent; border: 1px solid #ccc; color: #666;">🔊</button>
-      <button id="hear-sentence-hint" type="button" style="font-size: 0.85rem; padding: 6px 12px; background: transparent; border: 1px solid #ccc; color: #666;">💬</button>
+      <div class="hint-actions">
+        <button id="simple-hear-word" type="button" class="hint-btn" aria-label="Hear word">🔊 Hear</button>
+        <button id="simple-hear-sentence" type="button" class="hint-btn" aria-label="Hear sentence">🗣️ Sentence</button>
+        <button id="phoneme-btn" type="button" class="hint-btn" aria-label="Sounds guide">👄 Sounds</button>
+      </div>
+
+      <div id="keyboard"></div>
     </div>
-
-    <div id="banner-container" class="banner hidden"></div>
+<div id="banner-container" class="banner hidden"></div>
     <div id="toast-container" class="toast-container"></div>
   </main>
 
@@ -158,12 +162,6 @@
       <hr />
 
       <p class="muted">Tip: Use <strong>🔊 Hear</strong> and <strong>Sentence</strong> to support decoding and meaning.</p>
-
-      
-      <label class="dont-show">
-        <input type="checkbox" id="dont-show-again" />
-        Don’t show this again
-      </label>
 
       <button id="start-playing-btn" type="button" class="primary">Start Playing</button>
     </div>
@@ -290,10 +288,11 @@
 
   <!-- Phoneme Guide Modal -->
   <div id="phoneme-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content phoneme-card-modal">
       <button class="close-btn" type="button">×</button>
       <h2>Sounds Guide</h2>
-      <p>Learn about letter sounds and phonemes (coming soon!)</p>
+      <p class="muted">Tap a sound card to hear it and see mouth cues.</p>
+      <div id="phoneme-grid" class="phoneme-grid"></div>
     </div>
   </div>
 

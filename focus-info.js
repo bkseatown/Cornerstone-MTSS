@@ -6,14 +6,7 @@
     "title": "All Words",
     "desc": "Mixed review across patterns.",
     "examples": "cat, ship, cake, rain",
-    "quick": [
-      "sh",
-      "ch",
-      "th",
-      "ck",
-      "ing",
-      "ed"
-    ]
+    "quick": []
   },
   "cvc": {
     "title": "CVC (Short Vowels)",

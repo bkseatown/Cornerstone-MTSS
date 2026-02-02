@@ -203,19 +203,23 @@ option:checked {
 }
 
 /* Focus Panel - Collapsible */
-.focus-panel {
-    position: relative;
-    width: 100%;
-    max-width: 720px;
-    margin: 10px auto 14px;
-    background: white;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(0,0,0,0.08);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-    text-align: center;
+.focus-panel { 
+    position: fixed;
+    top: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    background: white; 
+    padding: 14px 16px; 
+    border-radius: 12px; 
+    border: 2px solid #667eea; 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    opacity: 1;
+    z-index: 100;
+    pointer-events: all;
 }
-
 
 .focus-panel.hidden {
     opacity: 0;
@@ -1294,18 +1298,190 @@ main {
 .wordle-help button.primary { margin-top: 10px; }
 
 
+/* ---------- Layout tightening (mobile-friendly) ---------- */
+select{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#game-canvas{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.hint-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin: 4px 0;
+}
+
+.hint-btn{
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.85);
+  cursor:pointer;
+}
+
+.hint-btn:hover{ transform: translateY(-1px); }
+
+#game-board{
+  --word-length: 5;
+  display:grid;
+  grid-template-columns: repeat(var(--word-length), minmax(44px, 1fr));
+  gap: 8px;
+  justify-content:center;
+}
+
+/* Keep keyboard visible and sized to viewport */
+#keyboard{
+  width: min(520px, 100%);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.key{
+  height: clamp(44px, 6vh, 60px);
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+}
+
+/* Make header/controls less tall on short screens */
+@media (max-height: 820px){
+  .controls{ margin-bottom: 6px; gap: 8px; }
+  h1{ margin: 0 0 4px 0; }
+  .tile{ width: 48px; height: 48px; }
+  #game-board{ gap: 6px; }
+}
+
+/* ---------- Focus hint toggle button ---------- */
+.mini-btn{
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+  cursor:pointer;
+}
+
+/* ---------- Welcome modal styling (Wordle-ish) ---------- */
+.welcome-card{
+  max-width: 520px;
+  width: calc(100% - 32px);
+  text-align: left;
+}
+
+.welcome-card h2{
+  text-align:center;
+  margin-top: 0;
+}
+
+.welcome-steps ul{ padding-left: 18px; margin: 12px 0; }
+.badge{
+  display:inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+.badge.correct{ background: var(--color-correct); }
+.badge.present{ background: var(--color-present); }
+.badge.absent{ background: var(--color-absent); }
+
 .dont-show{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-size:0.95rem;
-    margin: 10px 0 12px;
-    color: #444;
-    user-select:none;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  margin: 12px 0;
+  font-size: 0.95rem;
 }
-.dont-show input{ width: 18px; height: 18px; }
+
+button.primary{
+  display:block;
+  width: min(260px, 100%);
+  margin: 0 auto;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--color-correct);
+  color: #fff;
+  font-weight: 700;
+  cursor:pointer;
+}
+
+/* ---------- Recording Studio modal ---------- */
+#recording-studio-modal .studio-card{
+  max-width: 760px;
+  width: calc(100% - 32px);
+  padding: 22px 22px 18px 22px;
+}
+
+#recording-studio-modal h2{
+  text-align:center;
+  margin: 0 0 10px 0;
+}
+
+#recording-studio-modal .close-studio{
+  position:absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.9);
+  font-size: 28px;
+  line-height: 1;
+  cursor:pointer;
+}
+
+#recording-studio-modal .studio-row{ margin: 12px 0; }
+#recording-studio-modal .studio-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top: 12px; }
+#recording-studio-modal .studio-actions button{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.9);
+  cursor:pointer;
+  font-weight:600;
+}
+
+#recording-studio-modal .studio-controls{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+#recording-studio-modal .control-group{
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 16px;
+  padding: 12px;
+  text-align:center;
+}
+
+#recording-studio-modal textarea{
+  width:100%;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  padding: 10px;
+  font-size: 1rem;
+}
+
+@media (max-width: 520px){
+  #recording-studio-modal .studio-controls{ grid-template-columns: 1fr; }
+}
+
+/* Keyboard: make I clearer when uppercase */
+.key[data-key="I"], .key[data-key="i"]{
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0.5px;
+}
 
 
-.controls button, .controls select, .controls input {
-    font-size: 16px;
-}
