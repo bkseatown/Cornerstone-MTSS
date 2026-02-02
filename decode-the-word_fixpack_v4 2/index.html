@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Decode the Word</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2218%22%20fill%3D%22%231f2937%22/%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-size%3D%2252%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%20font-family%3D%22Arial%2C%20sans-serif%22%3EDtW%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Load scripts -->
+  <script src="words.js?v=1770045855" defer></script>
+  <script src="phoneme-data.js?v=1770045855" defer></script>
+  <script src="focus-info.js?v=1770045855" defer></script>
+  <script src="translations.js?v=1770045855" defer></script>
+  <script src="script.js?v=1770045855" defer></script>
+</head>
+
+<body>
+  <header>
+    <h1>Decode the Word</h1>
+
+    <div class="controls">
+      <button id="case-toggle" type="button">abc</button>
+
+      <label>Focus:
+        <select id="pattern-select">
+          <option value="all" selected>All Words</option>
+          
+          <!-- Foundation -->
+          <option value="cvc">CVC - Short Vowels (cat, dog, sun)</option>
+          
+          <!-- Consonant Patterns -->
+          <option value="digraph">Digraphs (sh, ch, th, wh, ck)</option>
+          <option value="ccvc">Initial Blends (st, bl, tr, fl)</option>
+          <option value="cvcc">Final Blends (mp, nd, st, nk)</option>
+          <option value="trigraph">Trigraphs (tch, dge, igh)</option>
+          
+          <!-- Vowel Patterns -->
+          <option value="cvce">Magic E / CVCe (cake, hope, time)</option>
+          <option value="vowel_team">Vowel Teams (rain, boat, see)</option>
+          <option value="r_controlled">R-Controlled (car, bird, fern)</option>
+          <option value="diphthong">Diphthongs (oi, oy, ou, ow)</option>
+          
+          <!-- Advanced Patterns -->
+          <option value="floss">FLOSS Rule (stuff, hill, pass)</option>
+          <option value="welded">Welded Sounds (king, bank, song)</option>
+          <option value="schwa">Schwa (about, circus)</option>
+          
+          <!-- Morphology -->
+          <option value="prefix">Prefixes (un-, re-, pre-)</option>
+          <option value="suffix">Suffixes (-ing, -ed, -er, -est)</option>
+          <option value="compound">Compound Words</option>
+          <option value="multisyllable">Multisyllabic Words</option>
+        </select>
+      </label>
+
+      <label>Length:
+        <!-- Default 5x6 Wordle board -->
+        <select id="length-select">
+          <option value="traditional" selected>Traditional (5)</option>
+          <option value="any">Any Length</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </label>
+
+      <button id="new-word-btn" type="button">New Word</button>
+
+      <!-- Utility buttons -->
+      <button id="help-btn" type="button" title="Help">?</button>
+      <button id="focus-toggle-btn" class="mini-btn" type="button">ℹ️ Hints</button>
+      <button id="progress-btn" type="button" title="Progress">📊</button>
+      <button id="phoneme-btn" type="button" title="Sounds Guide">Aa</button>
+      
+      <!-- Teacher tools entry point -->
+      <button id="teacher-btn" type="button">🎓 Teacher</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Minimal Focus Info -->
+    <section id="focus-panel" class="focus-panel hidden">
+      <div id="focus-title" class="focus-title" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;"></div>
+      <div id="focus-desc" class="focus-desc" style="font-size: 0.85rem; color: #666;"></div>
+      <div id="focus-examples" class="focus-examples hidden" style="font-size: 0.85rem; margin-top: 6px; color: #444;"></div>
+      <div id="quick-tiles-row" class="quick-tiles-row hidden" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;"></div>
+    </section>
+
+    <!-- Game -->
+    <div id="game-canvas">
+      <div id="game-board"></div>
+
+      <div class="hint-actions">
+        <button id="simple-hear-word" type="button" class="hint-btn" aria-label="Hear word">🔊 Hear</button>
+        <button id="simple-hear-sentence" type="button" class="hint-btn" aria-label="Hear sentence">🗣️ Sentence</button>
+        <button id="phoneme-btn" type="button" class="hint-btn" aria-label="Sounds guide">👄 Sounds</button>
+      </div>
+
+      <div id="keyboard"></div>
+    </div>
+<div id="banner-container" class="banner hidden"></div>
+    <div id="toast-container" class="toast-container"></div>
+  </main>
+
+  <!-- Overlay -->
+  <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+  <!-- End / Reveal Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" type="button">×</button>
+
+      <h2 id="modal-title"></h2>
+      <div id="modal-word"></div>
+      <div id="modal-syllables" class="modal-syllables"></div>
+
+      <div class="definition-box">
+        <p id="modal-def"></p>
+        <p id="modal-sentence"></p>
+      </div>
+
+      <div class="modal-actions">
+        <button id="speak-btn" type="button">🔊 Hear</button>
+        <button id="play-again-btn" type="button">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Modal -->
+  <div id="welcome-modal" class="modal hidden">
+    <div class="modal-content wordle-help">
+      <h2>How To Play</h2>
+      <p>Guess the word in 6 tries.</p>
+      <ul>
+        <li>Each guess must be a valid word (based on the word bank).</li>
+        <li>Tile colors change to show how close your guess was.</li>
+      </ul>
+
+      <h3>Examples</h3>
+      <div class="example-row" aria-label="example 1">
+        <div class="tile ex green">W</div><div class="tile ex">E</div><div class="tile ex">A</div><div class="tile ex">R</div><div class="tile ex">Y</div>
+      </div>
+      <p><strong>W</strong> is in the word and in the correct spot.</p>
+
+      <div class="example-row" aria-label="example 2">
+        <div class="tile ex">P</div><div class="tile ex yellow">I</div><div class="tile ex">L</div><div class="tile ex">L</div><div class="tile ex">S</div>
+      </div>
+      <p><strong>I</strong> is in the word but in the wrong spot.</p>
+
+      <div class="example-row" aria-label="example 3">
+        <div class="tile ex">V</div><div class="tile ex">A</div><div class="tile ex gray">G</div><div class="tile ex">U</div><div class="tile ex">E</div>
+      </div>
+      <p><strong>G</strong> is not in the word in any spot.</p>
+
+      <hr />
+
+      <p class="muted">Tip: Use <strong>🔊 Hear</strong> and <strong>Sentence</strong> to support decoding and meaning.</p>
+
+      <button id="start-playing-btn" type="button" class="primary">Start Playing</button>
+    </div>
+  </div>
+
+  <!-- Teacher Modal -->
+  <div id="teacher-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-teacher" type="button">×</button>
+      <h2>Teacher Settings</h2>
+
+      <div class="teacher-block">
+        <label>Custom Word:</label>
+        <div class="teacher-row">
+          <input id="custom-word-input" type="password" placeholder="Enter word" autocomplete="off" />
+          <button id="toggle-mask" type="button">👁</button>
+        </div>
+        <div id="teacher-error" class="teacher-error"></div>
+
+        <div class="teacher-actions">
+          <button id="set-word-btn" type="button">Set Word</button>
+          <button id="open-studio-btn" type="button">🎙️ Recording Studio</button>
+        </div>
+      </div>
+
+      <div class="teacher-block">
+        <label for="system-voice-select">System Voice (TTS):</label>
+        <select id="system-voice-select">
+          <option value="">Auto-Select Best (Default)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recording Studio Modal -->
+  <div id="recording-studio-modal" class="modal hidden">
+    <div class="modal-content studio-card">
+      <button class="close-studio" type="button">×</button>
+      <h2>🎙️ Recording Studio</h2>
+
+      <!-- SETUP VIEW -->
+      <div id="studio-setup-view">
+        <div class="studio-row">
+          <label for="studio-source-select">Source:</label>
+          <select id="studio-source-select">
+            <option value="focus">Use current Focus list</option>
+            <option value="paste">Paste my own list</option>
+          </select>
+        </div>
+
+        <div id="studio-paste-area" class="studio-row hidden">
+          <label for="studio-paste-input">Paste words (one per line):</label>
+          <textarea id="studio-paste-input" rows="6" placeholder="cat&#10;ship&#10;rain"></textarea>
+        </div>
+
+        <div class="studio-row studio-checks">
+          <label><input id="studio-skip-existing" type="checkbox" /> Skip words that already have both recordings</label>
+          <label><input id="studio-auto-advance" type="checkbox" checked /> Auto-advance after sentence recording</label>
+        </div>
+
+        <div class="studio-actions">
+          <button id="start-studio-btn" type="button">Start Session</button>
+          <button id="exit-studio-btn" type="button">Exit</button>
+        </div>
+      </div>
+
+      <!-- RECORD VIEW -->
+      <div id="studio-record-view" class="hidden">
+        <div class="studio-progress">
+          <span id="studio-progress"></span>
+        </div>
+
+        <div class="studio-word">
+          <div class="label">Word</div>
+          <div id="studio-word-display" class="studio-word-display"></div>
+        </div>
+
+        <div class="studio-sentence">
+          <label for="studio-sentence-display">Sentence</label>
+          <textarea id="studio-sentence-display" rows="3"></textarea>
+        </div>
+
+        <div id="recording-status" class="recording-status"></div>
+
+        <div class="studio-controls">
+          <div class="control-group">
+            <div class="group-title">Word Recording</div>
+            <button id="record-word-btn" type="button">Record Word</button>
+            <button id="play-word-preview" type="button" disabled>Play Word</button>
+          </div>
+
+          <div class="control-group">
+            <div class="group-title">Sentence Recording</div>
+            <button id="record-sentence-btn" type="button">Record Sentence</button>
+            <button id="play-sentence-preview" type="button" disabled>Play Sentence</button>
+          </div>
+        </div>
+
+        <div class="studio-actions">
+          <button id="next-item-btn" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" type="button">×</button>
+      <h2>How to Play</h2>
+      <p>Guess the word in 6 tries. Green = correct spot, yellow = wrong spot, gray = not in word.</p>
+      <p>Use the <strong>Hear Word</strong> and <strong>Sentence</strong> buttons for hints!</p>
+    </div>
+  </div>
+
+  <!-- Progress Modal -->
+  <div id="progress-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" type="button">×</button>
+      <h2>Your Progress</h2>
+      <p>Track your learning progress here (coming soon!)</p>
+    </div>
+  </div>
+
+  <!-- Phoneme Guide Modal -->
+  <div id="phoneme-modal" class="modal hidden">
+    <div class="modal-content phoneme-card-modal">
+      <button class="close-btn" type="button">×</button>
+      <h2>Sounds Guide</h2>
+      <p class="muted">Tap a sound card to hear it and see mouth cues.</p>
+      <div id="phoneme-grid" class="phoneme-grid"></div>
+    </div>
+  </div>
+
+</body>
+</html>
