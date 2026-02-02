@@ -1505,14 +1505,10 @@ main {
   min-height: 0; /* Important for flex shrinking */
 }
 
+/* Game board uses grid - don't override with flex! */
 #game-board {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 0;
-  overflow: auto;
+  margin: 20px auto;
+  max-width: 400px;
 }
 
 .hint-actions {

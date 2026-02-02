@@ -1,56 +1,59 @@
-# 🔧 HOTFIX - Game Board & Phoneme Grid
+# 🔧 HOTFIX V2 - Game Board CSS Fix
 
-## Issues Fixed in This Hotfix:
+## Critical Issue Found:
 
-### 1. **Game Board Not Showing** ✅
-- Added safety check for board element
-- Better error logging to diagnose issues
-- Console log when game starts successfully
+**The game board tiles were being created BUT displayed as a vertical column instead of a grid!**
 
-### 2. **Phoneme Grid Not Populating** ✅
-- Enhanced `openPhonemeGuide()` with error handling
-- Added console logging to track population
-- Force-calls `populatePhonemeGrid()` when modal opens
+### Root Cause:
+Line 1508 in style.css was redefining `#game-board` as:
+```css
+#game-board {
+  display: flex;           /* ❌ Wrong! */
+  flex-direction: column;  /* ❌ Stacks tiles vertically! */
+}
+```
 
-## What Changed:
+This OVERRODE the correct grid definition at line 1334:
+```css
+#game-board {
+  display: grid;  /* ✅ Correct! */
+  grid-template-columns: repeat(var(--word-length), minmax(44px, 1fr));
+}
+```
 
-### script.js Updates:
-1. **startNewGame()** - Added safety checks and logging
-2. **openPhonemeGuide()** - Enhanced with better error handling
+## Files Fixed:
+
+### 1. style.css ✅
+- Removed conflicting flexbox definition
+- Game board now displays as proper grid
+- Tiles will appear in rows
+
+### 2. script.js ✅  
+- (Already fixed in V1 - included for completeness)
+- Added safety checks
+- Enhanced logging
 
 ## Upload Instructions:
 
-**ONLY Replace script.js:**
-1. Delete `script.js` from GitHub
-2. Upload `script.js` from this package
+**Replace BOTH FILES:**
+1. Delete `script.js` and `style.css` from GitHub
+2. Upload `script.js` and `style.css` from this ZIP
 3. Wait 3 minutes
-4. Test in Incognito
+4. Hard refresh (Ctrl+Shift+R) or test in Incognito
 
-index.html and style.css are unchanged - don't re-upload those!
+## Expected Result:
 
-## Expected Console Output:
+**YOU WILL NOW SEE:**
+- ✅ 6 rows of tiles (6 guesses)
+- ✅ Each row has 5 tiles (for 5-letter words)
+- ✅ Game board displayed as proper grid
+- ✅ Keyboard below the board
+- ✅ Everything positioned correctly
 
-After hotfix:
+**Console will show:**
 ```
-✓ Word database loaded with 500 words
-✓ Phoneme data loaded with 20 phonemes
-✓ Focus info loaded with 17 groups
-✓ Translation system ready
-✓ Game started: word="X" (5 letters)
-✓ Adaptive actions initialized
-```
-
-When you click Sounds:
-```
-Opening Sounds Guide - populating phoneme grid...
-✓ Initialized 20 phoneme cards with mouth animations
+✓ Game started: word="trade" (5 letters)
 ```
 
-## If Game Board Still Doesn't Show:
+**The game will be PLAYABLE!** 🎉
 
-Check console for error:
-```
-Game board element not found! Cannot start game.
-```
-
-This means the #game-board element is missing from HTML.
