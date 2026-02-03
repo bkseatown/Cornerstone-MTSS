@@ -25,11 +25,6 @@ const TEMPLATES = [
         template: 'Captain {silly_name} blasted off toward {planet} with a crate of {snack}. The ship’s computer was {adjective} and kept saying "{silly_sound}".\n\nAn alien with a {body_part} shaped like a {animal} {verb_past} onboard and traded {type_of_food} for a high five. Mission success!'
     },
     {
-        id: 'choose-your-path',
-        title: 'Choose Your Own Adventure',
-        template: 'At the edge of {place}, you meet {sidekick} who offers two paths: the {path_choice} trail or the {path_choice} tunnel. You grab your {magical_item} and head out.\n\nInside, a {obstacle} blocks the way, but you use {talent} to solve it. At the end, you find the {treasure} and promise to share it with your {sidekick}.'
-    },
-    {
         id: 'mystery-museum',
         title: 'Mystery Museum',
         template: 'The {adjective} museum guard warns you about the {mystery} exhibit. Suddenly, the lights flicker and a {animal} in a {color} hat {verb_past} past!\n\nYou and {silly_name} follow it to the {place}, where the {villain} reveals a plan to steal the {treasure}. Good thing you brought {magical_item}!'
@@ -43,6 +38,26 @@ const TEMPLATES = [
         id: 'sky-castle',
         title: 'Sky Castle Quest',
         template: 'Your {vehicle} floats to a {adjective} castle in the clouds. The gate opens when you say "{silly_sound}" and show your {magical_item}.\n\nInside, the {villain} challenges you to a {talent} contest. You win, earn {treasure}, and celebrate with {type_of_food}.'
+    },
+    {
+        id: 'robot-repair',
+        title: 'Robot Repair Rally',
+        template: 'At the {place} lab, a {adjective} robot named {silly_name} broke its {body_part}. You grab a {magical_item} and {verb_past} into action.\n\nWith a {silly_sound} and a {type_of_food} snack break, the robot learned to {talent} again. Everyone felt {feeling}.'
+    },
+    {
+        id: 'city-parade',
+        title: 'City Parade Surprise',
+        template: 'The {color} parade float rolled down {place} street, led by a {adjective} {animal} who could {verb}.\n\nThe crowd shouted "{silly_sound}" and tossed {snack}. Then {silly_name} {verb_past} onstage and the band played a {feeling} tune.'
+    },
+    {
+        id: 'campfire-mystery',
+        title: 'Campfire Mystery',
+        template: 'On a {weather} night at {place} camp, we heard a {silly_sound} near the {obstacle}.\n\nYou and your {sidekick} followed the tracks and found a {mystery} hidden inside a {magical_item}. The discovery felt {feeling}!'
+    },
+    {
+        id: 'choose-your-path',
+        title: 'Choose Your Own Adventure',
+        template: 'At the edge of {place}, you meet {sidekick} who offers two paths: the {path_choice} trail or the {path_choice} tunnel. You grab your {magical_item} and head out.\n\nInside, a {obstacle} blocks the way, but you use {talent} to solve it. At the end, you find the {treasure} and promise to share it with your {sidekick}.'
     }
 ];
 

@@ -54,6 +54,10 @@ const DEFAULT_SETTINGS = {
         teamACoins: 0,
         teamBCoins: 0
     },
+    classroom: {
+        dockOpen: false,
+        timerMinutes: 10
+    },
     translation: {
         pinned: false,
         lang: 'en'
@@ -443,6 +447,10 @@ function loadSettings() {
                 ...DEFAULT_SETTINGS.gameMode,
                 ...(parsed.gameMode || {})
             },
+            classroom: {
+                ...DEFAULT_SETTINGS.classroom,
+                ...(parsed.classroom || {})
+            },
             soundWallSections: {
                 ...DEFAULT_SETTINGS.soundWallSections,
                 ...(parsed.soundWallSections || {})
@@ -573,6 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initHowTo();
     initClozeLink();
     initAdventureMode();
+    initClassroomDock();
     if (typeof initAssessmentFlow === 'function') {
         initAssessmentFlow();
     }
@@ -694,10 +703,11 @@ function renderFunHud() {
 function updateFunHudVisibility() {
     const hud = ensureFunHud();
     const enabled = !!appSettings.funHud?.enabled;
-    hud.classList.toggle('hidden', !enabled);
+    const shouldShow = enabled && !funHudSuspended;
+    hud.classList.toggle('hidden', !shouldShow);
     document.body.classList.toggle('fun-mode', enabled);
     document.body.classList.toggle('fun-studio', enabled && appSettings.funHud?.style === 'studio');
-    if (enabled) {
+    if (shouldShow) {
         renderFunHud();
         positionFunHud();
     }
@@ -728,6 +738,14 @@ function applyFunHudOutcome(win) {
 }
 
 let funAudioContext = null;
+let funHudSuspended = false;
+
+function setFunHudSuspended(shouldSuspend = false) {
+    funHudSuspended = shouldSuspend;
+    const hud = ensureFunHud();
+    hud.classList.toggle('suspended', shouldSuspend);
+    updateFunHudVisibility();
+}
 function playFunChime(type = 'win') {
     if (!appSettings.funHud?.sfx) return;
     try {
@@ -1284,11 +1302,13 @@ function initWarmupButtons() {
 }
 
 function initTeacherTools() {
+    compactTeacherLayout();
     ensureVoiceQualityHint();
     updateVoiceInstallPrompt();
     ensureAutoHearToggle();
     ensureFunHudControls();
     ensureAssessmentControls();
+    ensureClassroomDockControl();
     const calmToggle = document.getElementById('toggle-calm-mode');
     if (calmToggle) {
         calmToggle.onchange = () => {
@@ -1377,6 +1397,40 @@ function initTeacherTools() {
             saveSettings();
         };
     }
+}
+
+function ensureClassroomDockControl() {
+    const grid = document.querySelector('#teacher-modal .teacher-tools-grid');
+    if (!grid || document.getElementById('open-classroom-dock')) return;
+
+    const row = document.createElement('div');
+    row.className = 'toggle-row inline';
+    row.innerHTML = `
+        <button type="button" id="open-classroom-dock" class="teacher-secondary-btn">Open Classroom Dock</button>
+    `;
+    grid.appendChild(row);
+    row.querySelector('#open-classroom-dock')?.addEventListener('click', () => {
+        toggleClassroomDock(true);
+    });
+}
+
+function compactTeacherLayout() {
+    const modal = document.getElementById('teacher-modal');
+    if (!modal || modal.dataset.cleaned === 'true') return;
+    modal.dataset.cleaned = 'true';
+    modal.classList.add('teacher-clean');
+
+    const deleteGrid = modal.querySelector('.voice-delete-grid');
+    if (deleteGrid && !modal.querySelector('.teacher-danger')) {
+        const wrapper = document.createElement('details');
+        wrapper.className = 'teacher-section teacher-danger';
+        wrapper.innerHTML = `<summary>Cleanup tools</summary>`;
+        deleteGrid.parentNode?.insertBefore(wrapper, deleteGrid);
+        wrapper.appendChild(deleteGrid);
+    }
+
+    const tools = modal.querySelector('.teacher-tools');
+    if (tools) tools.classList.add('teacher-section');
 }
 
 function ensureAssessmentControls() {
@@ -2240,6 +2294,7 @@ function openPhonemeGuideToSound(sound) {
     if (phonemeModal && modalOverlay) {
         modalOverlay.classList.remove('hidden');
         phonemeModal.classList.remove('hidden');
+        setWarmupOpen(true);
     try { populatePhonemeGrid && populatePhonemeGrid(); } catch(e) {}
         
         // Scroll to matching card and highlight
@@ -3154,6 +3209,8 @@ function closeModal() {
     if (wasGameModalOpen && gameOver) {
         setTimeout(() => startNewGame(), 300);
     }
+
+    setWarmupOpen(false);
 }
 
 function showBanner(msg) {
@@ -4283,9 +4340,10 @@ function getSoundNameLabel(phoneme) {
 
 function formatMouthCue(phoneme) {
     if (!phoneme) return '';
+    if (phoneme.example && phoneme.sound) return `Listen for ${phoneme.sound} in “${phoneme.example}.”`;
     if (phoneme.example) return `Listen for the sound in “${phoneme.example}.”`;
-    if (phoneme.description) return phoneme.description;
     if (phoneme.cue) return phoneme.cue;
+    if (phoneme.description) return phoneme.description;
     return '';
 }
 
@@ -4293,7 +4351,7 @@ function formatMouthDescription(phoneme) {
     if (!phoneme) return '';
     if (phoneme.sound) return `Sound: ${phoneme.sound}`;
     if (phoneme.example) return `Example: ${phoneme.example}`;
-    return phoneme.description || '';
+    return phoneme.description || phoneme.cue || '';
 }
 
 function getArticulationShape(phoneme) {
@@ -4311,9 +4369,146 @@ function getArticulationShape(phoneme) {
     return 'neutral';
 }
 
+function getClipartForSound(soundKey = '', phoneme = null) {
+    const key = soundKey.toString().toLowerCase();
+    const cliparts = {
+        a: { label: 'apple', svg: getClipartSvg('apple') },
+        e: { label: 'egg', svg: getClipartSvg('egg') },
+        i: { label: 'igloo', svg: getClipartSvg('igloo') },
+        o: { label: 'octopus', svg: getClipartSvg('octopus') },
+        u: { label: 'umbrella', svg: getClipartSvg('umbrella') }
+    };
+    if (cliparts[key]) return cliparts[key];
+    const fallbackLabel = phoneme?.example || 'sound cue';
+    return { label: fallbackLabel, svg: getClipartSvg('sound') };
+}
+
+function getClipartSvg(type = 'sound') {
+    switch (type) {
+        case 'apple':
+            return `
+                <svg class="sound-clipart clipart-apple" viewBox="0 0 120 120" role="img" aria-label="Apple">
+                    <circle cx="60" cy="68" r="30" fill="#f87171"/>
+                    <circle cx="48" cy="62" r="18" fill="#fb7185" opacity="0.85"/>
+                    <rect x="56" y="26" width="8" height="18" rx="4" fill="#92400e"/>
+                    <path d="M60 30c10-12 24-14 32-2-14 6-26 8-32 2Z" fill="#34d399"/>
+                </svg>
+            `;
+        case 'egg':
+            return `
+                <svg class="sound-clipart clipart-egg" viewBox="0 0 120 120" role="img" aria-label="Egg">
+                    <ellipse cx="60" cy="66" rx="30" ry="38" fill="#fef3c7"/>
+                    <ellipse cx="50" cy="58" rx="10" ry="16" fill="#fde68a" opacity="0.9"/>
+                </svg>
+            `;
+        case 'igloo':
+            return `
+                <svg class="sound-clipart clipart-igloo" viewBox="0 0 120 120" role="img" aria-label="Igloo">
+                    <path d="M20 78c4-26 24-44 40-44s36 18 40 44H20Z" fill="#bfdbfe"/>
+                    <path d="M32 78c3-20 18-34 28-34s25 14 28 34H32Z" fill="#93c5fd"/>
+                    <rect x="52" y="70" width="16" height="16" rx="6" fill="#60a5fa"/>
+                </svg>
+            `;
+        case 'octopus':
+            return `
+                <svg class="sound-clipart clipart-octopus" viewBox="0 0 120 120" role="img" aria-label="Octopus">
+                    <circle cx="60" cy="54" r="24" fill="#f472b6"/>
+                    <circle cx="50" cy="50" r="4" fill="#0f172a"/>
+                    <circle cx="70" cy="50" r="4" fill="#0f172a"/>
+                    <path d="M30 74c6 14 18 16 30 10 12 6 24 4 30-10" stroke="#f472b6" stroke-width="10" stroke-linecap="round" fill="none"/>
+                </svg>
+            `;
+        case 'umbrella':
+            return `
+                <svg class="sound-clipart clipart-umbrella" viewBox="0 0 120 120" role="img" aria-label="Umbrella">
+                    <path d="M20 64c8-26 72-26 80 0H20Z" fill="#60a5fa"/>
+                    <path d="M60 64v30c0 8-10 8-10 0" stroke="#1e3a8a" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <circle cx="60" cy="60" r="6" fill="#1e3a8a"/>
+                </svg>
+            `;
+        default:
+            return `
+                <svg class="sound-clipart clipart-sound" viewBox="0 0 120 120" role="img" aria-label="Sound waves">
+                    <circle cx="42" cy="60" r="14" fill="#a5b4fc"/>
+                    <path d="M70 42c10 12 10 24 0 36" stroke="#818cf8" stroke-width="8" stroke-linecap="round" fill="none"/>
+                    <path d="M86 32c14 18 14 38 0 56" stroke="#6366f1" stroke-width="8" stroke-linecap="round" fill="none"/>
+                </svg>
+            `;
+    }
+}
+
+function getArticulationIconSvg(phoneme) {
+    const shape = getArticulationShape(phoneme);
+    const mouth = (() => {
+        switch (shape) {
+            case 'wide':
+                return `<rect x="34" y="60" width="52" height="24" rx="10" fill="#f87171"/>`;
+            case 'smile':
+                return `<path d="M34 66c10 14 42 14 52 0" stroke="#f87171" stroke-width="10" stroke-linecap="round" fill="none"/>`;
+            case 'round':
+                return `<circle cx="60" cy="72" r="16" fill="#f87171"/>`;
+            case 'closed':
+                return `<rect x="30" y="66" width="60" height="10" rx="5" fill="#f87171"/>`;
+            case 'tongue':
+                return `<path d="M36 58h48v16a14 14 0 0 1-14 14H50a14 14 0 0 1-14-14V58Z" fill="#f87171"/>`;
+            default:
+                return `<rect x="32" y="64" width="56" height="14" rx="7" fill="#f87171"/>`;
+        }
+    })();
+
+    return `
+        <svg class="sound-clipart clipart-mouth" viewBox="0 0 120 120" role="img" aria-label="Mouth cue">
+            <circle cx="60" cy="52" r="34" fill="#fde68a" opacity="0.6"/>
+            <circle cx="60" cy="52" r="28" fill="#fde68a" opacity="0.9"/>
+            ${mouth}
+        </svg>
+    `;
+}
+
 function ensureArticulationCard(phoneme) {
-    const card = document.getElementById('articulation-card');
-    if (card) card.remove();
+    const display = document.getElementById('selected-sound-display');
+    if (!display || !phoneme) return;
+
+    let card = document.getElementById('articulation-card');
+    if (!card) {
+        card = document.createElement('div');
+        card.id = 'articulation-card';
+        card.className = 'articulation-card';
+        display.appendChild(card);
+    }
+
+    const soundKey = currentSelectedSound?.sound || phoneme.grapheme || '';
+    const clipart = getClipartForSound(soundKey, phoneme);
+    const mouthIcon = getArticulationIconSvg(phoneme);
+    const cue = formatMouthCue(phoneme);
+    const soundLabel = phoneme.sound ? phoneme.sound.toString() : '';
+    const example = phoneme.example || '';
+
+    const exampleLine = example ? `<div class="articulation-example">Example: <strong>${example}</strong></div>` : '';
+    const pictureLine = clipart.label ? `<div class="articulation-picture-label">Picture cue: ${clipart.label}</div>` : '';
+
+    card.innerHTML = `
+        <div class="articulation-card-header">
+            <span class="articulation-title">Articulation Card</span>
+            ${soundLabel ? `<span class="articulation-ipa">${soundLabel}</span>` : ''}
+        </div>
+        <div class="articulation-card-body">
+            <div class="articulation-visual">
+                <div class="articulation-visual-block">
+                    <div class="articulation-visual-wrap">${mouthIcon}</div>
+                    <div class="articulation-picture-label">Mouth cue</div>
+                </div>
+                <div class="articulation-visual-block">
+                    <div class="articulation-visual-wrap">${clipart.svg}</div>
+                    ${pictureLine}
+                </div>
+            </div>
+            <div class="articulation-text">
+                <div class="articulation-tip">${cue}</div>
+                ${exampleLine}
+            </div>
+        </div>
+    `;
 }
 
 function selectSound(sound, phoneme, labelOverride = null, tile = null) {
@@ -4360,9 +4555,7 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
 
     const hearSoundBtn = document.getElementById('hear-phoneme-sound');
     if (hearSoundBtn) {
-        hearSoundBtn.title = isShortVowelSound(sound, phoneme)
-            ? 'Plays a clear example word so the vowel stands out.'
-            : 'Plays the target sound.';
+        hearSoundBtn.title = 'Plays the target sound.';
     }
 
     ensureArticulationCard(phoneme);
@@ -4448,6 +4641,35 @@ function initArticulationAudioControls() {
             }
         };
     }
+
+    const actionButtons = document.querySelectorAll('.sound-card-actions button');
+    actionButtons.forEach(btn => {
+        if (btn.dataset.bound === 'true') return;
+        const label = (btn.textContent || '').toLowerCase();
+        if (label.includes('letter')) {
+            btn.dataset.bound = 'true';
+            btn.onclick = () => {
+                if (currentSelectedSound) {
+                    const grapheme = currentSelectedSound.label || currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
+                    speakSpelling(grapheme);
+                }
+            };
+        } else if (label.includes('example')) {
+            btn.dataset.bound = 'true';
+            btn.onclick = () => {
+                if (currentSelectedSound) {
+                    speakText(currentSelectedSound.phoneme.example || '');
+                }
+            };
+        } else if (label.includes('sound')) {
+            btn.dataset.bound = 'true';
+            btn.onclick = () => {
+                if (currentSelectedSound) {
+                    speakPhonemeSound(currentSelectedSound.phoneme, currentSelectedSound.sound);
+                }
+            };
+        }
+    });
 }
 
 function playLetterSequence(letter, word, phoneme) {
@@ -4646,6 +4868,11 @@ function showPhonemeMouth(sound, phonemeData) {
     if (mouthDisplay) mouthDisplay.remove();
 }
 
+function setWarmupOpen(isOpen) {
+    document.body.classList.toggle('warmup-open', isOpen);
+    setFunHudSuspended(isOpen);
+}
+
 function openPhonemeGuide(preselectSound = null) {
     modalOverlay.classList.remove('hidden');
     const phonemeModal = document.getElementById('phoneme-modal');
@@ -4654,6 +4881,7 @@ function openPhonemeGuide(preselectSound = null) {
         return;
     }
     phonemeModal.classList.remove('hidden');
+    setWarmupOpen(true);
 
     try {
         if (typeof populatePhonemeGrid === 'function') {
@@ -4822,6 +5050,214 @@ function initAdventureMode() {
     btn.textContent = 'Adventure';
     btn.addEventListener('click', openAdventureModal);
     headerActions.insertBefore(btn, headerActions.firstChild);
+}
+
+function initClassroomDock() {
+    const headerActions = document.querySelector('.header-actions');
+    if (!headerActions || document.getElementById('classroom-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'classroom-btn';
+    btn.type = 'button';
+    btn.className = 'link-btn';
+    btn.textContent = 'Classroom';
+    btn.addEventListener('click', () => toggleClassroomDock());
+    headerActions.insertBefore(btn, headerActions.firstChild);
+
+    ensureClassroomDock();
+    if (appSettings.classroom?.dockOpen) {
+        toggleClassroomDock(true);
+    }
+}
+
+let classroomFileUrl = null;
+let classroomTimerId = null;
+let classroomTimerRemaining = 0;
+let classroomTimerDuration = 0;
+
+function ensureClassroomDock() {
+    let dock = document.getElementById('classroom-dock');
+    if (dock) return dock;
+
+    dock = document.createElement('div');
+    dock.id = 'classroom-dock';
+    dock.className = 'classroom-dock hidden';
+    dock.innerHTML = `
+        <div class="classroom-dock-header">
+            <div>
+                <h3>Classroom Dock</h3>
+                <p>Keep slides and timers handy while you play.</p>
+            </div>
+            <button class="dock-close" aria-label="Close">✕</button>
+        </div>
+        <div class="classroom-dock-tabs">
+            <button class="dock-tab active" data-tab="slides">Slides</button>
+            <button class="dock-tab" data-tab="timer">Timer</button>
+        </div>
+        <div class="classroom-dock-body">
+            <div class="dock-panel" data-panel="slides">
+                <label class="dock-upload">
+                    <input id="dock-file-input" type="file" accept="application/pdf,image/*" />
+                    <span>Upload PDF or image</span>
+                </label>
+                <div id="dock-file-name" class="dock-file-name">No file loaded yet.</div>
+                <div id="dock-file-viewer" class="dock-file-viewer"></div>
+                <p class="dock-hint">Tip: export slide decks as PDF for the cleanest view.</p>
+            </div>
+            <div class="dock-panel hidden" data-panel="timer">
+                <div class="dock-timer-display" id="dock-timer-display">10:00</div>
+                <div class="dock-timer-controls">
+                    <button id="dock-timer-start" class="primary-btn" type="button">Start</button>
+                    <button id="dock-timer-pause" class="secondary-btn" type="button">Pause</button>
+                    <button id="dock-timer-reset" class="secondary-btn" type="button">Reset</button>
+                </div>
+                <div class="dock-timer-set">
+                    <label for="dock-timer-select">Minutes</label>
+                    <select id="dock-timer-select">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                </div>
+                <p class="dock-hint">Pomodoro tip: 25 minutes focus, 5 minutes break.</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dock);
+
+    dock.querySelector('.dock-close')?.addEventListener('click', () => toggleClassroomDock(false));
+    dock.querySelectorAll('.dock-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setClassroomDockTab(btn.dataset.tab || 'slides');
+        });
+    });
+
+    const fileInput = dock.querySelector('#dock-file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+                loadClassroomFile(file);
+            }
+        });
+    }
+
+    initClassroomTimerControls(dock);
+    return dock;
+}
+
+function toggleClassroomDock(forceOpen = null) {
+    const dock = ensureClassroomDock();
+    if (!dock) return;
+    const willOpen = forceOpen === null ? dock.classList.contains('hidden') : forceOpen;
+    dock.classList.toggle('hidden', !willOpen);
+    appSettings.classroom.dockOpen = willOpen;
+    saveSettings();
+}
+
+function setClassroomDockTab(tab) {
+    const dock = document.getElementById('classroom-dock');
+    if (!dock) return;
+    dock.querySelectorAll('.dock-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    dock.querySelectorAll('.dock-panel').forEach(panel => {
+        panel.classList.toggle('hidden', panel.dataset.panel !== tab);
+    });
+}
+
+function loadClassroomFile(file) {
+    if (classroomFileUrl) {
+        URL.revokeObjectURL(classroomFileUrl);
+        classroomFileUrl = null;
+    }
+
+    const viewer = document.getElementById('dock-file-viewer');
+    const name = document.getElementById('dock-file-name');
+    if (!viewer || !name) return;
+
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        showToast('Please upload a PDF or image file.');
+        return;
+    }
+
+    classroomFileUrl = URL.createObjectURL(file);
+    name.textContent = file.name;
+
+    if (file.type === 'application/pdf') {
+        viewer.innerHTML = `<iframe title="Classroom PDF" src="${classroomFileUrl}" frameborder="0"></iframe>`;
+    } else {
+        viewer.innerHTML = `<img src="${classroomFileUrl}" alt="Classroom slide" />`;
+    }
+}
+
+function initClassroomTimerControls(dock) {
+    const display = dock.querySelector('#dock-timer-display');
+    const startBtn = dock.querySelector('#dock-timer-start');
+    const pauseBtn = dock.querySelector('#dock-timer-pause');
+    const resetBtn = dock.querySelector('#dock-timer-reset');
+    const select = dock.querySelector('#dock-timer-select');
+
+    const initialMinutes = Number(appSettings.classroom?.timerMinutes || 10);
+    if (select) select.value = String(initialMinutes);
+    setClassroomTimerMinutes(initialMinutes);
+
+    if (select) {
+        select.addEventListener('change', () => {
+            const minutes = Number(select.value || 10);
+            setClassroomTimerMinutes(minutes);
+        });
+    }
+
+    if (startBtn) startBtn.addEventListener('click', startClassroomTimer);
+    if (pauseBtn) pauseBtn.addEventListener('click', pauseClassroomTimer);
+    if (resetBtn) resetBtn.addEventListener('click', resetClassroomTimer);
+
+    if (display) updateClassroomTimerDisplay();
+}
+
+function setClassroomTimerMinutes(minutes = 10) {
+    const clamped = Math.max(1, Math.min(60, Number(minutes) || 10));
+    classroomTimerDuration = clamped * 60;
+    if (!classroomTimerRemaining || !classroomTimerId) {
+        classroomTimerRemaining = classroomTimerDuration;
+    }
+    appSettings.classroom.timerMinutes = clamped;
+    saveSettings();
+    updateClassroomTimerDisplay();
+}
+
+function updateClassroomTimerDisplay() {
+    const display = document.getElementById('dock-timer-display');
+    if (!display) return;
+    display.textContent = formatTime(classroomTimerRemaining || classroomTimerDuration || 0);
+}
+
+function startClassroomTimer() {
+    if (classroomTimerId) return;
+    if (!classroomTimerRemaining) classroomTimerRemaining = classroomTimerDuration || 0;
+    classroomTimerId = setInterval(() => {
+        classroomTimerRemaining = Math.max(0, classroomTimerRemaining - 1);
+        updateClassroomTimerDisplay();
+        if (classroomTimerRemaining <= 0) {
+            pauseClassroomTimer();
+            showToast('⏱️ Time! Great focus.');
+        }
+    }, 1000);
+}
+
+function pauseClassroomTimer() {
+    if (classroomTimerId) {
+        clearInterval(classroomTimerId);
+        classroomTimerId = null;
+    }
+}
+
+function resetClassroomTimer() {
+    pauseClassroomTimer();
+    classroomTimerRemaining = classroomTimerDuration || 0;
+    updateClassroomTimerDisplay();
 }
 
 function ensureAdventureModal() {

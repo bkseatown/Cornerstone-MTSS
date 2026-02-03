@@ -1309,6 +1309,33 @@ main {
     border-radius: 14px;
 }
 
+#teacher-modal.teacher-clean .teacher-block,
+#teacher-modal.teacher-clean .teacher-tools {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+#teacher-modal.teacher-clean .teacher-block {
+    padding: 10px 12px;
+    border-radius: 14px;
+}
+
+#teacher-modal.teacher-clean .teacher-section {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 10px 12px;
+}
+
+#teacher-modal.teacher-clean .teacher-section summary {
+    font-weight: 700;
+    color: #334155;
+}
+
+#teacher-modal.teacher-clean .teacher-danger summary {
+    color: #b91c1c;
+}
+
 #teacher-modal .teacher-tools summary {
     cursor: pointer;
     font-weight: 600;
@@ -2950,6 +2977,95 @@ button:active:not(:disabled) {
     display: none;
 }
 
+/* Updated articulation card layout (clipart + cues) */
+.articulation-card {
+    display: grid !important;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 12px 14px;
+    text-align: left;
+    color: #1f2937;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.articulation-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.articulation-ipa {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #4f46e5;
+    background: rgba(79, 70, 229, 0.12);
+    padding: 4px 8px;
+    border-radius: 999px;
+}
+
+.articulation-card-body {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.articulation-visual {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(90px, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+
+.articulation-visual-block {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    text-align: center;
+}
+
+.articulation-visual-wrap {
+    width: 100px;
+    height: 100px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #eef2ff 0%, #fef9c3 100%);
+    border: 1px solid rgba(129, 140, 248, 0.4);
+    display: grid;
+    place-items: center;
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.7);
+}
+
+.sound-clipart {
+    width: 82px;
+    height: 82px;
+}
+
+.articulation-picture-label {
+    font-size: 0.72rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.articulation-text {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.articulation-tip {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.articulation-example {
+    font-size: 0.85rem;
+    color: #475569;
+}
+
 .sound-card-actions {
     position: relative;
     z-index: 1;
@@ -2971,6 +3087,168 @@ button:active:not(:disabled) {
 
 .sound-card-actions button:hover {
     background: rgba(255,255,255,0.3);
+}
+
+/* ---------- Classroom Dock ---------- */
+.classroom-dock {
+    position: fixed;
+    top: 90px;
+    right: 16px;
+    width: min(380px, 92vw);
+    max-height: 82vh;
+    display: grid;
+    gap: 12px;
+    background: linear-gradient(145deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.98));
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    padding: 14px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+    z-index: 40;
+}
+
+.classroom-dock.hidden {
+    display: none;
+}
+
+.classroom-dock-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.classroom-dock-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+}
+
+.classroom-dock-header p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.dock-close {
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.classroom-dock-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.dock-tab {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #334155;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.4);
+}
+
+.dock-tab.active {
+    background: #4f46e5;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.classroom-dock-body {
+    display: grid;
+    gap: 10px;
+}
+
+.dock-panel.hidden {
+    display: none;
+}
+
+.dock-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dock-upload input {
+    display: none;
+}
+
+.dock-file-name {
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.dock-file-viewer {
+    width: 100%;
+    height: 320px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px dashed rgba(148, 163, 184, 0.4);
+    overflow: hidden;
+}
+
+.dock-file-viewer iframe,
+.dock-file-viewer img {
+    width: 100%;
+    height: 100%;
+    border: none;
+    object-fit: contain;
+    background: #fff;
+}
+
+.dock-hint {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.dock-timer-display {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-align: center;
+    color: #111827;
+}
+
+.dock-timer-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.dock-timer-set {
+    display: grid;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.dock-timer-set select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background: #fff;
+}
+
+@media (max-width: 900px) {
+    .classroom-dock {
+        top: auto;
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+        max-height: 70vh;
+    }
 }
 
 @media (max-width: 900px) {
@@ -4052,18 +4330,19 @@ body.cloze-page {
     display: grid;
     grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
     gap: 14px;
-    padding: 0 14px 28px;
+    padding: 0 14px 20px;
+    align-items: start;
 }
 
 .madlibs-panel {
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 14px;
     padding: 12px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.08);
     display: flex;
     flex-direction: column;
     gap: 10px;
-    border: 1px solid rgba(226, 232, 240, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.5);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(8px);
@@ -4154,16 +4433,16 @@ body.cloze-page {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 8px;
-    max-height: clamp(180px, 32vh, 280px);
+    max-height: clamp(160px, 24vh, 240px);
     overflow: auto;
     padding-right: 4px;
 }
 
 .madlibs-field {
-    background: rgba(248, 250, 252, 0.7);
+    background: rgba(255, 255, 255, 0.55);
     border-radius: 12px;
     padding: 8px;
-    border: 1px solid rgba(226, 232, 240, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.45);
 }
 
 .madlibs-field .field-row {
@@ -4197,10 +4476,10 @@ body.cloze-page {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 12px;
     padding: 8px;
-    background: #f9fafb;
+    border: 1px solid rgba(226, 232, 240, 0.45);
 }
 
 .madlibs-field .field-help {
@@ -4213,7 +4492,7 @@ body.cloze-page {
 .madlibs-field .field-row {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 
@@ -4246,6 +4525,8 @@ body.cloze-page {
     margin-bottom: 12px;
     background-image: linear-gradient(transparent 0%, transparent 92%, rgba(99, 102, 241, 0.08) 92%, rgba(99, 102, 241, 0.08) 100%);
     background-size: 100% 28px;
+    max-height: clamp(140px, 22vh, 240px);
+    overflow: auto;
 }
 
 .madlibs-output.empty {
@@ -4726,6 +5007,20 @@ body.madlibs-page .fun-hud {
         border-color: rgba(51, 65, 85, 0.8);
     }
 
+    #teacher-modal.teacher-clean .teacher-block,
+    #teacher-modal.teacher-clean .teacher-section {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(51, 65, 85, 0.8);
+    }
+
+    #teacher-modal.teacher-clean .teacher-section summary {
+        color: #e2e8f0;
+    }
+
+    #teacher-modal.teacher-clean .teacher-danger summary {
+        color: #fca5a5;
+    }
+
     .voice-install-row {
         background: rgba(180, 83, 9, 0.2);
         border-color: rgba(217, 119, 6, 0.5);
@@ -4738,16 +5033,16 @@ body.madlibs-page .fun-hud {
     }
 
     #phoneme-modal {
-        background: linear-gradient(155deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.92));
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: radial-gradient(circle at top, rgba(36, 52, 78, 0.96), rgba(15, 23, 42, 0.92));
+        border: 1px solid rgba(148, 163, 184, 0.4);
     }
 
     .sound-guide-card,
     .sound-guide-board {
-        background: rgba(30, 41, 59, 0.65);
-        border-color: rgba(148, 163, 184, 0.35);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(8px);
+        background: linear-gradient(160deg, rgba(38, 51, 73, 0.88), rgba(24, 33, 53, 0.82));
+        border-color: rgba(148, 163, 184, 0.45);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
     }
 
     .sound-guide-section h3,
@@ -4763,19 +5058,19 @@ body.madlibs-page .fun-hud {
     }
 
     .sound-tile {
-        background: #1f2a3d;
-        border-color: #475569;
-        color: #e2e8f0;
+        background: rgba(51, 65, 85, 0.85);
+        border-color: rgba(148, 163, 184, 0.55);
+        color: #f8fafc;
     }
 
     .sound-tile.vowel {
-        background: #313a55;
-        border-color: #a5b4fc;
+        background: rgba(99, 102, 241, 0.35);
+        border-color: rgba(165, 180, 252, 0.9);
         color: #eef2ff;
     }
 
     .sound-tile.selected {
-        background: #5b5fe0;
+        background: #7c3aed;
         border-color: #c7d2fe;
         color: #ffffff;
     }
@@ -4795,15 +5090,81 @@ body.madlibs-page .fun-hud {
     }
 
     .articulation-card {
-        background: #0f172a;
-        border-color: #334155;
+        background: rgba(15, 23, 42, 0.78);
+        border-color: rgba(148, 163, 184, 0.4);
         color: #e2e8f0;
+    }
+
+    .articulation-ipa {
+        background: rgba(129, 140, 248, 0.18);
+        color: #e0e7ff;
+    }
+
+    .articulation-visual-wrap {
+        background: linear-gradient(145deg, rgba(59, 130, 246, 0.18), rgba(30, 64, 175, 0.25));
+        border-color: rgba(129, 140, 248, 0.4);
+    }
+
+    .articulation-tip {
+        color: #f8fafc;
+    }
+
+    .articulation-example,
+    .articulation-picture-label {
+        color: #cbd5f5;
     }
 
     .fun-hud {
         background: rgba(15, 23, 42, 0.9);
         border-color: rgba(51, 65, 85, 0.8);
         color: #f8fafc;
+    }
+
+    .classroom-dock {
+        background: linear-gradient(160deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.95));
+        border-color: rgba(51, 65, 85, 0.8);
+    }
+
+    .classroom-dock-header h3 {
+        color: #f8fafc;
+    }
+
+    .classroom-dock-header p,
+    .dock-file-name,
+    .dock-hint,
+    .dock-timer-set {
+        color: #cbd5f5;
+    }
+
+    .dock-tab {
+        background: rgba(15, 23, 42, 0.7);
+        color: #cbd5f5;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+    }
+
+    .dock-tab.active {
+        background: #6366f1;
+        color: #f8fafc;
+    }
+
+    .dock-upload {
+        background: rgba(99, 102, 241, 0.25);
+        color: #e0e7ff;
+    }
+
+    .dock-file-viewer {
+        background: rgba(15, 23, 42, 0.5);
+        border-color: rgba(148, 163, 184, 0.35);
+    }
+
+    .dock-timer-display {
+        color: #f8fafc;
+    }
+
+    .dock-timer-set select {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
     }
 
     body.cloze-page {
@@ -4818,6 +5179,16 @@ body.madlibs-page .fun-hud {
         background: rgba(15, 23, 42, 0.92);
         border-color: rgba(51, 65, 85, 0.8);
         box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    body.cloze-page .cloze-story {
+        background: rgba(30, 41, 59, 0.82);
+        border-color: rgba(94, 108, 138, 0.7);
+    }
+
+    body.cloze-page .cloze-story .cloze-passage {
+        background: rgba(15, 23, 42, 0.45);
+        border-color: rgba(100, 116, 139, 0.55);
     }
 
     .cloze-panel::before {
@@ -4862,6 +5233,41 @@ body.madlibs-page .fun-hud {
 
     .cloze-toggle {
         color: #cbd5f5;
+    }
+
+    body.madlibs-page .madlibs-panel {
+        background: rgba(15, 23, 42, 0.78);
+        border-color: rgba(51, 65, 85, 0.8);
+        box-shadow: 0 16px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    body.madlibs-page .madlibs-panel h2 {
+        color: #f8fafc;
+    }
+
+    body.madlibs-page .madlibs-panel .muted,
+    body.madlibs-page .madlibs-panel label {
+        color: #cbd5f5;
+    }
+
+    body.madlibs-page .madlibs-panel input[type="text"],
+    body.madlibs-page .madlibs-panel textarea,
+    body.madlibs-page .madlibs-panel select {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+    body.madlibs-page .madlibs-field {
+        background: rgba(30, 41, 59, 0.6);
+        border-color: rgba(51, 65, 85, 0.7);
+    }
+
+    body.madlibs-page .madlibs-output {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: #334155;
+        color: #e2e8f0;
+        background-image: linear-gradient(transparent 0%, transparent 92%, rgba(129, 140, 248, 0.2) 92%, rgba(129, 140, 248, 0.2) 100%);
     }
 }
 
