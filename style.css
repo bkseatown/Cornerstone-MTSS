@@ -817,6 +817,110 @@ main {
 .howto-section .chip.present { background: #f59e0b; }
 .howto-section .chip.absent { background: #64748b; }
 
+.adventure-modal {
+    max-width: 720px;
+    width: min(92vw, 720px);
+}
+
+.adventure-content {
+    text-align: left;
+}
+
+.adventure-subtitle {
+    color: #64748b;
+    margin-bottom: 14px;
+}
+
+.adventure-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    margin-bottom: 16px;
+}
+
+.adventure-card {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 14px;
+    padding: 12px;
+    background: rgba(248, 250, 252, 0.9);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adventure-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
+}
+
+.adventure-card input {
+    margin-top: 4px;
+}
+
+.adventure-card-body h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.adventure-card-body p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.adventure-timer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.adventure-team-settings {
+    background: rgba(99, 102, 241, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    margin-bottom: 16px;
+}
+
+.adventure-note {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 8px 0 14px;
+}
+
+.adventure-team-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.adventure-team-row input {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+
+.adventure-active-team {
+    font-weight: 700;
+    color: #4338ca;
+}
+
+.adventure-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .assessment-feature-breakdown {
     margin-top: 10px;
 }
@@ -3234,6 +3338,20 @@ main {
     margin-top: 12px;
 }
 
+.auto-read-toggle {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.auto-read-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
 .modal-primary-btn {
     padding: 10px 18px;
     border-radius: 10px;
@@ -3774,25 +3892,26 @@ body.cloze-page {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    padding: 16px 18px;
-    line-height: 1.7;
-    font-size: 1.05rem;
+    padding: 20px 22px;
+    line-height: 1.9;
+    font-size: 1.08rem;
+    letter-spacing: 0.2px;
     flex: 1;
     min-height: 220px;
     overflow: auto;
 }
 
 .cloze-passage p {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .cloze-blank {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 90px;
-    padding: 4px 10px;
-    margin: 0 4px;
+    min-width: 110px;
+    padding: 4px 12px;
+    margin: 0 6px;
     border-radius: 10px;
     border: 2px dashed #94a3b8;
     background: rgba(226, 232, 240, 0.7);
@@ -3937,16 +4056,17 @@ body.cloze-page {
 }
 
 .madlibs-panel {
-    background: white;
+    background: rgba(255, 255, 255, 0.88);
     border-radius: 14px;
     padding: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
     display: flex;
     flex-direction: column;
     gap: 10px;
-    border: 1px solid rgba(226, 232, 240, 0.9);
+    border: 1px solid rgba(226, 232, 240, 0.6);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(8px);
 }
 
 .madlibs-panel::before {
@@ -4014,9 +4134,10 @@ body.cloze-page {
     min-height: 100px;
     padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid rgba(148, 163, 184, 0.4);
     font-family: var(--font-body);
     resize: vertical;
+    background: rgba(255, 255, 255, 0.85);
 }
 
 .madlibs-panel select,
@@ -4024,8 +4145,9 @@ body.cloze-page {
     width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid rgba(148, 163, 184, 0.4);
     font-family: var(--font-body);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 #madlibs-fields {
@@ -4038,10 +4160,10 @@ body.cloze-page {
 }
 
 .madlibs-field {
-    background: #f8fafc;
+    background: rgba(248, 250, 252, 0.7);
     border-radius: 12px;
     padding: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .madlibs-field .field-row {
@@ -4338,6 +4460,22 @@ body.fun-studio .fun-hud-icon {
     font-size: 0.9rem;
 }
 
+.fun-hud-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.fun-hud-team {
+    font-weight: 700;
+    color: #111827;
+}
+
+.fun-hud-timer .fun-hud-value {
+    font-variant-numeric: tabular-nums;
+}
+
 .fun-hud-icon {
     font-size: 1rem;
 }
@@ -4522,6 +4660,42 @@ body.madlibs-page .fun-hud {
         background: #1f2937;
         color: #e2e8f0;
         border-color: #334155;
+    }
+
+    .adventure-subtitle {
+        color: #cbd5f5;
+    }
+
+    .adventure-card {
+        background: rgba(15, 23, 42, 0.7);
+        border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .adventure-card-body h3 {
+        color: #f8fafc;
+    }
+
+    .adventure-card-body p {
+        color: #cbd5f5;
+    }
+
+    .adventure-note {
+        color: #cbd5f5;
+    }
+
+    .adventure-team-settings {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .adventure-team-row input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+    .auto-read-label {
+        color: #cbd5f5;
     }
 
     .translation-display {

@@ -44,6 +44,16 @@ const DEFAULT_SETTINGS = {
         sfx: false,
         style: 'playful'
     },
+    gameMode: {
+        teamMode: false,
+        timerEnabled: false,
+        timerSeconds: 60,
+        activeTeam: 'A',
+        teamAName: 'Team A',
+        teamBName: 'Team B',
+        teamACoins: 0,
+        teamBCoins: 0
+    },
     translation: {
         pinned: false,
         lang: 'en'
@@ -429,6 +439,10 @@ function loadSettings() {
                 ...DEFAULT_SETTINGS.bonus,
                 ...(parsed.bonus || {})
             },
+            gameMode: {
+                ...DEFAULT_SETTINGS.gameMode,
+                ...(parsed.gameMode || {})
+            },
             soundWallSections: {
                 ...DEFAULT_SETTINGS.soundWallSections,
                 ...(parsed.soundWallSections || {})
@@ -558,6 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initModalDismissals();
     initHowTo();
     initClozeLink();
+    initAdventureMode();
     if (typeof initAssessmentFlow === 'function') {
         initAssessmentFlow();
     }
@@ -595,16 +610,43 @@ function ensureFunHud() {
         hud.id = 'fun-hud';
         hud.className = 'fun-hud hidden';
         hud.innerHTML = `
-            <div class="fun-hud-item">
+            <div class="fun-hud-item fun-hud-team" id="fun-hud-team"></div>
+            <div class="fun-hud-item fun-hud-coins">
+                <span class="fun-hud-icon">🪙</span>
+                <span class="fun-hud-label">Coins</span>
+                <span class="fun-hud-value" id="fun-hud-coins">0</span>
+            </div>
+            <div class="fun-hud-item fun-hud-hearts">
                 <span class="fun-hud-icon">❤️</span>
+                <span class="fun-hud-label">Hearts</span>
                 <span class="fun-hud-value" id="fun-hud-hearts">3</span>
             </div>
-            <div class="fun-hud-item">
-                <span class="fun-hud-icon">🪙</span>
-                <span class="fun-hud-value" id="fun-hud-coins">0</span>
+            <div class="fun-hud-item fun-hud-timer">
+                <span class="fun-hud-icon">⏱</span>
+                <span class="fun-hud-label">Timer</span>
+                <span class="fun-hud-value" id="fun-hud-timer">0:00</span>
             </div>
         `;
         document.body.appendChild(hud);
+    } else if (!document.getElementById('fun-hud-timer')) {
+        hud.innerHTML = `
+            <div class="fun-hud-item fun-hud-team" id="fun-hud-team"></div>
+            <div class="fun-hud-item fun-hud-coins">
+                <span class="fun-hud-icon">🪙</span>
+                <span class="fun-hud-label">Coins</span>
+                <span class="fun-hud-value" id="fun-hud-coins">0</span>
+            </div>
+            <div class="fun-hud-item fun-hud-hearts">
+                <span class="fun-hud-icon">❤️</span>
+                <span class="fun-hud-label">Hearts</span>
+                <span class="fun-hud-value" id="fun-hud-hearts">3</span>
+            </div>
+            <div class="fun-hud-item fun-hud-timer">
+                <span class="fun-hud-icon">⏱</span>
+                <span class="fun-hud-label">Timer</span>
+                <span class="fun-hud-value" id="fun-hud-timer">0:00</span>
+            </div>
+        `;
     }
     return hud;
 }
@@ -616,8 +658,37 @@ function renderFunHud() {
     }
     const hearts = document.getElementById('fun-hud-hearts');
     const coins = document.getElementById('fun-hud-coins');
+    const timer = document.getElementById('fun-hud-timer');
+    const teamLabel = document.getElementById('fun-hud-team');
+    const heartsItem = document.querySelector('.fun-hud-hearts');
+    const timerItem = document.querySelector('.fun-hud-timer');
+
+    const teamMode = !!appSettings.gameMode?.teamMode;
+    const timerEnabled = !!appSettings.gameMode?.timerEnabled;
+
+    if (teamMode) {
+        const aName = appSettings.gameMode?.teamAName || 'Team A';
+        const bName = appSettings.gameMode?.teamBName || 'Team B';
+        const aCoins = appSettings.gameMode?.teamACoins ?? 0;
+        const bCoins = appSettings.gameMode?.teamBCoins ?? 0;
+        if (coins) coins.textContent = `${aName}: ${aCoins} • ${bName}: ${bCoins}`;
+        if (teamLabel) {
+            teamLabel.textContent = `Turn: ${getActiveTeamLabel()}`;
+            teamLabel.style.display = 'inline-flex';
+        }
+    } else {
+        if (coins) coins.textContent = String(appSettings.funHud?.coins ?? 0);
+        if (teamLabel) {
+            teamLabel.textContent = '';
+            teamLabel.style.display = 'none';
+        }
+    }
+
     if (hearts) hearts.textContent = String(appSettings.funHud?.hearts ?? 3);
-    if (coins) coins.textContent = String(appSettings.funHud?.coins ?? 0);
+    if (heartsItem) heartsItem.style.display = appSettings.funHud?.challenge ? 'inline-flex' : 'none';
+
+    if (timerItem) timerItem.style.display = timerEnabled ? 'inline-flex' : 'none';
+    if (timer && timerEnabled) timer.textContent = formatTime(lightningRemaining || appSettings.gameMode?.timerSeconds || 0);
 }
 
 function updateFunHudVisibility() {
@@ -1985,6 +2056,9 @@ function startNewGame(customWord = null) {
     if (typeof updateAdaptiveActions === 'function') {
         updateAdaptiveActions();
     }
+
+    resetLightningTimer();
+    renderFunHud();
 }
 
 function getWordFromDictionary() {
@@ -2312,7 +2386,9 @@ function submitGuess() {
         showToast("Finish the word first."); // CLEAN TOAST
         return;
     }
-    
+    const guessTeam = appSettings.gameMode?.teamMode ? getActiveTeamKey() : 'A';
+    lastGuessTeam = guessTeam;
+
     const result = evaluate(currentGuess, currentWord);
     revealColors(result, currentGuess);
     guesses.push(currentGuess);
@@ -2328,6 +2404,10 @@ function submitGuess() {
         setTimeout(() => showEndModal(false), 1500);
     } else {
         currentGuess = "";
+        if (appSettings.gameMode?.teamMode) {
+            toggleActiveTeam();
+            renderFunHud();
+        }
     }
 }
 
@@ -2558,6 +2638,27 @@ function setupModalAudioControls(definitionText, sentenceText) {
         actionRow.className = 'modal-action-row';
     }
 
+    let autoReadRow = document.getElementById('auto-read-toggle');
+    if (!autoReadRow) {
+        autoReadRow = document.createElement('div');
+        autoReadRow.id = 'auto-read-toggle';
+        autoReadRow.className = 'auto-read-toggle';
+        autoReadRow.innerHTML = `
+            <label class="auto-read-label">
+                <input type="checkbox" id="auto-read-checkbox" />
+                Auto-read word, definition, and sentence
+            </label>
+        `;
+    }
+    const autoReadCheckbox = autoReadRow.querySelector('#auto-read-checkbox');
+    if (autoReadCheckbox) {
+        autoReadCheckbox.checked = appSettings.autoHear !== false;
+        autoReadCheckbox.onchange = () => {
+            appSettings.autoHear = autoReadCheckbox.checked;
+            saveSettings();
+        };
+    }
+
     let speakBtn = document.getElementById('speak-btn');
     if (!speakBtn) {
         speakBtn = document.createElement('button');
@@ -2631,19 +2732,24 @@ function setupModalAudioControls(definitionText, sentenceText) {
     if (translationSelector && translationParent === modalContent) {
         safeInsertBefore(modalContent, audioControls, translationSelector);
         safeInsertBefore(modalContent, actionRow, translationSelector);
+        safeInsertBefore(modalContent, autoReadRow, translationSelector);
     } else if (sentenceEl && sentenceEl.parentElement) {
         const parent = sentenceEl.parentElement;
         safeInsertAfter(parent, audioControls, sentenceEl);
         safeInsertAfter(parent, actionRow, audioControls);
+        safeInsertAfter(parent, autoReadRow, actionRow);
     } else {
         safeInsertBefore(modalContent, audioControls, null);
         safeInsertAfter(modalContent, actionRow, audioControls);
+        safeInsertAfter(modalContent, autoReadRow, actionRow);
     }
 }
 
 function showEndModal(win) {
     // Track progress
     trackProgress(currentWord, win, guesses.length);
+
+    stopLightningTimer();
     
     modalOverlay.classList.remove("hidden");
     gameModal.classList.remove("hidden");
@@ -2677,7 +2783,15 @@ function showEndModal(win) {
     setupModalAudioControls(def, sentence);
 
     if (win && appSettings.funHud?.enabled) {
-        appSettings.funHud.coins = (appSettings.funHud.coins || 0) + 1;
+        if (appSettings.gameMode?.teamMode) {
+            if (lastGuessTeam === 'B') {
+                appSettings.gameMode.teamBCoins = (appSettings.gameMode.teamBCoins || 0) + 1;
+            } else {
+                appSettings.gameMode.teamACoins = (appSettings.gameMode.teamACoins || 0) + 1;
+            }
+        } else {
+            appSettings.funHud.coins = (appSettings.funHud.coins || 0) + 1;
+        }
         saveSettings();
         renderFunHud();
         playFunChime('win');
@@ -3005,9 +3119,11 @@ function closeModal() {
     const howtoModal = document.getElementById("howto-modal");
     const assessmentModal = document.getElementById("assessment-modal");
     const corePhonicsModal = document.getElementById("core-phonics-modal");
+    const adventureModal = document.getElementById("adventure-modal");
     if (howtoModal) howtoModal.classList.add("hidden");
     if (assessmentModal) assessmentModal.classList.add("hidden");
     if (corePhonicsModal) corePhonicsModal.classList.add("hidden");
+    if (adventureModal) adventureModal.classList.add("hidden");
     
     // Close new modals
     const decodableModal = document.getElementById("decodable-modal");
@@ -4493,9 +4609,7 @@ function getPhonemeTts(phoneme, soundKey = '') {
 }
 
 function speakPhonemeSound(phoneme, soundKey = '') {
-    const tts = (isShortVowelSound(soundKey, phoneme) && phoneme?.example)
-        ? phoneme.example
-        : getPhonemeTts(phoneme, soundKey);
+    const tts = getPhonemeTts(phoneme, soundKey);
     if (!tts) return;
     speakText(tts, 'phoneme');
 }
@@ -4698,6 +4812,288 @@ function initClozeLink() {
     }
 }
 
+function initAdventureMode() {
+    const headerActions = document.querySelector('.header-actions');
+    if (!headerActions || document.getElementById('adventure-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'adventure-btn';
+    btn.type = 'button';
+    btn.className = 'link-btn';
+    btn.textContent = 'Adventure';
+    btn.addEventListener('click', openAdventureModal);
+    headerActions.insertBefore(btn, headerActions.firstChild);
+}
+
+function ensureAdventureModal() {
+    let modal = document.getElementById('adventure-modal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'adventure-modal';
+    modal.className = 'modal hidden adventure-modal';
+    modal.dataset.overlayClose = 'true';
+    modal.innerHTML = `
+        <div class="modal-content adventure-content">
+            <button class="close-btn" aria-label="Close">✕</button>
+            <h2>Choose Your Adventure</h2>
+            <p class="adventure-subtitle">Pick a mode, then press “Start” to play.</p>
+
+            <div class="adventure-grid">
+                <label class="adventure-card">
+                    <input type="checkbox" id="adventure-team-toggle" />
+                    <div class="adventure-card-body">
+                        <h3>Team Battle</h3>
+                        <p>Two teams take turns. The team that cracks the code earns coins.</p>
+                    </div>
+                </label>
+
+                <label class="adventure-card">
+                    <input type="checkbox" id="adventure-timer-toggle" />
+                    <div class="adventure-card-body">
+                        <h3>Lightning Round</h3>
+                        <p>Beat the timer to win. Perfect for fast practice.</p>
+                        <div class="adventure-timer-row">
+                            <span>Time limit</span>
+                            <select id="adventure-timer-seconds">
+                                <option value="30">30s</option>
+                                <option value="45">45s</option>
+                                <option value="60">60s</option>
+                                <option value="90">90s</option>
+                            </select>
+                        </div>
+                    </div>
+                </label>
+
+                <label class="adventure-card">
+                    <input type="checkbox" id="adventure-challenge-toggle" />
+                    <div class="adventure-card-body">
+                        <h3>Challenge Mode</h3>
+                        <p>Hearts appear only in Challenge Mode. Lose one on a miss.</p>
+                    </div>
+                </label>
+            </div>
+
+            <p class="adventure-note">Coins track wins. Hearts only appear in Challenge Mode.</p>
+
+            <div class="adventure-team-settings" id="adventure-team-settings">
+                <h3>Teams</h3>
+                <div class="adventure-team-row">
+                    <label>Team A</label>
+                    <input id="team-a-name" type="text" maxlength="18" />
+                </div>
+                <div class="adventure-team-row">
+                    <label>Team B</label>
+                    <input id="team-b-name" type="text" maxlength="18" />
+                </div>
+                <div class="adventure-team-row">
+                    <span class="adventure-active-label">Turn:</span>
+                    <button type="button" id="adventure-switch-team" class="secondary-btn">Switch Team</button>
+                    <span id="adventure-active-team" class="adventure-active-team"></span>
+                </div>
+            </div>
+
+            <div class="adventure-actions">
+                <button type="button" id="adventure-start" class="primary-btn">Start Adventure</button>
+                <button type="button" id="adventure-reset-coins" class="secondary-btn">Reset Team Coins</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.close-btn')?.addEventListener('click', closeModal);
+    initAdventureControls();
+    return modal;
+}
+
+function openAdventureModal() {
+    const modal = ensureAdventureModal();
+    if (!modalOverlay) return;
+    hydrateAdventureUI();
+    modalOverlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+}
+
+function hydrateAdventureUI() {
+    const teamToggle = document.getElementById('adventure-team-toggle');
+    const timerToggle = document.getElementById('adventure-timer-toggle');
+    const challengeToggle = document.getElementById('adventure-challenge-toggle');
+    const timerSelect = document.getElementById('adventure-timer-seconds');
+    const teamSettings = document.getElementById('adventure-team-settings');
+    const teamAInput = document.getElementById('team-a-name');
+    const teamBInput = document.getElementById('team-b-name');
+    const activeTeam = document.getElementById('adventure-active-team');
+
+    if (teamToggle) teamToggle.checked = !!appSettings.gameMode?.teamMode;
+    if (timerToggle) timerToggle.checked = !!appSettings.gameMode?.timerEnabled;
+    if (challengeToggle) challengeToggle.checked = !!appSettings.funHud?.challenge;
+    if (timerSelect) timerSelect.value = String(appSettings.gameMode?.timerSeconds || 60);
+
+    if (teamAInput) teamAInput.value = appSettings.gameMode?.teamAName || 'Team A';
+    if (teamBInput) teamBInput.value = appSettings.gameMode?.teamBName || 'Team B';
+
+    if (teamSettings) {
+        teamSettings.style.display = appSettings.gameMode?.teamMode ? 'block' : 'none';
+    }
+    if (activeTeam) activeTeam.textContent = getActiveTeamLabel();
+}
+
+function initAdventureControls() {
+    const teamToggle = document.getElementById('adventure-team-toggle');
+    const timerToggle = document.getElementById('adventure-timer-toggle');
+    const challengeToggle = document.getElementById('adventure-challenge-toggle');
+    const timerSelect = document.getElementById('adventure-timer-seconds');
+    const teamSettings = document.getElementById('adventure-team-settings');
+    const teamAInput = document.getElementById('team-a-name');
+    const teamBInput = document.getElementById('team-b-name');
+    const switchTeamBtn = document.getElementById('adventure-switch-team');
+    const activeTeam = document.getElementById('adventure-active-team');
+    const startBtn = document.getElementById('adventure-start');
+    const resetCoinsBtn = document.getElementById('adventure-reset-coins');
+
+    if (teamToggle) {
+        teamToggle.addEventListener('change', () => {
+            appSettings.gameMode.teamMode = teamToggle.checked;
+            if (teamSettings) teamSettings.style.display = teamToggle.checked ? 'block' : 'none';
+            saveSettings();
+            renderFunHud();
+        });
+    }
+
+    if (timerToggle) {
+        timerToggle.addEventListener('change', () => {
+            appSettings.gameMode.timerEnabled = timerToggle.checked;
+            saveSettings();
+            resetLightningTimer();
+            renderFunHud();
+        });
+    }
+
+    if (timerSelect) {
+        timerSelect.addEventListener('change', () => {
+            appSettings.gameMode.timerSeconds = Number(timerSelect.value) || 60;
+            saveSettings();
+            resetLightningTimer();
+        });
+    }
+
+    if (challengeToggle) {
+        challengeToggle.addEventListener('change', () => {
+            appSettings.funHud.challenge = challengeToggle.checked;
+            if (challengeToggle.checked && (!appSettings.funHud.hearts || appSettings.funHud.hearts < 1)) {
+                appSettings.funHud.hearts = appSettings.funHud.maxHearts || 3;
+            }
+            saveSettings();
+            renderFunHud();
+        });
+    }
+
+    if (teamAInput) {
+        teamAInput.addEventListener('input', () => {
+            appSettings.gameMode.teamAName = teamAInput.value.trim() || 'Team A';
+            if (activeTeam) activeTeam.textContent = getActiveTeamLabel();
+            saveSettings();
+            renderFunHud();
+        });
+    }
+
+    if (teamBInput) {
+        teamBInput.addEventListener('input', () => {
+            appSettings.gameMode.teamBName = teamBInput.value.trim() || 'Team B';
+            if (activeTeam) activeTeam.textContent = getActiveTeamLabel();
+            saveSettings();
+            renderFunHud();
+        });
+    }
+
+    if (switchTeamBtn) {
+        switchTeamBtn.addEventListener('click', () => {
+            toggleActiveTeam();
+            if (activeTeam) activeTeam.textContent = getActiveTeamLabel();
+            renderFunHud();
+        });
+    }
+
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            closeModal();
+            startNewGame();
+        });
+    }
+
+    if (resetCoinsBtn) {
+        resetCoinsBtn.addEventListener('click', () => {
+            appSettings.gameMode.teamACoins = 0;
+            appSettings.gameMode.teamBCoins = 0;
+            saveSettings();
+            renderFunHud();
+            showToast('Team coins reset.');
+        });
+    }
+}
+
+function getActiveTeamKey() {
+    return (appSettings.gameMode?.activeTeam || 'A').toUpperCase();
+}
+
+function getActiveTeamLabel() {
+    const key = getActiveTeamKey();
+    return key === 'A' ? (appSettings.gameMode?.teamAName || 'Team A') : (appSettings.gameMode?.teamBName || 'Team B');
+}
+
+function toggleActiveTeam() {
+    const next = getActiveTeamKey() === 'A' ? 'B' : 'A';
+    appSettings.gameMode.activeTeam = next;
+    saveSettings();
+}
+
+let lightningTimer = null;
+let lightningRemaining = 0;
+let lastGuessTeam = 'A';
+
+function formatTime(seconds = 0) {
+    const clamped = Math.max(0, Math.floor(seconds));
+    const m = Math.floor(clamped / 60);
+    const s = clamped % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function resetLightningTimer() {
+    stopLightningTimer();
+    if (!appSettings.gameMode?.timerEnabled) {
+        lightningRemaining = 0;
+        renderFunHud();
+        return;
+    }
+    lightningRemaining = appSettings.gameMode.timerSeconds || 60;
+    startLightningTimer();
+    renderFunHud();
+}
+
+function startLightningTimer() {
+    stopLightningTimer();
+    if (!appSettings.gameMode?.timerEnabled) return;
+    if (!lightningRemaining) {
+        lightningRemaining = appSettings.gameMode.timerSeconds || 60;
+    }
+    lightningTimer = setInterval(() => {
+        lightningRemaining -= 1;
+        if (lightningRemaining <= 0) {
+            lightningRemaining = 0;
+            stopLightningTimer();
+            if (!gameOver) {
+                gameOver = true;
+                showEndModal(false);
+            }
+        }
+        renderFunHud();
+    }, 1000);
+}
+
+function stopLightningTimer() {
+    if (lightningTimer) {
+        clearInterval(lightningTimer);
+        lightningTimer = null;
+    }
+}
 function ensureHowToModal() {
     let modal = document.getElementById('howto-modal');
     if (modal) return modal;

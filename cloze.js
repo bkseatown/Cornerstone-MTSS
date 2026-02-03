@@ -19,6 +19,55 @@ const CLOZE_SETS = [
         passage: 'Today in science, we mixed __1__ and __2__ to build a bubbling __3__. Our teacher, __4__, reminded us to wear __5__ goggles.\n\nThe experiment made a __6__ sound, and we all wrote down what we observed in our notebooks.',
         answers: ['baking soda', 'vinegar', 'volcano', 'Mr. Lee', 'safety', 'swoosh'],
         distractors: ['glitter', 'juice', 'rocket', 'Ms. Gray', 'fashion', 'whisper']
+    },
+    {
+        id: 'garden-helpers',
+        title: 'Garden Helpers',
+        passage: 'In the school __1__, we spotted a __2__ ladybug and a line of __3__ carrying leaves.\n\nCoach __4__ asked us to pull __5__ weeds, then we munched on a __6__ snack.',
+        answers: ['garden', 'tiny', 'ants', 'Reed', 'stubborn', 'crunchy'],
+        distractors: ['stadium', 'sleepy', 'robots', 'Ava', 'slippery', 'sticky']
+    },
+    {
+        id: 'ocean-cleanup',
+        title: 'Ocean Cleanup',
+        passage: 'Our class visited the __1__ shore and found a __2__ turtle tangled in __3__.\n\nWe worked with __4__ to sort __5__ bins, then celebrated with a __6__ cheer.',
+        answers: ['ocean', 'brave', 'plastic', 'Kai', 'recycling', 'loud'],
+        distractors: ['mountain', 'sleepy', 'glitter', 'Zoe', 'history', 'quiet']
+    },
+    {
+        id: 'space-station',
+        title: 'Space Station Mission',
+        passage: 'Captain __1__ guided us into the __2__ station where we floated past a __3__ window.\n\nWe pressed the __4__ button, collected __5__ samples, and ate a __6__ snack.',
+        answers: ['Nova', 'space', 'round', 'glowing', 'meteor', 'freeze-dried'],
+        distractors: ['Rex', 'forest', 'square', 'silent', 'fossil', 'spicy']
+    },
+    {
+        id: 'mountain-camp',
+        title: 'Mountain Camp',
+        passage: 'At __1__ camp, we built a __2__ fire and told a __3__ story about a __4__ bear.\n\nBefore bed, we zipped our __5__ bags and whispered a __6__ goodnight.',
+        answers: ['Summit', 'cozy', 'funny', 'sleepy', 'sleeping', 'soft'],
+        distractors: ['Downtown', 'noisy', 'scary', 'angry', 'messy', 'loud']
+    },
+    {
+        id: 'city-parade',
+        title: 'City Parade',
+        passage: 'During the __1__ parade, we waved a __2__ flag and spotted a __3__ drummer.\n\nMayor __4__ tossed __5__ confetti, and the crowd sang a __6__ song.',
+        answers: ['spring', 'shiny', 'talented', 'Chen', 'colorful', 'happy'],
+        distractors: ['midnight', 'dusty', 'sleepy', 'Luna', 'rainy', 'slow']
+    },
+    {
+        id: 'art-studio',
+        title: 'Art Studio Splash',
+        passage: 'In art class, we painted a __1__ sunset using __2__ brushes and __3__ paints.\n\nOur helper, __4__, framed the __5__ picture and gave us a __6__ high five.',
+        answers: ['glowing', 'soft', 'bright', 'Ms. Vega', 'finished', 'giant'],
+        distractors: ['stormy', 'scratchy', 'dark', 'Mr. Hill', 'broken', 'tiny']
+    },
+    {
+        id: 'robot-repair',
+        title: 'Robot Repair',
+        passage: 'Our class fixed a __1__ robot with a __2__ screwdriver and a __3__ bolt.\n\nWhen the robot said "__4__!", we felt __5__ and did a __6__ dance.',
+        answers: ['friendly', 'tiny', 'silver', 'thank you', 'proud', 'silly'],
+        distractors: ['grumpy', 'huge', 'rusty', 'beep', 'tired', 'quiet']
     }
 ];
 
