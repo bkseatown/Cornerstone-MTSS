@@ -2123,6 +2123,12 @@ button:active:not(:disabled) {
     max-height: 70vh;
     overflow-y: auto;
     padding-right: 6px;
+    scrollbar-width: none;
+}
+
+.sound-guide-board::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 .sound-guide-section {
@@ -2210,6 +2216,11 @@ button:active:not(:disabled) {
     opacity: 0.9;
 }
 
+.sound-name.hidden,
+.sound-name:empty {
+    display: none;
+}
+
 .sound-card-body {
     position: relative;
     z-index: 1;
@@ -2219,10 +2230,7 @@ button:active:not(:disabled) {
 }
 
 .sound-mouth {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 110px;
+    display: none;
 }
 
 .sound-cue {
@@ -2244,6 +2252,58 @@ button:active:not(:disabled) {
     margin-top: 6px;
     font-size: 0.85rem;
     opacity: 0.85;
+}
+
+.articulation-card {
+    margin-top: 12px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    text-align: center;
+    color: #1f2937;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.articulation-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.articulation-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.articulation-mouth {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #ffe8d6;
+    position: relative;
+    box-shadow: inset 0 0 0 6px rgba(255,255,255,0.5), 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.articulation-mouth .mouth {
+    position: absolute;
+    left: 50%;
+    top: 55%;
+    transform: translate(-50%, -50%) scale(0.9);
+}
+
+.articulation-caption {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.articulation-caption:empty {
+    display: none;
 }
 
 .sound-card-actions {
@@ -2353,6 +2413,14 @@ button:active:not(:disabled) {
 
 .translation-display.hidden {
     display: none;
+}
+
+.translation-audio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    justify-content: center;
 }
 
 /* ==========================================================================
@@ -2593,7 +2661,7 @@ main {
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .modal-audio-btn {
@@ -2623,7 +2691,7 @@ main {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .modal-primary-btn {
@@ -2637,7 +2705,7 @@ main {
 }
 
 #modal .translation-compact {
-    margin-top: 14px;
+    margin-top: 18px;
 }
 
 #play-translated-def:disabled,
@@ -3225,4 +3293,227 @@ body.madlibs-page {
 
 .mini-audio-btn:active {
     transform: scale(0.95);
+}
+
+/* ==========================================================================
+   Viewport fit (avoid default scroll)
+   ========================================================================== */
+
+main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    height: auto;
+}
+
+#game-canvas {
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 10px;
+}
+
+#game-board {
+    margin: clamp(8px, 1.4vh, 16px) auto;
+}
+
+#keyboard {
+    margin-bottom: 4px;
+}
+
+@media (max-height: 860px) {
+    header {
+        padding: 10px 12px 4px;
+    }
+
+    .header-top {
+        margin-bottom: 6px;
+    }
+
+    h1 {
+        font-size: 1.35rem;
+    }
+
+    #game-canvas {
+        gap: clamp(6px, 1.1vh, 12px);
+    }
+
+    #game-board {
+        gap: 5px;
+    }
+
+    .tile {
+        width: min(50px, 9.5vw, 6.6vh);
+        height: min(50px, 9.5vw, 6.6vh);
+        font-size: min(1.7rem, 4.3vw, 3.6vh);
+    }
+
+    .key {
+        height: min(42px, 7.4vw, 5.6vh);
+        font-size: min(0.95rem, 3.1vw, 2.7vh);
+    }
+
+    #keyboard {
+        gap: 5px;
+    }
+
+    .warmup-panel {
+        margin: 2px auto 8px;
+    }
+}
+
+@media (max-height: 760px) {
+    h1 {
+        font-size: 1.25rem;
+    }
+
+    #game-canvas {
+        gap: clamp(5px, 1vh, 10px);
+    }
+
+    .tile {
+        width: min(46px, 8.8vw, 6vh);
+        height: min(46px, 8.8vw, 6vh);
+        font-size: min(1.6rem, 4vw, 3.2vh);
+    }
+
+    .key {
+        height: min(38px, 6.8vw, 5.1vh);
+        font-size: min(0.9rem, 2.8vw, 2.4vh);
+    }
+
+    .warmup-tile {
+        width: 28px;
+        height: 28px;
+    }
+
+    .hint-actions {
+        gap: 6px;
+        margin: 2px 0;
+    }
+
+    .hint-actions .hint-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+body.madlibs-page {
+    height: 100dvh;
+    overflow: hidden;
+}
+
+@media (max-width: 720px) {
+    header {
+        padding: 10px 12px 4px;
+    }
+
+    .header-top {
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    h1 {
+        font-size: 1.25rem;
+    }
+
+    .controls {
+        gap: 8px;
+        row-gap: 6px;
+    }
+
+    .hint-actions {
+        gap: 6px;
+        margin: 2px 0;
+    }
+
+    .hint-actions .hint-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    #keyboard {
+        max-width: 100%;
+        gap: 5px;
+    }
+
+    .keyboard-row {
+        gap: 3px;
+    }
+
+    .key {
+        height: clamp(34px, 7vw, 42px);
+        font-size: clamp(0.8rem, 2.4vw, 0.95rem);
+        max-width: clamp(34px, 9vw, 48px);
+    }
+}
+
+@media (max-width: 560px) {
+    .controls {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+    }
+
+    .controls select,
+    #pattern-select,
+    #length-select {
+        width: 100%;
+    }
+
+    .hint-actions {
+        gap: 5px;
+    }
+
+    .hint-actions .hint-btn {
+        padding: 6px 8px;
+        font-size: 0.78rem;
+    }
+
+    #game-canvas {
+        gap: 8px;
+    }
+}
+
+.madlibs-main {
+    flex: 1;
+    min-height: 0;
+    align-content: start;
+    padding-bottom: 12px;
+}
+
+.madlibs-panel {
+    min-height: 0;
+}
+
+@media (max-height: 860px) {
+    .madlibs-header {
+        padding: 10px 12px;
+    }
+
+    .madlibs-main {
+        gap: 14px;
+        padding: 0 12px 12px;
+    }
+
+    .madlibs-panel {
+        padding: 14px;
+    }
+
+    .madlibs-panel textarea {
+        min-height: 110px;
+    }
+}
+
+@media (max-height: 760px) {
+    .madlibs-main {
+        gap: 10px;
+        padding: 0 10px 10px;
+    }
+
+    .madlibs-panel {
+        padding: 12px;
+    }
+
+    .madlibs-panel textarea {
+        min-height: 96px;
+    }
 }

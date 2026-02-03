@@ -186,13 +186,120 @@ function getSpeechRate() {
     }
 }
 
-function readStory() {
+let madlibsVoices = [];
+let madlibsVoicesPromise = null;
+let madlibsSpeechTimeout = null;
+
+const HIGH_QUALITY_VOICE_PATTERNS = [
+    /Premium/i,
+    /Enhanced/i,
+    /Natural/i,
+    /Neural/i,
+    /Siri/i,
+    /Google/i,
+    /Microsoft/i,
+    /Samantha/i,
+    /Ava/i,
+    /Alex/i,
+    /Daniel/i,
+    /Serena/i,
+    /Kate/i
+];
+
+function getPreferredDialect() {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (!saved) return 'en-US';
+    try {
+        const parsed = JSON.parse(saved);
+        const raw = (parsed.voiceDialect || 'en-US').toString().toLowerCase();
+        if (['uk', 'en-uk', 'british', 'en-gb'].includes(raw)) return 'en-GB';
+        if (['us', 'en-us', 'american'].includes(raw)) return 'en-US';
+        if (raw.startsWith('en-')) return parsed.voiceDialect;
+    } catch {
+        return 'en-US';
+    }
+    return 'en-US';
+}
+
+function isHighQualityVoice(voice) {
+    if (!voice || !voice.name) return false;
+    return HIGH_QUALITY_VOICE_PATTERNS.some(pattern => pattern.test(voice.name));
+}
+
+function pickBestVoiceForLang(voices, targetLang) {
+    if (!voices || !voices.length || !targetLang) return null;
+    const normalized = targetLang.toLowerCase();
+    const matches = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(normalized));
+    if (!matches.length) return null;
+    const highQuality = matches.filter(isHighQualityVoice);
+    const pool = highQuality.length ? highQuality : matches;
+    for (const pattern of HIGH_QUALITY_VOICE_PATTERNS) {
+        const preferred = pool.find(v => pattern.test(v.name));
+        if (preferred) return preferred;
+    }
+    return pool[0];
+}
+
+function pickBestEnglishVoice(voices) {
+    const dialect = getPreferredDialect();
+    return pickBestVoiceForLang(voices, dialect) || pickBestVoiceForLang(voices, 'en');
+}
+
+function getVoicesAsync(timeout = 800) {
+    if (madlibsVoices.length) return Promise.resolve(madlibsVoices);
+    if (madlibsVoicesPromise) return madlibsVoicesPromise;
+    madlibsVoicesPromise = new Promise((resolve) => {
+        const existing = window.speechSynthesis.getVoices();
+        if (existing && existing.length) {
+            madlibsVoices = existing;
+            madlibsVoicesPromise = null;
+            resolve(existing);
+            return;
+        }
+        let resolved = false;
+        const finish = () => {
+            if (resolved) return;
+            resolved = true;
+            const voices = window.speechSynthesis.getVoices();
+            if (voices && voices.length) madlibsVoices = voices;
+            madlibsVoicesPromise = null;
+            resolve(madlibsVoices);
+        };
+        if (window.speechSynthesis.addEventListener) {
+            window.speechSynthesis.addEventListener('voiceschanged', finish, { once: true });
+        } else {
+            window.speechSynthesis.onvoiceschanged = finish;
+        }
+        setTimeout(finish, timeout);
+    });
+    return madlibsVoicesPromise;
+}
+
+function speakUtterance(utterance) {
+    if (!('speechSynthesis' in window)) return;
+    if (madlibsSpeechTimeout) clearTimeout(madlibsSpeechTimeout);
+    window.speechSynthesis.cancel();
+    madlibsSpeechTimeout = setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+        madlibsSpeechTimeout = null;
+    }, 40);
+}
+
+async function readStory() {
     const story = output.textContent;
     if (!story || output.classList.contains('empty')) return;
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(story);
+    const voices = await getVoicesAsync();
+    const preferred = pickBestEnglishVoice(voices);
+    if (preferred) {
+        utterance.voice = preferred;
+        utterance.lang = preferred.lang;
+    } else {
+        utterance.lang = getPreferredDialect();
+    }
     utterance.rate = Math.max(0.7, getSpeechRate());
-    window.speechSynthesis.speak(utterance);
+    utterance.pitch = 1.0;
+    speakUtterance(utterance);
 }
 
 function autoFill() {
