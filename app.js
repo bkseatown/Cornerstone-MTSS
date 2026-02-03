@@ -286,11 +286,16 @@ function initControls() {
     document.getElementById("teacher-btn").onclick = openTeacherMode;
     document.getElementById("set-word-btn").onclick = handleTeacherSubmit;
     document.getElementById("open-studio-btn").onclick = openStudioSetup;
-    document.getElementById("toggle-mask").onclick = () => {
-        const inp = document.getElementById("custom-word-input");
-        inp.type = inp.type === "password" ? "text" : "password";
-        inp.focus();
-    };
+    const toggleMaskBtn = document.getElementById("toggle-mask");
+    if (toggleMaskBtn) {
+        toggleMaskBtn.onclick = () => {
+            const inp = document.getElementById("custom-word-input");
+            const isHidden = inp.type === "password";
+            inp.type = isHidden ? "text" : "password";
+            toggleMaskBtn.textContent = isHidden ? "Hide" : "Show";
+            inp.focus();
+        };
+    }
 
     // Simple audio buttons
     const hearWordBtn = document.getElementById("simple-hear-word");
@@ -1820,8 +1825,7 @@ function initNewFeatures() {
         phonemeBtn.onclick = openPhonemeGuide;
     }
     
-    // Initialize phoneme cards with mouth animations
-    initPhonemeCards();
+    // Phoneme cards are created when the phoneme modal opens.
     
     // Close buttons for new modals
     document.querySelectorAll('.close-decodable, .close-progress, .close-phoneme, .close-help').forEach(btn => {
@@ -2031,6 +2035,9 @@ function populatePhonemeGrid() {
     
     // Setup audio controls
     initArticulationAudioControls();
+
+    // Initialize mouth animations now that cards exist
+    initPhonemeCards();
     
     console.log("✓ Advanced Articulation Guide ready");
 }
@@ -2061,13 +2068,46 @@ function initPhonemeTabNavigation() {
     });
 }
 
+function populatePhonemeGroup(gridId, sounds) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return 0;
+
+    grid.innerHTML = '';
+    let count = 0;
+
+    sounds.forEach(sound => {
+        const phoneme = window.PHONEME_DATA[sound];
+        if (!phoneme) return;
+        const card = createPhonemeCard(sound, phoneme);
+        grid.appendChild(card);
+        count += 1;
+    });
+
+    const section = grid.closest('.phoneme-section');
+    if (section) {
+        section.classList.toggle('hidden', count === 0);
+    }
+
+    return count;
+}
+
 function populateVowelsGrid() {
+    if (window.PHONEME_GROUPS && window.PHONEME_GROUPS.vowels) {
+        populatePhonemeGroup('vowels-short-grid', window.PHONEME_GROUPS.vowels.short);
+        populatePhonemeGroup('vowels-long-grid', window.PHONEME_GROUPS.vowels.long);
+        populatePhonemeGroup('vowels-rcontrolled-grid', window.PHONEME_GROUPS.vowels.rControlled);
+        populatePhonemeGroup('vowels-diphthongs-grid', window.PHONEME_GROUPS.vowels.diphthongs);
+        populatePhonemeGroup('vowels-welded-grid', window.PHONEME_GROUPS.vowels.welded);
+        populatePhonemeGroup('vowels-schwa-grid', window.PHONEME_GROUPS.vowels.schwa);
+        return;
+    }
+
     const grid = document.getElementById('vowels-grid');
     if (!grid) return;
-    
+
     const vowels = window.PHONEME_CATEGORIES.vowels.filter(v => window.PHONEME_DATA[v]);
     grid.innerHTML = '';
-    
+
     vowels.forEach(sound => {
         const phoneme = window.PHONEME_DATA[sound];
         const card = createPhonemeCard(sound, phoneme);
@@ -2076,12 +2116,19 @@ function populateVowelsGrid() {
 }
 
 function populateConsonantsGrid() {
+    if (window.PHONEME_GROUPS && window.PHONEME_GROUPS.consonants) {
+        populatePhonemeGroup('consonants-single-grid', window.PHONEME_GROUPS.consonants.single);
+        populatePhonemeGroup('consonants-digraphs-grid', window.PHONEME_GROUPS.consonants.digraphs);
+        populatePhonemeGroup('consonants-blends-grid', window.PHONEME_GROUPS.consonants.blends);
+        return;
+    }
+
     const grid = document.getElementById('consonants-grid');
     if (!grid) return;
-    
+
     const consonants = window.PHONEME_CATEGORIES.consonants.filter(c => window.PHONEME_DATA[c]);
     grid.innerHTML = '';
-    
+
     consonants.forEach(sound => {
         const phoneme = window.PHONEME_DATA[sound];
         const card = createPhonemeCard(sound, phoneme);
@@ -2128,10 +2175,15 @@ function populateLettersGrid() {
     });
 }
 
+function getMouthClass(phoneme) {
+    return phoneme?.animation || 'mouth-neutral';
+}
+
 function createPhonemeCard(sound, phoneme) {
     const card = document.createElement('div');
     card.className = 'phoneme-card';
     card.dataset.sound = sound;
+    card.dataset.example = phoneme.example || '';
     card.style.cssText = `
         background: white;
         border: 2px solid #e5e7eb;
@@ -2146,13 +2198,14 @@ function createPhonemeCard(sound, phoneme) {
         justify-content: center;
     `;
     
-    const mouthEmoji = window.MOUTH_VISUALS[phoneme.mouthShape] || '👄';
+    const displayText = (phoneme.grapheme || sound).toUpperCase();
+    const mouthClass = getMouthClass(phoneme);
     
     card.innerHTML = `
-        <div style="font-size: 2.5rem; margin-bottom: 4px;">${sound.toUpperCase()}</div>
-        <div style="font-size: 1.2rem; margin-bottom: 4px;">${mouthEmoji}</div>
-        <div style="font-size: 0.85rem; color: #666; font-weight: 500;">${phoneme.example}</div>
-        <div style="font-size: 0.75rem; color: #888; margin-top: 4px;">${phoneme.sound}</div>
+        <div class="phoneme-letter">${displayText}</div>
+        <div class="mini-mouth"><div class="mouth ${mouthClass}"></div></div>
+        <div class="phoneme-example">${phoneme.example || ''}</div>
+        <div class="phoneme-ipa">${phoneme.sound || ''}</div>
     `;
     
     card.onclick = () => selectSound(sound, phoneme);
@@ -2181,15 +2234,17 @@ function selectSound(sound, phoneme) {
     display.classList.remove('hidden');
     
     // Populate detailed information
-    document.getElementById('sound-letter').textContent = sound.toUpperCase();
-    document.getElementById('sound-name').textContent = phoneme.name;
-    document.getElementById('mouth-cue').textContent = phoneme.cue;
-    document.getElementById('mouth-description').textContent = phoneme.description;
+    document.getElementById('sound-letter').textContent = (phoneme.grapheme || sound).toUpperCase();
+    document.getElementById('sound-name').textContent = phoneme.name || '';
+    document.getElementById('mouth-cue').textContent = phoneme.cue || '';
+    document.getElementById('mouth-description').textContent = phoneme.description || '';
     
     // Update mouth visual
     const mouthVisual = document.getElementById('mouth-visual');
-    const emoji = window.MOUTH_VISUALS[phoneme.mouthShape] || '👄';
-    mouthVisual.textContent = emoji;
+    if (mouthVisual) {
+        const mouthClass = getMouthClass(phoneme);
+        mouthVisual.innerHTML = `<div class="mouth ${mouthClass}"></div>`;
+    }
     
     // Scroll to top
     display.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2220,9 +2275,9 @@ function showLetterSounds(letter) {
                 <div style="font-size: 2rem; font-weight: 700;">${letter.toUpperCase()}</div>
                 <div style="flex: 1;">
                     <div style="font-weight: 600; color: #374151;">${soundInfo.name}</div>
-                    <div style="font-size: 0.9rem; color: #6b7280;">${soundInfo.sound} as in "${soundInfo.example}"</div>
+                    <div style="font-size: 0.9rem; color: #6b7280;">Example: ${soundInfo.example}</div>
                 </div>
-                <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 0.85rem;">🔊 Play</button>
+                <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 0.85rem;">Play</button>
             </div>
         `;
         
@@ -2254,11 +2309,8 @@ function initArticulationAudioControls() {
     if (hearLetterBtn) {
         hearLetterBtn.onclick = () => {
             if (currentSelectedSound) {
-                playLetterSequence(
-                    currentSelectedSound.sound,
-                    currentSelectedSound.phoneme.example,
-                    currentSelectedSound.sound
-                );
+                const grapheme = currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
+                speakSpelling(grapheme);
             }
         };
     }
@@ -2266,7 +2318,7 @@ function initArticulationAudioControls() {
     if (hearWordBtn) {
         hearWordBtn.onclick = () => {
             if (currentSelectedSound) {
-                speakText(currentSelectedSound.phoneme.example);
+                speakText(currentSelectedSound.phoneme.example || '');
             }
         };
     }
@@ -2274,23 +2326,24 @@ function initArticulationAudioControls() {
     if (hearSoundBtn) {
         hearSoundBtn.onclick = () => {
             if (currentSelectedSound) {
-                speakPhoneme(currentSelectedSound.sound);
+                speakPhonemeSound(currentSelectedSound.phoneme);
             }
         };
     }
 }
 
 function playLetterSequence(letter, word, phoneme) {
-    // Play: Letter name → Example word → Phoneme sound
-    speakText(`Letter ${letter.toUpperCase()}`);
-    
+    // Play: spelling → example word → sound cue
+    speakSpelling(letter);
+
     setTimeout(() => {
         speakText(word);
-    }, 1500);
-    
+    }, 900);
+
     setTimeout(() => {
-        speakPhoneme(phoneme);
-    }, 3000);
+        const phonemeData = window.getPhonemeData ? window.getPhonemeData(phoneme) : null;
+        speakPhonemeSound(phonemeData);
+    }, 1800);
 }
 
 function speakText(text) {
@@ -2301,40 +2354,51 @@ function speakText(text) {
     window.speechSynthesis.speak(utterance);
 }
 
-function speakPhoneme(sound) {
-    // Use existing speakPhoneme function if available, otherwise fallback
-    if (typeof window.speakPhoneme === 'function') {
-        window.speakPhoneme(sound);
-    } else {
-        const phoneme = window.PHONEME_DATA[sound];
-        if (phoneme) {
-            speakText(phoneme.sound);
-        }
-    }
+function speakSpelling(grapheme) {
+    if (!grapheme) return;
+    const letters = grapheme
+        .toString()
+        .toUpperCase()
+        .split('')
+        .join(' ');
+    speakText(letters);
+}
+
+function getPhonemeTts(phoneme) {
+    if (!phoneme) return '';
+    if (phoneme.tts) return phoneme.tts;
+    if (phoneme.name && phoneme.example) return `${phoneme.name}, as in ${phoneme.example}`;
+    if (phoneme.example) return phoneme.example;
+    return phoneme.sound || '';
+}
+
+function speakPhonemeSound(phoneme) {
+    const tts = getPhonemeTts(phoneme);
+    if (!tts) return;
+    speakText(tts);
 }
 
 function initPhonemeCards() {
     const cards = document.querySelectorAll('.phoneme-card');
-    
+
+    let initialized = 0;
     cards.forEach(card => {
-        card.addEventListener('click', function() {
-            const sound = this.dataset.sound;
-            const example = this.dataset.example;
-            
-            // Get phoneme data
+        if (card.dataset.mouthInit === 'true') return;
+        card.dataset.mouthInit = 'true';
+        initialized += 1;
+
+        card.addEventListener('click', () => {
+            const sound = card.dataset.sound;
+            if (!sound) return;
+
             const phonemeData = window.getPhonemeData ? window.getPhonemeData(sound) : null;
-            
-            // Show animated mouth
-            showPhonememouth(sound, phonemeData);
-            
-            // Speak the sound
-            if (example) {
-                speak(sound, 'phoneme');
-            }
+            showPhonemeMouth(sound, phonemeData);
         });
     });
-    
-    console.log('✓ Initialized', cards.length, 'phoneme cards with mouth animations');
+
+    if (initialized > 0) {
+        console.log('✓ Initialized', initialized, 'phoneme cards with mouth animations');
+    }
 }
 
 function showPhonemeMouth(sound, phonemeData) {
@@ -2360,7 +2424,7 @@ function showPhonemeMouth(sound, phonemeData) {
     }
     
     // Build content
-    const animation = phonemeData ? phonemeData.animation : `mouth-${sound}`;
+    const animation = phonemeData ? getMouthClass(phonemeData) : 'mouth-neutral';
     const cue = phonemeData ? phonemeData.cue : 'Watch the mouth';
     const description = phonemeData ? phonemeData.description : '';
     
