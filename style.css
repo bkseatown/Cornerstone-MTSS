@@ -3238,6 +3238,8 @@ body.madlibs-page {
     color: #111827;
     line-height: 1.6;
     font-size: 1rem;
+    white-space: pre-wrap;
+    margin-bottom: 16px;
 }
 
 .madlibs-output.empty {
@@ -3477,7 +3479,7 @@ body.madlibs-page {
     flex: 1;
     min-height: 0;
     align-content: start;
-    padding-bottom: 12px;
+    padding-bottom: clamp(16px, 2.5vh, 28px);
 }
 
 .madlibs-panel {
