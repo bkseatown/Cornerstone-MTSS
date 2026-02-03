@@ -697,8 +697,10 @@ main {
 }
 
 .key.vowel { 
-    background: var(--color-vowel-soft); 
-    border: 2px solid var(--color-vowel-border); 
+    background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%); 
+    border: 2px solid #5b8ff7; 
+    color: #0f172a;
+    box-shadow: 0 4px 0 0 #9fb8e8, 0 4px 10px rgba(15, 23, 42, 0.15);
 }
 
 /* MODALS - Clean, focused */
@@ -759,6 +761,12 @@ main {
     font-size: 1.6rem;
     cursor: pointer;
     color: #6b7280;
+}
+
+.info-modal-content .close-btn {
+    font-size: 1.2rem;
+    top: 10px;
+    right: 10px;
 }
 
 .top-right-x {
@@ -2461,12 +2469,13 @@ button:active:not(:disabled) {
 }
 
 .articulation-illustration {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff4ec 0%, #ffd9c2 55%, #f7c7a8 100%);
+    width: 120px;
+    height: 120px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #fff4eb 0%, #ffe2cf 100%);
+    border: 1px solid rgba(251, 191, 147, 0.6);
     position: relative;
-    box-shadow: inset 0 0 0 6px rgba(255,255,255,0.5), 0 10px 18px rgba(15, 23, 42, 0.12);
+    box-shadow: inset 0 0 0 4px rgba(255,255,255,0.6), 0 8px 14px rgba(15, 23, 42, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2474,18 +2483,18 @@ button:active:not(:disabled) {
 
 .articulation-mouth {
     position: relative;
-    width: var(--mouth-w, 70px);
-    height: var(--mouth-h, 46px);
-    background: #b91c1c;
+    width: var(--mouth-w, 62px);
+    height: var(--mouth-h, 38px);
+    background: #b45309;
     border-radius: var(--mouth-radius, 40px);
     overflow: hidden;
-    box-shadow: inset 0 -6px 10px rgba(0,0,0,0.2);
+    box-shadow: inset 0 -6px 10px rgba(0,0,0,0.18);
 }
 
 .articulation-lips {
     position: absolute;
     inset: 0;
-    border: 3px solid rgba(248, 113, 113, 0.9);
+    border: 2px solid rgba(251, 146, 60, 0.7);
     border-radius: inherit;
 }
 
@@ -3641,7 +3650,7 @@ body.cloze-page {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
+    padding: 12px 16px;
 }
 
 .madlibs-main {
@@ -3649,14 +3658,14 @@ body.cloze-page {
     max-width: 1100px;
     display: grid;
     grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
-    gap: 24px;
-    padding: 0 16px 24px;
+    gap: 18px;
+    padding: 0 16px 18px;
 }
 
 .madlibs-panel {
     background: white;
     border-radius: 14px;
-    padding: 18px;
+    padding: 14px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
@@ -3672,6 +3681,25 @@ body.cloze-page {
     inset: 0;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), transparent 60%);
     pointer-events: none;
+}
+
+.madlibs-panel::after {
+    content: '';
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    top: -60px;
+    right: -50px;
+    background:
+        radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.18), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(56, 189, 248, 0.16), transparent 65%);
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.madlibs-header h1::after {
+    content: ' ✨';
+    font-size: 1.05rem;
 }
 
 .madlibs-panel h2 {
@@ -3703,8 +3731,8 @@ body.cloze-page {
 
 .madlibs-panel textarea {
     width: 100%;
-    min-height: 140px;
-    padding: 12px;
+    min-height: 120px;
+    padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #d1d5db;
     font-family: var(--font-body);
@@ -3722,14 +3750,17 @@ body.cloze-page {
 
 #madlibs-fields {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    max-height: clamp(220px, 38vh, 340px);
+    overflow: auto;
+    padding-right: 4px;
 }
 
 .madlibs-field {
     background: #f8fafc;
     border-radius: 12px;
-    padding: 10px;
+    padding: 8px;
     border: 1px solid #e2e8f0;
 }
 
@@ -3738,7 +3769,7 @@ body.cloze-page {
 }
 
 .madlibs-field input[type="text"] {
-    padding: 8px 10px;
+    padding: 6px 8px;
 }
 
 .madlibs-template-actions {
@@ -3766,7 +3797,7 @@ body.cloze-page {
     gap: 6px;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 10px;
+    padding: 8px;
     background: #f9fafb;
 }
 
@@ -3801,7 +3832,7 @@ body.cloze-page {
 }
 
 .madlibs-output {
-    min-height: 160px;
+    min-height: 130px;
     background: #f8fafc;
     border-radius: 12px;
     padding: 14px;
@@ -3810,7 +3841,7 @@ body.cloze-page {
     line-height: 1.6;
     font-size: 1rem;
     white-space: pre-wrap;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     background-image: linear-gradient(transparent 0%, transparent 92%, rgba(99, 102, 241, 0.08) 92%, rgba(99, 102, 241, 0.08) 100%);
     background-size: 100% 28px;
 }
@@ -4039,6 +4070,35 @@ body.fun-studio .fun-hud-icon {
     }
 }
 
+@media (max-width: 960px) {
+    .fun-hud {
+        top: 88px;
+    }
+}
+
+@media (max-width: 760px) {
+    .fun-hud {
+        top: 112px;
+        right: 12px;
+    }
+}
+
+@media (max-width: 520px) {
+    .fun-hud {
+        top: 126px;
+    }
+}
+
+body.madlibs-page .fun-hud {
+    top: 84px;
+}
+
+@media (max-width: 760px) {
+    body.madlibs-page .fun-hud {
+        top: 112px;
+    }
+}
+
 /* ==========================================================================
    Dark theme
    ========================================================================== */
@@ -4108,6 +4168,27 @@ body.fun-studio .fun-hud-icon {
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45);
     }
 
+    .tile.correct {
+        background: #16a34a;
+        border-color: #22c55e;
+        color: #f8fafc;
+        box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
+    }
+
+    .tile.present {
+        background: #f59e0b;
+        border-color: #fbbf24;
+        color: #1f2937;
+        box-shadow: 0 6px 14px rgba(251, 191, 36, 0.4);
+    }
+
+    .tile.absent {
+        background: #334155;
+        border-color: #475569;
+        color: #e2e8f0;
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.5);
+    }
+
     #keyboard {
         color: #e2e8f0;
     }
@@ -4119,10 +4200,29 @@ body.fun-studio .fun-hud-icon {
         box-shadow: 0 4px 0 0 #0b1220, 0 6px 12px rgba(0,0,0,0.55);
     }
 
+    .key.correct {
+        background: linear-gradient(180deg, #16a34a 0%, #15803d 100%) !important;
+        color: #f8fafc !important;
+        border-color: #22c55e !important;
+    }
+
+    .key.present {
+        background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
+        color: #1f2937 !important;
+        border-color: #fbbf24 !important;
+    }
+
     .key.absent {
         background: linear-gradient(180deg, #111827 0%, #0b1220 100%) !important;
         color: #a3b1c6 !important;
         border-color: #0b1220;
+    }
+
+    .key.vowel {
+        background: linear-gradient(180deg, #4c6fa6 0%, #344a6a 100%);
+        border: 1px solid #93c5fd;
+        color: #f8fafc;
+        box-shadow: 0 4px 0 0 #0b1220, 0 6px 14px rgba(0,0,0,0.5);
     }
 
     .modal {
@@ -4397,6 +4497,10 @@ body.fun-studio .fun-hud-icon {
     }
 
     .madlibs-panel textarea {
+        min-height: 96px;
+    }
+
+    .madlibs-output {
         min-height: 110px;
     }
 }
@@ -4412,6 +4516,18 @@ body.fun-studio .fun-hud-icon {
     }
 
     .madlibs-panel textarea {
+        min-height: 80px;
+    }
+
+    #madlibs-fields {
+        gap: 6px;
+    }
+
+    .madlibs-field {
+        padding: 6px;
+    }
+
+    .madlibs-output {
         min-height: 96px;
     }
 }

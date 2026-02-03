@@ -19,6 +19,7 @@ let patternLengthCache = null;
 let voicesReadyPromise = null;
 let speechStartTimeout = null;
 let modalDismissBound = false;
+let assessmentState = null;
 
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
@@ -48,7 +49,7 @@ const DEFAULT_SETTINGS = {
         lang: 'en'
     },
     bonus: {
-        frequency: 'sometimes'
+        frequency: 'often'
     },
     soundWallSections: {
         'vowel-valley': true,
@@ -61,6 +62,67 @@ const DEFAULT_SETTINGS = {
         'blends': true
     }
 };
+
+const WTW_STAGES = [
+    {
+        id: 'letter-name',
+        label: 'Letter-Name Alphabetic',
+        words: [
+            { word: 'cat', pattern: 'Short A' },
+            { word: 'pin', pattern: 'Short I' },
+            { word: 'bed', pattern: 'Short E' },
+            { word: 'hot', pattern: 'Short O' },
+            { word: 'cup', pattern: 'Short U' },
+            { word: 'map', pattern: 'CVC' },
+            { word: 'sun', pattern: 'CVC' },
+            { word: 'fish', pattern: 'Digraph SH' },
+            { word: 'chip', pattern: 'Digraph CH' },
+            { word: 'thin', pattern: 'Digraph TH' }
+        ]
+    },
+    {
+        id: 'within-word',
+        label: 'Within Word Pattern',
+        words: [
+            { word: 'rain', pattern: 'Vowel Team AI' },
+            { word: 'boat', pattern: 'Vowel Team OA' },
+            { word: 'seed', pattern: 'Vowel Team EE' },
+            { word: 'night', pattern: 'Long I' },
+            { word: 'snow', pattern: 'Long O' },
+            { word: 'coin', pattern: 'Diphthong OI' },
+            { word: 'out', pattern: 'Diphthong OU' },
+            { word: 'bird', pattern: 'R-Controlled IR' },
+            { word: 'fork', pattern: 'R-Controlled OR' },
+            { word: 'turn', pattern: 'R-Controlled UR' }
+        ]
+    },
+    {
+        id: 'syllable-juncture',
+        label: 'Syllable Juncture',
+        words: [
+            { word: 'rabbit', pattern: 'Closed + Closed' },
+            { word: 'picnic', pattern: 'Closed + Closed' },
+            { word: 'paper', pattern: 'Open + Closed' },
+            { word: 'sunset', pattern: 'Compound' },
+            { word: 'campfire', pattern: 'Compound' },
+            { word: 'robot', pattern: 'Open + Closed' },
+            { word: 'sticky', pattern: 'Vowel + Y' },
+            { word: 'napkin', pattern: 'Closed + Closed' }
+        ]
+    },
+    {
+        id: 'derivational',
+        label: 'Derivational Relations',
+        words: [
+            { word: 'music', pattern: 'Base + ic' },
+            { word: 'musician', pattern: 'Base + ian' },
+            { word: 'danger', pattern: 'Base + er' },
+            { word: 'dangerous', pattern: 'Base + ous' },
+            { word: 'celebrate', pattern: 'Base' },
+            { word: 'celebration', pattern: 'Base + tion' }
+        ]
+    }
+];
 
 let appSettings = { ...DEFAULT_SETTINGS };
 
@@ -191,6 +253,12 @@ function loadSettings() {
                 ...(parsed.soundWallSections || {})
             }
         };
+
+        const migrated = localStorage.getItem('bonus_frequency_migrated');
+        if (!migrated && (!parsed.bonus || parsed.bonus.frequency === 'sometimes')) {
+            appSettings.bonus.frequency = DEFAULT_SETTINGS.bonus.frequency;
+            localStorage.setItem('bonus_frequency_migrated', 'true');
+        }
     } catch (e) {
         console.warn('Could not parse settings, using defaults.', e);
     }
@@ -306,6 +374,8 @@ document.addEventListener("DOMContentLoaded", () => {
     initFocusToggle();
     enableOverlayCloseForAllModals();
     initModalDismissals();
+    initHowTo();
+    initAssessmentFlow();
     initVoiceSourceControls(); // Voice source toggle
     initTeacherTools();
     initSoundWallFilters();
@@ -2151,7 +2221,14 @@ function autoPlayReveal(definitionText, sentenceText) {
 }
 
 function prepareTranslationSection() {
-    const section = document.querySelector(".translation-selector");
+    const languageSelect = document.getElementById("language-select");
+    let section = document.querySelector(".translation-selector");
+    if (!section && languageSelect) {
+        section = languageSelect.closest(".translation-selector") || languageSelect.parentElement;
+        if (section && !section.classList.contains("translation-selector")) {
+            section.classList.add("translation-selector");
+        }
+    }
     if (!section || section.dataset.compactified === "true") return section;
 
     const toggle = document.createElement("button");
@@ -2181,7 +2258,11 @@ function prepareTranslationSection() {
 
 function ensureTranslationElements(modalContent) {
     const container = modalContent || document;
-    const translationSelector = container.querySelector('.translation-selector') || document.querySelector('.translation-selector');
+    const languageSelect = document.getElementById('language-select');
+    const fallbackSelector = languageSelect
+        ? (languageSelect.closest('.translation-selector') || languageSelect.parentElement)
+        : null;
+    const translationSelector = container.querySelector('.translation-selector') || document.querySelector('.translation-selector') || fallbackSelector;
 
     let translationDisplay = document.getElementById('translation-display');
     if (!translationDisplay) {
@@ -2240,7 +2321,9 @@ function ensureTranslationElements(modalContent) {
 
 function setupModalAudioControls(definitionText, sentenceText) {
     if (!gameModal) return;
-    const modalContent = gameModal.querySelector('.modal-content') || gameModal;
+    const modalContent = gameModal.querySelector('.modal-content')
+        || gameModal.querySelector('.modal-body')
+        || gameModal;
     if (!modalContent) return;
 
     let audioControls = document.getElementById('modal-audio-controls');
@@ -2304,12 +2387,34 @@ function setupModalAudioControls(definitionText, sentenceText) {
         if (!actionRow.contains(playAgainBtn)) actionRow.appendChild(playAgainBtn);
     }
 
-    const translationSelector = modalContent.querySelector('.translation-selector');
-    if (audioControls.parentElement !== modalContent) {
-        modalContent.insertBefore(audioControls, translationSelector || null);
-    }
-    if (actionRow.parentElement !== modalContent) {
-        modalContent.insertBefore(actionRow, translationSelector || null);
+    const translationSelector = modalContent.querySelector('.translation-selector')
+        || document.querySelector('.translation-selector')
+        || document.getElementById('language-select')?.parentElement;
+    const sentenceEl = modalContent.querySelector('#modal-sentence');
+
+    const insertAfter = (node, reference) => {
+        if (!reference || !reference.parentElement) return;
+        reference.parentElement.insertBefore(node, reference.nextSibling);
+    };
+
+    const translationParent = translationSelector?.parentElement;
+    if (translationSelector && translationParent === modalContent) {
+        if (audioControls.parentElement !== modalContent) {
+            modalContent.insertBefore(audioControls, translationSelector);
+        }
+        if (actionRow.parentElement !== modalContent) {
+            modalContent.insertBefore(actionRow, translationSelector);
+        }
+    } else if (sentenceEl && sentenceEl.parentElement) {
+        if (audioControls.parentElement !== sentenceEl.parentElement) {
+            insertAfter(audioControls, sentenceEl);
+        }
+        if (actionRow.parentElement !== audioControls.parentElement) {
+            insertAfter(actionRow, audioControls);
+        }
+    } else {
+        if (!modalContent.contains(audioControls)) modalContent.appendChild(audioControls);
+        if (!modalContent.contains(actionRow)) modalContent.appendChild(actionRow);
     }
 }
 
@@ -2397,7 +2502,7 @@ function showEndModal(win) {
 
             translationDisplay.classList.remove("hidden");
         } else {
-            translatedDef.textContent = "Translation not available";
+            translatedDef.textContent = "Translation not available yet.";
             translatedSentence.textContent = "";
             if (playTranslatedDef) playTranslatedDef.onclick = null;
             if (playTranslatedSentence) playTranslatedSentence.onclick = null;
@@ -2412,6 +2517,9 @@ function showEndModal(win) {
         } else {
             setTranslationAudioNote('');
         }
+
+        const translationSection = translationDisplay.closest('.translation-compact');
+        if (translationSection) translationSection.classList.add('is-open');
     };
 
     const updatePinStatus = () => {
@@ -2471,10 +2579,8 @@ function showEndModal(win) {
         }
     }
     
-    // Store that we should show bonus when modal closes (if won)
-    if (win) {
-        sessionStorage.setItem('showBonusOnClose', 'true');
-    }
+    // Store that we should show bonus when modal closes
+    sessionStorage.setItem('showBonusOnClose', 'true');
 
     autoPlayReveal(def, sentence);
 }
@@ -2784,7 +2890,14 @@ const BONUS_CONTENT = {
         "Why did the cookie go to the doctor? Because it felt crumbly!",
         "What do you call a dinosaur that crashes his car? Tyrannosaurus Wrecks!",
         "Why can't you give Elsa a balloon? Because she will let it go!",
-        "What do you call a snowman in summer? A puddle!"
+        "What do you call a snowman in summer? A puddle!",
+        "Why did the pencil cross the road? To draw the other side!",
+        "What do you call cheese that isn't yours? Nacho cheese!",
+        "Why did the tomato blush? Because it saw the salad dressing!",
+        "What do you call a lazy kangaroo? A pouch potato!",
+        "Why did the kid bring a ladder to school? To go to high school!",
+        "What do you call a sleeping dinosaur? A dino-snore!",
+        "Why did the banana wear sunscreen? Because it didn't want to peel!"
     ],
     facts: [
         "Honey never spoils! Archaeologists have found 3,000-year-old honey that's still edible.",
@@ -2796,7 +2909,14 @@ const BONUS_CONTENT = {
         "Your brain generates enough electricity to power a small light bulb.",
         "A cloud can weigh more than a million pounds!",
         "Butterflies taste with their feet.",
-        "The dot over 'i' and 'j' is called a 'tittle'."
+        "The dot over 'i' and 'j' is called a 'tittle'.",
+        "Koalas sleep up to 20 hours a day.",
+        "A day on Venus is longer than a year on Venus.",
+        "Some cats can jump up to six times their body length.",
+        "The heart of a shrimp is in its head.",
+        "Dolphins have names for each other!",
+        "Hot water can freeze faster than cold water (the Mpemba effect).",
+        "Sea otters hold hands while they sleep so they don't drift apart."
     ],
     quotes: [
         "The more that you read, the more things you will know. — Dr. Seuss",
@@ -2808,14 +2928,19 @@ const BONUS_CONTENT = {
         "The expert in anything was once a beginner.",
         "Every mistake is a chance to learn something new.",
         "Believe you can and you're halfway there. — Theodore Roosevelt",
-        "What you do today can improve all your tomorrows."
+        "What you do today can improve all your tomorrows.",
+        "Mistakes are proof that you are trying.",
+        "Small steps every day add up to big progress.",
+        "Curiosity is the spark behind every discovery.",
+        "Kind words can make someone's whole day brighter.",
+        "Practice makes progress."
     ]
 };
 
 function shouldShowBonusContent() {
     const frequency = appSettings.bonus?.frequency || 'sometimes';
     if (frequency === 'off') return false;
-    if (frequency === 'often') return true;
+    if (frequency === 'often' || frequency === 'always') return true;
     if (frequency === 'rare') return Math.random() < 0.2;
     return Math.random() < 0.4;
 }
@@ -2823,8 +2948,16 @@ function shouldShowBonusContent() {
 function showBonusContent() {
     // Randomly choose joke, fact, or quote
     const types = ['jokes', 'facts', 'quotes'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    const content = BONUS_CONTENT[type][Math.floor(Math.random() * BONUS_CONTENT[type].length)];
+    const lastKey = localStorage.getItem('last_bonus_key');
+    let type = types[Math.floor(Math.random() * types.length)];
+    let content = BONUS_CONTENT[type][Math.floor(Math.random() * BONUS_CONTENT[type].length)];
+    let guard = 0;
+    while (lastKey && `${type}:${content}` === lastKey && guard < 5) {
+        type = types[Math.floor(Math.random() * types.length)];
+        content = BONUS_CONTENT[type][Math.floor(Math.random() * BONUS_CONTENT[type].length)];
+        guard += 1;
+    }
+    localStorage.setItem('last_bonus_key', `${type}:${content}`);
     
     const emoji = type === 'jokes' ? '😄' : type === 'facts' ? '🌟' : '💭';
     const title = type === 'jokes' ? 'Joke Time!' : type === 'facts' ? 'Fun Fact!' : 'Quote of the Day';
@@ -3346,7 +3479,7 @@ function ensureInfoModal() {
         `;
         document.body.appendChild(modal);
         const closeBtn = modal.querySelector('.close-btn');
-        closeBtn.onclick = () => closeModal();
+        closeBtn.onclick = () => closeInfoModal();
     }
     return modal;
 }
@@ -3371,6 +3504,19 @@ function openInfoModal(key) {
     }
     if (modalOverlay) modalOverlay.classList.remove('hidden');
     modal.classList.remove('hidden');
+}
+
+function closeInfoModal() {
+    const infoModal = document.getElementById('info-modal');
+    if (!infoModal || infoModal.classList.contains('hidden')) return;
+    infoModal.classList.add('hidden');
+    const othersOpen = getAllModalElements().some(modal => {
+        if (modal.id === 'info-modal') return false;
+        return !modal.classList.contains('hidden');
+    });
+    if (!othersOpen && modalOverlay) {
+        modalOverlay.classList.add('hidden');
+    }
 }
 
 function injectSoundGuideInfoButtons() {
@@ -4043,9 +4189,9 @@ function normalizePhonemeForTTS(sound) {
         cleaned = cleaned.replace(new RegExp(key, 'g'), value);
     });
     const charMap = {
-        'æ': 'a',
+        'æ': 'aeh',
         'ɑ': 'ah',
-        'ɒ': 'o',
+        'ɒ': 'aw',
         'ɔ': 'aw',
         'ə': 'uh',
         'ʌ': 'uh',
@@ -4067,7 +4213,7 @@ function normalizePhonemeForTTS(sound) {
 }
 
 const SOUND_TTS_MAP = {
-    a: 'ah',
+    a: 'aeh',
     e: 'eh',
     i: 'ih',
     o: 'aw',
@@ -4361,13 +4507,80 @@ function initFocusToggle() {
     }
 }
 
+function initHowTo() {
+    const headerActions = document.querySelector('.header-actions');
+    if (!headerActions) return;
+    if (!document.getElementById('howto-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'howto-btn';
+        btn.type = 'button';
+        btn.className = 'link-btn';
+        btn.textContent = 'How to Play';
+        btn.addEventListener('click', openHowToModal);
+        headerActions.insertBefore(btn, headerActions.firstChild);
+    }
+}
+
+function ensureHowToModal() {
+    let modal = document.getElementById('howto-modal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'howto-modal';
+    modal.className = 'modal hidden howto-modal';
+    modal.dataset.overlayClose = 'true';
+    modal.innerHTML = `
+        <div class="modal-content howto-content">
+            <button class="close-btn" aria-label="Close">✕</button>
+            <h2>How to Play</h2>
+            <p class="howto-subtitle">Clear, calm steps so students can jump right in.</p>
+            <div class="howto-section">
+                <h3>Guessing</h3>
+                <ul>
+                    <li>Type a word, then press Enter.</li>
+                    <li><span class="chip correct"></span> Green = correct spot.</li>
+                    <li><span class="chip present"></span> Gold = in the word, wrong spot.</li>
+                    <li><span class="chip absent"></span> Slate = not in the word.</li>
+                </ul>
+            </div>
+            <div class="howto-section">
+                <h3>Audio Support</h3>
+                <ul>
+                    <li>Use Hear Word / Definition / Sentence in the reveal card.</li>
+                    <li>Warm‑Up: tap a sound to see mouth cues and hear it.</li>
+                    <li>Teacher can enable stronger voices in settings.</li>
+                </ul>
+            </div>
+            <div class="howto-section">
+                <h3>Fun Mode</h3>
+                <ul>
+                    <li>Coins track progress. Hearts are optional in Challenge mode.</li>
+                    <li>Teachers can toggle fun, sound effects, and difficulty.</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.close-btn')?.addEventListener('click', closeModal);
+    return modal;
+}
+
+function openHowToModal() {
+    const modal = ensureHowToModal();
+    if (!modalOverlay) return;
+    modalOverlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+}
+
 function getDismissableModal() {
     const modals = getAllModalElements();
-    return modals.find(modal => {
+    const visible = modals.filter(modal => {
         const isVisible = !modal.classList.contains('hidden');
         const canClose = modal.dataset.overlayClose === 'true';
         return isVisible && canClose;
     });
+    const infoModal = visible.find(modal => modal.id === 'info-modal');
+    return infoModal || visible[0];
 }
 
 function initModalDismissals() {
@@ -4381,6 +4594,7 @@ function initModalDismissals() {
                 const startBtn = document.getElementById('start-playing-btn');
                 if (startBtn) return startBtn.click();
             }
+            if (active.id === 'info-modal') return closeInfoModal();
             closeModal();
         }
     });
@@ -4395,6 +4609,7 @@ function initModalDismissals() {
             const startBtn = document.getElementById('start-playing-btn');
             if (startBtn) return startBtn.click();
         }
+        if (active.id === 'info-modal') return closeInfoModal();
         closeModal();
     });
 }
