@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mad Libs Maker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="madlibs.js" defer></script>
+</head>
+<body class="madlibs-page">
+  <header class="madlibs-header">
+    <h1>Mad Libs Maker</h1>
+    <div class="madlibs-actions">
+      <a class="link-btn" href="index.html">Back to Decode the Word</a>
+    </div>
+  </header>
+
+  <main class="madlibs-main">
+    <section class="madlibs-panel">
+      <h2>Choose a Story</h2>
+      <p class="muted">Pick a template or create your own. Use curly braces like `{noun}` or `{adjective}`.</p>
+      <label for="madlibs-template-select">Story template</label>
+      <select id="madlibs-template-select"></select>
+      <div class="madlibs-template-actions">
+        <button id="madlibs-use-template" class="primary-btn" type="button">Use this template</button>
+        <button id="madlibs-random-template" class="action-btn" type="button">Surprise me</button>
+      </div>
+
+      <details class="madlibs-teacher-tools">
+        <summary>Teacher Tools</summary>
+        <div class="madlibs-teacher-body">
+          <label for="madlibs-template-input">Custom template</label>
+          <textarea id="madlibs-template-input" placeholder="Example: Today I saw a {adjective} {animal} at the {place}."></textarea>
+          <div class="muted">Tip: Use parts of speech like `{noun}`, `{verb}`, `{adjective}`, `{adverb}`, `{place}`, `{animal}`, `{feeling}`.</div>
+          <button id="madlibs-parse-template" class="primary-btn" type="button">Use custom template</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="madlibs-panel">
+      <h2>Fill in the Words</h2>
+      <div id="madlibs-fields"></div>
+      <div class="madlibs-actions-row">
+        <button id="madlibs-generate" class="primary-btn" type="button">Generate Story</button>
+        <button id="madlibs-autofill" class="action-btn" type="button">Auto‑Fill</button>
+        <button id="madlibs-read" class="action-btn" type="button">Read Aloud</button>
+        <button id="madlibs-reset" class="text-btn" type="button">Clear</button>
+      </div>
+      <div id="madlibs-output" class="madlibs-output empty" aria-live="polite">Your story will appear here.</div>
+    </section>
+  </main>
+</body>
+</html>

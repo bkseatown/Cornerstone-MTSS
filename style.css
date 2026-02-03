@@ -26,6 +26,34 @@ body {
     outline: none;
 }
 
+body.large-text {
+    font-size: 110%;
+}
+
+body.calm-mode {
+    background: #f5f7fa;
+}
+
+body.calm-mode .selected-sound::before,
+body.calm-mode .phoneme-card::before,
+body.calm-mode .letter-card::before,
+body.calm-mode #mouth-visual {
+    animation: none !important;
+}
+
+body.hide-ipa .phoneme-ipa {
+    display: none;
+}
+
+body.hide-examples .phoneme-example {
+    display: none;
+}
+
+body.hide-mouth-cues #mouth-cue,
+body.hide-mouth-cues #mouth-description {
+    display: none;
+}
+
 /* HEADER - Integrated seamless design */
 header {
     width: 100%; 
@@ -67,6 +95,26 @@ h1 {
     font-size: 0.9rem;
     transition: all 0.2s;
     color: #555;
+}
+
+.link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.link-btn:hover {
+    background: #eef2f7;
+    border-color: #cbd5f5;
 }
 
 .text-btn:hover {
@@ -729,6 +777,53 @@ main {
     font-size: 0.9rem;
     margin-top: 6px;
     min-height: 1.2em;
+}
+
+#teacher-modal .teacher-tools {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+    margin-top: 10px;
+}
+
+#teacher-modal .teacher-tools summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+#teacher-modal .teacher-tools-grid {
+    display: grid;
+    gap: 10px;
+}
+
+#teacher-modal .toggle-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+#teacher-modal .toggle-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+#teacher-modal .slider-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+#teacher-modal #speech-rate {
+    width: 100%;
+}
+
+#teacher-modal #speech-rate-value {
+    font-weight: 600;
+    color: #1f2937;
 }
 
 .stat-box { 
@@ -1926,6 +2021,35 @@ button:active:not(:disabled) {
     margin-bottom: 10px;
 }
 
+.soundwall-filters {
+    margin-bottom: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+}
+
+.soundwall-filters summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #374151;
+}
+
+.soundwall-filters .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px 12px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #1f2937;
+}
+
+.soundwall-filters label {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .vowel-valley {
     display: flex;
     justify-content: center;
@@ -2188,6 +2312,150 @@ button:active:not(:disabled) {
 @keyframes breathe {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
+}
+
+/* ---------- Mad Libs ---------- */
+body.madlibs-page {
+    overflow: auto;
+    height: auto;
+}
+
+.madlibs-header {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+}
+
+.madlibs-main {
+    width: 100%;
+    max-width: 980px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 0 16px 24px;
+}
+
+.madlibs-panel {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.madlibs-panel h2 {
+    font-size: 1.2rem;
+    color: #1f2937;
+}
+
+.madlibs-panel .muted {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.madlibs-panel label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.madlibs-panel textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-family: var(--font-body);
+    resize: vertical;
+}
+
+.madlibs-panel select,
+.madlibs-panel input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-family: var(--font-body);
+}
+
+.madlibs-template-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.madlibs-teacher-tools summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #374151;
+}
+
+.madlibs-teacher-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.madlibs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px;
+    background: #f9fafb;
+}
+
+.madlibs-field .field-help {
+    display: block;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.madlibs-field .field-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.madlibs-field button {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.madlibs-actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.madlibs-output {
+    min-height: 160px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.madlibs-output.empty {
+    color: #6b7280;
+    font-style: italic;
 }
 
 /* Letter sounds display */

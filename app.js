@@ -18,6 +18,29 @@ let cachedVoices = [];
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
 
+// App settings (accessibility + teacher tools)
+const SETTINGS_KEY = 'decode_settings';
+const DEFAULT_SETTINGS = {
+    calmMode: false,
+    largeText: false,
+    showIPA: true,
+    showExamples: true,
+    showMouthCues: true,
+    speechRate: 0.85,
+    soundWallSections: {
+        'vowel-valley': true,
+        'long-vowels': true,
+        'r-controlled': true,
+        'diphthongs': true,
+        'welded': true,
+        'schwa': true,
+        'consonant-grid': true,
+        'blends': true
+    }
+};
+
+let appSettings = { ...DEFAULT_SETTINGS };
+
 // --- AUDIO DATABASE SETUP (IndexedDB) ---
 const DB_NAME = "PhonicsAudioDB";
 const STORE_NAME = "audio_files";
@@ -57,7 +80,84 @@ function getAudioFromDB(key) {
     });
 }
 
+function loadSettings() {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (!saved) return;
+
+    try {
+        const parsed = JSON.parse(saved);
+        appSettings = {
+            ...DEFAULT_SETTINGS,
+            ...parsed,
+            soundWallSections: {
+                ...DEFAULT_SETTINGS.soundWallSections,
+                ...(parsed.soundWallSections || {})
+            }
+        };
+    } catch (e) {
+        console.warn('Could not parse settings, using defaults.', e);
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+}
+
+function getSpeechRate(type = 'word') {
+    const base = appSettings.speechRate || DEFAULT_SETTINGS.speechRate;
+    if (type === 'phoneme') return Math.max(0.6, base - 0.15);
+    if (type === 'sentence') return Math.min(1.0, base + 0.05);
+    return base;
+}
+
+function applySettings() {
+    document.body.classList.toggle('calm-mode', appSettings.calmMode);
+    document.body.classList.toggle('large-text', appSettings.largeText);
+    document.body.classList.toggle('hide-ipa', !appSettings.showIPA);
+    document.body.classList.toggle('hide-examples', !appSettings.showExamples);
+    document.body.classList.toggle('hide-mouth-cues', !appSettings.showMouthCues);
+
+    const calmToggle = document.getElementById('toggle-calm-mode');
+    if (calmToggle) calmToggle.checked = appSettings.calmMode;
+    const largeTextToggle = document.getElementById('toggle-large-text');
+    if (largeTextToggle) largeTextToggle.checked = appSettings.largeText;
+    const ipaToggle = document.getElementById('toggle-show-ipa');
+    if (ipaToggle) ipaToggle.checked = appSettings.showIPA;
+    const examplesToggle = document.getElementById('toggle-show-examples');
+    if (examplesToggle) examplesToggle.checked = appSettings.showExamples;
+    const cuesToggle = document.getElementById('toggle-mouth-cues');
+    if (cuesToggle) cuesToggle.checked = appSettings.showMouthCues;
+
+    const speechRateInput = document.getElementById('speech-rate');
+    if (speechRateInput) {
+        speechRateInput.value = appSettings.speechRate;
+        const display = document.getElementById('speech-rate-value');
+        if (display) display.textContent = `${appSettings.speechRate.toFixed(2)}x`;
+    }
+
+    applySoundWallSectionVisibility();
+}
+
+function applySoundWallSectionVisibility() {
+    const sections = document.querySelectorAll('.soundwall-section');
+    sections.forEach(section => {
+        const key = section.dataset.section;
+        if (!key) return;
+        const isVisible = appSettings.soundWallSections[key] !== false;
+        section.classList.toggle('hidden', !isVisible);
+    });
+
+    const filterInputs = document.querySelectorAll('.soundwall-filters input[type="checkbox"][data-section]');
+    filterInputs.forEach(input => {
+        const section = input.dataset.section;
+        if (!section) return;
+        input.checked = appSettings.soundWallSections[section] !== false;
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    loadSettings();
+
     // Compatibility: map WORDS_DATA to WORD_ENTRIES
     if (typeof WORDS_DATA !== 'undefined') {
         window.WORD_ENTRIES = WORDS_DATA;
@@ -79,6 +179,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initStudio();
     initNewFeatures();
     initVoiceSourceControls(); // Voice source toggle
+    initTeacherTools();
+    initSoundWallFilters();
+    applySettings();
     
     // Initialize adaptive actions
     if (typeof initAdaptiveActions === 'function') {
@@ -215,7 +318,7 @@ async function speak(text, type = "word") {
     }
 
     if (preferred) msg.voice = preferred;
-    msg.rate = 0.9; 
+    msg.rate = getSpeechRate(type === 'sentence' ? 'sentence' : 'word');
     msg.pitch = 1.0;
 
     window.speechSynthesis.speak(msg);
@@ -255,7 +358,7 @@ function playTextInLanguage(text, languageCode) {
         msg.lang = targetLang;
     }
     
-    msg.rate = 0.8; // Slightly slower for non-English
+    msg.rate = Math.max(0.65, getSpeechRate('sentence') - 0.1);
     msg.pitch = 1.0;
     
     window.speechSynthesis.speak(msg);
@@ -451,6 +554,79 @@ function initControls() {
         e.stopImmediatePropagation(); 
         if (e.key === "Enter") handleTeacherSubmit();
         if (e.key === "Escape") closeModal();
+    });
+}
+
+function initTeacherTools() {
+    const calmToggle = document.getElementById('toggle-calm-mode');
+    if (calmToggle) {
+        calmToggle.onchange = () => {
+            appSettings.calmMode = calmToggle.checked;
+            saveSettings();
+            applySettings();
+        };
+    }
+
+    const largeTextToggle = document.getElementById('toggle-large-text');
+    if (largeTextToggle) {
+        largeTextToggle.onchange = () => {
+            appSettings.largeText = largeTextToggle.checked;
+            saveSettings();
+            applySettings();
+        };
+    }
+
+    const ipaToggle = document.getElementById('toggle-show-ipa');
+    if (ipaToggle) {
+        ipaToggle.onchange = () => {
+            appSettings.showIPA = ipaToggle.checked;
+            saveSettings();
+            applySettings();
+        };
+    }
+
+    const examplesToggle = document.getElementById('toggle-show-examples');
+    if (examplesToggle) {
+        examplesToggle.onchange = () => {
+            appSettings.showExamples = examplesToggle.checked;
+            saveSettings();
+            applySettings();
+        };
+    }
+
+    const cuesToggle = document.getElementById('toggle-mouth-cues');
+    if (cuesToggle) {
+        cuesToggle.onchange = () => {
+            appSettings.showMouthCues = cuesToggle.checked;
+            saveSettings();
+            applySettings();
+        };
+    }
+
+    const speechRateInput = document.getElementById('speech-rate');
+    if (speechRateInput) {
+        speechRateInput.oninput = () => {
+            const value = parseFloat(speechRateInput.value);
+            appSettings.speechRate = Number.isFinite(value) ? value : DEFAULT_SETTINGS.speechRate;
+            const display = document.getElementById('speech-rate-value');
+            if (display) display.textContent = `${appSettings.speechRate.toFixed(2)}x`;
+            saveSettings();
+        };
+    }
+}
+
+function initSoundWallFilters() {
+    const filterInputs = document.querySelectorAll('.soundwall-filters input[type="checkbox"][data-section]');
+    if (!filterInputs.length) return;
+
+    filterInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            const section = input.dataset.section;
+            if (!section) return;
+            appSettings.soundWallSections[section] = input.checked;
+            saveSettings();
+            applySoundWallSectionVisibility();
+        });
     });
 }
 
@@ -1897,7 +2073,7 @@ function speakWithSystemVoice(text) {
         }
     }
     
-    utterance.rate = 0.9;
+    utterance.rate = getSpeechRate();
     speechSynthesis.speak(utterance);
 }
 
@@ -2449,11 +2625,11 @@ function playLetterSequence(letter, word, phoneme) {
     }, 1800);
 }
 
-function speakText(text) {
+function speakText(text, rateType = 'word') {
     if (!text) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.8;
+    utterance.rate = getSpeechRate(rateType);
     utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);
 }
@@ -2465,7 +2641,7 @@ function speakSpelling(grapheme) {
         .toUpperCase()
         .split('')
         .join(' ');
-    speakText(letters);
+    speakText(letters, 'phoneme');
 }
 
 function getPhonemeTts(phoneme) {
@@ -2479,7 +2655,7 @@ function getPhonemeTts(phoneme) {
 function speakPhonemeSound(phoneme) {
     const tts = getPhonemeTts(phoneme);
     if (!tts) return;
-    speakText(tts);
+    speakText(tts, 'phoneme');
 }
 
 function initPhonemeCards() {

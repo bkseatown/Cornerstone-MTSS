@@ -86,6 +86,7 @@
       
       <!-- Teacher tools entry point -->
       <button id="teacher-btn" type="button">🎓 Teacher</button>
+      <a id="madlibs-btn" class="link-btn" href="madlibs.html">Mad Libs</a>
     </div>
   </header>
 
@@ -227,6 +228,37 @@
           <option value="">Auto-Select Best (Default)</option>
         </select>
       </div>
+
+      <details class="teacher-tools">
+        <summary>Classroom Tools</summary>
+        <div class="teacher-tools-grid">
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-calm-mode">
+            Calm mode (reduced motion + softer visuals)
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-large-text">
+            Large text
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-show-ipa" checked>
+            Show IPA symbols
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-show-examples" checked>
+            Show example words
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-mouth-cues" checked>
+            Show mouth cues
+          </label>
+          <div class="toggle-row slider-row">
+            <label for="speech-rate">Speech rate</label>
+            <input type="range" id="speech-rate" min="0.6" max="1.05" step="0.05" value="0.85">
+            <span id="speech-rate-value">0.85x</span>
+          </div>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -396,35 +428,48 @@
       <div id="phoneme-content">
         <!-- Sound Wall Tab -->
         <div id="soundwall-content" class="tab-content">
-          <div class="soundwall-section">
+          <details class="soundwall-filters">
+            <summary>Sound Wall Filters</summary>
+            <div class="filter-grid">
+              <label><input type="checkbox" data-section="vowel-valley" checked> Short vowels (valley)</label>
+              <label><input type="checkbox" data-section="long-vowels" checked> Long vowels / teams</label>
+              <label><input type="checkbox" data-section="r-controlled" checked> R-controlled</label>
+              <label><input type="checkbox" data-section="diphthongs" checked> Diphthongs</label>
+              <label><input type="checkbox" data-section="welded" checked> Glued / welded</label>
+              <label><input type="checkbox" data-section="schwa" checked> Schwa</label>
+              <label><input type="checkbox" data-section="consonant-grid" checked> Consonant grid</label>
+              <label><input type="checkbox" data-section="blends" checked> Blends</label>
+            </div>
+          </details>
+          <div class="soundwall-section" data-section="vowel-valley">
             <h3>Vowel Valley (Short Vowels)</h3>
             <div id="vowel-valley" class="vowel-valley"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="long-vowels">
             <h3>Long Vowels / Vowel Teams</h3>
             <div id="soundwall-long-vowels" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="r-controlled">
             <h3>R-Controlled</h3>
             <div id="soundwall-rcontrolled" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="diphthongs">
             <h3>Diphthongs</h3>
             <div id="soundwall-diphthongs" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="welded">
             <h3>Glued / Welded</h3>
             <div id="soundwall-welded" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="schwa">
             <h3>Schwa</h3>
             <div id="soundwall-schwa" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="consonant-grid">
             <h3>Consonant Grid</h3>
             <div id="consonant-grid" class="consonant-grid"></div>
           </div>
-          <div class="soundwall-section">
+          <div class="soundwall-section" data-section="blends">
             <h3>Blends</h3>
             <div id="soundwall-blends" class="phoneme-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px;"></div>
           </div>
