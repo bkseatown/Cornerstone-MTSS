@@ -12,13 +12,13 @@
         // SHORT VOWELS (5)
         'a': {
             name: 'Short A',
-            sound: '/æ/',
-            example: 'cat',
+            sound: '/a/',
+            example: 'apple',
             grapheme: 'A',
             cue: 'Open mouth wide, jaw drops',
             mouthShape: 'wide-open',
             color: '#7c83f0',
-            description: 'Short a as in cat',
+            description: 'Short a as in apple',
             tongue: 'low, front',
             lips: 'unrounded, open',
             animation: 'mouth-short-a'
@@ -26,13 +26,13 @@
         
         'e': {
             name: 'Short E',
-            sound: '/ɛ/',
-            example: 'bed',
+            sound: '/e/',
+            example: 'egg',
             grapheme: 'E',
             cue: 'Mouth relaxed, slight smile',
             mouthShape: 'slight-smile',
             color: '#7c83f0',
-            description: 'Short e as in bed',
+            description: 'Short e as in egg',
             tongue: 'mid-high, front',
             lips: 'slightly spread',
             animation: 'mouth-short-e'
@@ -40,13 +40,13 @@
         
         'i': {
             name: 'Short I',
-            sound: '/ɪ/',
-            example: 'sit',
+            sound: '/i/',
+            example: 'igloo',
             grapheme: 'I',
             cue: 'Lips relaxed, tongue high',
             mouthShape: 'relaxed',
             color: '#7c83f0',
-            description: 'Short i as in sit',
+            description: 'Short i as in igloo',
             tongue: 'high, front',
             lips: 'neutral',
             animation: 'mouth-short-i'
@@ -54,13 +54,13 @@
         
         'o': {
             name: 'Short O',
-            sound: '/ɒ/',
-            example: 'hot',
+            sound: '/o/',
+            example: 'octopus',
             grapheme: 'O',
             cue: 'Mouth open, lips slightly round',
             mouthShape: 'rounded-open',
             color: '#7c83f0',
-            description: 'Short o as in hot',
+            description: 'Short o as in octopus',
             tongue: 'low, back',
             lips: 'slightly rounded',
             animation: 'mouth-short-o'
@@ -68,13 +68,13 @@
         
         'u': {
             name: 'Short U',
-            sound: '/ʌ/',
-            example: 'cup',
+            sound: '/u/',
+            example: 'umbrella',
             grapheme: 'U',
             cue: 'Relaxed mouth, jaw slightly open',
             mouthShape: 'neutral-open',
             color: '#7c83f0',
-            description: 'Short u as in cup',
+            description: 'Short u as in umbrella',
             tongue: 'mid, center',
             lips: 'neutral',
             animation: 'mouth-short-u'
@@ -83,13 +83,13 @@
         // LONG VOWELS / VOWEL TEAMS
         'ay': {
             name: 'Long A',
-            sound: '/eɪ/',
-            example: 'cake',
-            grapheme: 'A-e',
+            sound: '/ai/',
+            example: 'rain',
+            grapheme: 'AI',
             cue: 'Smile slightly, jaw relaxed',
             mouthShape: 'slight-smile',
             color: '#a78bfa',
-            description: 'Long a as in cake',
+            description: 'Long a as in rain (also make, day)',
             tongue: 'mid-high, front',
             lips: 'slightly spread',
             animation: 'mouth-short-e'
@@ -97,7 +97,7 @@
 
         'ah': {
             name: 'Broad A',
-            sound: '/ɑ/',
+            sound: '/ah/',
             example: 'father',
             grapheme: 'A',
             cue: 'Mouth open wide',
@@ -111,13 +111,13 @@
 
         'ee': {
             name: 'Long E',
-            sound: '/iː/',
-            example: 'feet',
+            sound: '/ee/',
+            example: 'tree',
             grapheme: 'EE',
             cue: 'Wide smile, tongue high',
             mouthShape: 'slight-smile',
             color: '#a78bfa',
-            description: 'Long e as in feet',
+            description: 'Long e as in tree (also me, sea)',
             tongue: 'high, front',
             lips: 'spread',
             animation: 'mouth-short-e'
@@ -125,13 +125,13 @@
 
         'igh': {
             name: 'Long I',
-            sound: '/aɪ/',
-            example: 'kite',
-            grapheme: 'I-e',
+            sound: '/ie/',
+            example: 'night',
+            grapheme: 'IE',
             cue: 'Mouth starts relaxed, then opens',
             mouthShape: 'relaxed',
             color: '#a78bfa',
-            description: 'Long i as in kite',
+            description: 'Long i as in night (also my, kite)',
             tongue: 'moves from low to high',
             lips: 'relaxed to slight smile',
             animation: 'mouth-short-i'
@@ -139,13 +139,13 @@
 
         'oa': {
             name: 'Long O',
-            sound: '/oʊ/',
+            sound: '/oa/',
             example: 'boat',
-            grapheme: 'O-e',
+            grapheme: 'OA',
             cue: 'Round lips, glide to closed',
             mouthShape: 'rounded-open',
             color: '#a78bfa',
-            description: 'Long o as in boat',
+            description: 'Long o as in boat (also note, go)',
             tongue: 'mid-back',
             lips: 'rounded',
             animation: 'mouth-short-o'
@@ -153,13 +153,13 @@
 
         'oo': {
             name: 'Long U',
-            sound: '/uː/',
-            example: 'moon',
+            sound: '/oo/',
+            example: 'boot',
             grapheme: 'OO',
             cue: 'Lips rounded, tongue high back',
             mouthShape: 'rounded-open',
             color: '#a78bfa',
-            description: 'Long u as in moon',
+            description: 'Long oo as in boot (also you, rule)',
             tongue: 'high, back',
             lips: 'rounded',
             animation: 'mouth-short-u'
@@ -168,13 +168,13 @@
         // R-CONTROLLED VOWELS
         'ar': {
             name: 'R-Controlled AR',
-            sound: '/ɑr/',
-            example: 'car',
+            sound: '/ar/',
+            example: 'farm',
             grapheme: 'AR',
             cue: 'Mouth open, tongue pulled back',
             mouthShape: 'tongue-back',
             color: '#fbbf24',
-            description: 'AR as in car',
+            description: 'AR as in farm (also car)',
             tongue: 'back, lowered',
             lips: 'slightly rounded',
             animation: 'mouth-r'
@@ -182,27 +182,27 @@
 
         'er': {
             name: 'R-Controlled ER',
-            sound: '/ər/',
-            example: 'her',
+            sound: '/er/',
+            example: 'letter',
             grapheme: 'ER',
-            cue: 'Tongue pulled back, lips relaxed',
+            cue: 'Relaxed mouth, very short sound',
             mouthShape: 'tongue-back',
             color: '#fbbf24',
-            description: 'ER as in her',
-            tongue: 'bunched back',
-            lips: 'relaxed',
-            animation: 'mouth-r'
+            description: 'Schwa /er/ as in letter (common)',
+            tongue: 'relaxed, central',
+            lips: 'neutral',
+            animation: 'mouth-short-u'
         },
 
         'ir': {
             name: 'R-Controlled IR',
-            sound: '/ɜr/',
+            sound: '/ur/',
             example: 'bird',
             grapheme: 'IR',
             cue: 'Tongue pulled back, lips relaxed',
             mouthShape: 'tongue-back',
             color: '#fbbf24',
-            description: 'IR as in bird',
+            description: 'IR as in bird (same /ur/ sound)',
             tongue: 'bunched back',
             lips: 'relaxed',
             animation: 'mouth-r'
@@ -210,13 +210,13 @@
 
         'or': {
             name: 'R-Controlled OR',
-            sound: '/ɔr/',
+            sound: '/or/',
             example: 'fork',
             grapheme: 'OR',
             cue: 'Round lips, tongue back',
             mouthShape: 'rounded-open',
             color: '#fbbf24',
-            description: 'OR as in fork',
+            description: 'OR as in fork (also door, war)',
             tongue: 'back',
             lips: 'rounded',
             animation: 'mouth-r'
@@ -224,13 +224,13 @@
 
         'ur': {
             name: 'R-Controlled UR',
-            sound: '/ɜr/',
-            example: 'turn',
+            sound: '/ur/',
+            example: 'burn',
             grapheme: 'UR',
             cue: 'Tongue pulled back, lips relaxed',
             mouthShape: 'tongue-back',
             color: '#fbbf24',
-            description: 'UR as in turn',
+            description: 'UR as in burn (also first, nurse)',
             tongue: 'bunched back',
             lips: 'relaxed',
             animation: 'mouth-r'
@@ -239,13 +239,13 @@
         // DIPHTHONGS
         'ow': {
             name: 'Diphthong OW',
-            sound: '/aʊ/',
+            sound: '/ow/',
             example: 'cow',
             grapheme: 'OW',
             cue: 'Mouth opens then rounds',
             mouthShape: 'rounded-open',
             color: '#fb923c',
-            description: 'OW as in cow',
+            description: 'OW as in cow (also house)',
             tongue: 'moves low to high',
             lips: 'rounding',
             animation: 'mouth-short-o'
@@ -253,13 +253,13 @@
 
         'ou': {
             name: 'Diphthong OU',
-            sound: '/aʊ/',
+            sound: '/ow/',
             example: 'out',
             grapheme: 'OU',
             cue: 'Mouth opens then rounds',
             mouthShape: 'rounded-open',
             color: '#fb923c',
-            description: 'OU as in out',
+            description: 'OU as in out (same /ow/ sound)',
             tongue: 'moves low to high',
             lips: 'rounding',
             animation: 'mouth-short-o'
@@ -267,13 +267,13 @@
 
         'oi': {
             name: 'Diphthong OI',
-            sound: '/ɔɪ/',
+            sound: '/oi/',
             example: 'coin',
             grapheme: 'OI',
             cue: 'Round then relax into a smile',
             mouthShape: 'rounded-open',
             color: '#fb923c',
-            description: 'OI as in coin',
+            description: 'OI as in coin (also boy)',
             tongue: 'moves back to front',
             lips: 'round then relax',
             animation: 'mouth-short-o'
@@ -281,13 +281,13 @@
 
         'oy': {
             name: 'Diphthong OY',
-            sound: '/ɔɪ/',
+            sound: '/oi/',
             example: 'boy',
             grapheme: 'OY',
             cue: 'Round then relax into a smile',
             mouthShape: 'rounded-open',
             color: '#fb923c',
-            description: 'OY as in boy',
+            description: 'OY as in boy (same /oi/ sound)',
             tongue: 'moves back to front',
             lips: 'round then relax',
             animation: 'mouth-short-o'
@@ -295,7 +295,7 @@
 
         'aw': {
             name: 'Diphthong AW',
-            sound: '/ɔ/',
+            sound: '/aw/',
             example: 'saw',
             grapheme: 'AW',
             cue: 'Open mouth, lips rounded',
@@ -305,6 +305,62 @@
             tongue: 'low, back',
             lips: 'rounded',
             animation: 'mouth-short-o'
+        },
+
+        'oo-short': {
+            name: 'Short OO',
+            sound: '/oo/',
+            example: 'book',
+            grapheme: 'OO',
+            cue: 'Lips rounded, quick sound',
+            mouthShape: 'rounded-open',
+            color: '#fb923c',
+            description: 'Short oo as in book (also put)',
+            tongue: 'high, back',
+            lips: 'rounded',
+            animation: 'mouth-short-u'
+        },
+
+        'air': {
+            name: 'AIR Sound',
+            sound: '/air/',
+            example: 'chair',
+            grapheme: 'AIR',
+            cue: 'Start with /a/, then pull tongue back for r',
+            mouthShape: 'tongue-back',
+            color: '#fbbf24',
+            description: 'AIR as in chair (also hair)',
+            tongue: 'moves front to back',
+            lips: 'slightly rounded',
+            animation: 'mouth-r'
+        },
+
+        'ear': {
+            name: 'EAR Sound',
+            sound: '/ear/',
+            example: 'near',
+            grapheme: 'EAR',
+            cue: 'Start with /e/, then pull tongue back for r',
+            mouthShape: 'tongue-back',
+            color: '#fbbf24',
+            description: 'EAR as in near (also here)',
+            tongue: 'moves front to back',
+            lips: 'slightly rounded',
+            animation: 'mouth-r'
+        },
+
+        'ure': {
+            name: 'URE Sound',
+            sound: '/ure/',
+            example: 'pure',
+            grapheme: 'URE',
+            cue: 'Start with /oo/, then pull tongue back for r',
+            mouthShape: 'rounded-open',
+            color: '#fbbf24',
+            description: 'URE as in pure (also cure)',
+            tongue: 'moves back with r-coloring',
+            lips: 'rounded',
+            animation: 'mouth-r'
         },
 
         // GLUED / WELDED SOUNDS
@@ -422,14 +478,14 @@
 
         // SCHWA
         'schwa': {
-            name: 'Schwa',
-            sound: '/ə/',
-            example: 'about',
-            grapheme: 'SCHWA',
+            name: 'Schwa /ER/',
+            sound: '/er/',
+            example: 'letter',
+            grapheme: 'ER',
             cue: 'Relaxed mouth, very short sound',
             mouthShape: 'neutral-open',
             color: '#94a3b8',
-            description: 'Schwa as in about',
+            description: 'Schwa /er/ as in letter',
             tongue: 'relaxed, central',
             lips: 'neutral',
             animation: 'mouth-short-u'
@@ -439,7 +495,7 @@
         'b': {
             name: 'B Sound',
             sound: '/b/',
-            example: 'bat',
+            example: 'bat, bubble',
             cue: 'Press lips together, then pop open',
             mouthShape: 'lips-closed',
             color: '#4fc3f7',
@@ -452,7 +508,7 @@
         'p': {
             name: 'P Sound',
             sound: '/p/',
-            example: 'pet',
+            example: 'pen, happy',
             cue: 'Press lips together, strong puff of air',
             mouthShape: 'lips-closed',
             color: '#4fc3f7',
@@ -465,7 +521,7 @@
         'd': {
             name: 'D Sound',
             sound: '/d/',
-            example: 'dog',
+            example: 'dog, address',
             cue: 'Tongue touches roof behind teeth',
             mouthShape: 'tongue-up',
             color: '#4fc3f7',
@@ -478,7 +534,7 @@
         't': {
             name: 'T Sound',
             sound: '/t/',
-            example: 'top',
+            example: 'top, bottle',
             cue: 'Tongue touches roof, quick release',
             mouthShape: 'tongue-up',
             color: '#4fc3f7',
@@ -491,7 +547,7 @@
         'g': {
             name: 'G Sound',
             sound: '/g/',
-            example: 'go',
+            example: 'go, egg, ghost',
             cue: 'Back of tongue touches soft palate',
             mouthShape: 'throat',
             color: '#4fc3f7',
@@ -504,7 +560,7 @@
         'k': {
             name: 'K Sound',
             sound: '/k/',
-            example: 'kite',
+            example: 'kit, cat, quick',
             cue: 'Back of tongue up, strong release',
             mouthShape: 'throat',
             color: '#4fc3f7',
@@ -518,7 +574,7 @@
         'm': {
             name: 'M Sound',
             sound: '/m/',
-            example: 'mom',
+            example: 'man, hammer',
             cue: 'Hum with lips closed',
             mouthShape: 'lips-closed',
             color: '#81c784',
@@ -531,7 +587,7 @@
         'n': {
             name: 'N Sound',
             sound: '/n/',
-            example: 'net',
+            example: 'net, knee, gnat',
             cue: 'Tongue on roof, hum through nose',
             mouthShape: 'tongue-up',
             color: '#81c784',
@@ -544,7 +600,7 @@
         's': {
             name: 'S Sound',
             sound: '/s/',
-            example: 'sun',
+            example: 'sun, city, miss',
             cue: 'Teeth together, blow air out',
             mouthShape: 'teeth-together',
             color: '#81c784',
@@ -557,7 +613,7 @@
         'f': {
             name: 'F Sound',
             sound: '/f/',
-            example: 'fun',
+            example: 'fish, phone, laugh',
             cue: 'Bottom lip touches top teeth',
             mouthShape: 'lip-teeth',
             color: '#81c784',
@@ -570,7 +626,7 @@
         'l': {
             name: 'L Sound',
             sound: '/l/',
-            example: 'lap',
+            example: 'leg, bell',
             cue: 'Tongue tip touches roof',
             mouthShape: 'tongue-up',
             color: '#81c784',
@@ -583,7 +639,7 @@
         'r': {
             name: 'R Sound',
             sound: '/r/',
-            example: 'run',
+            example: 'red, write',
             cue: 'Tongue bunches up, doesn\'t touch',
             mouthShape: 'tongue-back',
             color: '#81c784',
@@ -596,12 +652,12 @@
         // DIGRAPHS (3)
         'sh': {
             name: 'SH Sound',
-            sound: '/ʃ/',
-            example: 'ship',
+            sound: '/sh/',
+            example: 'ship, tion, sure',
             cue: 'Round lips, blow air softly',
             mouthShape: 'rounded-forward',
             color: '#ffb74d',
-            description: 'Shhhh be quiet',
+            description: 'SH as in ship (also tion, sure)',
             tongue: 'raised toward roof',
             lips: 'rounded, protruded',
             animation: 'mouth-sh'
@@ -609,25 +665,25 @@
         
         'ch': {
             name: 'CH Sound',
-            sound: '/tʃ/',
-            example: 'chip',
+            sound: '/ch/',
+            example: 'chin, match',
             cue: 'Like T + SH together',
             mouthShape: 'rounded-forward',
             color: '#ffb74d',
-            description: 'Ch ch like a train',
+            description: 'CH as in chin (also match)',
             tongue: 'touches then pulls back',
             lips: 'rounded',
             animation: 'mouth-ch'
         },
         
         'th': {
-            name: 'TH Sound',
-            sound: '/θ/',
-            example: 'think',
+            name: 'TH (Unvoiced)',
+            sound: '/th/',
+            example: 'thin',
             cue: 'Tongue between teeth',
             mouthShape: 'tongue-out',
             color: '#ffb74d',
-            description: 'Tongue peeks out',
+            description: 'TH as in thin (unvoiced)',
             tongue: 'between teeth',
             lips: 'open',
             animation: 'mouth-th'
@@ -637,7 +693,7 @@
         'v': {
             name: 'V Sound',
             sound: '/v/',
-            example: 'van',
+            example: 'van, have',
             cue: 'Bottom lip touches top teeth, voice on',
             mouthShape: 'lip-teeth',
             color: '#81c784',
@@ -650,7 +706,7 @@
         'z': {
             name: 'Z Sound',
             sound: '/z/',
-            example: 'zip',
+            example: 'zoo, rose, buzz',
             cue: 'Teeth together, voice on',
             mouthShape: 'teeth-together',
             color: '#81c784',
@@ -662,12 +718,12 @@
 
         'j': {
             name: 'J Sound',
-            sound: '/dʒ/',
-            example: 'jam',
+            sound: '/j/',
+            example: 'jam, gem, edge',
             cue: 'Tongue starts like D then releases',
             mouthShape: 'rounded-forward',
             color: '#81c784',
-            description: 'J as in jam',
+            description: 'J as in jam (also gem, edge)',
             tongue: 'touches then pulls back',
             lips: 'rounded',
             animation: 'mouth-ch'
@@ -676,7 +732,7 @@
         'h': {
             name: 'H Sound',
             sound: '/h/',
-            example: 'hat',
+            example: 'hat, who',
             cue: 'Mouth open, breathe out',
             mouthShape: 'neutral-open',
             color: '#81c784',
@@ -689,7 +745,7 @@
         'w': {
             name: 'W Sound',
             sound: '/w/',
-            example: 'wet',
+            example: 'wet, white',
             cue: 'Lips round then relax',
             mouthShape: 'rounded-open',
             color: '#81c784',
@@ -701,7 +757,7 @@
 
         'y': {
             name: 'Y Sound',
-            sound: '/j/',
+            sound: '/y/',
             example: 'yes',
             cue: 'Tongue high, slight smile',
             mouthShape: 'slight-smile',
@@ -714,12 +770,12 @@
 
         'ng': {
             name: 'NG Sound',
-            sound: '/ŋ/',
-            example: 'ring',
+            sound: '/ng/',
+            example: 'sing, ink',
             cue: 'Back of tongue up, hum through nose',
             mouthShape: 'throat',
             color: '#81c784',
-            description: 'NG as in ring',
+            description: 'NG as in sing (also ink)',
             tongue: 'back raised',
             lips: 'slightly open',
             animation: 'mouth-g'
@@ -727,12 +783,12 @@
 
         'zh': {
             name: 'ZH Sound',
-            sound: '/ʒ/',
-            example: 'treasure',
+            sound: '/zh/',
+            example: 'pleasure, vision',
             cue: 'Round lips, voice on',
             mouthShape: 'rounded-forward',
             color: '#ffb74d',
-            description: 'ZH as in treasure',
+            description: 'ZH as in pleasure (also vision)',
             tongue: 'raised toward roof',
             lips: 'rounded',
             animation: 'mouth-sh'
@@ -740,13 +796,13 @@
 
         'th-voiced': {
             name: 'TH (Voiced)',
-            sound: '/ð/',
+            sound: '/TH/',
             example: 'this',
             grapheme: 'TH',
             cue: 'Tongue between teeth, voice on',
             mouthShape: 'tongue-out',
             color: '#ffb74d',
-            description: 'TH as in this',
+            description: 'TH as in this (voiced)',
             tongue: 'between teeth',
             lips: 'open',
             animation: 'mouth-th'
@@ -1042,9 +1098,9 @@
     // Letters with multiple sounds - Advanced Articulation System
     window.LETTER_SOUNDS = {
         'a': [
-            { sound: '/æ/', name: 'Short A', example: 'cat', phoneme: 'a' },
-            { sound: '/eɪ/', name: 'Long A', example: 'cake', phoneme: 'ay' },
-            { sound: '/ɑ/', name: 'Broad A', example: 'father', phoneme: 'ah' }
+            { sound: '/a/', name: 'Short A', example: 'apple', phoneme: 'a' },
+            { sound: '/ai/', name: 'Long A', example: 'rain', phoneme: 'ay' },
+            { sound: '/ah/', name: 'Broad A', example: 'father', phoneme: 'ah' }
         ],
         'c': [
             { sound: '/k/', name: 'Hard C', example: 'cat', phoneme: 'k' },
@@ -1052,32 +1108,32 @@
         ],
         'g': [
             { sound: '/g/', name: 'Hard G', example: 'go', phoneme: 'g' },
-            { sound: '/ʤ/', name: 'Soft G', example: 'gem', phoneme: 'j' }
+            { sound: '/j/', name: 'Soft G', example: 'gem', phoneme: 'j' }
         ],
         'e': [
-            { sound: '/ɛ/', name: 'Short E', example: 'bed', phoneme: 'e' },
-            { sound: '/iː/', name: 'Long E', example: 'feet', phoneme: 'ee' }
+            { sound: '/e/', name: 'Short E', example: 'egg', phoneme: 'e' },
+            { sound: '/ee/', name: 'Long E', example: 'tree', phoneme: 'ee' }
         ],
         'i': [
-            { sound: '/ɪ/', name: 'Short I', example: 'sit', phoneme: 'i' },
-            { sound: '/aɪ/', name: 'Long I', example: 'kite', phoneme: 'igh' }
+            { sound: '/i/', name: 'Short I', example: 'igloo', phoneme: 'i' },
+            { sound: '/ie/', name: 'Long I', example: 'night', phoneme: 'igh' }
         ],
         'o': [
-            { sound: '/ɒ/', name: 'Short O', example: 'hot', phoneme: 'o' },
-            { sound: '/oʊ/', name: 'Long O', example: 'boat', phoneme: 'oa' }
+            { sound: '/o/', name: 'Short O', example: 'octopus', phoneme: 'o' },
+            { sound: '/oa/', name: 'Long O', example: 'boat', phoneme: 'oa' }
         ],
         'u': [
-            { sound: '/ʌ/', name: 'Short U', example: 'cup', phoneme: 'u' },
-            { sound: '/uː/', name: 'Long U', example: 'moon', phoneme: 'oo' }
+            { sound: '/u/', name: 'Short U', example: 'umbrella', phoneme: 'u' },
+            { sound: '/oo/', name: 'Long U', example: 'boot', phoneme: 'oo' }
         ],
         's': [
             { sound: '/s/', name: 'Voiceless S', example: 'sun', phoneme: 's' },
             { sound: '/z/', name: 'Voiced S', example: 'has', phoneme: 'z' }
         ],
         'y': [
-            { sound: '/j/', name: 'Y Consonant', example: 'yes', phoneme: 'y' },
-            { sound: '/ɪ/', name: 'Y as I', example: 'gym', phoneme: 'i' },
-            { sound: '/aɪ/', name: 'Y as Long I', example: 'fly', phoneme: 'igh' }
+            { sound: '/y/', name: 'Y Consonant', example: 'yes', phoneme: 'y' },
+            { sound: '/i/', name: 'Y as I', example: 'gym', phoneme: 'i' },
+            { sound: '/ie/', name: 'Y as Long I', example: 'fly', phoneme: 'igh' }
         ]
     };
     
@@ -1085,37 +1141,32 @@
     window.PHONEME_CATEGORIES = {
         vowels: [
             'a', 'e', 'i', 'o', 'u',
-            'ay', 'ee', 'igh', 'oa', 'oo', 'ah',
-            'ar', 'er', 'ir', 'or', 'ur',
-            'ow', 'ou', 'oi', 'oy', 'aw',
-            'ang', 'ing', 'ong', 'ung', 'ank', 'ink', 'onk', 'unk',
+            'ay', 'ee', 'igh', 'oa', 'oo',
+            'oo-short', 'ar', 'or', 'ur',
+            'ow', 'oi',
+            'air', 'ear', 'ure',
             'schwa'
         ],
         consonants: [
-            'b', 'p', 'd', 't', 'g', 'k',
-            'f', 'v', 's', 'z', 'h',
-            'j', 'l', 'r', 'w', 'y',
-            'm', 'n', 'ng',
-            'sh', 'ch', 'th', 'th-voiced', 'wh', 'ph', 'zh',
-            'bl', 'cl', 'fl', 'gl', 'pl', 'sl',
-            'br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr',
-            'sk', 'sm', 'sn', 'sp', 'st', 'sw'
+            'b', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n',
+            'p', 'r', 's', 't', 'v', 'w', 'y', 'z',
+            'ch', 'sh', 'th', 'th-voiced', 'ng', 'zh'
         ]
     };
 
     window.PHONEME_GROUPS = {
         vowels: {
             short: ['a', 'e', 'i', 'o', 'u'],
-            long: ['ay', 'ee', 'igh', 'oa', 'oo', 'ah'],
-            rControlled: ['ar', 'er', 'ir', 'or', 'ur'],
-            diphthongs: ['ow', 'ou', 'oi', 'oy', 'aw'],
-            welded: ['ang', 'ing', 'ong', 'ung', 'ank', 'ink', 'onk', 'unk'],
+            long: ['ay', 'ee', 'igh', 'oa', 'oo'],
+            rControlled: ['ar', 'or', 'ur', 'air', 'ear', 'ure'],
+            diphthongs: ['ow', 'oi', 'oo-short'],
+            welded: [],
             schwa: ['schwa']
         },
         consonants: {
-            single: ['b', 'p', 'd', 't', 'g', 'k', 'f', 'v', 's', 'z', 'h', 'j', 'l', 'r', 'w', 'y', 'm', 'n', 'ng'],
-            digraphs: ['sh', 'ch', 'th', 'th-voiced', 'wh', 'ph', 'zh'],
-            blends: ['bl', 'cl', 'fl', 'gl', 'pl', 'sl', 'br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr', 'sk', 'sm', 'sn', 'sp', 'st', 'sw']
+            single: ['b', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y', 'z'],
+            digraphs: ['ch', 'sh', 'th', 'th-voiced', 'ng', 'zh'],
+            blends: []
         }
     };
 

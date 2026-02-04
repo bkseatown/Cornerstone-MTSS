@@ -55,7 +55,6 @@ const DEFAULT_SETTINGS = {
         sfx: false,
         style: 'playful'
     },
-    presentationMode: false,
     gameMode: {
         teamMode: false,
         timerEnabled: false,
@@ -560,7 +559,6 @@ function applySettings() {
     document.body.classList.toggle('hide-ipa', !appSettings.showIPA);
     document.body.classList.toggle('hide-examples', !appSettings.showExamples);
     document.body.classList.toggle('hide-mouth-cues', !appSettings.showMouthCues);
-    document.body.classList.toggle('presentation-mode', !!appSettings.presentationMode);
     document.body.classList.add('force-light');
     document.documentElement.style.colorScheme = 'light';
     updateFunHudVisibility();
@@ -575,9 +573,6 @@ function applySettings() {
     if (examplesToggle) examplesToggle.checked = appSettings.showExamples;
     const cuesToggle = document.getElementById('toggle-mouth-cues');
     if (cuesToggle) cuesToggle.checked = appSettings.showMouthCues;
-    const presentationToggle = document.getElementById('toggle-presentation-mode');
-    if (presentationToggle) presentationToggle.checked = !!appSettings.presentationMode;
-
     const speechRateInput = document.getElementById('speech-rate');
     if (speechRateInput) {
         speechRateInput.value = appSettings.speechRate;
@@ -845,7 +840,10 @@ function updateFunHudVisibility() {
     const hud = ensureFunHud();
     const enabled = !!appSettings.funHud?.enabled;
     const overlayOpen = modalOverlay && !modalOverlay.classList.contains('hidden');
-    const shouldShow = enabled && !funHudSuspended && !overlayOpen;
+    const gameModeActive = !!appSettings.gameMode?.teamMode
+        || !!appSettings.gameMode?.timerEnabled
+        || !!appSettings.funHud?.challenge;
+    const shouldShow = enabled && gameModeActive && !funHudSuspended && !overlayOpen;
     hud.classList.toggle('hidden', !shouldShow);
     document.body.classList.toggle('fun-mode', enabled);
     document.body.classList.toggle('fun-studio', enabled && appSettings.funHud?.style === 'studio');
@@ -4308,7 +4306,7 @@ function populatePhonemeGrid(preselectSound = null) {
     }
 
     const subtitle = document.querySelector('.sound-guide-subtitle');
-    if (subtitle) subtitle.textContent = 'Tap a tile to see a quick tip and example.';
+    if (subtitle) subtitle.textContent = 'Tap a tile to see a quick tip and example. Sounds are shown like /sh/.';
 
     if (!soundGuideBuilt) {
         buildVowelRow();
@@ -4358,14 +4356,21 @@ function buildSoundSection(containerId, sounds, options = {}) {
     if (!container) return;
     container.innerHTML = '';
 
+    let count = 0;
     sounds.forEach(item => {
         const config = typeof item === 'string' ? { soundKey: item } : item;
         const phoneme = window.PHONEME_DATA[config.soundKey];
         if (!phoneme) return;
-        const label = config.label || phoneme.grapheme || config.soundKey;
+        const label = config.label || phoneme.sound || phoneme.grapheme || config.soundKey;
         const tile = createSoundTile(config.soundKey, phoneme, label, options.vowel);
         container.appendChild(tile);
+        count += 1;
     });
+
+    const section = container.closest('.sound-guide-section');
+    if (section) {
+        section.classList.toggle('hidden', count === 0);
+    }
 }
 
 function buildSoundSectionGrouped(containerId, groups, options = {}) {
@@ -4373,6 +4378,7 @@ function buildSoundSectionGrouped(containerId, groups, options = {}) {
     if (!container) return;
     container.innerHTML = '';
 
+    let total = 0;
     groups.forEach(group => {
         const wrapper = document.createElement('div');
         wrapper.className = 'sound-subsection';
@@ -4390,14 +4396,20 @@ function buildSoundSectionGrouped(containerId, groups, options = {}) {
             const config = typeof item === 'string' ? { soundKey: item } : item;
             const phoneme = window.PHONEME_DATA[config.soundKey];
             if (!phoneme) return;
-            const label = config.label || phoneme.grapheme || config.soundKey;
+            const label = config.label || phoneme.sound || phoneme.grapheme || config.soundKey;
             const tile = createSoundTile(config.soundKey, phoneme, label, options.vowel);
             row.appendChild(tile);
+            total += 1;
         });
 
         wrapper.appendChild(row);
         container.appendChild(wrapper);
     });
+
+    const section = container.closest('.sound-guide-section');
+    if (section) {
+        section.classList.toggle('hidden', total === 0);
+    }
 }
 
 const SOUND_GUIDE_INFO = {
@@ -4408,8 +4420,8 @@ const SOUND_GUIDE_INFO = {
     },
     vowel_teams: {
         title: 'Vowel Teams',
-        body: 'Two letters team up to make one vowel sound.',
-        examples: ['rain', 'seed', 'boat', 'moon']
+        body: 'Two vowels team up (ai, ee, oa) or split digraphs like a-e in cake and i-e in kite.',
+        examples: ['rain', 'seed', 'boat', 'cake']
     },
     diphthongs: {
         title: 'Diphthongs',
@@ -4418,8 +4430,8 @@ const SOUND_GUIDE_INFO = {
     },
     digraphs: {
         title: 'Digraphs',
-        body: 'Two letters make one new sound.',
-        examples: ['ship', 'chip', 'thin', 'phone']
+        body: 'Two letters make one sound (sh, ch, th, ng).',
+        examples: ['ship', 'chin', 'thin', 'sing']
     },
     blends: {
         title: 'Blends',
@@ -4438,8 +4450,8 @@ const SOUND_GUIDE_INFO = {
     },
     alphabet: {
         title: 'Alphabet Sounds',
-        body: 'These tiles match common letter sounds.',
-        examples: ['b', 'm', 't', 's']
+        body: 'Single-letter sounds. Some change by context (c before a is /k/, before i is /s/).',
+        examples: ['b', 'm', 't', 'c']
     }
 };
 
@@ -4565,11 +4577,8 @@ function getLetterTileData(letter) {
 }
 
 function getDigraphSounds() {
-    const sounds = ['sh', 'ch', 'th', 'wh', 'ph'];
-    return [
-        ...sounds,
-        { soundKey: 'k', label: 'CK' }
-    ].filter(item => {
+    const sounds = ['ch', 'sh', 'th', 'th-voiced', 'ng', 'zh'];
+    return sounds.filter(item => {
         const key = typeof item === 'string' ? item : item.soundKey;
         return window.PHONEME_DATA[key];
     });
@@ -4589,24 +4598,25 @@ function getVowelTeamSounds() {
 }
 
 function getVowelTeamOnlySounds() {
-    const fallback = ['ay', 'ee', 'igh', 'oa', 'oo', 'ah'];
+    const fallback = ['ay', 'ee', 'igh', 'oa', 'oo'];
     const fromGroups = window.PHONEME_GROUPS?.vowels?.long || fallback;
     return fromGroups.filter(sound => window.PHONEME_DATA[sound]);
 }
 
 function getDiphthongSounds() {
-    const fallback = ['ow', 'ou', 'oi', 'oy', 'aw'];
+    const fallback = ['ow', 'oi', 'oo-short'];
     const fromGroups = window.PHONEME_GROUPS?.vowels?.diphthongs || fallback;
     return fromGroups.filter(sound => window.PHONEME_DATA[sound]);
 }
 
 function getRControlledSounds() {
-    const rSounds = ['ar', 'er', 'ir', 'or', 'ur'];
+    const rSounds = ['ar', 'or', 'ur', 'air', 'ear', 'ure'];
     return rSounds.filter(sound => window.PHONEME_DATA[sound]);
 }
 
 function getWeldedSounds() {
-    const welded = ['ang', 'ing', 'ong', 'ung', 'ank', 'ink', 'onk', 'unk'];
+    const fromGroups = window.PHONEME_GROUPS?.vowels?.welded;
+    const welded = Array.isArray(fromGroups) ? fromGroups : ['ang', 'ing', 'ong', 'ung', 'ank', 'ink', 'onk', 'unk'];
     return welded.filter(sound => window.PHONEME_DATA[sound]);
 }
 
@@ -4616,7 +4626,7 @@ function createSoundTile(soundKey, phoneme, label, isVowel = false) {
     tile.className = `sound-tile${isVowel ? ' vowel' : ''}`;
     tile.dataset.sound = soundKey;
     tile.dataset.label = label;
-    tile.textContent = label.toUpperCase();
+    tile.textContent = formatSoundLabel(label);
 
     tile.onclick = () => {
         selectSound(soundKey, phoneme, label, tile);
@@ -4625,11 +4635,18 @@ function createSoundTile(soundKey, phoneme, label, isVowel = false) {
     return tile;
 }
 
+function formatSoundLabel(label) {
+    if (!label) return '';
+    const text = label.toString();
+    if (text.includes('/')) return text;
+    return text.toUpperCase();
+}
+
 function selectSoundByKey(soundKey) {
     const tile = document.querySelector(`.sound-tile[data-sound="${soundKey}"]`);
     const phoneme = window.PHONEME_DATA[soundKey];
     if (phoneme) {
-        selectSound(soundKey, phoneme, phoneme.grapheme || soundKey, tile);
+        selectSound(soundKey, phoneme, phoneme.sound || phoneme.grapheme || soundKey, tile);
     }
 }
 
@@ -5079,11 +5096,11 @@ function ensureArticulationCard(phoneme) {
         display.appendChild(card);
     }
 
-    const soundKey = currentSelectedSound?.sound || phoneme.grapheme || '';
+    const soundKey = currentSelectedSound?.sound || '';
     const cue = formatMouthCue(phoneme);
     const soundLabel = phoneme.sound ? phoneme.sound.toString() : '';
     const example = phoneme.example || '';
-    const letterBadge = (soundKey || '').toString().toUpperCase();
+    const letterBadge = (phoneme.grapheme || soundKey || '').toString().toUpperCase();
 
     const exampleLine = example ? `<div class="articulation-example">Example: <strong>${example}</strong></div>` : '';
     const soundBadge = soundLabel || (soundKey ? `/${soundKey}/` : '');
@@ -5145,9 +5162,9 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
     const layout = document.querySelector('.sound-guide-layout');
     if (layout) layout.classList.remove('no-card');
 
-    const displayLabel = labelOverride || phoneme.grapheme || sound;
+    const displayLabel = labelOverride || phoneme.sound || phoneme.grapheme || sound;
     const soundLetter = document.getElementById('sound-letter');
-    if (soundLetter) soundLetter.textContent = displayLabel.toUpperCase();
+    if (soundLetter) soundLetter.textContent = formatSoundLabel(displayLabel);
 
     const soundName = document.getElementById('sound-name');
     if (soundName) {
@@ -5323,7 +5340,7 @@ function speakSpelling(grapheme) {
 
 function normalizePhonemeForTTS(sound) {
     if (!sound) return '';
-    let cleaned = sound.toString().replace(/[\/\[\]]/g, '').trim();
+    let cleaned = sound.toString().replace(/[\/\[\]]/g, '').trim().toLowerCase();
     const multiMap = {
         'iː': 'ee',
         'uː': 'oo',
@@ -5383,6 +5400,10 @@ const SOUND_TTS_MAP = {
     ir: 'er',
     or: 'or',
     ur: 'er',
+    'oo-short': 'short oo, as in book',
+    air: 'air, as in chair',
+    ear: 'ear, as in near',
+    ure: 'ure, as in pure',
     sh: 'sh',
     ch: 'ch',
     th: 'th',
@@ -5650,7 +5671,8 @@ function initClozeLink() {
     link.id = 'cloze-btn';
     link.href = 'cloze.html';
     link.className = 'link-btn';
-    link.textContent = 'Cloze';
+    link.textContent = 'Story Fill';
+    link.title = 'Cloze';
     const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
         .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
     if (madlibsLink) {
@@ -5667,7 +5689,8 @@ function initComprehensionLink() {
     link.id = 'comprehension-btn';
     link.href = 'comprehension.html';
     link.className = 'link-btn';
-    link.textContent = 'Comprehension';
+    link.textContent = 'Read & Think';
+    link.title = 'Comprehension';
     const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
         .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
     if (madlibsLink) {
@@ -5684,7 +5707,8 @@ function initFluencyLink() {
     link.id = 'fluency-btn';
     link.href = 'fluency.html';
     link.className = 'link-btn';
-    link.textContent = 'Fluency';
+    link.textContent = 'Speed Sprint';
+    link.title = 'Fluency';
     const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
         .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
     if (madlibsLink) {
@@ -5702,6 +5726,7 @@ function initAdventureMode() {
     btn.type = 'button';
     btn.className = 'link-btn';
     btn.textContent = 'Adventure';
+    btn.title = 'Adventure Mode';
     btn.addEventListener('click', openAdventureModal);
     headerActions.insertBefore(btn, headerActions.firstChild);
 }
@@ -5823,10 +5848,6 @@ function ensureMoreToolsMenu() {
         <button type="button" id="more-tools-btn" class="link-btn">More ▾</button>
         <div id="more-tools-menu" class="more-tools-menu hidden">
             <button type="button" id="menu-warmup" class="more-tools-item">Sounds Warm‑Up</button>
-            <label class="more-tools-item more-tools-toggle">
-                <input type="checkbox" id="toggle-presentation-mode" />
-                Presentation mode
-            </label>
         </div>
     `;
     headerActions.appendChild(wrapper);
@@ -5834,7 +5855,6 @@ function ensureMoreToolsMenu() {
     const btn = wrapper.querySelector('#more-tools-btn');
     const menu = wrapper.querySelector('#more-tools-menu');
     const warmup = wrapper.querySelector('#menu-warmup');
-    const presToggle = wrapper.querySelector('#toggle-presentation-mode');
     const soundLab = wrapper.querySelector('#sound-lab-btn');
 
     const closeMenu = () => menu.classList.add('hidden');
@@ -5853,15 +5873,6 @@ function ensureMoreToolsMenu() {
 
     if (soundLab) {
         soundLab.addEventListener('click', () => openPhonemeGuide());
-    }
-
-    if (presToggle) {
-        presToggle.checked = !!appSettings.presentationMode;
-        presToggle.onchange = () => {
-            appSettings.presentationMode = presToggle.checked;
-            saveSettings();
-            applySettings();
-        };
     }
 }
 
@@ -5887,13 +5898,10 @@ function organizeHeaderActions() {
 
     const groupPrimary = document.createElement('div');
     groupPrimary.className = 'nav-group nav-group-primary';
-    groupPrimary.dataset.label = 'Setup';
     const groupModes = document.createElement('div');
     groupModes.className = 'nav-group nav-group-modes';
-    groupModes.dataset.label = 'Modes';
     const groupTools = document.createElement('div');
     groupTools.className = 'nav-group nav-group-tools';
-    groupTools.dataset.label = 'Tools';
 
     const existing = Array.from(headerActions.children);
     const used = new Set();
@@ -5928,8 +5936,27 @@ function organizeHeaderActions() {
     headerActions.dataset.organized = 'true';
 
     if (newWordBtn) {
+        newWordBtn.textContent = 'Word Quest';
+        newWordBtn.title = 'New Word';
         newWordBtn.classList.add('active');
         newWordBtn.setAttribute('aria-current', 'page');
+    }
+
+    if (madlibsBtn) {
+        madlibsBtn.textContent = 'Silly Stories';
+        madlibsBtn.title = 'Mad Libs';
+    }
+
+    if (adventureBtn) {
+        adventureBtn.title = 'Adventure Mode';
+    }
+
+    if (classroomBtn) {
+        classroomBtn.title = 'Classroom Tools';
+    }
+
+    if (teacherBtn) {
+        teacherBtn.title = 'Teacher Settings';
     }
 }
 

@@ -14,7 +14,7 @@
     --lab-bg-soft: #eef2ff;
     --lab-card: #ffffff;
     --lab-border: #dbe3ee;
-    --lab-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+    --lab-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
     --lab-radius: 18px;
     --accent-primary: #4f46e5;
     --accent-secondary: #0ea5e9;
@@ -75,51 +75,6 @@ body.calm-mode #mouth-visual {
     animation: none !important;
 }
 
-body.presentation-mode {
-    background: #f7f9fb;
-    color: #0f172a;
-}
-
-body.presentation-mode * {
-    animation: none !important;
-    transition: none !important;
-}
-
-body.presentation-mode .modal {
-    background: #ffffff;
-    border-color: #cbd5e1;
-}
-
-body.presentation-mode .sound-guide-board,
-body.presentation-mode .sound-guide-card {
-    background: #ffffff;
-    border-color: #cbd5e1;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-}
-
-body.presentation-mode .sound-tile {
-    background: #ffffff;
-    border-color: #cbd5e1;
-    color: #0f172a;
-}
-
-body.presentation-mode .sound-tile.selected {
-    border-color: #4338ca !important;
-    box-shadow: 0 0 0 3px rgba(67,56,202,0.18) !important;
-}
-
-body.presentation-mode .articulation-card {
-    background: #ffffff;
-    border-color: #cbd5e1;
-}
-
-body.presentation-mode .more-tools-menu {
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
-}
-
-body.presentation-mode #modal-overlay {
-    background: rgba(241, 245, 249, 0.8);
-}
 
 body.force-light {
     background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%) !important;
@@ -209,7 +164,7 @@ body.hide-mouth-cues #mouth-description {
 /* HEADER - Integrated seamless design */
 header {
     width: 100%; 
-    max-width: 1100px; 
+    max-width: 1180px; 
     padding: 14px 16px 8px;
     background: transparent;
     border: none;
@@ -256,7 +211,7 @@ h3,
 
 .header-actions { 
     display: flex; 
-    gap: 8px; 
+    gap: 14px; 
     align-items: center;
     flex-wrap: wrap;
     row-gap: 8px;
@@ -264,30 +219,24 @@ h3,
 
 .nav-group {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     flex-wrap: wrap;
     max-width: 100%;
-    padding: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(8px);
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
 }
 
 .nav-group::before {
-    content: attr(data-label);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-left: 6px;
+    display: none;
 }
 
 .nav-group-modes {
-    flex: 1;
+    flex: 0 1 auto;
 }
 
 .nav-group-tools {
@@ -295,31 +244,35 @@ h3,
 }
 
 .nav-group + .nav-group {
-    margin-left: 8px;
+    margin-left: 0;
 }
 
 .nav-group .link-btn,
 .nav-group #teacher-btn,
 .nav-group #howto-btn {
-    border: none;
+    border: 1px solid transparent;
     background: transparent;
     box-shadow: none;
+    padding: 6px 12px;
+    font-size: 0.86rem;
+    font-weight: 700;
 }
 
 .nav-group .link-btn:hover,
 .nav-group #teacher-btn:hover,
 .nav-group #howto-btn:hover {
-    background: rgba(226, 232, 240, 0.9);
-    border-color: transparent;
+    background: rgba(79, 70, 229, 0.08);
+    border-color: rgba(99, 102, 241, 0.35);
 }
 
 .nav-group .link-btn.active,
 .nav-group .link-btn[aria-current="page"],
 .nav-group #teacher-btn.active,
 .nav-group #howto-btn.active {
-    background: var(--accent-primary);
-    color: #ffffff;
-    box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
+    background: rgba(99, 102, 241, 0.18);
+    color: #0f172a;
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: none;
 }
 
 @media (max-width: 900px) {
@@ -359,11 +312,11 @@ h3,
     top: calc(100% + 6px);
     right: 0;
     background: #ffffff;
-    border: 1px solid var(--lab-border);
-    border-radius: 14px;
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
-    min-width: 180px;
-    padding: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    min-width: 220px;
+    padding: 8px;
     display: grid;
     gap: 4px;
     z-index: 1400;
@@ -376,18 +329,18 @@ h3,
 .more-tools-item {
     width: 100%;
     text-align: left;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(248, 250, 252, 0.9);
     cursor: pointer;
     font-weight: 600;
     color: #111827;
 }
 
 .more-tools-item:hover {
-    background: #f8fafc;
-    border-color: #e2e8f0;
+    background: #eef2ff;
+    border-color: rgba(99, 102, 241, 0.35);
 }
 
 .more-tools-toggle {
@@ -507,18 +460,19 @@ h3,
 }
 
 #teacher-btn {
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    background: #f8fafc;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
     color: #1f2937;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    box-shadow: none;
 }
 
 #teacher-btn:hover {
-    background: #eef2f7;
-    border-color: #cbd5f5;
+    background: rgba(79, 70, 229, 0.08);
+    border-color: rgba(99, 102, 241, 0.35);
 }
 
 .text-btn:hover {
@@ -547,11 +501,11 @@ h3,
     gap: 12px; 
     align-items: end;
     margin-bottom: 6px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    padding: 4px 2px;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 @media (max-width: 700px) {
@@ -957,7 +911,6 @@ main {
                 0 2px 4px rgba(0,0,0,0.1),
                 inset 0 -2px 0 rgba(0,0,0,0.2);
 }
-}
 
 /* ANIMATIONS - Gentle, not jarring */
 @keyframes pulse { 
@@ -1132,10 +1085,14 @@ main {
 }
 
 #phoneme-modal {
-    max-width: 1100px;
-    width: 95%;
-    overflow: hidden;
+    max-width: min(1180px, 96vw);
+    width: min(1180px, 96vw);
     max-height: 92vh;
+    height: min(86vh, 860px);
+    overflow: auto;
+    resize: both;
+    min-width: 320px;
+    min-height: 360px;
 }
 
 #phoneme-modal .modal-content {
@@ -1201,6 +1158,9 @@ main {
     height: 16px;
     border-radius: 4px;
     margin-right: 6px;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.12);
+    vertical-align: middle;
 }
 
 .howto-section .chip.correct { background: #16a34a; }
@@ -3128,6 +3088,12 @@ button:active:not(:disabled) {
     min-height: 0;
 }
 
+#phoneme-modal .sound-guide-card,
+#phoneme-modal .sound-guide-board {
+    max-height: none;
+    overflow: visible;
+}
+
 #hear-phoneme-sound {
     display: none !important;
 }
@@ -4786,7 +4752,7 @@ body.cloze-page {
 
 .cloze-header {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1180px;
     padding: 16px 16px 8px;
     display: flex;
     justify-content: space-between;
@@ -4805,17 +4771,17 @@ body.cloze-page {
 
 .cloze-main {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1180px;
     flex: 1;
     display: grid;
-    grid-template-columns: minmax(320px, 1.3fr) minmax(280px, 0.9fr);
-    gap: 20px;
+    grid-template-columns: minmax(360px, 1.35fr) minmax(320px, 0.95fr);
+    gap: 16px;
     padding: 0 16px 20px;
     min-height: 0;
 }
 
 .cloze-panel {
-    background: var(--lab-card);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--lab-radius);
     padding: 18px;
     border: 1px solid var(--lab-border);
@@ -5075,7 +5041,7 @@ body.cloze-page {
 
 .madlibs-header {
     width: 100%;
-    max-width: 980px;
+    max-width: 1180px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -5085,16 +5051,16 @@ body.cloze-page {
 
 .madlibs-main {
     width: 100%;
-    max-width: 1020px;
+    max-width: 1180px;
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
-    gap: 14px;
+    grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.2fr);
+    gap: 16px;
     padding: 0 14px 20px;
     align-items: start;
 }
 
 .madlibs-panel {
-    background: var(--lab-card);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--lab-radius);
     padding: 14px;
     box-shadow: var(--lab-shadow);
@@ -5661,7 +5627,7 @@ body.comprehension-page {
 
 .comp-header {
     width: 100%;
-    max-width: 980px;
+    max-width: 1180px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -5677,15 +5643,15 @@ body.comprehension-page {
 
 .comp-main {
     width: 100%;
-    max-width: 1040px;
+    max-width: 1180px;
     display: grid;
-    grid-template-columns: minmax(320px, 1.3fr) minmax(300px, 1fr);
+    grid-template-columns: minmax(360px, 1.35fr) minmax(320px, 0.95fr);
     gap: 16px;
     padding: 0 14px 28px;
 }
 
 .comp-panel {
-    background: var(--lab-card);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--lab-radius);
     padding: 16px;
     border: 1px solid var(--lab-border);
@@ -5737,11 +5703,11 @@ body.comprehension-page {
 }
 
 .comp-question {
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 12px 14px;
-    background: #ffffff;
-    border: 1px solid var(--lab-border);
-    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
 }
 
 .comp-question-meta {
@@ -5768,17 +5734,17 @@ body.comprehension-page {
     display: flex;
     gap: 8px;
     align-items: center;
-    background: #ffffff;
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 12px;
     padding: 8px 12px;
     cursor: pointer;
-    box-shadow: 0 8px 14px rgba(79, 70, 229, 0.08);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
 }
 
 .comp-choice:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(79, 70, 229, 0.16);
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.1);
 }
 
 .comp-actions {
@@ -5808,7 +5774,7 @@ body.fluency-page {
 
 .fluency-header {
     width: 100%;
-    max-width: 980px;
+    max-width: 1180px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -5824,15 +5790,15 @@ body.fluency-page {
 
 .fluency-main {
     width: 100%;
-    max-width: 1040px;
+    max-width: 1180px;
     display: grid;
-    grid-template-columns: minmax(320px, 1.3fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(360px, 1.35fr) minmax(320px, 0.95fr);
     gap: 16px;
     padding: 0 14px 28px;
 }
 
 .fluency-panel {
-    background: var(--lab-card);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--lab-radius);
     padding: 16px;
     border: 1px solid var(--lab-border);
@@ -6748,6 +6714,12 @@ body.force-light #modal-overlay {
     background: rgba(15, 23, 42, 0.18) !important;
 }
 
+body.warmup-open #game-canvas {
+    opacity: 0.12;
+    filter: blur(2px);
+    pointer-events: none;
+}
+
 body.force-light .modal,
 body.force-light #teacher-modal,
 body.force-light .classroom-dock,
@@ -6780,6 +6752,24 @@ body.force-light .tile.present {
 body.force-light .tile.absent {
     background: #94a3b8 !important;
     border-color: #64748b !important;
+    color: #ffffff !important;
+}
+
+body.force-light .wordle-help .tile.ex.green {
+    background: var(--color-correct) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+}
+
+body.force-light .wordle-help .tile.ex.yellow {
+    background: var(--color-present) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+}
+
+body.force-light .wordle-help .tile.ex.gray {
+    background: var(--color-absent) !important;
+    border-color: transparent !important;
     color: #ffffff !important;
 }
 
