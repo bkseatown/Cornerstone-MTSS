@@ -1,58 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Comprehension Quest</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Read &amp; Think</title>
     <link rel="stylesheet" href="style.css" />
- </head>
-<body class="comprehension-page">
+  </head>
+  <body class="comprehension-page force-light">
     <header class="comp-header">
-        <div>
-            <h1>Comprehension Quest</h1>
-            <p class="comp-subtitle">Read the passage, then answer inference and detail questions.</p>
-        </div>
-        <div class="header-actions">
-            <a class="link-btn" href="index.html">Decode the Word</a>
-            <a class="link-btn" href="cloze.html">Cloze</a>
-            <a class="link-btn" href="madlibs.html">Mad Libs</a>
-            <a class="link-btn" href="fluency.html">Fluency</a>
-        </div>
+      <div>
+        <h1>Read &amp; Think</h1>
+        <div class="comp-subtitle">Read the passage, then answer inference and detail questions.</div>
+      </div>
+
+      <div class="header-actions" aria-label="Navigation">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn" href="cloze.html">Story Fill</a>
+        <a class="link-btn active" href="comprehension.html" aria-current="page">Read &amp; Think</a>
+        <a class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+      </div>
     </header>
 
     <main class="comp-main">
-        <section class="comp-panel comp-reading">
-            <div class="comp-panel-header">
-                <div>
-                    <h2 id="comp-title">Passage</h2>
-                    <span id="comp-meta" class="muted"></span>
-                </div>
-                <div class="comp-controls">
-                    <select id="comp-grade" aria-label="Grade band"></select>
-                    <select id="comp-lexile" aria-label="Lexile band"></select>
-                    <button id="comp-shuffle" class="secondary-btn" type="button">Shuffle</button>
-                </div>
-            </div>
-            <div id="comp-passage" class="comp-passage"></div>
-        </section>
+      <section class="comp-panel" aria-label="Passage">
+        <div class="comp-panel-header">
+          <div>
+            <h2 id="comp-title">Passage</h2>
+            <div id="comp-meta" class="comp-subtitle"></div>
+          </div>
+          <div class="comp-controls" aria-label="Filters">
+            <select id="comp-grade" aria-label="Grade band"></select>
+            <select id="comp-lexile" aria-label="Lexile band"></select>
+            <button id="comp-shuffle" class="secondary-btn" type="button">Shuffle</button>
+          </div>
+        </div>
+        <div id="comp-passage" class="comp-passage"></div>
+      </section>
 
-        <section class="comp-panel comp-questions">
-            <div class="comp-hud">
-                <div class="comp-hud-item">🪙 Coins <strong id="comp-coins">0</strong></div>
-                <div class="comp-hud-item">🔥 Streak <strong id="comp-streak">0</strong></div>
-            </div>
-            <div id="comp-questions-list" class="comp-question-list"></div>
-            <div class="comp-actions">
-                <button id="comp-check" class="primary-btn" type="button">Check Answers</button>
-                <button id="comp-reset" class="secondary-btn" type="button">Reset</button>
-            </div>
-            <div id="comp-feedback" class="comp-feedback" aria-live="polite"></div>
-        </section>
+      <aside class="comp-panel" aria-label="Questions">
+        <div class="comp-hud" aria-label="Score">
+          <div>🪙 <span id="comp-coins">0</span></div>
+          <div>🔥 <span id="comp-streak">0</span></div>
+        </div>
+
+        <div id="comp-questions-list" class="comp-questions"></div>
+
+        <div class="comp-actions">
+          <button id="comp-check" class="primary-btn" type="button">Check Answers</button>
+          <button id="comp-reset" class="secondary-btn" type="button">Reset</button>
+        </div>
+
+        <div id="comp-feedback" class="comp-feedback" aria-live="polite"></div>
+      </aside>
     </main>
 
     <script src="comprehension.js"></script>
-</body>
+  </body>
 </html>

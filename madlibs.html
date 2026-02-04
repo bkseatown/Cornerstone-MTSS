@@ -1,53 +1,68 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mad Libs Maker</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="madlibs.js" defer></script>
-</head>
-<body class="madlibs-page">
-  <header class="madlibs-header">
-    <h1>Mad Libs Maker</h1>
-    <div class="madlibs-actions">
-      <a class="link-btn" href="index.html">Back to Decode the Word</a>
-    </div>
-  </header>
-
-  <main class="madlibs-main">
-    <section class="madlibs-panel">
-      <h2>Choose a Story</h2>
-      <p class="muted">Pick a template or create your own. Use curly braces like `{noun}` or `{adjective}`.</p>
-      <label for="madlibs-template-select">Story template</label>
-      <select id="madlibs-template-select"></select>
-      <div class="madlibs-template-actions">
-        <button id="madlibs-use-template" class="primary-btn" type="button">Use this template</button>
-        <button id="madlibs-random-template" class="action-btn" type="button">Surprise me</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Silly Stories</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="madlibs-page force-light">
+    <header class="madlibs-header">
+      <div>
+        <h1>Silly Stories</h1>
+        <div class="cloze-subtitle">Pick a template or make your own. Fill in words, then generate a story.</div>
       </div>
 
-      <details class="madlibs-teacher-tools">
-        <summary>Teacher Tools</summary>
-        <div class="madlibs-teacher-body">
-          <label for="madlibs-template-input">Custom template</label>
-          <textarea id="madlibs-template-input" placeholder="Example: Today I saw a {adjective} {animal} at the {place}."></textarea>
-          <div class="muted">Tip: Use parts of speech like `{noun}`, `{verb}`, `{adjective}`, `{adverb}`, `{place}`, `{animal}`, `{feeling}`.</div>
-          <button id="madlibs-parse-template" class="primary-btn" type="button">Use custom template</button>
+      <div class="header-actions" aria-label="Navigation">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a id="madlibs-cloze-link" class="link-btn" href="cloze.html">Story Fill</a>
+        <a id="madlibs-comp-link" class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a id="madlibs-fluency-link" class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn active" href="madlibs.html" aria-current="page">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+      </div>
+    </header>
+
+    <main class="madlibs-main">
+      <section class="madlibs-panel" aria-label="Choose a story">
+        <h2>Choose a Story</h2>
+        <p class="muted">Pick a template or create your own. Use curly braces like <code>{noun}</code> or <code>{adjective}</code>.</p>
+
+        <label for="madlibs-template-select">Story template</label>
+        <select id="madlibs-template-select"></select>
+
+        <div class="madlibs-template-actions">
+          <button id="madlibs-use-template" type="button" class="primary-btn">Use this template</button>
+          <button id="madlibs-random-template" type="button" class="secondary-btn">Surprise me</button>
         </div>
-      </details>
-    </section>
 
-    <section class="madlibs-panel">
-      <h2>Fill in the Words</h2>
-      <div id="madlibs-fields"></div>
-      <div class="madlibs-actions-row">
-        <button id="madlibs-generate" class="primary-btn" type="button">Generate Story</button>
-        <button id="madlibs-autofill" class="action-btn" type="button">Auto‑Fill</button>
-        <button id="madlibs-read" class="action-btn" type="button">Read Aloud</button>
-        <button id="madlibs-reset" class="text-btn" type="button">Clear</button>
-      </div>
-      <div id="madlibs-output" class="madlibs-output empty" aria-live="polite">Your story will appear here.</div>
-    </section>
-  </main>
-</body>
+        <details class="madlibs-teacher-tools">
+          <summary>Teacher Tools</summary>
+          <div class="madlibs-teacher-body">
+            <label for="madlibs-template-input">Custom template</label>
+            <textarea id="madlibs-template-input" placeholder="Write your own story with {placeholders}..."></textarea>
+            <button id="madlibs-parse-template" type="button" class="secondary-btn">Use custom template</button>
+          </div>
+        </details>
+      </section>
+
+      <section class="madlibs-panel" aria-label="Fill in the words">
+        <h2>Fill in the Words</h2>
+        <div id="madlibs-fields"></div>
+
+        <div class="madlibs-actions-row">
+          <button id="madlibs-generate" type="button" class="primary-btn">Generate Story</button>
+          <button id="madlibs-autofill" type="button" class="secondary-btn">Auto‑Fill</button>
+          <button id="madlibs-read" type="button" class="secondary-btn">Read Aloud</button>
+          <button id="madlibs-reset" type="button" class="secondary-btn">Clear</button>
+        </div>
+
+        <div id="madlibs-output" class="madlibs-output empty">Your story will appear here.</div>
+      </section>
+    </main>
+
+    <script src="madlibs.js"></script>
+  </body>
 </html>

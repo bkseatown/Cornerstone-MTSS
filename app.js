@@ -1,8 +1,13 @@
-/* =========================================
-// Compatibility: map WORDS_DATA to WORD_ENTRIES
-if (typeof WORDS_DATA !== "undefined") window.WORD_ENTRIES = WORDS_DATA;
+/* ==========================================
    DECODE THE WORD - GOLD MASTER (IOS SAFE + FIXED STUDIO FLOW)
-   ========================================= */
+   ========================================== */
+
+// Compatibility: map words.js global WORDS_DATA to the engine's expected WORD_ENTRIES.
+// Note: words.js declares WORDS_DATA with `const`, so it is *not* a window property, but it
+// is still available by name to later scripts in classic (non-module) script tags.
+if (typeof window !== 'undefined' && !window.WORD_ENTRIES && typeof WORDS_DATA !== 'undefined') {
+    window.WORD_ENTRIES = WORDS_DATA;
+}
 
 const MAX_GUESSES = 6;
 let CURRENT_WORD_LENGTH = 5;
@@ -750,9 +755,6 @@ function ensureFunHud() {
             <div class="fun-hud-item fun-hud-help">
                 <button type="button" id="fun-hud-help" class="fun-hud-mini-btn" aria-label="About game modes">?</button>
             </div>
-            <div class="fun-hud-item fun-hud-quick">
-                <button type="button" id="fun-hud-adventure" class="fun-hud-mini-btn">Adventure</button>
-            </div>
         `;
         document.body.appendChild(hud);
     } else if (!document.getElementById('fun-hud-timer')) {
@@ -776,20 +778,12 @@ function ensureFunHud() {
             <div class="fun-hud-item fun-hud-help">
                 <button type="button" id="fun-hud-help" class="fun-hud-mini-btn" aria-label="About game modes">?</button>
             </div>
-            <div class="fun-hud-item fun-hud-quick">
-                <button type="button" id="fun-hud-adventure" class="fun-hud-mini-btn">Adventure</button>
-            </div>
         `;
     }
     const helpBtn = hud.querySelector('#fun-hud-help');
     if (helpBtn && !helpBtn.dataset.bound) {
         helpBtn.dataset.bound = 'true';
         helpBtn.title = 'Fun: coins track wins. Challenge: hearts change on misses. Team: alternate turns and score.';
-    }
-    const adventureBtn = hud.querySelector('#fun-hud-adventure');
-    if (adventureBtn && !adventureBtn.dataset.bound) {
-        adventureBtn.dataset.bound = 'true';
-        adventureBtn.addEventListener('click', openAdventureModal);
     }
     return hud;
 }
@@ -1497,9 +1491,11 @@ function initTeacherTools() {
     updateEnhancedVoicePrompt();
     ensureAutoHearToggle();
     ensureFunHudControls();
+    ensureGameModesRow();
     ensureAssessmentControls();
     ensureClassroomDockControl();
     ensurePracticePackRow();
+    ensureSettingsTransferRow();
     ensureTeacherTabs();
     const calmToggle = document.getElementById('toggle-calm-mode');
     if (calmToggle) {
@@ -1631,6 +1627,96 @@ function ensurePracticePackRow() {
     row.querySelector('#practice-pack-clear')?.addEventListener('click', clearAllPracticeRecordings);
 }
 
+function ensureSettingsTransferRow() {
+    const grid = document.querySelector('#teacher-modal .teacher-tools-grid');
+    if (!grid || document.getElementById('settings-transfer-row')) return;
+
+    const row = document.createElement('div');
+    row.className = 'teacher-pack-row';
+    row.id = 'settings-transfer-row';
+    row.innerHTML = `
+        <div class="practice-pack-label">
+            <strong>Move your settings</strong>
+            <span class="teacher-subtext">Export/import preferences for a new device.</span>
+        </div>
+        <div class="practice-pack-actions">
+            <button type="button" id="settings-export" class="teacher-secondary-btn">Export</button>
+            <button type="button" id="settings-import-btn" class="teacher-secondary-btn">Import</button>
+            <input id="settings-import" type="file" accept="application/json" style="position:absolute;left:-9999px;width:1px;height:1px;" />
+        </div>
+    `;
+    grid.appendChild(row);
+
+    row.querySelector('#settings-export')?.addEventListener('click', exportPlatformSettings);
+    row.querySelector('#settings-import-btn')?.addEventListener('click', () => {
+        row.querySelector('#settings-import')?.click();
+    });
+    const input = row.querySelector('#settings-import');
+    if (input) {
+        input.addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            await importPlatformSettingsFromFile(file);
+            event.target.value = '';
+        });
+    }
+}
+
+function exportPlatformSettings() {
+    const safeCopy = JSON.parse(JSON.stringify(appSettings || {}));
+    if (safeCopy.gameMode) safeCopy.gameMode.active = false;
+    const blob = new Blob([JSON.stringify(safeCopy, null, 2)], { type: 'application/json' });
+    downloadBlob(blob, 'decode-the-word-settings.json');
+    showToast('Settings exported.');
+}
+
+async function importPlatformSettingsFromFile(file) {
+    try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (!parsed || typeof parsed !== 'object') {
+            showToast('That file does not look like settings.');
+            return;
+        }
+
+        const merged = {
+            ...DEFAULT_SETTINGS,
+            ...parsed,
+            funHud: {
+                ...DEFAULT_SETTINGS.funHud,
+                ...(parsed.funHud || {})
+            },
+            translation: {
+                ...DEFAULT_SETTINGS.translation,
+                ...(parsed.translation || {})
+            },
+            bonus: {
+                ...DEFAULT_SETTINGS.bonus,
+                ...(parsed.bonus || {})
+            },
+            gameMode: {
+                ...DEFAULT_SETTINGS.gameMode,
+                ...(parsed.gameMode || {})
+            },
+            classroom: {
+                ...DEFAULT_SETTINGS.classroom,
+                ...(parsed.classroom || {})
+            },
+            soundWallSections: {
+                ...DEFAULT_SETTINGS.soundWallSections,
+                ...(parsed.soundWallSections || {})
+            }
+        };
+
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+        showToast('Settings imported. Reloading...');
+        setTimeout(() => window.location.reload(), 650);
+    } catch (e) {
+        console.error('Could not import settings', e);
+        showToast('Could not import settings.');
+    }
+}
+
 function ensureTeacherTabs() {
     const modal = document.getElementById('teacher-modal');
     if (!modal || modal.dataset.tabsInit === 'true') return;
@@ -1673,8 +1759,10 @@ function ensureTeacherTabs() {
 
     const assessmentRow = audioPanel.querySelector('#open-assessment-btn')?.closest('.toggle-row');
     const practiceRow = audioPanel.querySelector('#practice-pack-row');
+    const transferRow = audioPanel.querySelector('#settings-transfer-row');
     if (assessmentRow) assessmentPanel.appendChild(assessmentRow);
     if (practiceRow) assessmentPanel.appendChild(practiceRow);
+    if (transferRow) assessmentPanel.appendChild(transferRow);
 
     tabs.querySelectorAll('.teacher-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => setTeacherTab(btn.dataset.tab || 'audio'));
@@ -1876,14 +1964,6 @@ function ensureFunHudControls() {
         updateFunHudVisibility();
     };
 
-    const modeRow = document.createElement('label');
-    modeRow.className = 'toggle-row';
-    modeRow.innerHTML = `
-        <input type="checkbox" id="toggle-fun-challenge" />
-        Hearts change on wins/losses
-    `;
-    grid.appendChild(modeRow);
-
     const sfxRow = document.createElement('label');
     sfxRow.className = 'toggle-row';
     sfxRow.innerHTML = `
@@ -1910,14 +1990,6 @@ function ensureFunHudControls() {
     `;
     grid.appendChild(resetRow);
 
-    const challengeToggle = modeRow.querySelector('#toggle-fun-challenge');
-    challengeToggle.checked = !!appSettings.funHud?.challenge;
-    challengeToggle.onchange = () => {
-        appSettings.funHud.challenge = challengeToggle.checked;
-        saveSettings();
-        renderFunHud();
-    };
-
     const sfxToggle = sfxRow.querySelector('#toggle-fun-sfx');
     sfxToggle.checked = !!appSettings.funHud?.sfx;
     sfxToggle.onchange = () => {
@@ -1941,6 +2013,23 @@ function ensureFunHudControls() {
         renderFunHud();
         showToast('Fun counters reset.');
     };
+}
+
+function ensureGameModesRow() {
+    const grid = document.querySelector('#teacher-modal .teacher-tools-grid');
+    if (!grid || document.getElementById('open-game-modes-btn')) return;
+
+    const row = document.createElement('div');
+    row.className = 'teacher-row';
+    row.innerHTML = `
+        <div>
+            <strong>Game Modes</strong>
+            <div class="teacher-subtext">Optional: team turns, timer, and challenge hearts.</div>
+        </div>
+        <button type="button" id="open-game-modes-btn" class="teacher-secondary-btn">Open</button>
+    `;
+    grid.appendChild(row);
+    row.querySelector('#open-game-modes-btn')?.addEventListener('click', openAdventureModal);
 }
 
 function initSoundWallFilters() {
@@ -2090,6 +2179,18 @@ let studioIndex = 0;
 let mediaRecorder = null;
 let audioChunks = [];
 let recordingType = ""; // Track what we are recording
+let studioStream = null;
+
+function releaseStudioStream() {
+    if (!studioStream) return;
+    try {
+        studioStream.getTracks().forEach(track => {
+            try { track.stop(); } catch (e) {}
+        });
+    } finally {
+        studioStream = null;
+    }
+}
 
 function initStudio() {
     document.getElementById("studio-source-select").onchange = (e) => {
@@ -2287,7 +2388,11 @@ function toggleRecording(type) {
         return;
     }
 
+    // Ensure we don't leave the mic open between recordings.
+    releaseStudioStream();
+
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        studioStream = stream;
         // FIX: iOS/Safari Mime Check
         let mimeType = "audio/webm";
         if (MediaRecorder.isTypeSupported("audio/mp4")) {
@@ -2308,6 +2413,9 @@ function toggleRecording(type) {
             const key = type === "word" ? `${word}_word` : `${word}_sentence`;
             
             saveAudioToDB(key, blob);
+
+            // Stop the mic immediately after we have the blob.
+            releaseStudioStream();
             
             const btn = document.getElementById(type === "word" ? "record-word-btn" : "record-sentence-btn");
             const playBtn = document.getElementById(type === "word" ? "play-word-preview" : "play-sentence-preview");
@@ -3579,6 +3687,10 @@ function closeModal() {
         practiceRecorder.mediaRecorder.stop();
     }
     releasePracticeStream();
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        try { mediaRecorder.stop(); } catch (e) {}
+    }
+    releaseStudioStream();
     
     if (document.activeElement) document.activeElement.blur();
     document.body.focus();
@@ -5181,6 +5293,28 @@ function ensureArticulationCard(phoneme) {
     }
 }
 
+function ensureSoundLabCollapseControl() {
+    const display = document.getElementById('selected-sound-display');
+    if (!display) return;
+    const actions = display.querySelector('.sound-card-actions');
+    if (!actions) return;
+
+    let btn = actions.querySelector('#collapse-sound-card');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'collapse-sound-card';
+        btn.type = 'button';
+        btn.className = 'sound-card-collapse';
+        btn.textContent = 'Collapse card';
+        actions.appendChild(btn);
+    }
+
+    if (!btn.dataset.bound) {
+        btn.dataset.bound = 'true';
+        btn.addEventListener('click', () => clearSoundSelection());
+    }
+}
+
 function selectSound(sound, phoneme, labelOverride = null, tile = null) {
     if (!phoneme) return;
 
@@ -5202,6 +5336,7 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
 
     const displayPanel = document.getElementById('selected-sound-display');
     if (displayPanel) displayPanel.classList.remove('hidden');
+    ensureSoundLabCollapseControl();
     const layout = document.querySelector('.sound-guide-layout');
     if (layout) layout.classList.remove('no-card');
     clearPronunciationFeedback();
@@ -5855,6 +5990,25 @@ function setWarmupOpen(isOpen) {
     setFunHudSuspended(isOpen);
 }
 
+let phonemeModalResilienceReady = false;
+
+function initPhonemeModalResilience() {
+    const phonemeModal = document.getElementById('phoneme-modal');
+    if (!phonemeModal || phonemeModalResilienceReady) return;
+    if (typeof ResizeObserver === 'undefined') return;
+    phonemeModalResilienceReady = true;
+
+    const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            const rect = entry.contentRect;
+            phonemeModal.classList.toggle('phoneme-narrow', rect.width < 900);
+            phonemeModal.classList.toggle('phoneme-short', rect.height < 600);
+        }
+    });
+
+    observer.observe(phonemeModal);
+}
+
 function openPhonemeGuide(preselectSound = null) {
     modalOverlay.classList.remove('hidden');
     const phonemeModal = document.getElementById('phoneme-modal');
@@ -5862,6 +6016,7 @@ function openPhonemeGuide(preselectSound = null) {
         console.error("phoneme-modal element not found!");
         return;
     }
+    initPhonemeModalResilience();
     clearSoundSelection();
     phonemeModal.classList.remove('hidden');
     setWarmupOpen(true);
@@ -6067,16 +6222,8 @@ function initFluencyLink() {
 }
 
 function initAdventureMode() {
-    const headerActions = document.querySelector('.header-actions');
-    if (!headerActions || document.getElementById('adventure-btn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'adventure-btn';
-    btn.type = 'button';
-    btn.className = 'link-btn';
-    btn.textContent = 'Adventure';
-    btn.title = 'Adventure Mode';
-    btn.addEventListener('click', openAdventureModal);
-    headerActions.insertBefore(btn, headerActions.firstChild);
+    // Game modes are now accessed from Teacher Settings to keep the main header clean.
+    return;
 }
 
 function initClassroomDock() {
@@ -6192,32 +6339,29 @@ function ensureMoreToolsMenu() {
     const wrapper = document.createElement('div');
     wrapper.className = 'more-tools-wrapper';
     wrapper.innerHTML = `
-        <button type="button" id="more-tools-btn" class="link-btn">Tools ▾</button>
-        <div id="more-tools-menu" class="more-tools-menu hidden">
-            <button type="button" id="menu-sound-lab" class="more-tools-item">Sound Lab</button>
-            <button type="button" id="menu-warmup" class="more-tools-item">Sounds Warm‑Up</button>
+        <button type="button" id="more-tools-btn" class="link-btn" aria-haspopup="menu" aria-expanded="false">Tools ▾</button>
+        <div id="more-tools-menu" class="more-tools-menu hidden" role="menu" aria-label="Tools menu">
+            <button type="button" id="menu-sound-lab" class="more-tools-item" role="menuitem">Sound Lab</button>
         </div>
     `;
     headerActions.appendChild(wrapper);
 
     const btn = wrapper.querySelector('#more-tools-btn');
     const menu = wrapper.querySelector('#more-tools-menu');
-    const warmup = wrapper.querySelector('#menu-warmup');
     const soundLab = wrapper.querySelector('#menu-sound-lab');
 
-    const closeMenu = () => menu.classList.add('hidden');
+    const closeMenu = () => {
+        menu.classList.add('hidden');
+        btn?.setAttribute('aria-expanded', 'false');
+    };
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         menu.classList.toggle('hidden');
+        btn.setAttribute('aria-expanded', menu.classList.contains('hidden') ? 'false' : 'true');
     });
     document.addEventListener('click', (e) => {
         if (!wrapper.contains(e.target)) closeMenu();
     });
-
-    if (warmup) warmup.onclick = () => {
-        closeMenu();
-        openPhonemeGuide();
-    };
 
     if (soundLab) {
         soundLab.addEventListener('click', () => {
@@ -6246,6 +6390,8 @@ function organizeHeaderActions() {
     const compBtn = findById('comprehension-btn') || findByText('comprehension');
     const fluencyBtn = findById('fluency-btn') || findByText('fluency');
     const madlibsBtn = findById('madlibs-btn') || findByText('mad libs');
+    const writingBtn = findById('writing-btn') || findByText('write');
+    const planitBtn = findById('planit-btn') || findByText('plan-it') || findByText('planit');
 
     const existing = Array.from(headerActions.children);
     const used = new Set();
@@ -6266,6 +6412,8 @@ function organizeHeaderActions() {
     add(compBtn);
     add(fluencyBtn);
     add(madlibsBtn);
+    add(writingBtn);
+    add(planitBtn);
 
     if (moreWrapper) add(moreWrapper);
     if (howtoBtn) add(howtoBtn);
@@ -6303,6 +6451,16 @@ function organizeHeaderActions() {
     if (madlibsBtn) {
         madlibsBtn.textContent = 'Silly Stories';
         madlibsBtn.title = 'Mad Libs';
+    }
+
+    if (writingBtn) {
+        writingBtn.textContent = 'Write & Build';
+        writingBtn.title = 'Writing';
+    }
+
+    if (planitBtn) {
+        planitBtn.textContent = 'Plan-It';
+        planitBtn.title = 'Planning & organizing';
     }
 
     if (adventureBtn) {
@@ -6468,8 +6626,8 @@ function ensureAdventureModal() {
     modal.innerHTML = `
         <div class="modal-content adventure-content">
             <button class="close-btn" aria-label="Close">✕</button>
-            <h2>Choose Your Adventure</h2>
-            <p class="adventure-subtitle">Pick a mode, then press “Start” to play.</p>
+            <h2>Game Modes</h2>
+            <p class="adventure-subtitle">Optional: turn on one or more modes, then press “Start”.</p>
 
             <div class="adventure-grid">
                 <label class="adventure-card">
@@ -6526,7 +6684,7 @@ function ensureAdventureModal() {
             </div>
 
             <div class="adventure-actions">
-                <button type="button" id="adventure-start" class="primary-btn">Start Adventure</button>
+                <button type="button" id="adventure-start" class="primary-btn">Start</button>
                 <button type="button" id="adventure-reset-coins" class="secondary-btn">Reset Team Coins</button>
             </div>
         </div>

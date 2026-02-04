@@ -1,66 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloze Quest</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Story Fill</title>
     <link rel="stylesheet" href="style.css" />
-</head>
-<body class="cloze-page">
+  </head>
+  <body class="cloze-page force-light">
     <header class="cloze-header">
-        <div>
-            <h1>Cloze Quest</h1>
-            <p class="cloze-subtitle">Drag words into the story or tap a word, then tap a blank.</p>
-        </div>
-        <div class="header-actions">
-            <a class="link-btn" href="index.html">Decode the Word</a>
-            <a class="link-btn" href="madlibs.html">Mad Libs</a>
-            <a class="link-btn" href="comprehension.html">Comprehension</a>
-            <a class="link-btn" href="fluency.html">Fluency</a>
-        </div>
+      <div>
+        <h1>Story Fill</h1>
+        <div class="cloze-subtitle">Drag words into the story or tap a word, then tap a blank.</div>
+      </div>
+
+      <div class="header-actions" aria-label="Navigation">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn active" href="cloze.html" aria-current="page">Story Fill</a>
+        <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+      </div>
     </header>
 
     <main class="cloze-main">
-        <section class="cloze-panel cloze-story">
-            <div class="cloze-panel-header">
-                <div>
-                    <h2 id="cloze-title">Story</h2>
-                    <span class="muted">Complete every blank to earn a bonus.</span>
-                </div>
-                <div class="cloze-controls">
-                    <select id="cloze-select" aria-label="Choose a story"></select>
-                    <button id="cloze-reset" class="secondary-btn" type="button">Reset</button>
-                    <button id="cloze-shuffle" class="secondary-btn" type="button">Shuffle</button>
-                </div>
-            </div>
-            <div id="cloze-passage" class="cloze-passage"></div>
-            <div id="cloze-message" class="cloze-message" aria-live="polite"></div>
-        </section>
+      <section class="cloze-panel" aria-label="Story">
+        <div class="cloze-panel-header">
+          <h2 id="cloze-title">Story</h2>
+          <div class="cloze-controls">
+            <select id="cloze-select" aria-label="Choose a story"></select>
+            <button id="cloze-reset" class="secondary-btn" type="button">Reset</button>
+            <button id="cloze-shuffle" class="secondary-btn" type="button">Shuffle</button>
+          </div>
+        </div>
+        <div id="cloze-passage" class="cloze-passage"></div>
+      </section>
 
-        <section class="cloze-panel cloze-bank-panel">
-            <div class="cloze-hud">
-                <div class="cloze-hud-item">🪙 <span>Coins</span> <strong id="cloze-coins">0</strong></div>
-                <div class="cloze-hud-item">🔥 <span>Streak</span> <strong id="cloze-streak">0</strong></div>
-                <div id="cloze-hearts" class="cloze-hearts" aria-label="Hearts"></div>
-            </div>
-            <div>
-                <h2>Word Bank</h2>
-                <p class="muted">Drag or tap a word, then tap a blank.</p>
-                <div id="cloze-bank" class="cloze-bank-grid"></div>
-            </div>
-            <div class="cloze-actions">
-                <button id="cloze-check" class="primary-btn" type="button">Check Story</button>
-                <label class="cloze-toggle">
-                    <input type="checkbox" id="cloze-challenge" />
-                    Challenge mode (uses hearts)
-                </label>
-            </div>
-        </section>
+      <aside class="cloze-panel" aria-label="Word bank">
+        <div class="cloze-hud" aria-label="Score">
+          <div class="cloze-hud-item">🪙 <span id="cloze-coins">0</span></div>
+          <div class="cloze-hud-item">🔥 <span id="cloze-streak">0</span></div>
+          <div class="cloze-hearts" id="cloze-hearts" aria-label="Hearts"></div>
+        </div>
+
+        <h2>Word Bank</h2>
+        <p class="cloze-subtitle" style="margin-top:-2px;">Drag or tap a word, then tap a blank.</p>
+
+        <div id="cloze-bank" class="cloze-bank-grid"></div>
+
+        <div class="cloze-actions">
+          <button id="cloze-check" class="primary-btn" type="button">Check Story</button>
+          <label class="cloze-toggle">
+            <input id="cloze-challenge" type="checkbox" />
+            Challenge mode (uses hearts)
+          </label>
+          <div id="cloze-message" class="cloze-message"></div>
+        </div>
+      </aside>
     </main>
 
     <script src="cloze.js"></script>
-</body>
+  </body>
 </html>

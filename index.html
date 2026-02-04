@@ -1,528 +1,166 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Decode the Word</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Learning Hub</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="home-page force-light">
+    <header>
+      <div class="header-top">
+        <h1 class="brand">
+          <a class="brand-link" href="index.html">Decode the Word</a>
+        </h1>
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2218%22%20fill%3D%22%231f2937%22/%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-size%3D%2252%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%20font-family%3D%22Arial%2C%20sans-serif%22%3EDtW%3C/text%3E%3C/svg%3E" alt="Decode the Word favicon">
-  
-  <!-- Inter font for clear I vs l distinction and readability -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Load scripts -->
-  <script src="words.js?v=1770074283" defer></script>
-  <script src="phoneme-data.js?v=1770074283" defer></script>
-  <script src="focus-info.js?v=1770074283" defer></script>
-  <script src="translations.js?v=1770074283" defer></script>
-  <script src="app.js?v=1770075400" defer></script>
-</head>
-
-<body>
-  <header>
-    <div class="header-top">
-      <h1>Decode the Word</h1>
-      <div class="header-actions">
-        <button id="teacher-btn" type="button">🎓 Teacher</button>
-        <button id="new-word-btn" type="button">New Word</button>
-        <a id="madlibs-btn" class="link-btn" href="madlibs.html">Mad Libs</a>
-      </div>
-    </div>
-
-    <div class="controls">
-      <div class="control-group">
-        <label for="pattern-select">Focus</label>
-        <select id="pattern-select">
-          <option value="all" selected>All Words</option>
-          
-          <!-- Foundation -->
-          <option value="cvc">CVC - Short Vowels (cat, dog, sun)</option>
-          
-          <!-- Consonant Patterns -->
-          <option value="digraph">Digraphs (sh, ch, th, wh, ck)</option>
-          <option value="ccvc">Initial Blends (st, bl, tr, fl)</option>
-          <option value="cvcc">Final Blends (mp, nd, st, nk)</option>
-          <option value="trigraph">Trigraphs (tch, dge, igh)</option>
-          
-          <!-- Vowel Patterns -->
-          <option value="cvce">Magic E / CVCe (cake, hope, time)</option>
-          <option value="vowel_team">Vowel Teams (rain, boat, see)</option>
-          <option value="r_controlled">R-Controlled (car, bird, fern)</option>
-          <option value="diphthong">Diphthongs (oi, oy, ou, ow)</option>
-          
-          <!-- Advanced Patterns -->
-          <option value="floss">FLOSS Rule (stuff, hill, pass)</option>
-          <option value="welded">Welded Sounds (king, bank, song)</option>
-          <option value="schwa">Schwa (about, circus)</option>
-          
-          <!-- Morphology -->
-          <option value="prefix">Prefixes (un-, re-, pre-)</option>
-          <option value="suffix">Suffixes (-ing, -ed, -er, -est)</option>
-          <option value="compound">Compound Words</option>
-          <option value="multisyllable">Multisyllabic Words</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label for="length-select">Length</label>
-        <select id="length-select">
-          <option value="traditional" selected>Traditional (5)</option>
-          <option value="any">Any Length</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-        </select>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- Minimal Focus Info -->
-    <section id="focus-panel" class="focus-panel">
-      <div id="focus-title" class="focus-title" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;"></div>
-      <div id="focus-desc" class="focus-desc" style="font-size: 0.85rem; color: #666;"></div>
-      <div id="focus-examples" class="focus-examples hidden" style="font-size: 0.85rem; margin-top: 6px; color: #444;"></div>
-      <div id="quick-tiles-row" class="quick-tiles-row hidden" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;"></div>
-    </section>
-
-    <section id="warmup-panel" class="warmup-panel">
-      <div class="warmup-text">
-        <div class="warmup-title">Warm-Up: Sounds</div>
-        <div class="warmup-subtitle">Quick articulation practice before the game.</div>
-      </div>
-      <div class="warmup-actions">
-        <button id="phoneme-btn" type="button" class="warmup-btn">Open Sounds Guide</button>
-        <div class="warmup-quick" aria-label="Quick vowel warm-up">
-          <button class="warmup-tile" type="button" data-sound="a">A</button>
-          <button class="warmup-tile" type="button" data-sound="e">E</button>
-          <button class="warmup-tile" type="button" data-sound="i">I</button>
-          <button class="warmup-tile" type="button" data-sound="o">O</button>
-          <button class="warmup-tile" type="button" data-sound="u">U</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Game -->
-    <div id="game-canvas">
-      <div id="game-board"></div>
-
-      <div class="hint-actions" style="display: flex; gap: 12px; justify-content: center; margin: 20px 0;">
-        <button id="simple-hear-word" type="button" class="hint-btn" aria-label="Hear word" style="font-size: 1rem; padding: 10px 20px; min-width: 120px;">🔊 Hear Word</button>
-        <button id="simple-hear-sentence" type="button" class="hint-btn" aria-label="Hear sentence" style="font-size: 1rem; padding: 10px 20px; min-width: 140px;">💬 Sentence</button>
-      </div>
-
-      <!-- Sentence preview - shows when sentence button is clicked -->
-      <div id="sentence-preview" class="sentence-preview hidden" style="text-align: center; margin: 10px auto; max-width: 500px; padding: 12px 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #667eea; font-style: italic; color: #374151;"></div>
-
-      <div id="keyboard"></div>
-    </div>
-<div id="banner-container" class="banner hidden"></div>
-    <div id="toast-container" class="toast-container"></div>
-  </main>
-
-  <!-- Overlay -->
-  <div id="modal-overlay" class="modal-overlay hidden"></div>
-
-  <!-- End / Reveal Modal -->
-  <div id="modal" class="modal hidden" data-overlay-close="true">
-    <div class="modal-content">
-      <button class="close-btn" type="button">×</button>
-
-      <h2 id="modal-title"></h2>
-      <div id="modal-word"></div>
-      <div id="modal-syllables" class="modal-syllables"></div>
-
-      <div class="definition-box">
-        <p id="modal-def"></p>
-        <p id="modal-sentence"></p>
-        
-        <!-- Translation dropdown as requested -->
-        <div class="translation-selector">
-          <label for="language-select">See in other languages:</label>
-          <select id="language-select">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="zh">中文</option>
-            <option value="vi">Tiếng Việt</option>
-            <option value="tl">Filipino</option>
-            <option value="pt">Português</option>
-            <option value="hi">हिन्दी</option>
-          </select>
-          <label class="translation-pin">
-            <input type="checkbox" id="pin-language">
-            Remember this language
-          </label>
-          <div id="translation-pin-status" class="translation-pin-status hidden"></div>
-        </div>
-        <div id="translation-display" class="translation-display hidden">
-          <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
-            <p id="translated-def" class="translated-text" style="flex: 1; margin: 0;"></p>
-            <button id="play-translated-def" type="button" class="mini-audio-btn" title="Hear definition">🔊</button>
-          </div>
-          <div style="display: flex; align-items: flex-start; gap: 8px;">
-            <p id="translated-sentence" class="translated-text" style="flex: 1; margin: 0;"></p>
-            <button id="play-translated-sentence" type="button" class="mini-audio-btn" title="Hear sentence">🔊</button>
+          <div class="header-actions">
+          <div class="nav-group nav-group-modes" aria-label="Activities">
+            <a class="link-btn" href="word-quest.html">Word Quest</a>
+            <a class="link-btn" href="cloze.html">Story Fill</a>
+            <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+            <a class="link-btn" href="fluency.html">Speed Sprint</a>
+            <a class="link-btn" href="madlibs.html">Silly Stories</a>
+            <a class="link-btn" href="writing.html">Write &amp; Build</a>
+            <a class="link-btn" href="plan-it.html">Plan-It</a>
           </div>
         </div>
       </div>
+    </header>
 
-      <div class="modal-actions">
-        <button id="speak-btn" type="button">🔊 Hear</button>
-        <button id="play-again-btn" type="button">Play Again</button>
-      </div>
-    </div>
-  </div>
+    <main class="home-main">
+      <section class="home-hero home-card">
+        <div class="home-hero-copy">
+          <h2>Bright Lab, Storybook Heart</h2>
+          <p class="home-lede">
+            A classroom-ready literacy toolkit that keeps practice structured, joyful, and easy to run on a projector.
+          </p>
 
-  <!-- Bonus Modal (Joke / Fun Fact / Quote) -->
-  <div id="bonus-modal" class="modal hidden" data-overlay-close="true">
-    <div class="modal-content bonus-modal">
-      <button class="close-btn" type="button">×</button>
-      <div id="bonus-emoji" class="bonus-emoji"></div>
-      <div id="bonus-title" class="bonus-title"></div>
-      <div id="bonus-text" class="bonus-text"></div>
-    </div>
-  </div>
-
-  <!-- Welcome Modal -->
-  <div id="welcome-modal" class="modal hidden" data-overlay-close="true">
-    <div class="modal-content wordle-help" style="max-width: 480px; padding: 24px;">
-      <h2 style="margin-bottom: 16px;">How To Play</h2>
-      <p style="margin-bottom: 12px;">Guess the word in 6 tries.</p>
-      
-      <ul style="margin: 0 0 20px 24px; padding: 0; line-height: 1.6;">
-        <li style="margin-bottom: 6px;">Each guess must be a valid word.</li>
-        <li>Tile colors show how close you are.</li>
-      </ul>
-
-      <h3 style="font-size: 1rem; margin-bottom: 12px;">Examples</h3>
-      
-      <div class="example-row" aria-label="example 1" style="margin-bottom: 8px;">
-        <div class="tile ex green">W</div><div class="tile ex">E</div><div class="tile ex">A</div><div class="tile ex">R</div><div class="tile ex">Y</div>
-      </div>
-      <p style="margin: 0 0 14px 0; font-size: 0.9rem;"><strong>W</strong> is correct.</p>
-
-      <div class="example-row" aria-label="example 2" style="margin-bottom: 8px;">
-        <div class="tile ex">P</div><div class="tile ex yellow">I</div><div class="tile ex">L</div><div class="tile ex">L</div><div class="tile ex">S</div>
-      </div>
-      <p style="margin: 0 0 14px 0; font-size: 0.9rem;"><strong>I</strong> is in word, wrong spot.</p>
-
-      <div class="example-row" aria-label="example 3" style="margin-bottom: 8px;">
-        <div class="tile ex">V</div><div class="tile ex">A</div><div class="tile ex gray">G</div><div class="tile ex">U</div><div class="tile ex">E</div>
-      </div>
-      <p style="margin: 0 0 20px 0; font-size: 0.9rem;"><strong>G</strong> is not in word.</p>
-
-      <button id="start-playing-btn" type="button" class="primary" style="width: 100%; padding: 16px; font-size: 1.2rem; font-weight: 600; margin-top: 8px;">Start Playing</button>
-      
-      <label style="display: flex; align-items: center; justify-content: center; margin-top: 14px; font-size: 0.85rem; color: #666; cursor: pointer;">
-        <input type="checkbox" id="dont-show-tutorial" style="margin-right: 6px;">
-        Don't show this again
-      </label>
-    </div>
-  </div>
-
-  <!-- Teacher Modal -->
-  <div id="teacher-modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-teacher" type="button">×</button>
-      <h2>Teacher Settings</h2>
-
-      <div class="teacher-block">
-        <label>Custom Word:</label>
-        <div class="teacher-row">
-          <input id="custom-word-input" type="password" placeholder="Enter word" autocomplete="off" />
-          <button id="toggle-mask" type="button">Show</button>
-        </div>
-        <div id="teacher-error" class="teacher-error"></div>
-
-        <div class="teacher-actions">
-          <button id="set-word-btn" type="button">Set Word</button>
-          <button id="open-studio-btn" type="button">Recording Studio</button>
-        </div>
-      </div>
-
-      <div class="teacher-block">
-        <label for="system-voice-select">System Voice (TTS):</label>
-        <select id="system-voice-select">
-          <option value="">Auto-Select Best (Default)</option>
-        </select>
-      </div>
-
-      <div class="teacher-block">
-        <label>Recorded Voice:</label>
-        <div class="teacher-voice-row">
-          <label class="toggle-row">
-            <input type="checkbox" id="teacher-voice-toggle">
-            Use my recordings when available
-          </label>
-          <div id="recording-count" class="teacher-subtext">No recordings yet</div>
-        </div>
-        <div class="voice-delete-grid">
-          <button id="delete-word-recording" type="button">Delete this word</button>
-          <button id="delete-sentence-recording" type="button">Delete this sentence</button>
-          <button id="delete-phoneme-recording" type="button">Delete this phoneme</button>
-          <button id="delete-all-word-recordings" type="button">Delete all words</button>
-          <button id="delete-all-sentence-recordings" type="button">Delete all sentences</button>
-          <button id="delete-all-recordings" type="button" class="danger">Delete all recordings</button>
-        </div>
-        <div class="teacher-hint">Tip: use Recording Studio to capture word and sentence audio.</div>
-      </div>
-
-      <div class="teacher-block">
-        <label for="translation-default-select">Translation Default:</label>
-        <div class="teacher-row">
-          <select id="translation-default-select">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="zh">中文</option>
-            <option value="vi">Tiếng Việt</option>
-            <option value="tl">Filipino</option>
-            <option value="pt">Português</option>
-            <option value="hi">हिन्दी</option>
-          </select>
-          <label class="toggle-row inline">
-            <input type="checkbox" id="translation-lock-toggle">
-            Lock for class
-          </label>
-        </div>
-        <div class="teacher-hint">Locked language auto-applies in word reveals until you change it.</div>
-      </div>
-
-      <details class="teacher-tools">
-        <summary>Classroom Tools</summary>
-        <div class="teacher-tools-grid">
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-calm-mode">
-            Calm mode (reduced motion + softer visuals)
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-large-text">
-            Large text
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-show-ipa" checked>
-            Show IPA symbols
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-show-examples" checked>
-            Show example words
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-mouth-cues" checked>
-            Show mouth cues
-          </label>
-          <div class="toggle-row slider-row">
-            <label for="speech-rate">Speech rate</label>
-            <input type="range" id="speech-rate" min="0.6" max="1.05" step="0.05" value="0.85">
-            <span id="speech-rate-value">0.85x</span>
-          </div>
-          <div class="toggle-row select-row">
-            <label for="bonus-frequency">Fun popup frequency</label>
-            <select id="bonus-frequency">
-              <option value="often">Often</option>
-              <option value="sometimes">Sometimes</option>
-              <option value="rare">Rare</option>
-              <option value="off">Off</option>
-            </select>
-          </div>
-        </div>
-      </details>
-    </div>
-  </div>
-
-  <!-- Recording Studio Modal - PROFESSIONAL REDESIGN -->
-  <div id="recording-studio-modal" class="modal hidden">
-    <div class="modal-content" style="max-width: 700px; padding: 32px;">
-      
-      <!-- Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h2 style="margin: 0; font-size: 1.75rem; font-weight: 600;">🎙️ Recording Studio</h2>
-        <button class="close-studio" type="button" style="font-size: 2rem; background: none; border: none; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
-      </div>
-
-      <!-- SETUP VIEW -->
-      <div id="studio-setup-view">
-        
-        <!-- Source Selection -->
-        <div style="margin-bottom: 24px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">Word Source</label>
-          <select id="studio-source-select" style="width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif;">
-            <option value="focus">Use current Focus list</option>
-            <option value="paste">Paste my own list</option>
-          </select>
-        </div>
-
-        <!-- Paste Area -->
-        <div id="studio-paste-area" class="hidden" style="margin-bottom: 24px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">Paste words (one per line)</label>
-          <textarea id="studio-paste-input" rows="6" placeholder="cat&#10;ship&#10;rain" style="width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; resize: vertical;"></textarea>
-        </div>
-
-        <!-- Options -->
-        <div style="margin-bottom: 32px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-          <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-            <input id="studio-skip-existing" type="checkbox" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;" />
-            <span style="font-size: 0.95rem;">Skip words that already have recordings</span>
-          </label>
-          <label style="display: flex; align-items: center; cursor: pointer;">
-            <input id="studio-auto-advance" type="checkbox" checked style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;" />
-            <span style="font-size: 0.95rem;">Auto-advance after sentence recording</span>
-          </label>
-        </div>
-
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 12px;">
-          <button id="start-studio-btn" type="button" style="flex: 1; padding: 14px; font-size: 1.1rem; font-weight: 600; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">Start Session</button>
-          <button id="exit-studio-btn" type="button" style="padding: 14px 24px; font-size: 1rem; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">Cancel</button>
-        </div>
-      </div>
-
-      <!-- RECORD VIEW - MODERN REDESIGN -->
-      <div id="studio-record-view" class="hidden">
-        
-        <!-- Progress Bar -->
-        <div style="margin-bottom: 24px; padding: 12px 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-          <div id="studio-progress" style="font-weight: 600; color: #1e40af;"></div>
-        </div>
-
-        <!-- Word Display -->
-        <div style="margin-bottom: 24px; text-align: center;">
-          <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; letter-spacing: 0.5px;">Target Word</div>
-          <div id="studio-word-display" style="font-size: 3rem; font-weight: 700; color: #1f2937; letter-spacing: 2px;"></div>
-        </div>
-
-        <!-- Definition -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">Definition</label>
-          <div id="studio-definition-display" style="padding: 12px; background: #f0f9ff; border-radius: 8px; color: #1e40af; font-style: italic; min-height: 44px; display: flex; align-items: center;"></div>
-        </div>
-
-        <!-- Sentence -->
-        <div style="margin-bottom: 32px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">Example Sentence</label>
-          <textarea id="studio-sentence-display" rows="4" style="width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 120px;" placeholder="Sentence will appear here..."></textarea>
-        </div>
-
-        <!-- Recording Status -->
-        <div id="recording-status" style="margin-bottom: 24px; padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center; font-weight: 500; display: none;"></div>
-
-        <!-- Recording Controls - CLEAN TWO-COLUMN LAYOUT -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px;">
-          
-          <!-- Word Recording -->
-          <div style="padding: 20px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
-            <div style="font-weight: 600; margin-bottom: 16px; color: #374151; font-size: 1.05rem;">🎤 Word</div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <button id="record-word-btn" type="button" style="padding: 12px; font-size: 1rem; font-weight: 600; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">● Record</button>
-              <button id="play-word-preview" type="button" disabled style="padding: 12px; font-size: 1rem; font-weight: 500; background: #e5e7eb; color: #9ca3af; border: none; border-radius: 8px; cursor: not-allowed;">▶ Play</button>
-            </div>
+          <div class="home-cta-row">
+            <a class="home-cta primary" href="word-quest.html">Start Word Quest</a>
+            <a class="home-cta ghost" href="#daily-path">See the Daily Path</a>
           </div>
 
-          <!-- Sentence Recording -->
-          <div style="padding: 20px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
-            <div style="font-weight: 600; margin-bottom: 16px; color: #374151; font-size: 1.05rem;">💬 Sentence</div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <button id="record-sentence-btn" type="button" style="padding: 12px; font-size: 1rem; font-weight: 600; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">● Record</button>
-              <button id="play-sentence-preview" type="button" disabled style="padding: 12px; font-size: 1rem; font-weight: 500; background: #e5e7eb; color: #9ca3af; border: none; border-radius: 8px; cursor: not-allowed;">▶ Play</button>
-            </div>
+          <div class="home-badges" aria-label="Design goals">
+            <span class="home-badge">Structured practice</span>
+            <span class="home-badge">Projector-friendly</span>
+            <span class="home-badge">Local-first</span>
           </div>
         </div>
 
-        <!-- Navigation Buttons -->
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <button id="prev-item-btn" type="button" style="padding: 14px 24px; font-size: 1rem; font-weight: 500; background: #f3f4f6; color: #374151; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;">← Previous</button>
-          
-          <div style="display: flex; gap: 12px;">
-            <button id="skip-item-btn" type="button" style="padding: 14px 20px; font-size: 1rem; font-weight: 500; background: #fbbf24; color: #92400e; border: 2px solid #f59e0b; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Skip Word</button>
-            <button id="next-item-btn" type="button" style="padding: 14px 32px; font-size: 1.1rem; font-weight: 600; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">Next Word →</button>
+        <div class="home-hero-panel" aria-label="Quick start">
+          <div class="home-mini-title">Quick Start</div>
+          <ol class="home-quick-steps">
+            <li>Pick a focus (CVC, digraphs, vowel teams, etc.).</li>
+            <li>Play Word Quest together (whole class or small group).</li>
+            <li>Apply skills in Story Fill, Read &amp; Think, or Speed Sprint.</li>
+          </ol>
+          <div class="home-mini-hint">
+            Tip: Use <strong>Teacher Settings</strong> inside Word Quest to manage audio, assessments, and classroom tools.
           </div>
         </div>
-      </div>
+      </section>
 
-    </div>
-  </div>
-
-  <!-- Help Modal -->
-  <div id="help-modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-btn" type="button">×</button>
-      <h2>How to Play</h2>
-      <p>Guess the word in 6 tries. Green = correct spot, yellow = wrong spot, gray = not in word.</p>
-      <p>Use the <strong>Hear Word</strong> and <strong>Sentence</strong> buttons for hints!</p>
-    </div>
-  </div>
-
-  <!-- Advanced Phoneme Guide Modal -->
-  <div id="phoneme-modal" class="modal hidden">
-    <div class="modal-content phoneme-modal">
-      <button class="close-btn" type="button">×</button>
-      <h2>Sounds Warm-Up</h2>
-      <p class="sound-guide-subtitle">Tap a tile to see the articulation card and hear the sound.</p>
-
-      <div class="sound-guide-layout">
-        <div class="sound-guide-card">
-          <div id="selected-sound-display" class="selected-sound">
-            <div class="sound-card-header">
-              <div id="sound-letter" class="sound-letter"></div>
-              <div id="sound-name" class="sound-name"></div>
-            </div>
-            <div class="sound-card-body">
-              <div id="mouth-visual" class="sound-mouth"></div>
-              <div class="sound-cue">
-                <div class="sound-cue-label">Mouth Position</div>
-                <div id="mouth-cue"></div>
-                <div id="mouth-description" class="sound-description"></div>
-              </div>
-            </div>
-            <div class="sound-card-actions">
-              <button id="hear-letter-name" type="button">Letter Name</button>
-              <button id="hear-example-word" type="button">Example Word</button>
-              <button id="hear-phoneme-sound" type="button">Sound</button>
-            </div>
-          </div>
+      <section id="daily-path" class="home-card home-path">
+        <div class="home-card-header">
+          <h2>Daily Path (10–15 minutes)</h2>
+          <p class="home-subtitle">A predictable routine: warm-up → practice → apply → reflect.</p>
         </div>
 
-        <div class="sound-guide-board">
-          <div class="sound-guide-section">
-            <h3>Short Vowels (A‑E‑I‑O‑U)</h3>
-            <div id="vowel-row" class="sound-row"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>Alphabet</h3>
-            <div id="alphabet-board" class="alphabet-board"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>Digraphs</h3>
-            <div id="digraph-board" class="alphabet-board small"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>Blends</h3>
-            <div id="blend-board" class="alphabet-board small"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>Vowel Teams &amp; Diphthongs</h3>
-            <div id="vowel-team-board" class="alphabet-board small"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>R-Controlled</h3>
-            <div id="rcontrolled-board" class="alphabet-board small"></div>
-          </div>
-          <div class="sound-guide-section">
-            <h3>Glued / Welded</h3>
-            <div id="welded-board" class="alphabet-board small"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        <div class="home-path-grid">
+          <a class="home-path-step" href="word-quest.html#sound-lab">
+            <div class="home-step-kicker">Warm‑Up</div>
+            <div class="home-step-title">Sound Lab</div>
+            <div class="home-step-desc">Quick sound tiles + tips. Teacher can keep it tucked away until needed.</div>
+          </a>
 
-</body>
+          <a class="home-path-step" href="word-quest.html">
+            <div class="home-step-kicker">Practice</div>
+            <div class="home-step-title">Word Quest</div>
+            <div class="home-step-desc">Decoding with immediate feedback and clean visuals.</div>
+          </a>
+
+          <a class="home-path-step" href="cloze.html">
+            <div class="home-step-kicker">Apply</div>
+            <div class="home-step-title">Story Fill</div>
+            <div class="home-step-desc">Use vocabulary in context; build meaning while practicing.</div>
+          </a>
+
+          <a class="home-path-step" href="comprehension.html">
+            <div class="home-step-kicker">Think</div>
+            <div class="home-step-title">Read &amp; Think</div>
+            <div class="home-step-desc">Short passages + inference/detail questions by band.</div>
+          </a>
+
+          <a class="home-path-step" href="fluency.html">
+            <div class="home-step-kicker">Fluency</div>
+            <div class="home-step-title">Speed Sprint</div>
+            <div class="home-step-desc">Timed reading practice and simple scoring.</div>
+          </a>
+        </div>
+      </section>
+
+      <section class="home-card home-activities">
+        <div class="home-card-header">
+          <h2>Activities</h2>
+          <p class="home-subtitle">Kid-friendly names with teacher-grade tools under the hood.</p>
+        </div>
+
+        <div class="home-activity-grid">
+          <a class="home-activity" href="word-quest.html">
+            <div class="home-activity-title">Word Quest</div>
+            <div class="home-activity-desc">Decode words, hear word/sentence, and track patterns.</div>
+            <div class="home-activity-meta">Foundational skills • decoding</div>
+          </a>
+
+          <a class="home-activity" href="cloze.html">
+            <div class="home-activity-title">Story Fill</div>
+            <div class="home-activity-desc">Drag or tap words into a story for meaning and grammar practice.</div>
+            <div class="home-activity-meta">Vocabulary • syntax • context</div>
+          </a>
+
+          <a class="home-activity" href="comprehension.html">
+            <div class="home-activity-title">Read &amp; Think</div>
+            <div class="home-activity-desc">Band-based passages with inference and detail questions.</div>
+            <div class="home-activity-meta">Comprehension • discussion</div>
+          </a>
+
+          <a class="home-activity" href="fluency.html">
+            <div class="home-activity-title">Speed Sprint</div>
+            <div class="home-activity-desc">Short timed reads with quick accuracy scoring.</div>
+            <div class="home-activity-meta">Fluency • accuracy</div>
+          </a>
+
+          <a class="home-activity" href="madlibs.html">
+            <div class="home-activity-title">Silly Stories</div>
+            <div class="home-activity-desc">Playful parts-of-speech writing that stays classroom calm.</div>
+            <div class="home-activity-meta">Grammar • creativity</div>
+          </a>
+
+          <a class="home-activity" href="writing.html">
+            <div class="home-activity-title">Write &amp; Build</div>
+            <div class="home-activity-desc">A Step Up–style paragraph builder: plan → draft → check.</div>
+            <div class="home-activity-meta">Writing • structure • revision</div>
+          </a>
+
+          <a class="home-activity" href="plan-it.html">
+            <div class="home-activity-title">Plan-It Challenge</div>
+            <div class="home-activity-desc">A calm planning game: organize time, meet constraints, build routines.</div>
+            <div class="home-activity-meta">Executive function • routines</div>
+          </a>
+        </div>
+      </section>
+
+      <section class="home-card home-footer-card">
+        <h2>Teacher Notes</h2>
+        <p class="home-subtitle">
+          This platform is designed to be simple to run: predictable steps, clear visuals, and features that support small
+          groups, intervention blocks, and whole-class projection.
+        </p>
+        <p class="home-subtitle">
+          Next upgrades in-progress: true-length fluency passages (1–2 min), richer comprehension and writing banks, and
+          more “teacher time-savers” (export/import + quick scoring).
+        </p>
+      </section>
+    </main>
+  </body>
 </html>

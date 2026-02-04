@@ -367,6 +367,7 @@ function init() {
     applyFriendlyNavLabels();
     applyLightTheme();
     loadSettings();
+    applyPlatformGameModeVisibility();
     buildSelect();
     ui.select.value = String(state.currentIndex);
     ui.challenge.checked = state.challenge;
@@ -392,6 +393,25 @@ function init() {
 }
 
 init();
+
+function applyPlatformGameModeVisibility() {
+    const active = isPlatformGameModeActive();
+    const hud = document.querySelector('.cloze-hud');
+    if (hud) hud.style.display = active ? 'flex' : 'none';
+}
+
+function isPlatformGameModeActive() {
+    try {
+        const raw = localStorage.getItem('decode_settings');
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        const enabled = !!parsed?.funHud?.enabled;
+        const hasModes = !!parsed?.gameMode?.teamMode || !!parsed?.gameMode?.timerEnabled || !!parsed?.funHud?.challenge;
+        return enabled && hasModes;
+    } catch (e) {
+        return false;
+    }
+}
 
 function applyFriendlyNavLabels() {
     const map = {

@@ -434,6 +434,7 @@ function checkAnswers() {
 function init() {
     applyFriendlyNavLabels();
     applyLightTheme();
+    applyPlatformGameModeVisibility();
     loadProgress();
     updateHud();
     buildFilters();
@@ -457,6 +458,25 @@ function init() {
 }
 
 init();
+
+function applyPlatformGameModeVisibility() {
+    const active = isPlatformGameModeActive();
+    const hud = document.querySelector('.comp-hud');
+    if (hud) hud.style.display = active ? 'flex' : 'none';
+}
+
+function isPlatformGameModeActive() {
+    try {
+        const raw = localStorage.getItem('decode_settings');
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        const enabled = !!parsed?.funHud?.enabled;
+        const hasModes = !!parsed?.gameMode?.teamMode || !!parsed?.gameMode?.timerEnabled || !!parsed?.funHud?.challenge;
+        return enabled && hasModes;
+    } catch (e) {
+        return false;
+    }
+}
 
 function applyFriendlyNavLabels() {
     const map = {

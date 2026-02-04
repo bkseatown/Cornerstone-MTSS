@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Write &amp; Build</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="writing-page force-light">
+    <header class="writing-header">
+      <div>
+        <h1>Write &amp; Build</h1>
+        <div class="writing-subtitle">A Step Up–style writing builder: plan → draft → check → celebrate.</div>
+      </div>
+
+      <div class="header-actions" aria-label="Navigation">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn" href="cloze.html">Story Fill</a>
+        <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn active" href="writing.html" aria-current="page">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+      </div>
+    </header>
+
+    <main class="writing-main">
+      <section class="writing-panel" aria-label="Prompt and plan">
+        <div class="writing-panel-header">
+          <div>
+            <h2>Prompt &amp; Plan</h2>
+            <p class="writing-help">Pick a prompt, then jot quick notes. Keep it short—planning should feel easy.</p>
+          </div>
+          <div class="writing-controls" aria-label="Filters">
+            <select id="writing-grade" aria-label="Grade band"></select>
+            <select id="writing-genre" aria-label="Genre"></select>
+            <select id="writing-prompt" aria-label="Choose a prompt"></select>
+            <button id="writing-shuffle" class="secondary-btn" type="button">Shuffle</button>
+          </div>
+        </div>
+
+        <div class="writing-prompt-card" id="writing-prompt-card">
+          <div class="writing-prompt-title" id="writing-prompt-title">Prompt</div>
+          <div class="writing-prompt-text" id="writing-prompt-text"></div>
+          <div class="writing-starters" id="writing-starters"></div>
+        </div>
+
+        <div class="writing-plan-grid">
+          <label class="writing-field">
+            <span>Topic / Claim</span>
+            <input id="plan-topic" type="text" placeholder="What is your main idea?" />
+          </label>
+
+          <label class="writing-field">
+            <span>Detail 1</span>
+            <input id="plan-detail-1" type="text" placeholder="One reason / fact / event" />
+          </label>
+
+          <label class="writing-field">
+            <span>Detail 2</span>
+            <input id="plan-detail-2" type="text" placeholder="Another reason / fact / event" />
+          </label>
+
+          <label class="writing-field">
+            <span>Detail 3 (optional)</span>
+            <input id="plan-detail-3" type="text" placeholder="A final detail, example, or step" />
+          </label>
+
+          <label class="writing-field">
+            <span>Transitions</span>
+            <input id="plan-transitions" type="text" placeholder="first, next, because, for example, finally…" />
+          </label>
+        </div>
+      </section>
+
+      <aside class="writing-panel" aria-label="Draft and check">
+        <div class="writing-panel-header">
+          <div>
+            <h2>Draft &amp; Check</h2>
+            <p class="writing-help">Write one sentence per box. Then build your paragraph.</p>
+          </div>
+          <div class="writing-actions">
+            <button id="writing-build" class="primary-btn" type="button">Build Paragraph</button>
+            <button id="writing-clear" class="secondary-btn" type="button">Clear</button>
+          </div>
+        </div>
+
+        <div class="writing-frame">
+          <label class="writing-sentence writing-sentence-topic">
+            <span>Topic sentence</span>
+            <textarea id="draft-topic" rows="2" placeholder="My topic is…"></textarea>
+          </label>
+
+          <label class="writing-sentence writing-sentence-detail">
+            <span>Detail sentence 1</span>
+            <textarea id="draft-detail-1" rows="2" placeholder="First,…"></textarea>
+          </label>
+
+          <label class="writing-sentence writing-sentence-detail">
+            <span>Detail sentence 2</span>
+            <textarea id="draft-detail-2" rows="2" placeholder="Next,…"></textarea>
+          </label>
+
+          <label class="writing-sentence writing-sentence-detail">
+            <span>Detail sentence 3 (optional)</span>
+            <textarea id="draft-detail-3" rows="2" placeholder="Also,…"></textarea>
+          </label>
+
+          <label class="writing-sentence writing-sentence-conclusion">
+            <span>Conclusion sentence</span>
+            <textarea id="draft-conclusion" rows="2" placeholder="In conclusion,…"></textarea>
+          </label>
+        </div>
+
+        <div class="writing-preview">
+          <div class="writing-preview-title">Preview</div>
+          <div id="writing-preview-text" class="writing-preview-text"></div>
+        </div>
+
+        <div id="writing-feedback" class="writing-feedback" aria-live="polite"></div>
+      </aside>
+    </main>
+
+    <script src="writing.js"></script>
+  </body>
+</html>

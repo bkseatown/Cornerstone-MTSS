@@ -1,80 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fluency Sprint</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decode the Word — Speed Sprint</title>
     <link rel="stylesheet" href="style.css" />
-</head>
-<body class="fluency-page">
+  </head>
+  <body class="fluency-page force-light">
     <header class="fluency-header">
-        <div>
-            <h1>Fluency Sprint</h1>
-            <p class="fluency-subtitle">Timed 1- and 2-minute decodable passages with ORF tracking.</p>
-        </div>
-        <div class="header-actions">
-            <a class="link-btn" href="index.html">Decode the Word</a>
-            <a class="link-btn" href="cloze.html">Cloze</a>
-            <a class="link-btn" href="madlibs.html">Mad Libs</a>
-            <a class="link-btn" href="comprehension.html">Comprehension</a>
-        </div>
+      <div>
+        <h1>Speed Sprint</h1>
+        <div class="fluency-subtitle">Timed 1–2 minute decodable passages with ORF-style scoring.</div>
+      </div>
+
+      <div class="header-actions" aria-label="Navigation">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn" href="cloze.html">Story Fill</a>
+        <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a class="link-btn active" href="fluency.html" aria-current="page">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+      </div>
     </header>
 
     <main class="fluency-main">
-        <section class="fluency-panel fluency-reading">
-            <div class="fluency-panel-header">
-                <div>
-                    <h2 id="fluency-title">Passage</h2>
-                    <span id="fluency-meta" class="muted"></span>
-                </div>
-                <div class="fluency-controls">
-                    <select id="fluency-grade" aria-label="Grade band"></select>
-                    <select id="fluency-lexile" aria-label="Lexile band"></select>
-                    <select id="fluency-select" aria-label="Choose passage"></select>
-                </div>
-            </div>
-            <div id="fluency-passage" class="fluency-passage"></div>
-        </section>
+      <section class="fluency-panel" aria-label="Passage">
+        <div class="fluency-panel-header">
+          <div>
+            <h2 id="fluency-title">Passage</h2>
+            <div id="fluency-meta" class="fluency-subtitle"></div>
+          </div>
+          <div class="fluency-controls" aria-label="Filters">
+            <select id="fluency-grade" aria-label="Grade band"></select>
+            <select id="fluency-lexile" aria-label="Lexile band"></select>
+            <select id="fluency-select" aria-label="Choose a passage"></select>
+          </div>
+        </div>
 
-        <section class="fluency-panel fluency-tools">
-            <div class="fluency-hud">
-                <div class="fluency-hud-item">🪙 Coins <strong id="fluency-coins">0</strong></div>
-                <div class="fluency-hud-item">🔥 Streak <strong id="fluency-streak">0</strong></div>
-            </div>
-            <div class="fluency-timer">
-                <div id="fluency-timer-display" class="fluency-timer-display">1:00</div>
-                <div class="fluency-timer-controls">
-                    <button id="fluency-start" class="primary-btn" type="button">Start</button>
-                    <button id="fluency-pause" class="secondary-btn" type="button">Pause</button>
-                    <button id="fluency-reset" class="secondary-btn" type="button">Reset</button>
-                </div>
-                <div class="fluency-timer-set">
-                    <label for="fluency-minutes">Timer length</label>
-                    <select id="fluency-minutes">
-                        <option value="60">1 minute</option>
-                        <option value="120">2 minutes</option>
-                    </select>
-                </div>
-            </div>
-            <div class="fluency-score">
-                <label>Words read</label>
-                <input id="fluency-words" type="number" min="0" placeholder="0" />
-                <label>Errors</label>
-                <input id="fluency-errors" type="number" min="0" placeholder="0" />
-                <label>ORF goal (teacher set)</label>
-                <input id="fluency-goal" type="number" min="0" placeholder="0" />
-                <div class="fluency-score-output">ORF Score: <strong id="fluency-score">0</strong></div>
-            </div>
-            <div class="fluency-actions">
-                <button id="fluency-check" class="primary-btn" type="button">Score & Award</button>
-            </div>
-            <div id="fluency-feedback" class="fluency-feedback" aria-live="polite"></div>
-        </section>
+        <div id="fluency-passage" class="fluency-passage"></div>
+      </section>
+
+      <aside class="fluency-panel" aria-label="Timer and scoring">
+        <div class="fluency-hud" aria-label="Score">
+          <div>🪙 <span id="fluency-coins">0</span></div>
+          <div>🔥 <span id="fluency-streak">0</span></div>
+        </div>
+
+        <div id="fluency-timer-display" class="fluency-timer-display">1:00</div>
+
+        <div class="fluency-timer-controls">
+          <button id="fluency-start" class="primary-btn" type="button">Start</button>
+          <button id="fluency-pause" class="secondary-btn" type="button">Pause</button>
+          <button id="fluency-reset" class="secondary-btn" type="button">Reset</button>
+        </div>
+
+        <div class="fluency-score">
+          <label for="fluency-minutes"><strong>Timer length</strong></label>
+          <select id="fluency-minutes">
+            <option value="60">1 minute</option>
+            <option value="120">2 minutes</option>
+          </select>
+
+          <label for="fluency-words"><strong>Words read</strong></label>
+          <input id="fluency-words" type="number" min="0" inputmode="numeric" />
+
+          <label for="fluency-errors"><strong>Errors</strong></label>
+          <input id="fluency-errors" type="number" min="0" inputmode="numeric" />
+
+          <label for="fluency-goal"><strong>ORF goal (teacher set)</strong></label>
+          <input id="fluency-goal" type="number" min="0" inputmode="numeric" />
+
+          <div class="fluency-score-output">ORF Score: <span id="fluency-score">0</span></div>
+          <button id="fluency-check" class="primary-btn" type="button">Score &amp; Award</button>
+          <div id="fluency-feedback" class="fluency-feedback" aria-live="polite"></div>
+        </div>
+      </aside>
     </main>
 
     <script src="fluency.js"></script>
-</body>
+  </body>
 </html>
