@@ -169,12 +169,19 @@ const output = document.getElementById('madlibs-output');
 function initClozeNav() {
     const header = document.querySelector('.madlibs-header');
     if (!header || document.getElementById('madlibs-cloze-link')) return;
-    const link = document.createElement('a');
-    link.id = 'madlibs-cloze-link';
-    link.href = 'cloze.html';
-    link.className = 'link-btn';
-    link.textContent = 'Cloze';
-    header.appendChild(link);
+    const links = [
+        { id: 'madlibs-cloze-link', href: 'cloze.html', label: 'Cloze' },
+        { id: 'madlibs-comp-link', href: 'comprehension.html', label: 'Comprehension' },
+        { id: 'madlibs-fluency-link', href: 'fluency.html', label: 'Fluency' }
+    ];
+    links.forEach(({ id, href, label }) => {
+        const link = document.createElement('a');
+        link.id = id;
+        link.href = href;
+        link.className = 'link-btn';
+        link.textContent = label;
+        header.appendChild(link);
+    });
 }
 
 function initTemplates() {

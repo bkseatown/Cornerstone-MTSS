@@ -580,6 +580,8 @@ document.addEventListener("DOMContentLoaded", () => {
     initModalDismissals();
     initHowTo();
     initClozeLink();
+    initComprehensionLink();
+    initFluencyLink();
     initAdventureMode();
     initClassroomDock();
     if (typeof initAssessmentFlow === 'function') {
@@ -680,9 +682,11 @@ function renderFunHud() {
         const bName = appSettings.gameMode?.teamBName || 'Team B';
         const aCoins = appSettings.gameMode?.teamACoins ?? 0;
         const bCoins = appSettings.gameMode?.teamBCoins ?? 0;
-        if (coins) coins.textContent = `${aName}: ${aCoins} • ${bName}: ${bCoins}`;
+        const aShort = formatTeamShortLabel(aName, 'A');
+        const bShort = formatTeamShortLabel(bName, 'B');
+        if (coins) coins.textContent = `${aShort} ${aCoins} • ${bShort} ${bCoins}`;
         if (teamLabel) {
-            teamLabel.textContent = `Turn: ${getActiveTeamLabel()}`;
+            teamLabel.textContent = `Turn: ${formatTeamShortLabel(getActiveTeamLabel(), getActiveTeamKey())}`;
             teamLabel.style.display = 'inline-flex';
         }
     } else {
@@ -698,6 +702,16 @@ function renderFunHud() {
 
     if (timerItem) timerItem.style.display = timerEnabled ? 'inline-flex' : 'none';
     if (timer && timerEnabled) timer.textContent = formatTime(lightningRemaining || appSettings.gameMode?.timerSeconds || 0);
+}
+
+function formatTeamShortLabel(name = '', fallback = '') {
+    if (!name) return fallback;
+    const cleaned = name.toString().replace(/team\s*/i, '').trim();
+    if (!cleaned) return fallback;
+    const parts = cleaned.split(/\s+/);
+    const base = parts[0] || cleaned;
+    if (base.length <= 4) return base;
+    return base.slice(0, 4);
 }
 
 function updateFunHudVisibility() {
@@ -3210,6 +3224,7 @@ function closeModal() {
         setTimeout(() => startNewGame(), 300);
     }
 
+    document.body.classList.remove('adventure-open');
     setWarmupOpen(false);
 }
 
@@ -5012,15 +5027,16 @@ function initFocusToggle() {
 function initHowTo() {
     const headerActions = document.querySelector('.header-actions');
     if (!headerActions) return;
-    if (!document.getElementById('howto-btn')) {
-        const btn = document.createElement('button');
-        btn.id = 'howto-btn';
-        btn.type = 'button';
-        btn.className = 'link-btn';
-        btn.textContent = 'How to Play';
-        btn.addEventListener('click', openHowToModal);
-        headerActions.insertBefore(btn, headerActions.firstChild);
-    }
+    if (document.getElementById('howto-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'howto-btn';
+    btn.type = 'button';
+    btn.className = 'link-btn howto-icon-btn';
+    btn.textContent = '?';
+    btn.setAttribute('aria-label', 'How to Play');
+    btn.title = 'How to Play';
+    btn.addEventListener('click', openHowToModal);
+    headerActions.appendChild(btn);
 }
 
 function initClozeLink() {
@@ -5031,6 +5047,40 @@ function initClozeLink() {
     link.href = 'cloze.html';
     link.className = 'link-btn';
     link.textContent = 'Cloze';
+    const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
+        .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
+    if (madlibsLink) {
+        headerActions.insertBefore(link, madlibsLink);
+    } else {
+        headerActions.appendChild(link);
+    }
+}
+
+function initComprehensionLink() {
+    const headerActions = document.querySelector('.header-actions');
+    if (!headerActions || document.getElementById('comprehension-btn')) return;
+    const link = document.createElement('a');
+    link.id = 'comprehension-btn';
+    link.href = 'comprehension.html';
+    link.className = 'link-btn';
+    link.textContent = 'Comprehension';
+    const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
+        .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
+    if (madlibsLink) {
+        headerActions.insertBefore(link, madlibsLink);
+    } else {
+        headerActions.appendChild(link);
+    }
+}
+
+function initFluencyLink() {
+    const headerActions = document.querySelector('.header-actions');
+    if (!headerActions || document.getElementById('fluency-btn')) return;
+    const link = document.createElement('a');
+    link.id = 'fluency-btn';
+    link.href = 'fluency.html';
+    link.className = 'link-btn';
+    link.textContent = 'Fluency';
     const madlibsLink = Array.from(headerActions.querySelectorAll('a, button'))
         .find(el => (el.textContent || '').toLowerCase().includes('mad libs'));
     if (madlibsLink) {
@@ -5321,8 +5371,8 @@ function ensureAdventureModal() {
                     <label>Team B</label>
                     <input id="team-b-name" type="text" maxlength="18" />
                 </div>
-                <div class="adventure-team-row">
-                    <span class="adventure-active-label">Turn:</span>
+                <div class="adventure-team-row" id="adventure-turn-row">
+                    <span class="adventure-active-label">Current Turn</span>
                     <button type="button" id="adventure-switch-team" class="secondary-btn">Switch Team</button>
                     <span id="adventure-active-team" class="adventure-active-team"></span>
                 </div>
@@ -5346,6 +5396,7 @@ function openAdventureModal() {
     hydrateAdventureUI();
     modalOverlay.classList.remove('hidden');
     modal.classList.remove('hidden');
+    document.body.classList.add('adventure-open');
 }
 
 function hydrateAdventureUI() {
@@ -5357,6 +5408,7 @@ function hydrateAdventureUI() {
     const teamAInput = document.getElementById('team-a-name');
     const teamBInput = document.getElementById('team-b-name');
     const activeTeam = document.getElementById('adventure-active-team');
+    const turnRow = document.getElementById('adventure-turn-row');
 
     if (teamToggle) teamToggle.checked = !!appSettings.gameMode?.teamMode;
     if (timerToggle) timerToggle.checked = !!appSettings.gameMode?.timerEnabled;
@@ -5370,6 +5422,9 @@ function hydrateAdventureUI() {
         teamSettings.style.display = appSettings.gameMode?.teamMode ? 'block' : 'none';
     }
     if (activeTeam) activeTeam.textContent = getActiveTeamLabel();
+    if (turnRow) {
+        turnRow.style.display = appSettings.gameMode?.teamMode ? 'grid' : 'none';
+    }
 }
 
 function initAdventureControls() {
@@ -5389,6 +5444,8 @@ function initAdventureControls() {
         teamToggle.addEventListener('change', () => {
             appSettings.gameMode.teamMode = teamToggle.checked;
             if (teamSettings) teamSettings.style.display = teamToggle.checked ? 'block' : 'none';
+            const turnRow = document.getElementById('adventure-turn-row');
+            if (turnRow) turnRow.style.display = teamToggle.checked ? 'grid' : 'none';
             saveSettings();
             renderFunHud();
         });
