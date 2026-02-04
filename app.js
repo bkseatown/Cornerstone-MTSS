@@ -58,6 +58,7 @@ const DEFAULT_SETTINGS = {
         style: 'playful'
     },
     gameMode: {
+        active: false,
         teamMode: false,
         timerEnabled: false,
         timerSeconds: 60,
@@ -539,6 +540,13 @@ function loadSettings() {
             localStorage.setItem('bonus_frequency_migrated', 'true');
         }
 
+        const hasActiveModes = !!appSettings.gameMode?.teamMode
+            || !!appSettings.gameMode?.timerEnabled
+            || !!appSettings.funHud?.challenge;
+        if (!hasActiveModes) {
+            appSettings.gameMode.active = false;
+        }
+
     } catch (e) {
         console.warn('Could not parse settings, using defaults.', e);
     }
@@ -828,6 +836,19 @@ function renderFunHud() {
     if (timer && timerEnabled) timer.textContent = formatTime(lightningRemaining || appSettings.gameMode?.timerSeconds || 0);
 }
 
+function syncGameModeActive(forceStart = false) {
+    const hasActiveModes = !!appSettings.gameMode?.teamMode
+        || !!appSettings.gameMode?.timerEnabled
+        || !!appSettings.funHud?.challenge;
+    if (forceStart) {
+        appSettings.gameMode.active = hasActiveModes;
+    } else if (!hasActiveModes) {
+        appSettings.gameMode.active = false;
+    }
+    saveSettings();
+    updateFunHudVisibility();
+}
+
 function formatTeamShortLabel(name = '', fallback = '') {
     if (!name) return fallback;
     const cleaned = name.toString().replace(/team\s*/i, '').trim();
@@ -842,9 +863,7 @@ function updateFunHudVisibility() {
     const hud = ensureFunHud();
     const enabled = !!appSettings.funHud?.enabled;
     const overlayOpen = modalOverlay && !modalOverlay.classList.contains('hidden');
-    const gameModeActive = !!appSettings.gameMode?.teamMode
-        || !!appSettings.gameMode?.timerEnabled
-        || !!appSettings.funHud?.challenge;
+    const gameModeActive = !!appSettings.gameMode?.active;
     const shouldShow = enabled && gameModeActive && !funHudSuspended && !overlayOpen;
     hud.classList.toggle('hidden', !shouldShow);
     document.body.classList.toggle('fun-mode', enabled);
@@ -6125,9 +6144,9 @@ function ensureMoreToolsMenu() {
     const wrapper = document.createElement('div');
     wrapper.className = 'more-tools-wrapper';
     wrapper.innerHTML = `
-        <button type="button" id="sound-lab-btn" class="link-btn ghost">Sound Lab</button>
-        <button type="button" id="more-tools-btn" class="link-btn">More ▾</button>
+        <button type="button" id="more-tools-btn" class="link-btn">Tools ▾</button>
         <div id="more-tools-menu" class="more-tools-menu hidden">
+            <button type="button" id="menu-sound-lab" class="more-tools-item">Sound Lab</button>
             <button type="button" id="menu-warmup" class="more-tools-item">Sounds Warm‑Up</button>
         </div>
     `;
@@ -6136,7 +6155,7 @@ function ensureMoreToolsMenu() {
     const btn = wrapper.querySelector('#more-tools-btn');
     const menu = wrapper.querySelector('#more-tools-menu');
     const warmup = wrapper.querySelector('#menu-warmup');
-    const soundLab = wrapper.querySelector('#sound-lab-btn');
+    const soundLab = wrapper.querySelector('#menu-sound-lab');
 
     const closeMenu = () => menu.classList.add('hidden');
     btn.addEventListener('click', (e) => {
@@ -6153,13 +6172,16 @@ function ensureMoreToolsMenu() {
     };
 
     if (soundLab) {
-        soundLab.addEventListener('click', () => openPhonemeGuide());
+        soundLab.addEventListener('click', () => {
+            closeMenu();
+            openPhonemeGuide();
+        });
     }
 }
 
 function organizeHeaderActions() {
     const headerActions = document.querySelector('.header-actions');
-    if (!headerActions || headerActions.dataset.organized === 'true') return;
+    if (!headerActions || headerActions.dataset.organized === 'v2') return;
 
     const moreWrapper = headerActions.querySelector('.more-tools-wrapper');
     const howtoBtn = headerActions.querySelector('#howto-btn');
@@ -6177,50 +6199,57 @@ function organizeHeaderActions() {
     const fluencyBtn = findById('fluency-btn') || findByText('fluency');
     const madlibsBtn = findById('madlibs-btn') || findByText('mad libs');
 
-    const groupPrimary = document.createElement('div');
-    groupPrimary.className = 'nav-group nav-group-primary';
-    const groupModes = document.createElement('div');
-    groupModes.className = 'nav-group nav-group-modes';
-    const groupTools = document.createElement('div');
-    groupTools.className = 'nav-group nav-group-tools';
-
     const existing = Array.from(headerActions.children);
     const used = new Set();
 
-    const add = (el, group) => {
+    const ordered = [];
+    const add = (el) => {
         if (!el || used.has(el)) return;
         used.add(el);
-        group.appendChild(el);
+        ordered.push(el);
     };
 
-    add(classroomBtn, groupPrimary);
-    add(teacherBtn, groupPrimary);
+    add(classroomBtn);
+    add(teacherBtn);
 
-    add(newWordBtn, groupModes);
-    add(adventureBtn, groupModes);
-    add(clozeBtn, groupModes);
-    add(compBtn, groupModes);
-    add(fluencyBtn, groupModes);
-    add(madlibsBtn, groupModes);
+    add(newWordBtn);
+    add(adventureBtn);
+    add(clozeBtn);
+    add(compBtn);
+    add(fluencyBtn);
+    add(madlibsBtn);
 
-    if (moreWrapper) add(moreWrapper, groupTools);
-    if (howtoBtn) add(howtoBtn, groupTools);
+    if (moreWrapper) add(moreWrapper);
+    if (howtoBtn) add(howtoBtn);
 
     existing.forEach(el => {
-        if (!used.has(el)) groupTools.appendChild(el);
+        if (!used.has(el)) ordered.push(el);
     });
 
     headerActions.innerHTML = '';
-    if (groupPrimary.children.length) headerActions.appendChild(groupPrimary);
-    if (groupModes.children.length) headerActions.appendChild(groupModes);
-    if (groupTools.children.length) headerActions.appendChild(groupTools);
-    headerActions.dataset.organized = 'true';
+    ordered.forEach(el => headerActions.appendChild(el));
+    headerActions.dataset.organized = 'v2';
 
     if (newWordBtn) {
         newWordBtn.textContent = 'Word Quest';
         newWordBtn.title = 'New Word';
         newWordBtn.classList.add('active');
         newWordBtn.setAttribute('aria-current', 'page');
+    }
+
+    if (clozeBtn) {
+        clozeBtn.textContent = 'Story Fill';
+        clozeBtn.title = 'Cloze';
+    }
+
+    if (compBtn) {
+        compBtn.textContent = 'Read & Think';
+        compBtn.title = 'Comprehension';
+    }
+
+    if (fluencyBtn) {
+        fluencyBtn.textContent = 'Speed Sprint';
+        fluencyBtn.title = 'Fluency';
     }
 
     if (madlibsBtn) {
@@ -6516,7 +6545,7 @@ function initAdventureControls() {
             if (teamSettings) teamSettings.style.display = teamToggle.checked ? 'block' : 'none';
             const turnRow = document.getElementById('adventure-turn-row');
             if (turnRow) turnRow.style.display = teamToggle.checked ? 'grid' : 'none';
-            saveSettings();
+            syncGameModeActive(false);
             renderFunHud();
         });
     }
@@ -6524,7 +6553,7 @@ function initAdventureControls() {
     if (timerToggle) {
         timerToggle.addEventListener('change', () => {
             appSettings.gameMode.timerEnabled = timerToggle.checked;
-            saveSettings();
+            syncGameModeActive(false);
             resetLightningTimer();
             renderFunHud();
         });
@@ -6544,7 +6573,7 @@ function initAdventureControls() {
             if (challengeToggle.checked && (!appSettings.funHud.hearts || appSettings.funHud.hearts < 1)) {
                 appSettings.funHud.hearts = appSettings.funHud.maxHearts || 3;
             }
-            saveSettings();
+            syncGameModeActive(false);
             renderFunHud();
         });
     }
@@ -6577,7 +6606,9 @@ function initAdventureControls() {
 
     if (startBtn) {
         startBtn.addEventListener('click', () => {
+            syncGameModeActive(true);
             closeModal();
+            resetLightningTimer();
             startNewGame();
         });
     }
@@ -6674,9 +6705,9 @@ function ensureHowToModal() {
                 <h3>1) Guess the word</h3>
                 <ul>
                     <li>Type a word, then press Enter.</li>
-                    <li><span class="chip correct"></span> Green = correct spot.</li>
-                    <li><span class="chip present"></span> Gold = in the word, wrong spot.</li>
-                    <li><span class="chip absent"></span> Slate = not in the word.</li>
+                    <li><span class="tile howto-tile correct">W</span> Green = correct spot.</li>
+                    <li><span class="tile howto-tile present">A</span> Gold = in the word, wrong spot.</li>
+                    <li><span class="tile howto-tile absent">R</span> Slate = not in the word.</li>
                 </ul>
             </div>
             <div class="howto-section">

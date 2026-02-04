@@ -211,10 +211,16 @@ h3,
 
 .header-actions { 
     display: flex; 
-    gap: 14px; 
+    gap: 10px; 
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     row-gap: 8px;
+    scrollbar-width: none;
+}
+
+.header-actions::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-group {
@@ -301,10 +307,18 @@ h3,
     .nav-group-tools {
         margin-left: 0;
     }
+
+    .header-actions {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
 }
 
 .more-tools-wrapper {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .more-tools-menu {
@@ -312,13 +326,13 @@ h3,
     top: calc(100% + 6px);
     right: 0;
     background: #ffffff;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    border-radius: 12px;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 14px;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
     min-width: 220px;
-    padding: 8px;
+    padding: 10px;
     display: grid;
-    gap: 4px;
+    gap: 6px;
     z-index: 1400;
 }
 
@@ -329,12 +343,12 @@ h3,
 .more-tools-item {
     width: 100%;
     text-align: left;
-    padding: 9px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    background: rgba(248, 250, 252, 0.9);
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: #f8fafc;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     color: #111827;
 }
 
@@ -433,6 +447,27 @@ h3,
     font-size: 0.9rem;
     transition: all 0.2s;
     box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.header-actions .link-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+    padding: 6px 10px;
+    border-radius: 12px;
+}
+
+.header-actions .link-btn:hover {
+    background: rgba(79, 70, 229, 0.08);
+    border-color: rgba(99, 102, 241, 0.25);
+    transform: none;
+}
+
+.header-actions .link-btn.active,
+.header-actions .link-btn[aria-current="page"] {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: rgba(99, 102, 241, 0.35);
+    color: #0f172a;
 }
 
 #howto-btn {
@@ -1085,10 +1120,13 @@ main {
 }
 
 #phoneme-modal {
+    top: 6vh;
+    left: 50%;
+    transform: translateX(-50%);
     max-width: min(1180px, 96vw);
     width: min(1180px, 96vw);
-    max-height: 92vh;
-    height: min(86vh, 860px);
+    max-height: 90vh;
+    height: auto;
     overflow: auto;
     resize: both;
     min-width: 320px;
@@ -1152,20 +1190,20 @@ main {
     line-height: 1.4;
 }
 
-.howto-section .chip {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+.howto-section .howto-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     margin-right: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
     border: 1px solid rgba(15, 23, 42, 0.15);
     box-shadow: inset 0 -2px 0 rgba(15, 23, 42, 0.12);
     vertical-align: middle;
 }
-
-.howto-section .chip.correct { background: #16a34a; }
-.howto-section .chip.present { background: #f59e0b; }
-.howto-section .chip.absent { background: #64748b; }
 
 .adventure-modal {
     max-width: 720px;
@@ -4782,8 +4820,10 @@ body.madlibs-page {
 
 /* ---------- Cloze ---------- */
 body.cloze-page {
-    overflow: hidden;
-    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100dvh;
 }
 
 .cloze-header {
@@ -4814,6 +4854,7 @@ body.cloze-page {
     gap: 16px;
     padding: 0 16px 20px;
     min-height: 0;
+    align-items: start;
 }
 
 .cloze-panel {
@@ -4827,6 +4868,7 @@ body.cloze-page {
     gap: 12px;
     position: relative;
     overflow: hidden;
+    min-width: 0;
 }
 
 .cloze-panel::before {
@@ -4940,15 +4982,16 @@ body.cloze-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 120px;
-    padding: 8px 16px;
-    margin: 0 6px;
+    min-width: clamp(96px, 14vw, 140px);
+    padding: 6px 14px;
+    margin: 2px 4px;
     border-radius: 999px;
-    border: 2px dashed rgba(99, 102, 241, 0.45);
-    background: rgba(224, 231, 255, 0.55);
+    border: 2px dashed rgba(99, 102, 241, 0.35);
+    background: linear-gradient(180deg, rgba(238, 242, 255, 0.95), rgba(224, 231, 255, 0.75));
     font-weight: 700;
     color: #1f2937;
     transition: all 0.2s;
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.12);
 }
 
 .cloze-blank.filled {
@@ -4963,7 +5006,7 @@ body.cloze-page {
 
 .cloze-blank:hover {
     border-color: var(--accent-primary);
-    background: rgba(99, 102, 241, 0.12);
+    background: rgba(99, 102, 241, 0.18);
 }
 
 .cloze-blank.wrong {
@@ -5072,6 +5115,38 @@ body.cloze-page {
 @media (max-height: 760px) {
     .cloze-passage {
         min-height: 180px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .cloze-main,
+    .comp-main,
+    .fluency-main,
+    .madlibs-main {
+        grid-template-columns: 1fr;
+    }
+
+    .cloze-panel,
+    .comp-panel,
+    .fluency-panel,
+    .madlibs-panel {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 740px) {
+    .cloze-passage {
+        padding: 16px;
+        font-size: 1rem;
+        line-height: 1.75;
+    }
+
+    .cloze-controls {
+        gap: 6px;
+    }
+
+    .cloze-blank {
+        min-width: clamp(82px, 20vw, 120px);
     }
 }
 
@@ -5654,6 +5729,9 @@ body.madlibs-page .fun-hud {
 
 body.comprehension-page {
     min-height: 100dvh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     background:
         radial-gradient(circle at 12% 10%, rgba(56, 189, 248, 0.16), transparent 46%),
         radial-gradient(circle at 88% 8%, rgba(249, 115, 22, 0.14), transparent 44%),
@@ -5801,6 +5879,9 @@ body.comprehension-page {
 
 body.fluency-page {
     min-height: 100dvh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     background:
         radial-gradient(circle at 12% 10%, rgba(56, 189, 248, 0.16), transparent 46%),
         radial-gradient(circle at 88% 8%, rgba(249, 115, 22, 0.14), transparent 44%),
@@ -6893,6 +6974,36 @@ body.force-light .adventure-team-settings {
     background: #ffffff !important;
     border-color: #e2e8f0 !important;
     color: #0f172a !important;
+}
+
+body.force-light .cloze-blank {
+    background: linear-gradient(180deg, rgba(238, 242, 255, 0.95), rgba(224, 231, 255, 0.75)) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    color: #1f2937 !important;
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.12) !important;
+}
+
+body.force-light .cloze-blank:hover {
+    background: rgba(99, 102, 241, 0.18) !important;
+}
+
+body.force-light .cloze-blank.correct {
+    background: #d1fae5 !important;
+    border-color: #10b981 !important;
+    color: #065f46 !important;
+}
+
+body.force-light .cloze-blank.wrong {
+    background: #fee2e2 !important;
+    border-color: #ef4444 !important;
+    color: #991b1b !important;
+}
+
+body.force-light .cloze-word {
+    background: #ffffff !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    color: #312e81 !important;
+    box-shadow: 0 6px 14px rgba(79, 70, 229, 0.12) !important;
 }
 
 body.force-light .cloze-hud,
