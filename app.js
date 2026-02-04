@@ -23,6 +23,8 @@ let assessmentState = null;
 let enhancedVoicePrefetched = false;
 let warmupPrefetchDone = false;
 let fitScreenActive = false;
+let pronunciationRecognition = null;
+let pronunciationActive = false;
 let practiceRecorder = {
     stream: null,
     mediaRecorder: null,
@@ -3550,6 +3552,7 @@ function closeModal() {
     if (helpModal) helpModal.classList.add("hidden");
     if (bonusModal) bonusModal.classList.add("hidden");
     if (infoModal) infoModal.classList.add("hidden");
+    stopPronunciationCheck();
     
     if (document.activeElement) document.activeElement.blur();
     document.body.focus();
@@ -4660,6 +4663,7 @@ function clearSoundSelection() {
     if (displayPanel) {
         displayPanel.classList.add('hidden');
     }
+    clearPronunciationFeedback();
     const layout = document.querySelector('.sound-guide-layout');
     if (layout) layout.classList.add('no-card');
 }
@@ -5161,6 +5165,7 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
     if (displayPanel) displayPanel.classList.remove('hidden');
     const layout = document.querySelector('.sound-guide-layout');
     if (layout) layout.classList.remove('no-card');
+    clearPronunciationFeedback();
 
     const displayLabel = labelOverride || phoneme.sound || phoneme.grapheme || sound;
     const soundLetter = document.getElementById('sound-letter');
@@ -5256,6 +5261,7 @@ function showLetterSounds(letter) {
 function initArticulationAudioControls() {
     const hearLetterBtn = document.getElementById('hear-letter-name');
     const hearWordBtn = document.getElementById('hear-example-word');
+    ensurePronunciationCheckButton();
     
     if (hearLetterBtn) {
         hearLetterBtn.onclick = () => {
@@ -5293,8 +5299,283 @@ function initArticulationAudioControls() {
                     speakText(currentSelectedSound.phoneme.example || '');
                 }
             };
+        } else if (label.includes('pronunciation')) {
+            btn.dataset.bound = 'true';
+            btn.onclick = () => startPronunciationCheck();
         }
     });
+}
+
+function ensurePronunciationCheckButton() {
+    const actionBar = document.querySelector('.sound-card-actions');
+    if (!actionBar) return;
+    let btn = document.getElementById('pronunciation-check-btn');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'pronunciation-check-btn';
+        btn.textContent = 'Pronunciation Check';
+        actionBar.appendChild(btn);
+    }
+    ensurePronunciationFeedback();
+}
+
+function ensurePronunciationFeedback() {
+    const displayPanel = document.getElementById('selected-sound-display');
+    if (!displayPanel) return null;
+    let feedback = document.getElementById('pronunciation-feedback');
+    if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.id = 'pronunciation-feedback';
+        feedback.className = 'pronunciation-feedback hidden';
+        displayPanel.appendChild(feedback);
+    }
+    return feedback;
+}
+
+function setPronunciationFeedback(status, lines) {
+    const feedback = ensurePronunciationFeedback();
+    if (!feedback) return;
+    feedback.className = `pronunciation-feedback ${status || ''}`.trim();
+    feedback.innerHTML = '';
+    (lines || []).forEach(text => {
+        const row = document.createElement('div');
+        row.textContent = text;
+        feedback.appendChild(row);
+    });
+    feedback.classList.remove('hidden');
+}
+
+function clearPronunciationFeedback() {
+    const feedback = document.getElementById('pronunciation-feedback');
+    if (!feedback) return;
+    feedback.classList.add('hidden');
+    feedback.textContent = '';
+}
+
+function stopPronunciationCheck() {
+    if (pronunciationRecognition) {
+        try {
+            pronunciationRecognition.onresult = null;
+            pronunciationRecognition.onerror = null;
+            pronunciationRecognition.onend = null;
+            pronunciationRecognition.stop();
+        } catch (e) {
+            // ignore stop errors
+        }
+    }
+    pronunciationRecognition = null;
+    pronunciationActive = false;
+    const btn = document.getElementById('pronunciation-check-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('listening');
+        btn.textContent = 'Pronunciation Check';
+    }
+}
+
+function startPronunciationCheck() {
+    if (!currentSelectedSound || !currentSelectedSound.phoneme) {
+        showToast('Pick a sound first.');
+        return;
+    }
+    const target = getPrimaryExampleWord(currentSelectedSound.phoneme.example || '');
+    if (!target) {
+        showToast('No example word available.');
+        return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+        setPronunciationFeedback('warn', [
+            'Speech recognition is not supported in this browser.',
+            'Try Chrome or Edge for pronunciation checks.'
+        ]);
+        return;
+    }
+
+    stopPronunciationCheck();
+
+    const btn = document.getElementById('pronunciation-check-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('listening');
+        btn.textContent = 'Listening...';
+    }
+
+    setPronunciationFeedback('info', [
+        `Listening... Say "${target}".`
+    ]);
+
+    pronunciationRecognition = new SpeechRec();
+    pronunciationRecognition.lang = getPreferredEnglishDialect();
+    pronunciationRecognition.interimResults = false;
+    pronunciationRecognition.maxAlternatives = 3;
+    pronunciationActive = true;
+
+    pronunciationRecognition.onresult = (event) => {
+        const transcripts = [];
+        if (event.results && event.results[0]) {
+            const result = event.results[0];
+            for (let i = 0; i < result.length; i += 1) {
+                transcripts.push(result[i].transcript || '');
+            }
+        }
+        handlePronunciationResult(target, transcripts);
+    };
+
+    pronunciationRecognition.onerror = () => {
+        setPronunciationFeedback('warn', [
+            'Could not hear that clearly.',
+            `Try again: "${target}".`
+        ]);
+    };
+
+    pronunciationRecognition.onend = () => {
+        stopPronunciationCheck();
+    };
+
+    try {
+        pronunciationRecognition.start();
+    } catch (e) {
+        stopPronunciationCheck();
+        setPronunciationFeedback('warn', ['Microphone was not available.']);
+    }
+}
+
+function handlePronunciationResult(target, transcripts) {
+    const normalizedTarget = normalizeSpeechText(target);
+    if (!normalizedTarget) {
+        setPronunciationFeedback('warn', ['Try again.']);
+        return;
+    }
+
+    const best = pickBestSpokenWord(transcripts || [], normalizedTarget);
+    const spokenWord = best.word || '';
+    const rawTranscript = best.transcript || (transcripts && transcripts[0]) || '';
+    const normalizedSpoken = normalizeSpeechText(spokenWord || rawTranscript);
+
+    if (!normalizedSpoken) {
+        setPronunciationFeedback('warn', [
+            'I did not catch a word.',
+            `Try again: "${target}".`
+        ]);
+        return;
+    }
+
+    if (normalizedSpoken === normalizedTarget || normalizedSpoken.includes(normalizedTarget)) {
+        setPronunciationFeedback('good', [
+            `Great! That sounded like "${target}".`,
+            `Heard: "${spokenWord || rawTranscript}".`
+        ]);
+        return;
+    }
+
+    const distance = levenshteinDistance(normalizedSpoken, normalizedTarget);
+    const maxLen = Math.max(normalizedTarget.length, normalizedSpoken.length);
+    const closeness = maxLen ? 1 - (distance / maxLen) : 0;
+    const hint = getLikelySoundHint(normalizedTarget, normalizedSpoken);
+
+    if (closeness > 0.7) {
+        setPronunciationFeedback('warn', [
+            `Almost! Try again: "${target}".`,
+            `Heard: "${spokenWord || rawTranscript}".`,
+            hint ? hint : 'Try saying it slowly.'
+        ]);
+    } else {
+        setPronunciationFeedback('bad', [
+            `Let’s try that again: "${target}".`,
+            `Heard: "${spokenWord || rawTranscript}".`,
+            hint ? hint : 'Watch the mouth cue and try the sound again.'
+        ]);
+    }
+}
+
+function getPrimaryExampleWord(example) {
+    if (!example) return '';
+    const first = example.toString().split(/[\n,]/)[0] || '';
+    const word = (first.trim().match(/[a-zA-Z']+/) || [])[0] || '';
+    return word;
+}
+
+function normalizeSpeechText(text) {
+    return (text || '')
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z']/g, '')
+        .trim();
+}
+
+function pickBestSpokenWord(transcripts, target) {
+    let best = { word: '', dist: Infinity, transcript: '' };
+    (transcripts || []).forEach(raw => {
+        const words = (raw || '').toLowerCase().match(/[a-z']+/g) || [];
+        if (!words.length) return;
+        words.forEach(word => {
+            const dist = levenshteinDistance(word, target);
+            if (dist < best.dist) {
+                best = { word, dist, transcript: raw };
+            }
+        });
+    });
+    return best;
+}
+
+function levenshteinDistance(a = '', b = '') {
+    if (a === b) return 0;
+    const matrix = Array.from({ length: a.length + 1 }, () => []);
+    for (let i = 0; i <= a.length; i += 1) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j += 1) matrix[0][j] = j;
+    for (let i = 1; i <= a.length; i += 1) {
+        for (let j = 1; j <= b.length; j += 1) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j - 1] + cost
+            );
+        }
+    }
+    return matrix[a.length][b.length];
+}
+
+function getLikelySoundHint(target, spoken) {
+    const rules = [
+        { target: 'th', alts: ['f', 'd', 't'], hint: 'Try /th/ (tongue between teeth).' },
+        { target: 'sh', alts: ['s', 'ch'], hint: 'Try /sh/ (quiet sound).' },
+        { target: 'ch', alts: ['sh', 't'], hint: 'Try /ch/ (chin sound).' },
+        { target: 'ng', alts: ['n'], hint: 'Try /ng/ (back of tongue, hum).' },
+        { target: 'r', alts: ['w'], hint: 'Try /r/ (tongue pulled back).' },
+        { target: 'l', alts: ['w', 'r'], hint: 'Try /l/ (tongue tip up).' },
+        { target: 'v', alts: ['b', 'f'], hint: 'Try /v/ (lip on teeth, voice on).' },
+        { target: 'b', alts: ['p'], hint: 'Try /b/ (voice on).' },
+        { target: 'p', alts: ['b'], hint: 'Try /p/ (puff of air).' },
+        { target: 'd', alts: ['t'], hint: 'Try /d/ (voice on).' },
+        { target: 't', alts: ['d'], hint: 'Try /t/ (no voice).' },
+        { target: 'g', alts: ['k'], hint: 'Try /g/ (voice on).' },
+        { target: 'k', alts: ['g'], hint: 'Try /k/ (no voice).' },
+        { target: 'z', alts: ['s'], hint: 'Try /z/ (voice on).' },
+        { target: 's', alts: ['z'], hint: 'Try /s/ (no voice).' },
+        { target: 'ee', alts: ['i'], hint: 'Try /ee/ (smile sound).' },
+        { target: 'oo', alts: ['u', 'o'], hint: 'Try /oo/ (rounded lips).' },
+        { target: 'ai', alts: ['a', 'e'], hint: 'Try /ai/ (rain sound).' },
+        { target: 'oa', alts: ['o'], hint: 'Try /oa/ (boat sound).' },
+        { target: 'ie', alts: ['i', 'y'], hint: 'Try /ie/ (night sound).' },
+        { target: 'ar', alts: ['or', 'er'], hint: 'Try /ar/ (car sound).' },
+        { target: 'or', alts: ['ar'], hint: 'Try /or/ (fork sound).' },
+        { target: 'ur', alts: ['er'], hint: 'Try /ur/ (bird sound).' },
+        { target: 'air', alts: ['ar', 'er'], hint: 'Try /air/ (chair sound).' },
+        { target: 'ear', alts: ['er'], hint: 'Try /ear/ (near sound).' },
+        { target: 'ure', alts: ['ur', 'oor'], hint: 'Try /ure/ (pure sound).' }
+    ];
+
+    for (const rule of rules) {
+        if (!target.includes(rule.target)) continue;
+        for (const alt of rule.alts) {
+            if (spoken.includes(alt)) return rule.hint;
+        }
+    }
+    return '';
 }
 
 function playLetterSequence(letter, word, phoneme) {
