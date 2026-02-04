@@ -20,6 +20,13 @@ let voicesReadyPromise = null;
 let speechStartTimeout = null;
 let modalDismissBound = false;
 let assessmentState = null;
+let practiceRecorder = {
+    stream: null,
+    mediaRecorder: null,
+    activeKey: null,
+    chunks: []
+};
+const practiceRecordings = new Map();
 
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
@@ -2095,6 +2102,8 @@ function startNewGame(customWord = null) {
     board.innerHTML = "";
     clearKeyboardColors();
     updateFocusPanel();
+    clearPracticeGroup('word:');
+    clearPracticeGroup('sentence:');
     
     if (customWord) {
         currentWord = customWord.toLowerCase();
@@ -2812,6 +2821,22 @@ function setupModalAudioControls(definitionText, sentenceText) {
         safeInsertAfter(modalContent, actionRow, audioControls);
         safeInsertAfter(modalContent, autoReadRow, actionRow);
     }
+
+    // Practice recorder (local-only)
+    let recorderGroup = document.getElementById('practice-recorder-group');
+    if (!recorderGroup) {
+        recorderGroup = document.createElement('div');
+        recorderGroup.id = 'practice-recorder-group';
+        recorderGroup.className = 'practice-recorder-group';
+    }
+    recorderGroup.innerHTML = '';
+    if (currentWord) {
+        ensurePracticeRecorder(recorderGroup, `word:${currentWord}`, 'Record Word');
+    }
+    if (sentenceText) {
+        ensurePracticeRecorder(recorderGroup, `sentence:${currentWord}`, 'Record Sentence');
+    }
+    safeInsertAfter(modalContent, recorderGroup, autoReadRow);
 }
 
 function showEndModal(win) {
@@ -3250,6 +3275,144 @@ function showToast(msg) {
     setTimeout(() => t.remove(), 3000);
 }
 
+/* ==========================================
+   Practice Recorder (Local-only, auto-delete)
+   ========================================== */
+
+async function ensurePracticeStream() {
+    if (practiceRecorder.stream) return practiceRecorder.stream;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        practiceRecorder.stream = stream;
+        return stream;
+    } catch (err) {
+        showToast('Microphone access is needed to record.');
+        throw err;
+    }
+}
+
+function getPracticeRecording(key) {
+    return practiceRecordings.get(key);
+}
+
+function clearPracticeRecording(key) {
+    const existing = practiceRecordings.get(key);
+    if (existing?.url) {
+        URL.revokeObjectURL(existing.url);
+    }
+    practiceRecordings.delete(key);
+    updatePracticeRecorderUI(key);
+}
+
+function clearPracticeGroup(prefix) {
+    Array.from(practiceRecordings.keys()).forEach(key => {
+        if (key.startsWith(prefix)) {
+            clearPracticeRecording(key);
+        }
+    });
+}
+
+async function startPracticeRecording(key) {
+    await ensurePracticeStream();
+    if (practiceRecorder.mediaRecorder && practiceRecorder.mediaRecorder.state === 'recording') {
+        practiceRecorder.mediaRecorder.stop();
+    }
+
+    const recorder = new MediaRecorder(practiceRecorder.stream);
+    practiceRecorder.mediaRecorder = recorder;
+    practiceRecorder.activeKey = key;
+    practiceRecorder.chunks = [];
+
+    recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+            practiceRecorder.chunks.push(event.data);
+        }
+    };
+
+    recorder.onstop = () => {
+        const blob = new Blob(practiceRecorder.chunks, { type: recorder.mimeType || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        const existing = practiceRecordings.get(key);
+        if (existing?.url) URL.revokeObjectURL(existing.url);
+        practiceRecordings.set(key, { blob, url, createdAt: Date.now() });
+        practiceRecorder.activeKey = null;
+        practiceRecorder.chunks = [];
+        updatePracticeRecorderUI(key);
+    };
+
+    recorder.start();
+    updatePracticeRecorderUI(key, true);
+}
+
+function stopPracticeRecording() {
+    if (practiceRecorder.mediaRecorder && practiceRecorder.mediaRecorder.state === 'recording') {
+        practiceRecorder.mediaRecorder.stop();
+    }
+}
+
+async function togglePracticeRecording(key) {
+    if (practiceRecorder.mediaRecorder && practiceRecorder.mediaRecorder.state === 'recording') {
+        if (practiceRecorder.activeKey === key) {
+            stopPracticeRecording();
+            return;
+        }
+        stopPracticeRecording();
+        setTimeout(() => startPracticeRecording(key), 150);
+        return;
+    }
+    await startPracticeRecording(key);
+}
+
+function playPracticeRecording(key) {
+    const recording = practiceRecordings.get(key);
+    if (!recording?.url) return;
+    const audio = new Audio(recording.url);
+    audio.play();
+}
+
+function updatePracticeRecorderUI(key, isRecording = false) {
+    const row = document.querySelector(`.practice-recorder[data-recorder-key="${key}"]`);
+    if (!row) return;
+    const recordBtn = row.querySelector('.practice-record');
+    const playBtn = row.querySelector('.practice-play');
+    const clearBtn = row.querySelector('.practice-clear');
+    const status = row.querySelector('.practice-status');
+    const hasRecording = !!practiceRecordings.get(key);
+
+    if (recordBtn) recordBtn.textContent = isRecording ? 'Stop' : 'Record';
+    if (recordBtn) recordBtn.classList.toggle('recording', isRecording);
+    if (playBtn) playBtn.disabled = !hasRecording;
+    if (clearBtn) clearBtn.disabled = !hasRecording;
+    if (status) status.textContent = isRecording ? 'Recording…' : (hasRecording ? 'Ready' : 'Tap record');
+}
+
+function ensurePracticeRecorder(container, key, label) {
+    if (!container) return;
+    let row = container.querySelector(`.practice-recorder[data-recorder-key="${key}"]`);
+    if (!row) {
+        row = document.createElement('div');
+        row.className = 'practice-recorder';
+        row.dataset.recorderKey = key;
+        row.innerHTML = `
+            <span class="practice-label"></span>
+            <span class="practice-status"></span>
+            <button type="button" class="practice-record">Record</button>
+            <button type="button" class="practice-play" disabled>Play</button>
+            <button type="button" class="practice-clear" disabled>Redo</button>
+        `;
+        container.appendChild(row);
+    }
+    const labelEl = row.querySelector('.practice-label');
+    if (labelEl) labelEl.textContent = label;
+    const recordBtn = row.querySelector('.practice-record');
+    const playBtn = row.querySelector('.practice-play');
+    const clearBtn = row.querySelector('.practice-clear');
+    if (recordBtn) recordBtn.onclick = () => togglePracticeRecording(key);
+    if (playBtn) playBtn.onclick = () => playPracticeRecording(key);
+    if (clearBtn) clearBtn.onclick = () => clearPracticeRecording(key);
+    updatePracticeRecorderUI(key);
+}
+
 function checkFirstTimeVisitor() {
     if (!localStorage.getItem("decode_v5_visited")) {
         modalOverlay.classList.remove("hidden");
@@ -3627,6 +3790,17 @@ function openDecodableTexts() {
     decodableModal.classList.remove('hidden');
     
     const listDiv = document.getElementById('decodable-text-list');
+    const modal = document.getElementById('decodable-modal');
+    if (modal) {
+        let recorder = document.getElementById('decodable-recorder');
+        if (!recorder) {
+            recorder = document.createElement('div');
+            recorder.id = 'decodable-recorder';
+            recorder.className = 'practice-recorder-group';
+            modal.querySelector('.modal-content')?.insertAdjacentElement('afterbegin', recorder);
+        }
+        recorder.innerHTML = '<div class="practice-recorder-note">Select a passage to record.</div>';
+    }
     const pattern = document.getElementById('pattern-select').value;
     
     // Filter texts by current pattern
@@ -3652,6 +3826,12 @@ function openDecodableTexts() {
 function readDecodableText(title) {
     const text = window.DECODABLE_TEXTS.find(t => t.title === title);
     if (text) {
+        clearPracticeGroup('passage:');
+        const recorder = document.getElementById('decodable-recorder');
+        if (recorder) {
+            recorder.innerHTML = '';
+            ensurePracticeRecorder(recorder, `passage:${text.title}`, 'Record Passage');
+        }
         speak(text.content, 'sentence');
     }
 }
@@ -4530,6 +4710,7 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
     if (!phoneme) return;
 
     currentSelectedSound = { sound, phoneme, label: labelOverride };
+    clearPracticeGroup('sound:');
 
     if (currentSelectedTile) {
         currentSelectedTile.classList.remove('selected');
@@ -4574,6 +4755,18 @@ function selectSound(sound, phoneme, labelOverride = null, tile = null) {
     }
 
     ensureArticulationCard(phoneme);
+
+    const display = document.getElementById('selected-sound-display');
+    if (display && sound) {
+        let soundRecorder = display.querySelector('.practice-recorder-group');
+        if (!soundRecorder) {
+            soundRecorder = document.createElement('div');
+            soundRecorder.className = 'practice-recorder-group';
+            display.appendChild(soundRecorder);
+        }
+        soundRecorder.innerHTML = '';
+        ensurePracticeRecorder(soundRecorder, `sound:${sound}`, 'Record Sound');
+    }
 }
 
 function showLetterSounds(letter) {

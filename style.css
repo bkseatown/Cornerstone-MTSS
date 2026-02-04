@@ -3431,6 +3431,81 @@ main {
     justify-content: center;
 }
 
+/* ---------- Practice Recorder ---------- */
+.practice-recorder-group {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.practice-recorder {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.practice-label {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.practice-status {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.practice-recorder button {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: #f8fafc;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.practice-recorder button.recording {
+    background: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+.practice-recorder button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.practice-recorder-note {
+    font-size: 0.85rem;
+    color: #64748b;
+    padding: 6px 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .practice-recorder {
+        background: rgba(15, 23, 42, 0.7);
+        border-color: rgba(51, 65, 85, 0.8);
+    }
+
+    .practice-label {
+        color: #e2e8f0;
+    }
+
+    .practice-status {
+        color: #cbd5f5;
+    }
+
+    .practice-recorder button {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: rgba(51, 65, 85, 0.8);
+        color: #e2e8f0;
+    }
+}
+
 .warmup-title {
     font-size: 0.85rem;
     font-weight: 600;
@@ -5579,6 +5654,20 @@ body.fluency-page {
         color: #e2e8f0;
     }
 
+    body.comprehension-page .comp-question {
+        background: rgba(30, 41, 59, 0.75);
+        border-color: rgba(51, 65, 85, 0.8);
+        color: #e2e8f0;
+    }
+
+    body.comprehension-page .comp-question h3 {
+        color: #f8fafc;
+    }
+
+    body.comprehension-page .comp-question-meta {
+        color: #cbd5f5;
+    }
+
     body.comprehension-page .comp-hud,
     body.fluency-page .fluency-hud {
         background: rgba(99, 102, 241, 0.2);
@@ -5591,6 +5680,53 @@ body.fluency-page {
         background: #0f172a;
         border-color: #334155;
         color: #e2e8f0;
+    }
+}
+
+@media (max-height: 900px) {
+    header {
+        padding: 8px 12px 4px;
+    }
+
+    .header-actions .link-btn {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    #game-canvas {
+        gap: 6px;
+        padding: 0 8px 8px;
+    }
+
+    .tile {
+        width: min(50px, 9.5vw, 7.2vh);
+        height: min(50px, 9.5vw, 7.2vh);
+        font-size: clamp(1rem, 2.6vw, 1.35rem);
+    }
+
+    .key {
+        height: clamp(30px, 5.2vh, 38px);
+        font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+        max-width: clamp(30px, 7.8vw, 44px);
+    }
+
+    .hint-actions {
+        margin: 2px 0 4px;
+    }
+
+    .comp-main,
+    .fluency-main {
+        padding-bottom: 16px;
+    }
+
+    .comp-panel,
+    .fluency-panel {
+        padding: 12px;
+    }
+
+    .comp-passage,
+    .fluency-passage {
+        min-height: 140px;
     }
 }
 
