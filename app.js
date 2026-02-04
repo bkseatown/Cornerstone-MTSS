@@ -796,10 +796,12 @@ function renderFunHud() {
     const timer = document.getElementById('fun-hud-timer');
     const teamLabel = document.getElementById('fun-hud-team');
     const heartsItem = document.querySelector('.fun-hud-hearts');
+    const coinsItem = document.querySelector('.fun-hud-coins');
     const timerItem = document.querySelector('.fun-hud-timer');
 
     const teamMode = !!appSettings.gameMode?.teamMode;
     const timerEnabled = !!appSettings.gameMode?.timerEnabled;
+    const gameModeActive = teamMode || timerEnabled || !!appSettings.funHud?.challenge;
 
     if (teamMode) {
         const aName = appSettings.gameMode?.teamAName || 'Team A';
@@ -823,6 +825,7 @@ function renderFunHud() {
 
     if (hearts) hearts.textContent = String(appSettings.funHud?.hearts ?? 3);
     if (heartsItem) heartsItem.style.display = appSettings.funHud?.challenge ? 'inline-flex' : 'none';
+    if (coinsItem) coinsItem.style.display = gameModeActive ? 'inline-flex' : 'none';
 
     if (timerItem) timerItem.style.display = timerEnabled ? 'inline-flex' : 'none';
     if (timer && timerEnabled) timer.textContent = formatTime(lightningRemaining || appSettings.gameMode?.timerSeconds || 0);
@@ -5816,6 +5819,7 @@ function ensureMoreToolsMenu() {
     const wrapper = document.createElement('div');
     wrapper.className = 'more-tools-wrapper';
     wrapper.innerHTML = `
+        <button type="button" id="sound-lab-btn" class="link-btn ghost">Sound Lab</button>
         <button type="button" id="more-tools-btn" class="link-btn">More ▾</button>
         <div id="more-tools-menu" class="more-tools-menu hidden">
             <button type="button" id="menu-warmup" class="more-tools-item">Sounds Warm‑Up</button>
@@ -5831,6 +5835,7 @@ function ensureMoreToolsMenu() {
     const menu = wrapper.querySelector('#more-tools-menu');
     const warmup = wrapper.querySelector('#menu-warmup');
     const presToggle = wrapper.querySelector('#toggle-presentation-mode');
+    const soundLab = wrapper.querySelector('#sound-lab-btn');
 
     const closeMenu = () => menu.classList.add('hidden');
     btn.addEventListener('click', (e) => {
@@ -5845,6 +5850,10 @@ function ensureMoreToolsMenu() {
         closeMenu();
         openPhonemeGuide();
     };
+
+    if (soundLab) {
+        soundLab.addEventListener('click', () => openPhonemeGuide());
+    }
 
     if (presToggle) {
         presToggle.checked = !!appSettings.presentationMode;
