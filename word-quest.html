@@ -220,6 +220,96 @@
         </div>
       </div>
     </div>
+
+    <!-- Sound Lab (required by Tools ▾ → Sound Lab) -->
+    <div id="phoneme-modal" class="modal hidden phoneme-modal" role="dialog" aria-modal="true" aria-label="Sound Lab">
+      <div class="modal-content">
+        <button class="close-btn close-phoneme" type="button" aria-label="Close">✕</button>
+        <h2>Sound Lab</h2>
+        <p class="sound-guide-subtitle">Tap a tile to see a quick tip and example. Sounds are shown like /sh/.</p>
+
+        <div class="sound-guide-top-actions">
+          <button id="sound-lab-popout" type="button" class="secondary-btn">Open in new tab</button>
+        </div>
+
+        <div class="sound-guide-layout">
+          <aside class="sound-guide-card" aria-label="Selected sound">
+            <div id="selected-sound-display" class="selected-sound hidden">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <div id="sound-letter" style="font-size:2rem; font-weight:900;"></div>
+                <div>
+                  <div id="sound-name" style="font-weight:800;"></div>
+                  <div id="mouth-cue" class="muted"></div>
+                </div>
+              </div>
+              <div id="mouth-description" class="muted" style="margin-top:8px;"></div>
+              <div id="mouth-visual" style="margin-top:10px;"></div>
+            </div>
+            <p class="muted" style="margin:0;">Choose a sound tile to see tips here.</p>
+          </aside>
+
+          <section class="sound-guide-board" aria-label="Sound tiles">
+            <div class="sound-guide-section">
+              <h3>Short Vowels</h3>
+              <div id="vowel-row" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>Alphabet Sounds</h3>
+              <div id="alphabet-board" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>Digraphs</h3>
+              <div id="digraph-board" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>Blends</h3>
+              <div id="blend-board" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>Vowel Teams</h3>
+              <div id="vowel-team-board" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>R-Controlled</h3>
+              <div id="rcontrolled-board" class="sound-row"></div>
+            </div>
+            <div class="sound-guide-section">
+              <h3>Welded</h3>
+              <div id="welded-board" class="sound-row"></div>
+            </div>
+
+            <div class="sound-guide-section">
+              <h3>Letter Sounds (optional)</h3>
+              <div id="letters-grid" aria-label="Letters"></div>
+              <div id="letter-sounds-display" class="hidden" style="margin-top:10px;">
+                <div class="muted" style="margin-bottom:8px;">
+                  Selected letter: <strong id="selected-letter">—</strong>
+                </div>
+                <div id="letter-sounds-grid" aria-label="Letter sounds"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress modal (optional, but used by openProgressModal when enabled) -->
+    <div id="progress-modal" class="modal hidden progress-modal" role="dialog" aria-modal="true" aria-label="Progress">
+      <div class="modal-content">
+        <button class="close-btn close-progress" type="button" aria-label="Close">✕</button>
+        <h2>Progress</h2>
+        <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px;">
+          <div><strong>Attempted</strong><div id="stat-attempted">0</div></div>
+          <div><strong>Correct</strong><div id="stat-correct">0</div></div>
+          <div><strong>Success rate</strong><div id="stat-rate">0%</div></div>
+          <div><strong>Avg guesses</strong><div id="stat-avg-guesses">0</div></div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+          <button id="export-data-btn" type="button" class="secondary-btn">Export</button>
+          <button id="clear-data-btn" type="button" class="secondary-btn">Clear</button>
+        </div>
+        <div id="recent-words" style="margin-top: 12px;"></div>
+      </div>
+    </div>
   </body>
 </html>
-
