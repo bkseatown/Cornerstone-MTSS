@@ -48,6 +48,7 @@ const SETTINGS_KEY = 'decode_settings';
 const DEFAULT_SETTINGS = {
     calmMode: false,
     largeText: false,
+    uiLook: '35', // 'k2' | '35' | '612' (age-based presentation presets)
     showIPA: true,
     showExamples: true,
     showMouthCues: true,
@@ -96,6 +97,26 @@ const DEFAULT_SETTINGS = {
         'blends': true
     }
 };
+
+const UI_LOOK_CLASSES = ['look-k2', 'look-35', 'look-612'];
+
+function getUiLookValue() {
+    const raw = (appSettings?.uiLook || DEFAULT_SETTINGS.uiLook || '35').toString();
+    if (raw === 'k2') return 'k2';
+    if (raw === '612') return '612';
+    return '35';
+}
+
+function applyUiLookClass() {
+    const look = getUiLookValue();
+    UI_LOOK_CLASSES.forEach(cls => document.body.classList.remove(cls));
+    document.body.classList.add(look === 'k2' ? 'look-k2' : (look === '612' ? 'look-612' : 'look-35'));
+
+    const uiLookSelect = document.getElementById('ui-look-select');
+    if (uiLookSelect) {
+        uiLookSelect.value = look;
+    }
+}
 
 const WTW_INVENTORIES = {
     psi: {
@@ -578,6 +599,7 @@ function applySettings() {
     document.body.classList.toggle('hide-mouth-cues', !appSettings.showMouthCues);
     document.body.classList.add('force-light');
     document.documentElement.style.colorScheme = 'light';
+    applyUiLookClass();
     updateFunHudVisibility();
 
     const calmToggle = document.getElementById('toggle-calm-mode');
@@ -1527,6 +1549,7 @@ function initTeacherTools() {
     ensurePracticePackRow();
     ensureSettingsTransferRow();
     ensureTeacherTabs();
+    ensureUiLookRow();
     const calmToggle = document.getElementById('toggle-calm-mode');
     if (calmToggle) {
         calmToggle.onchange = () => {
@@ -1615,6 +1638,33 @@ function initTeacherTools() {
             saveSettings();
         };
     }
+}
+
+function ensureUiLookRow() {
+    const grid = document.querySelector('#teacher-modal .teacher-tools-grid');
+    if (!grid || document.getElementById('ui-look-select')) return;
+
+    const row = document.createElement('div');
+    row.className = 'teacher-row';
+    row.innerHTML = `
+        <label for="ui-look-select"><strong>Interface look</strong></label>
+        <select id="ui-look-select">
+            <option value="k2">K–2 (Playful)</option>
+            <option value="35">3–5 (Balanced)</option>
+            <option value="612">6–12 (Studio)</option>
+        </select>
+        <div class="teacher-subtext">Adjusts shapes and contrast (content stays the same).</div>
+    `;
+    grid.appendChild(row);
+
+    const select = row.querySelector('#ui-look-select');
+    if (!select) return;
+    select.value = getUiLookValue();
+    select.addEventListener('change', () => {
+        appSettings.uiLook = select.value;
+        saveSettings();
+        applySettings();
+    });
 }
 
 function ensureClassroomDockControl() {

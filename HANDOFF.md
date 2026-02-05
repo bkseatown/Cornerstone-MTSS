@@ -28,6 +28,8 @@ Primary pages:
 
 Key changes already implemented (high-level):
 - New Bright Lab theme, light-mode force for classroom projection.
+- New age-based UI look presets (K–2 Playful, 3–5 Balanced, 6–12 Studio) stored locally and applied across pages.
+- Activity palettes (each activity gets a calm accent color; buttons + panel accents match).
 - Kid-friendly labels across nav (Word Quest, Story Fill, Read & Think, Speed Sprint, Silly Stories).
 - Sound Lab moved into `Tools` menu (no longer front-and-center).
 - Sounds Warm‑Up/Sound Lab modal: centered, scrolls internally, resizable; responsive even when resized (ResizeObserver adds `phoneme-narrow`/`phoneme-short`).
@@ -37,6 +39,7 @@ Key changes already implemented (high-level):
   - Game modes are accessible via Teacher Settings → `Game Modes` (teacher-only).
 - Recording Studio mic cleanup: stream tracks are stopped on stop + on modal close (prevents “mic stays on”).
 - Fit-to-screen mode automatically tightens spacing below ~900px height (helps avoid browser zoom).
+- Word Quest visibility patch: stronger contrast for empty tiles/keyboard on washed-out projectors.
 - Teacher Settings: “Transfer settings” export/import (JSON) for portability between devices (no accounts needed).
 - Fluency: added clickable ORF tracking (mark errors + set stop word) to reduce teacher workload.
 - New activities added:
@@ -46,6 +49,7 @@ Key changes already implemented (high-level):
 Files touched so far:
 - app.js
 - style.css
+- platform.js
 - fluency.js
 - index.html
 - word-quest.html
