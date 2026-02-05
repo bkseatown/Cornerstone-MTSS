@@ -14,9 +14,10 @@
     --text-muted: #334155;
     --text-subtle: #475569;
     --text-faint: #64748b;
-    --stage-bg: rgba(255, 255, 255, 0.72);
-    --stage-border: rgba(148, 163, 184, 0.34);
-    --stage-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    /* Shared "stage" surface (projector-friendly: contrast without feeling heavy). */
+    --stage-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 245, 255, 0.86) 100%);
+    --stage-border: rgba(100, 116, 139, 0.34);
+    --stage-shadow: 0 22px 60px rgba(15, 23, 42, 0.10);
     --lab-bg: #f7f9ff;
     --lab-bg-soft: #eef2ff;
     --lab-card: #ffffff;
@@ -389,17 +390,20 @@ body.force-light #length-select {
 }
 
 body.force-light .tile {
-    background: #ffffff !important;
-    border-color: #cbd5e1 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5ff 100%) !important;
+    border-color: rgba(100, 116, 139, 0.55) !important;
     color: #0f172a !important;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+    box-shadow:
+        0 12px 26px rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85),
+        inset 0 -2px 0 rgba(15, 23, 42, 0.06) !important;
 }
 
 body.force-light .key {
-    background: #ffffff !important;
-    border-color: #cbd5e1 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%) !important;
+    border-color: rgba(100, 116, 139, 0.45) !important;
     color: #0f172a !important;
-    box-shadow: 0 3px 0 #e2e8f0, 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 4px 0 rgba(148, 163, 184, 0.55), 0 10px 18px rgba(15, 23, 42, 0.12) !important;
     text-shadow: none !important;
 }
 
@@ -1166,6 +1170,39 @@ option:checked {
     border-radius: 28px;
     box-shadow: var(--stage-shadow);
     backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+#game-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.18), transparent 46%),
+        radial-gradient(circle at 86% 10%, rgba(249, 115, 22, 0.12), transparent 44%),
+        radial-gradient(circle at 50% 88%, rgba(99, 102, 241, 0.10), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+#game-canvas::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.92), rgba(14, 165, 233, 0.82), rgba(249, 115, 22, 0.62));
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#game-canvas > * {
+    position: relative;
+    z-index: 1;
 }
 
 main { 
@@ -1180,43 +1217,47 @@ main {
 /* GAME BOARD - Responsive scaling */
 #game-board { 
     display: grid; 
-    gap: 6px; 
+    gap: 8px; 
     justify-content: center; 
+    padding: 14px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(148, 163, 184, 0.16) 0%, rgba(148, 163, 184, 0.08) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 /* TILES - Scale with viewport, not fixed */
 .tile {
-    width: min(56px, 10.5vw, 8vh);
-    height: min(56px, 10.5vw, 8vh);
-    border: 2px solid rgba(148, 163, 184, 0.62);
+    width: min(72px, 12vw, 9.2vh);
+    height: min(72px, 12vw, 9.2vh);
+    border: 2px solid rgba(100, 116, 139, 0.55);
     display: flex; 
     justify-content: center; 
     align-items: center;
     font-family: var(--font-body); 
-    font-size: min(2rem, 4.8vw, 4.5vh);
+    font-size: min(2.4rem, 5.4vw, 5vh);
     font-weight: 800;
-    border-radius: 12px; 
-    background: linear-gradient(180deg, #ffffff 0%, #f3f6ff 100%);
+    border-radius: 14px; 
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5ff 100%);
     color: #0f172a;
     transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     box-shadow:
-                0 10px 24px rgba(15, 23, 42, 0.10),
+                0 12px 26px rgba(15, 23, 42, 0.12),
                 inset 0 1px 0 rgba(255, 255, 255, 0.85),
                 inset 0 -2px 0 rgba(15, 23, 42, 0.06);
     transform: translateZ(0);
 }
 
 .tile.row-active:not(.correct):not(.present):not(.absent) {
-    border-color: rgba(99, 102, 241, 0.45);
-    background: linear-gradient(180deg, rgba(224, 231, 255, 0.95) 0%, rgba(255, 255, 255, 0.92) 100%);
+    border-color: rgba(79, 70, 229, 0.55);
+    background: linear-gradient(180deg, rgba(224, 231, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%);
     box-shadow:
-        0 12px 26px rgba(79, 70, 229, 0.12),
+        0 14px 30px rgba(79, 70, 229, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.9),
         inset 0 -2px 0 rgba(15, 23, 42, 0.06);
 }
 
 .tile.active { 
-    border-color: rgba(99, 102, 241, 0.7); 
+    border-color: rgba(79, 70, 229, 0.85); 
     animation: pulse 0.1s; 
     transform: scale(1.05) translateY(-2px);
     box-shadow: 0 10px 18px rgba(79, 70, 229, 0.2);
@@ -1304,6 +1345,10 @@ main {
     max-width: 600px;
     margin-bottom: 12px;
     padding-bottom: env(safe-area-inset-bottom, 0);
+    padding: 10px 10px 12px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(148, 163, 184, 0.14) 0%, rgba(148, 163, 184, 0.08) 100%);
+    border: 1px solid rgba(100, 116, 139, 0.22);
 }
 
 .keyboard-row { 
@@ -1313,23 +1358,23 @@ main {
 }
 
 .key { 
-    height: min(46px, 8.5vw, 7vh);
+    height: min(54px, 9vw, 7.6vh);
     flex: 1; 
     max-width: 58px;
     border-radius: 12px; 
-    border: 1px solid rgba(148, 163, 184, 0.6);
+    border: 1px solid rgba(100, 116, 139, 0.45);
     background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
     cursor: pointer; 
     font-weight: 800; 
-    font-size: min(1.05rem, 3.2vw, 3.2vh);
+    font-size: min(1.15rem, 3.4vw, 3.4vh);
     display: flex; 
     justify-content: center; 
     align-items: center; 
     font-family: var(--font-body); 
     touch-action: manipulation;
     box-shadow: 
-        0 3px 0 0 rgba(148, 163, 184, 0.5),
-        0 6px 14px rgba(15, 23, 42, 0.12);
+        0 4px 0 0 rgba(148, 163, 184, 0.55),
+        0 10px 18px rgba(15, 23, 42, 0.12);
     transition: all 0.1s;
     position: relative;
     top: 0;
@@ -1339,8 +1384,8 @@ main {
     background: linear-gradient(180deg, #ffffff 0%, #e0e7ff 100%);
     transform: translateY(-2px);
     box-shadow: 
-        0 5px 0 0 rgba(148, 163, 184, 0.5),
-        0 8px 16px rgba(15, 23, 42, 0.2);
+        0 6px 0 0 rgba(148, 163, 184, 0.55),
+        0 12px 20px rgba(15, 23, 42, 0.18);
 }
 
 .key:active {
@@ -5818,22 +5863,24 @@ body.word-quest-page #keyboard {
     }
 
     #game-board {
-        gap: 5px;
+        gap: 7px;
+        padding: 12px;
     }
 
     .tile {
-        width: min(50px, 9.5vw, 6.6vh);
-        height: min(50px, 9.5vw, 6.6vh);
-        font-size: min(1.7rem, 4.3vw, 3.6vh);
+        width: min(64px, 11.2vw, 8vh);
+        height: min(64px, 11.2vw, 8vh);
+        font-size: min(2.2rem, 5vw, 4.6vh);
     }
 
     .key {
-        height: min(42px, 7.4vw, 5.6vh);
-        font-size: min(0.95rem, 3.1vw, 2.7vh);
+        height: min(50px, 8.6vw, 6.8vh);
+        font-size: min(1.08rem, 3.2vw, 3vh);
     }
 
     #keyboard {
         gap: 5px;
+        padding: 8px 8px 10px;
     }
 
     .warmup-panel {
@@ -5851,14 +5898,14 @@ body.word-quest-page #keyboard {
     }
 
     .tile {
-        width: min(46px, 8.8vw, 6vh);
-        height: min(46px, 8.8vw, 6vh);
-        font-size: min(1.6rem, 4vw, 3.2vh);
+        width: min(58px, 10.5vw, 7.2vh);
+        height: min(58px, 10.5vw, 7.2vh);
+        font-size: min(2rem, 4.6vw, 4.1vh);
     }
 
     .key {
-        height: min(38px, 6.8vw, 5.1vh);
-        font-size: min(0.9rem, 2.8vw, 2.4vh);
+        height: min(46px, 7.8vw, 6vh);
+        font-size: min(1rem, 3vw, 2.8vh);
     }
 
     .warmup-tile {
@@ -7574,53 +7621,43 @@ body.planit-page {
 }
 
 @media (max-height: 900px) {
-    header {
+    body.word-quest-page header {
         padding: 6px 10px 4px;
     }
 
-    .header-top {
+    body.word-quest-page .header-top {
         margin-bottom: 6px;
     }
 
-    .header-actions .link-btn {
+    body.word-quest-page .header-actions .link-btn {
         padding: 6px 10px;
         font-size: 0.85rem;
     }
 
-    .controls {
+    body.word-quest-page .controls {
         gap: 8px;
         margin-bottom: 4px;
     }
 
-    #game-canvas {
-        gap: 4px;
-        padding: 0 6px 6px;
+    body.word-quest-page #game-canvas {
+        gap: clamp(10px, 1.2vh, 14px);
+        padding: 12px 12px 10px;
         justify-content: flex-start;
     }
 
-    #game-board {
+    body.word-quest-page #game-board {
         margin: 8px auto;
-        gap: 5px;
+        gap: 7px;
+        padding: 12px;
     }
 
-    .tile {
-        width: min(46px, 8.5vw, 6.4vh);
-        height: min(46px, 8.5vw, 6.4vh);
-        font-size: clamp(0.95rem, 2.2vw, 1.2rem);
-    }
-
-    .key {
-        height: clamp(28px, 4.8vh, 34px);
-        font-size: clamp(0.7rem, 1.4vw, 0.85rem);
-        max-width: clamp(28px, 6.8vw, 40px);
-    }
-
-    .hint-actions {
+    body.word-quest-page .hint-actions {
         margin: 2px 0;
     }
 
-    #keyboard {
+    body.word-quest-page #keyboard {
         margin-bottom: 6px;
+        padding: 8px 8px 10px;
     }
 
     .comp-main,
