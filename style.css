@@ -1286,7 +1286,7 @@ main {
 
 /* COLORS - Soft, clear feedback with depth */
 .tile.correct { 
-    background-color: var(--color-correct); 
+    background: var(--color-correct);
     border-color: var(--color-correct); 
     color: #0b1220;
     box-shadow: 0 4px 8px rgba(46, 204, 113, 0.4),
@@ -1295,7 +1295,7 @@ main {
 }
 
 .tile.present { 
-    background-color: var(--color-present); 
+    background: var(--color-present);
     border-color: var(--color-present); 
     color: #0b1220;
     box-shadow: 0 4px 8px rgba(241, 196, 15, 0.4),
@@ -1304,7 +1304,7 @@ main {
 }
 
 .tile.absent { 
-    background-color: var(--color-absent); 
+    background: var(--color-absent);
     border-color: var(--color-absent); 
     color: white;
     box-shadow: 0 4px 8px rgba(52, 73, 94, 0.3),
@@ -8094,7 +8094,7 @@ body.word-quest-page #game-board {
         0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
-body.word-quest-page .tile {
+body.word-quest-page .tile:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #ffffff 0%, #e7efff 100%);
     border-color: rgba(51, 65, 85, 0.30);
     box-shadow:
@@ -8115,7 +8115,7 @@ body.word-quest-page #keyboard {
     box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
 }
 
-body.word-quest-page .key {
+body.word-quest-page .key:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #ffffff 0%, #e9eeff 100%);
     border-color: rgba(51, 65, 85, 0.24);
     box-shadow: 0 4px 0 rgba(148, 163, 184, 0.68), 0 10px 18px rgba(15, 23, 42, 0.14);
@@ -8127,12 +8127,12 @@ body.force-light.word-quest-page #game-board {
     border-color: rgba(100, 116, 139, 0.32) !important;
 }
 
-body.force-light.word-quest-page .tile {
+body.force-light.word-quest-page .tile:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #ffffff 0%, #e7efff 100%) !important;
     border-color: rgba(51, 65, 85, 0.30) !important;
 }
 
-body.force-light.word-quest-page .key {
+body.force-light.word-quest-page .key:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #ffffff 0%, #e9eeff 100%) !important;
     border-color: rgba(51, 65, 85, 0.24) !important;
 }
