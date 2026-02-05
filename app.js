@@ -1429,12 +1429,43 @@ function initControls() {
     document.getElementById("set-word-btn").onclick = handleTeacherSubmit;
     document.getElementById("open-studio-btn").onclick = openStudioSetup;
     const toggleMaskBtn = document.getElementById("toggle-mask");
+    const customWordInput = document.getElementById("custom-word-input");
+    const supportsTextSecurity = typeof CSS !== 'undefined' && CSS.supports && (
+        CSS.supports('-webkit-text-security: disc') || CSS.supports('text-security: disc')
+    );
+
+    if (customWordInput) {
+        if (supportsTextSecurity) {
+            customWordInput.type = 'text';
+            customWordInput.classList.add('masked');
+            customWordInput.setAttribute('autocomplete', 'off');
+        } else {
+            customWordInput.classList.remove('masked');
+            customWordInput.type = 'password';
+            customWordInput.setAttribute('autocomplete', 'new-password');
+        }
+    }
+
     if (toggleMaskBtn) {
         toggleMaskBtn.onclick = () => {
             const inp = document.getElementById("custom-word-input");
-            const isHidden = inp.type === "password";
-            inp.type = isHidden ? "text" : "password";
-            toggleMaskBtn.textContent = isHidden ? "Hide" : "Show";
+            if (!inp) return;
+
+            const canMask = typeof CSS !== 'undefined' && CSS.supports && (
+                CSS.supports('-webkit-text-security: disc') || CSS.supports('text-security: disc')
+            );
+
+            if (canMask) {
+                const isMasked = inp.classList.contains('masked');
+                inp.classList.toggle('masked', !isMasked);
+                toggleMaskBtn.textContent = isMasked ? "Hide" : "Show";
+            } else {
+                const isHidden = inp.type === "password";
+                inp.type = isHidden ? "text" : "password";
+                inp.setAttribute('autocomplete', inp.type === 'password' ? 'new-password' : 'off');
+                toggleMaskBtn.textContent = isHidden ? "Hide" : "Show";
+            }
+
             inp.focus();
         };
     }

@@ -123,7 +123,15 @@
           <div class="teacher-row">
             <label for="custom-word-input"><strong>Set a custom word</strong></label>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <input id="custom-word-input" type="password" placeholder="Type a word (letters only)" />
+              <input
+                id="custom-word-input"
+                type="text"
+                class="masked"
+                placeholder="Type a word (letters only)"
+                autocapitalize="none"
+                autocomplete="off"
+                spellcheck="false"
+              />
               <button id="toggle-mask" type="button" class="teacher-secondary-btn">Show</button>
               <button id="set-word-btn" type="button" class="teacher-primary-btn">Start</button>
             </div>

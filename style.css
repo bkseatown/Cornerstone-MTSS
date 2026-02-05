@@ -586,10 +586,10 @@ h3,
     display: flex; 
     gap: 10px; 
     align-items: center;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow-x: visible;
     row-gap: 8px;
-    scrollbar-width: none;
+    max-width: 100%;
 }
 
 .header-actions::-webkit-scrollbar {
@@ -960,8 +960,8 @@ select {
 }
 
 select:focus {
-    outline: 2px solid var(--color-correct);
-    outline-offset: 1px;
+    outline: 2px solid rgba(99, 102, 241, 0.85);
+    outline-offset: 2px;
 }
 
 input[type="text"],
@@ -1525,7 +1525,7 @@ main {
     }
 }
 
-.key.vowel { 
+.key.vowel:not(.correct):not(.present):not(.absent) { 
     background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%); 
     border: 2px solid #5b8ff7; 
     color: #0f172a;
@@ -2143,7 +2143,8 @@ main {
 
 #teacher-modal {
     max-height: 92vh;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     border-radius: 22px;
     background: linear-gradient(180deg, #ffffff 0%, #f2f5ff 100%);
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
@@ -2179,9 +2180,28 @@ main {
 
 #teacher-modal .teacher-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr;
     gap: 8px;
-    align-items: center;
+    align-items: start;
+}
+
+#teacher-modal .teacher-row > label {
+    margin-bottom: 0;
+}
+
+#teacher-modal .teacher-row > .teacher-error,
+#teacher-modal .teacher-row > .teacher-subtext {
+    grid-column: 1 / -1;
+}
+
+#teacher-modal .teacher-row > div[style*="display:flex"] {
+    min-width: 0;
+}
+
+@media (max-width: 560px) {
+    #teacher-modal .teacher-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 #teacher-modal .toggle-row select {
@@ -2215,6 +2235,11 @@ main {
     text-align: left;
     letter-spacing: 0.5px;
     font-family: var(--font-body);
+}
+
+#teacher-modal #custom-word-input.masked {
+    -webkit-text-security: disc;
+    text-security: disc;
 }
 
 #teacher-modal #toggle-mask {
@@ -2450,6 +2475,17 @@ main {
     gap: 6px;
     flex-wrap: wrap;
     justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+    .teacher-pack-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .practice-pack-actions {
+        justify-content: flex-start;
+    }
 }
 
 .voice-available-row {
@@ -7367,7 +7403,7 @@ body.planit-page {
         border-color: #334155;
     }
 
-    .key.vowel {
+    .key.vowel:not(.correct):not(.present):not(.absent) {
         background: linear-gradient(180deg, #5b76c7 0%, #3f4f86 100%);
         border: 1px solid #a5b4fc;
         color: #f8fafc;
@@ -8077,6 +8113,27 @@ body.force-light .fun-hud {
     border-color: #e2e8f0 !important;
 }
 
+/* Force light should win even when OS is in dark mode (avoids washed-out Teacher modal text). */
+body.force-light #teacher-modal label,
+body.force-light #teacher-modal .toggle-row,
+body.force-light #teacher-modal .practice-pack-label,
+body.force-light #teacher-modal .practice-pack-label strong {
+    color: #1f2937;
+}
+
+body.force-light #teacher-modal .teacher-subtext,
+body.force-light #teacher-modal .teacher-hint,
+body.force-light #teacher-modal .practice-pack-label span {
+    color: #6b7280;
+}
+
+body.force-light #teacher-modal #custom-word-input,
+body.force-light #teacher-modal #system-voice-select {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #0f172a;
+}
+
 body.force-light .tile.correct {
     background: #22c55e !important;
     border-color: #16a34a !important;
@@ -8132,7 +8189,7 @@ body.force-light .key.absent {
     box-shadow: 0 3px 0 0 #334155, 0 4px 10px rgba(15, 23, 42, 0.14) !important;
 }
 
-body.force-light .key.vowel {
+body.force-light .key.vowel:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
     border-color: #5b8ff7 !important;
     color: #0f172a !important;

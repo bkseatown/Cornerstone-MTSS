@@ -163,7 +163,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "Money you pay to the government that makes grown-ups look at their paychecks and sigh.",
-      "sentence": "The man opened the envelope, looked at the bill, and slowly put his head on the table."
+      "sentence": "The man opened the envelope, looked at the tax bill, and slowly put his head on the table."
     },
     "es": {
       "def": "Dinero que pagas al gobierno que hace que los adultos miren sus cheques y suspiren.",
@@ -243,7 +243,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "A large boxy car that can hold a whole soccer team and all their muddy bags.",
-      "sentence": "The dad opened the sliding door, saw the pile of sports gear inside, and wondered where the kids would sit."
+      "sentence": "The dad opened the van's sliding door, saw the pile of sports gear inside, and wondered where the kids would sit."
     },
     "es": {
       "def": "Un coche grande y cuadrado que puede llevar a todo un equipo de fútbol y sus bolsas llenas de barro.",
@@ -443,7 +443,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "Your family members who crowd the house and pinch your cheeks at reunions.",
-      "sentence": "The aunt squeezed his cheeks, told him he looked just like his father, and he stood there smiling politely."
+      "sentence": "The aunt squeezed his cheeks, said he was kin to his father, and he stood there smiling politely."
     },
     "es": {
       "def": "Tus familiares que llenan la casa y te pellizcan las mejillas en las reuniones.",
@@ -609,7 +609,7 @@ const WORDS_DATA =
     "pos": "adjective",
     "en": {
       "def": "A word you say when you touch something slimy or smell old trash.",
-      "sentence": "The boy opened the old lunchbox, smelled the green sandwich, and pinched his nose shut."
+      "sentence": "The boy opened the old lunchbox, smelled the gross green sandwich, and pinched his nose shut."
     },
     "es": {
       "def": "Una palabra que dices cuando tocas algo viscoso o hueles basura vieja.",
@@ -651,7 +651,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "The body part inside your chest that burns when you run too fast.",
-      "sentence": "The runner crossed the finish line, grabbed his knees, and felt his lungs begging for air."
+      "sentence": "The runner crossed the finish line, grabbed his knees, and felt each lung begging for air."
     },
     "es": {
       "def": "La parte del cuerpo dentro de tu pecho que arde cuando corres demasiado rápido.",
@@ -733,7 +733,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "What happens to your favorite wool sweater when you wash it in hot water.",
-      "sentence": "The man held up his favorite shirt, saw it was now baby-sized, and sighed loudly."
+      "sentence": "After one hot wash, the man held up his favorite shirt, saw it shrank to baby-size, and sighed loudly."
     },
     "es": {
       "def": "Lo que le pasa a tu suéter de lana favorito cuando lo lavas con agua caliente.",
@@ -3207,7 +3207,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To burn a shirt because you were watching TV while ironing.",
-      "sentence": "The man lifted the iron, saw a perfect brown triangle on his white shirt, and quickly hid it in the trash."
+      "sentence": "The man lifted the iron, saw a scorch mark on his white shirt, and quickly hid it in the trash."
     },
     "es": {
       "def": "Quemar una camisa porque estabas viendo televisión mientras planchabas.",
@@ -3338,7 +3338,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "A sharp needle on a flower that protects it from romantic people.",
-      "sentence": "The man tried to pick a rose for his wife, yelled 'Ouch!', and dropped the flower in the dirt."
+      "sentence": "The man tried to pick a rose for his wife, hit a thorn, yelled 'Ouch!', and dropped the flower in the dirt."
     },
     "es": {
       "def": "Una aguja afilada en una flor que la protege de las personas románticas.",
@@ -3381,7 +3381,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To laugh so hard while drinking that liquid comes out of your nose.",
-      "sentence": "The girl drank her milk, heard a joke, and accidentally snorted white bubbles onto the table."
+      "sentence": "The girl drank her milk, heard a joke, and accidentally let out a snort of white bubbles onto the table."
     },
     "es": {
       "def": "Reírse tan fuerte mientras bebes que el líquido te sale por la nariz.",
@@ -3510,7 +3510,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To pour more juice into a cup until it spills on your socks.",
-      "sentence": "The boy watched the TV instead of the cup, the juice overflowed, and he felt a cold splash on his foot."
+      "sentence": "The boy tried to refill the cup while watching TV, the juice overflowed, and he felt a cold splash on his foot."
     },
     "es": {
       "def": "Echar más jugo en una taza hasta que se derrame en tus calcetines.",
@@ -3550,7 +3550,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To open a door while holding ten bags of groceries.",
-      "sentence": "The dad balanced the eggs on his chin, dropped the keys in the bush, and kicked the door in frustration."
+      "sentence": "The dad balanced the eggs on his chin, dropped the keys in the bush, and couldn't unlock the door, so he kicked it in frustration."
     },
     "es": {
       "def": "Abrir una puerta mientras sostienes diez bolsas de compras.",
@@ -3632,7 +3632,7 @@ const WORDS_DATA =
     "pos": "adjective",
     "en": {
       "def": "A bad idea involving a tower of chairs and a cookie jar.",
-      "sentence": "The boy stood on the wobbling chair, reached for the jar, and realized gravity was about to win."
+      "sentence": "The boy stood on the wobbling chair, reached for the jar, and realized the whole thing was unsafe."
     },
     "es": {
       "def": "Una mala idea que involucra una torre de sillas y un tarro de galletas.",
@@ -3712,7 +3712,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To break up a team because someone ate the last snack.",
-      "sentence": "The drummer threw his sticks, the singer cried, and the garage band ended before lunch."
+      "sentence": "The drummer threw his sticks, the singer cried, and the garage band decided to disband before lunch."
     },
     "es": {
       "def": "Disolver un equipo porque alguien se comió el último bocadillo.",
@@ -3754,7 +3754,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "A puzzle piece from the wrong box, or a dad in a tiny playhouse.",
-      "sentence": "The dad squeezed into the plastic castle, got his shoulders stuck, and had to be pulled out by his feet."
+      "sentence": "The dad squeezed into the plastic castle, felt like a misfit, got his shoulders stuck, and had to be pulled out by his feet."
     },
     "es": {
       "def": "Una pieza de rompecabezas de la caja equivocada, o un papá en una casita de juguete.",
@@ -3794,7 +3794,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To give someone a map that leads to a mud puddle.",
-      "sentence": "My brother said the treasure was under the tree, I dug a hole, and he laughed when I found a worm."
+      "sentence": "My brother tried to mislead me by saying the treasure was under the tree, I dug a hole, and he laughed when I found a worm."
     },
     "es": {
       "def": "Darle a alguien un mapa que conduce a un charco de lodo.",
@@ -3836,7 +3836,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "When the lights go out and the laundry pile looks like a monster.",
-      "sentence": "The boy clicked off the light switch, saw a shadow move, and set a world record sprinting to his bed."
+      "sentence": "The boy clicked off the light switch, the darkness filled the room, and he set a world record sprinting to his bed."
     },
     "es": {
       "def": "Cuando se apagan las luces y la pila de ropa sucia parece un monstruo.",
@@ -4367,7 +4367,7 @@ const WORDS_DATA =
     "pos": "adjective",
     "en": {
       "def": "Being incorrect, which you usually realize right after you hit 'send'.",
-      "sentence": "The man insisted he was not lost, looked at the map, and slowly turned the paper upside down."
+      "sentence": "The man insisted he was not lost, looked at the map, and realized he was wrong."
     },
     "es": {
       "def": "Estar equivocado, lo que generalmente te das cuenta justo después de presionar 'enviar'.",
@@ -4526,7 +4526,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "A game where you throw a stick and the dog looks at you like you are crazy.",
-      "sentence": "I threw the ball across the park, the dog sat down to scratch his ear, and I had to go get it myself."
+      "sentence": "I threw the ball across the park, the dog sat down to scratch his ear, and I had to fetch it myself."
     },
     "es": {
       "def": "Un juego en el que lanzas un palo y el perro te mira como si estuvieras loco.",
@@ -5095,7 +5095,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "To ride a wave until the ocean decides to swallow you.",
-      "sentence": "The surfer stood up, looked cool for one second, and then tumbled all the way to the sand."
+      "sentence": "The surfer tried to surf, looked cool for one second, and then tumbled all the way to the sand."
     },
     "es": {
       "def": "Montar una ola hasta que el océano decide tragarte.",
@@ -5305,7 +5305,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "The things at the end of your legs that often smell like cheese.",
-      "sentence": "He took off his shoes, the room smelled like old cheese, and the cat fainted."
+      "sentence": "He took off his shoes, his feet smelled like old cheese, and the cat fainted."
     },
     "es": {
       "def": "Las cosas al final de tus piernas que a menudo huelen a queso.",
@@ -8717,7 +8717,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "Going up something high that makes your mom nervous.",
-      "sentence": "I climbed to the top of the jungle gym and felt like a king."
+      "sentence": "I tried to climb to the top of the jungle gym and felt like a king."
     },
     "es": {
       "def": "Subir algo alto que pone nerviosa a tu mamá.",
@@ -10170,7 +10170,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "The things on the side of your head that hold your glasses.",
-      "sentence": "I covered my ears because the fireworks were too loud."
+      "sentence": "I covered my ear, then my other ear, because the fireworks were too loud."
     },
     "es": {
       "def": "Las cosas a los lados de tu cabeza que sostienen tus lentes.",
@@ -13294,7 +13294,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "When your nose explodes because of dust or pepper.",
-      "sentence": "I sneezed so hard that my hat flew off my head."
+      "sentence": "I had to sneeze so hard that my hat flew off my head."
     },
     "es": {
       "def": "Cuando tu nariz explota por el polvo o la pimienta.",
@@ -13419,7 +13419,7 @@ const WORDS_DATA =
     "pos": "noun",
     "en": {
       "def": "A jumpy noise your body makes when it is confused.",
-      "sentence": "I tried to scare my hiccups away, but I just scared the dog instead."
+      "sentence": "I tried to scare my hiccup away, but I just scared the dog instead."
     },
     "es": {
       "def": "Un ruido saltarín que hace tu cuerpo cuando está confundido.",
@@ -13582,7 +13582,7 @@ const WORDS_DATA =
     "pos": "verb",
     "en": {
       "def": "Making happy noises because someone fell down (but is okay).",
-      "sentence": "We laughed so hard at the silly cat video that my stomach hurt."
+      "sentence": "We started to laugh so hard at the silly cat video that my stomach hurt."
     },
     "es": {
       "def": "Hacer ruidos felices porque alguien se cayó (pero está bien).",
@@ -20705,4 +20705,3 @@ const WORDS_DATA =
   window.WORD_ENTRIES = entries;
   console.log('✓ Word database loaded with', Object.keys(entries).length, 'words');
 })();
-
