@@ -3126,7 +3126,9 @@ function submitGuess() {
 
     if (currentGuess === currentWord) {
         gameOver = true;
-        confetti(); 
+        if (!isReducedStimulationEnabled()) {
+            confetti();
+        }
         setTimeout(() => {
             showEndModal(true);  // Show word reveal first
         }, 1500);
@@ -4246,7 +4248,18 @@ function clearKeyboardColors() {
     });
 }
 
+function isReducedStimulationEnabled() {
+    try {
+        if (document.body?.classList.contains("reduced-stimulation")) return true;
+        const settings = window.DECODE_PLATFORM?.getSettings?.();
+        return !!settings?.reducedStimulation;
+    } catch {
+        return false;
+    }
+}
+
 function confetti() {
+    if (isReducedStimulationEnabled()) return;
     // Create more confetti pieces spread across screen
     for (let i = 0; i < 80; i++) {
         const c = document.createElement("div");

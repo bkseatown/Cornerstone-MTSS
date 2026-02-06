@@ -40,6 +40,7 @@
             <a class="home-cta primary" href="word-quest.html">Start Word Quest</a>
             <a class="home-cta ghost" href="cloze.html">Story Fill</a>
             <a class="home-cta ghost" href="comprehension.html">Read &amp; Think</a>
+            <a class="home-cta ghost" href="teacher-report.html">Teacher Report</a>
           </div>
 
           <div class="home-badges" aria-label="Alignment badges">
@@ -81,10 +82,49 @@
         </div>
       </section>
 
+      <section id="learners" class="home-card" aria-label="Learners">
+        <div class="home-card-header">
+          <h2>Learners</h2>
+          <p class="home-subtitle">Switch learners to isolate progress, placement, and activity data.</p>
+        </div>
+
+        <div class="home-progress-grid">
+          <div class="home-progress-panel" aria-label="Active learner">
+            <div class="home-mini-title">Active Learner</div>
+            <label class="home-field-label" for="learner-active-select">Current learner</label>
+            <select id="learner-active-select" class="home-select"></select>
+            <div id="learner-active-meta" class="muted"></div>
+          </div>
+
+          <div class="home-progress-panel" aria-label="Add learner">
+            <div class="home-mini-title">Add Learner</div>
+            <label class="home-field-label" for="learner-name-input">Name</label>
+            <input id="learner-name-input" class="home-input" type="text" placeholder="Learner name" />
+            <label class="home-field-label" for="learner-grade-input">Grade band (optional)</label>
+            <select id="learner-grade-input" class="home-select">
+              <option value="">Choose…</option>
+              <option value="K-2">K–2</option>
+              <option value="3-5">3–5</option>
+              <option value="6-8">6–8</option>
+              <option value="9-12">9–12</option>
+            </select>
+            <div class="home-cta-row">
+              <button id="learner-add-btn" class="home-cta ghost" type="button">Add learner</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-progress-panel" aria-label="Learner roster">
+          <div class="home-mini-title">Roster</div>
+          <ul id="learner-list" class="home-learner-list"></ul>
+          <div id="learner-status" class="muted home-report-status" aria-live="polite"></div>
+        </div>
+      </section>
+
       <section class="home-card" aria-label="Progress">
         <div class="home-card-header">
           <h2>Progress (Preview)</h2>
-          <p class="home-subtitle">Local-only summary stored in this browser. Export-friendly reports are next.</p>
+          <p class="home-subtitle">Local-only summary stored in this browser. Export/import to move reports between devices.</p>
         </div>
 
         <div class="home-progress-grid">
@@ -100,6 +140,14 @@
             <div id="progress-activity-empty" class="muted"></div>
           </div>
         </div>
+
+        <div class="home-cta-row home-report-actions" aria-label="Report actions">
+          <button id="progress-export-json" class="home-cta ghost" type="button">Export Data (JSON)</button>
+          <button id="progress-export-csv" class="home-cta ghost" type="button">Export Activity (CSV)</button>
+          <button id="progress-import-json" class="home-cta ghost" type="button">Import Data (JSON)</button>
+          <input id="progress-import-file" class="home-file-input" type="file" accept="application/json,.json" />
+        </div>
+        <div id="progress-report-status" class="muted home-report-status" aria-live="polite"></div>
       </section>
 
       <section class="home-card" aria-label="Skill path">
@@ -175,6 +223,11 @@
             <div class="home-activity-title">Plan-It</div>
             <div class="home-activity-desc">Executive-function scenarios: plan steps and order tasks.</div>
             <div class="home-activity-meta">SEL • EF • Routines</div>
+          </a>
+          <a class="home-activity" href="teacher-report.html">
+            <div class="home-activity-title">Teacher Report</div>
+            <div class="home-activity-desc">Printable growth summary with standards-based mastery heatmap.</div>
+            <div class="home-activity-meta">Reports • Standards • Heatmap</div>
           </a>
         </div>
       </section>

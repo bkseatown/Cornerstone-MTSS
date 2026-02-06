@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decode the Word — Teacher Report</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="platform.js" defer></script>
+    <script src="teacher-report.js" defer></script>
+  </head>
+
+  <body class="report-page force-light look-35">
+    <header>
+      <div class="header-top">
+        <h1>
+          <a href="index.html">Decode the Word</a>
+        </h1>
+        <nav class="header-actions" aria-label="Primary"></nav>
+      </div>
+    </header>
+
+    <main class="report-main">
+      <section class="report-card" aria-label="Report header">
+        <div class="report-card-header">
+          <div>
+            <h2>Teacher Report</h2>
+            <p class="home-subtitle">Printable learner progress summary with standards-based mastery heatmap.</p>
+          </div>
+          <div class="report-actions">
+            <button id="report-refresh" class="secondary-btn" type="button">Refresh</button>
+            <button id="report-export-pdf" class="primary-btn" type="button">Export PDF</button>
+            <button id="report-print" class="secondary-btn" type="button">Print</button>
+          </div>
+        </div>
+        <div class="report-meta-row">
+          <div><strong>Learner:</strong> <span id="report-learner-name">—</span></div>
+          <div><strong>Generated:</strong> <span id="report-generated-at">—</span></div>
+        </div>
+      </section>
+
+      <section class="report-card" aria-label="Growth summary">
+        <div class="report-card-header">
+          <h2>Growth Summary</h2>
+        </div>
+        <div id="report-metrics" class="report-metric-grid"></div>
+      </section>
+
+      <section class="report-card" aria-label="Recommended next focus">
+        <div class="report-card-header">
+          <h2>Recommended Next Skill Focus</h2>
+        </div>
+        <div id="report-focus" class="report-focus"></div>
+      </section>
+
+      <section class="report-card" aria-label="Standards mastery heatmap">
+        <div class="report-card-header">
+          <h2>Standards Mastery Heatmap</h2>
+          <p class="home-subtitle">Mastery is estimated from activity performance and completion evidence.</p>
+        </div>
+        <div class="report-heatmap-wrap">
+          <table id="report-heatmap" class="report-heatmap">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="report-empty" class="muted"></div>
+      </section>
+    </main>
+  </body>
+</html>

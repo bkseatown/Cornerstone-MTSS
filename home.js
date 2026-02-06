@@ -35,12 +35,400 @@
   const wordQuestDetail = document.getElementById('progress-word-quest-detail');
   const activityLogList = document.getElementById('progress-activity-log');
   const activityLogEmpty = document.getElementById('progress-activity-empty');
+  const exportJsonBtn = document.getElementById('progress-export-json');
+  const exportCsvBtn = document.getElementById('progress-export-csv');
+  const importJsonBtn = document.getElementById('progress-import-json');
+  const importFileInput = document.getElementById('progress-import-file');
+  const reportStatus = document.getElementById('progress-report-status');
+  const learnerActiveSelect = document.getElementById('learner-active-select');
+  const learnerActiveMeta = document.getElementById('learner-active-meta');
+  const learnerNameInput = document.getElementById('learner-name-input');
+  const learnerGradeInput = document.getElementById('learner-grade-input');
+  const learnerAddBtn = document.getElementById('learner-add-btn');
+  const learnerList = document.getElementById('learner-list');
+  const learnerStatus = document.getElementById('learner-status');
+  let editingLearnerId = '';
+
+  const REPORT_VERSION = 1;
+  const REPORT_EXACT_KEYS = new Set([
+    'cloze_settings',
+    'cloze_last_set_v1',
+    'comp_progress',
+    'comp_filters_v1',
+    'fluency_progress',
+    'fluency_filters_v1',
+    'writing_builder_v1',
+    'planit_progress_v2',
+    'planit_video_links_v1',
+    'planit_reflections_v1',
+    'wtw_assessment_records',
+    'useTeacherRecordings',
+    'hasRecordings',
+    'decode_v5_visited',
+    'tutorialShown',
+    'last_bonus_key',
+    'bonus_frequency_migrated',
+    'hq_english_voice_notice',
+    'hq_voice_notice_shown'
+  ]);
+  const REPORT_PREFIXES = [
+    'decode_',
+    'cloze_',
+    'comp_',
+    'fluency_',
+    'writing_',
+    'planit_',
+    'wtw_'
+  ];
 
   function safeParse(json) {
     try {
       return JSON.parse(json);
     } catch {
       return null;
+    }
+  }
+
+  function setReportStatus(message, isError = false) {
+    if (!reportStatus) return;
+    reportStatus.textContent = message || '';
+    reportStatus.classList.toggle('error', !!isError);
+    reportStatus.classList.toggle('success', !isError && !!message);
+  }
+
+  function setLearnerStatus(message, isError = false) {
+    if (!learnerStatus) return;
+    learnerStatus.textContent = message || '';
+    learnerStatus.classList.toggle('error', !!isError);
+    learnerStatus.classList.toggle('success', !isError && !!message);
+  }
+
+  function isReportStorageKey(key) {
+    return REPORT_EXACT_KEYS.has(key) || REPORT_PREFIXES.some((prefix) => key.startsWith(prefix));
+  }
+
+  function buildReportSnapshot() {
+    const platform = window.DECODE_PLATFORM;
+    const data = platform?.getLearnerDataSnapshot?.() || {};
+    const learner = platform?.getActiveLearner?.() || null;
+
+    return {
+      version: REPORT_VERSION,
+      format: 'decode-progress-report',
+      exportedAt: new Date().toISOString(),
+      learner,
+      data
+    };
+  }
+
+  function downloadBlob(text, filename, mimeType) {
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  function formatDateSlug(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function escapeCsvCell(value) {
+    const raw = String(value ?? '');
+    if (!/[",\n]/.test(raw)) return raw;
+    return `"${raw.replace(/"/g, '""')}"`;
+  }
+
+  function getRecentActivityEntries() {
+    const log = safeParse(localStorage.getItem('decode_activity_log_v1') || '');
+    return Array.isArray(log) ? log : [];
+  }
+
+  function handleExportJson() {
+    const snapshot = buildReportSnapshot();
+    const keyCount = Object.keys(snapshot.data).length;
+    const filename = `decode-report-${formatDateSlug(new Date())}.json`;
+    downloadBlob(JSON.stringify(snapshot, null, 2), filename, 'application/json;charset=utf-8');
+    setReportStatus(`Exported ${keyCount} data keys to ${filename}.`);
+  }
+
+  function handleExportCsv() {
+    const entries = getRecentActivityEntries();
+    if (!entries.length) {
+      setReportStatus('No activity log data to export yet.', true);
+      return;
+    }
+
+    const header = [
+      'timestamp_iso',
+      'activity',
+      'event',
+      'score',
+      'coins',
+      'streak',
+      'focus',
+      'details'
+    ];
+    const rows = entries.map((entry) => {
+      const details = entry && typeof entry === 'object'
+        ? JSON.stringify(entry)
+        : '';
+      return [
+        entry?.ts ? new Date(entry.ts).toISOString() : '',
+        entry?.label || entry?.activityLabel || entry?.activity || '',
+        entry?.event || entry?.action || entry?.message || '',
+        entry?.score ?? '',
+        entry?.coins ?? '',
+        entry?.streak ?? '',
+        entry?.focus ?? '',
+        details
+      ];
+    });
+
+    const csv = [header, ...rows]
+      .map((row) => row.map(escapeCsvCell).join(','))
+      .join('\n');
+
+    const filename = `decode-activity-${formatDateSlug(new Date())}.csv`;
+    downloadBlob(csv, filename, 'text/csv;charset=utf-8');
+    setReportStatus(`Exported ${rows.length} activity rows to ${filename}.`);
+  }
+
+  function extractImportPairs(raw) {
+    const parsed = safeParse(raw);
+    if (!parsed || typeof parsed !== 'object') return [];
+    const source = parsed.data && typeof parsed.data === 'object'
+      ? parsed.data
+      : parsed;
+    return Object.entries(source).filter(([key, value]) => (
+      typeof key === 'string' && typeof value === 'string' && isReportStorageKey(key)
+    ));
+  }
+
+  function refreshAfterImport() {
+    const settings = safeParse(localStorage.getItem(SETTINGS_KEY) || '');
+    if (settings?.uiLook) {
+      applyLookClass(settings.uiLook);
+    }
+    renderSummary(load());
+    renderProgress();
+    renderLearners();
+  }
+
+  function handleImportFile(file) {
+    if (!file) return;
+    file.text()
+      .then((raw) => {
+        const pairs = extractImportPairs(raw);
+        if (!pairs.length) {
+          setReportStatus('Import failed: file did not contain supported Decode data keys.', true);
+          return;
+        }
+
+        const platform = window.DECODE_PLATFORM;
+        if (platform?.importLearnerDataSnapshot) {
+          const payload = {};
+          pairs.forEach(([key, value]) => {
+            payload[key] = value;
+          });
+          platform.importLearnerDataSnapshot(payload);
+        } else {
+          pairs.forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
+        }
+
+        refreshAfterImport();
+        setReportStatus(`Imported ${pairs.length} data keys from ${file.name}.`);
+      })
+      .catch(() => {
+        setReportStatus('Import failed: unable to read the selected file.', true);
+      });
+  }
+
+  function formatLearnerMeta(learner) {
+    if (!learner) return 'No active learner selected.';
+    const gradeBand = normalizeGradeBand(learner.gradeBand || '') || 'Not set';
+    return `Grade band: ${gradeBand}`;
+  }
+
+  function buildGradeBandSelect(select, selectedValue = '') {
+    if (!select) return;
+    const normalized = normalizeGradeBand(selectedValue || '');
+    select.innerHTML = `
+      <option value="">Choose…</option>
+      <option value="K-2">K–2</option>
+      <option value="3-5">3–5</option>
+      <option value="6-8">6–8</option>
+      <option value="9-12">9–12</option>
+    `;
+    select.value = normalized;
+  }
+
+  function switchLearner(id) {
+    const platform = window.DECODE_PLATFORM;
+    if (!platform?.setActiveLearner) return;
+    const changed = platform.getActiveLearnerId?.() !== id;
+    const ok = platform.setActiveLearner(id, { reload: false });
+    if (!ok) {
+      setLearnerStatus('Could not switch learner.', true);
+      return;
+    }
+    platform.refreshLearnerSwitchers?.();
+    const settings = safeParse(localStorage.getItem(SETTINGS_KEY) || '');
+    if (settings?.uiLook) applyLookClass(settings.uiLook);
+    editingLearnerId = '';
+    renderSummary(load());
+    renderProgress();
+    renderLearners();
+    if (changed) {
+      setLearnerStatus('Switched active learner.');
+    }
+  }
+
+  function renderLearners() {
+    const platform = window.DECODE_PLATFORM;
+    if (!platform?.getLearners || !platform?.getActiveLearner) return;
+
+    const learners = platform.getLearners();
+    const active = platform.getActiveLearner();
+
+    if (learnerActiveSelect) {
+      learnerActiveSelect.innerHTML = '';
+      learners.forEach((learner) => {
+        const option = document.createElement('option');
+        option.value = learner.id;
+        option.textContent = learner.name;
+        learnerActiveSelect.appendChild(option);
+      });
+      if (active?.id) learnerActiveSelect.value = active.id;
+    }
+
+    if (learnerActiveMeta) {
+      learnerActiveMeta.textContent = formatLearnerMeta(active);
+    }
+
+    if (learnerList) {
+      learnerList.innerHTML = '';
+      learners.forEach((learner) => {
+        const li = document.createElement('li');
+        li.className = 'home-learner-item';
+        li.dataset.learnerId = learner.id;
+        const isEditing = editingLearnerId === learner.id;
+        const gradeBand = normalizeGradeBand(learner.gradeBand || '') || '—';
+
+        const copy = document.createElement('div');
+        copy.className = 'home-learner-copy';
+        const nameStrong = document.createElement('strong');
+        nameStrong.textContent = learner.name;
+        const gradeSpan = document.createElement('span');
+        gradeSpan.className = 'muted';
+        gradeSpan.textContent = `Grade: ${gradeBand}`;
+        copy.appendChild(nameStrong);
+        copy.appendChild(gradeSpan);
+
+        const actions = document.createElement('div');
+        actions.className = 'home-learner-actions';
+
+        const switchBtn = document.createElement('button');
+        switchBtn.className = 'secondary-btn';
+        switchBtn.type = 'button';
+        switchBtn.dataset.action = 'switch';
+        switchBtn.dataset.id = learner.id;
+        switchBtn.textContent = 'Switch';
+        if (active?.id === learner.id) switchBtn.disabled = true;
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'secondary-btn';
+        editBtn.type = 'button';
+        editBtn.dataset.action = 'edit';
+        editBtn.dataset.id = learner.id;
+        editBtn.textContent = 'Edit';
+        if (isEditing) editBtn.disabled = true;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'secondary-btn';
+        removeBtn.type = 'button';
+        removeBtn.dataset.action = 'remove';
+        removeBtn.dataset.id = learner.id;
+        removeBtn.textContent = 'Remove';
+        if (learners.length <= 1) removeBtn.disabled = true;
+
+        actions.appendChild(switchBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(removeBtn);
+        li.appendChild(copy);
+        li.appendChild(actions);
+
+        if (isEditing) {
+          const editor = document.createElement('div');
+          editor.className = 'home-learner-editor';
+
+          const grid = document.createElement('div');
+          grid.className = 'home-learner-edit-grid';
+
+          const nameField = document.createElement('label');
+          nameField.className = 'home-field-label';
+          nameField.textContent = 'Name';
+          const editNameInput = document.createElement('input');
+          editNameInput.className = 'home-input';
+          editNameInput.type = 'text';
+          editNameInput.value = learner.name || '';
+          editNameInput.dataset.role = 'edit-name';
+
+          const gradeField = document.createElement('label');
+          gradeField.className = 'home-field-label';
+          gradeField.textContent = 'Grade band';
+          const editGradeSelect = document.createElement('select');
+          editGradeSelect.className = 'home-select';
+          editGradeSelect.dataset.role = 'edit-grade';
+          buildGradeBandSelect(editGradeSelect, learner.gradeBand || '');
+
+          const nameWrap = document.createElement('div');
+          nameWrap.appendChild(nameField);
+          nameWrap.appendChild(editNameInput);
+
+          const gradeWrap = document.createElement('div');
+          gradeWrap.appendChild(gradeField);
+          gradeWrap.appendChild(editGradeSelect);
+
+          grid.appendChild(nameWrap);
+          grid.appendChild(gradeWrap);
+
+          const editorActions = document.createElement('div');
+          editorActions.className = 'home-learner-editor-actions';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'primary-btn';
+          saveBtn.type = 'button';
+          saveBtn.dataset.action = 'save-edit';
+          saveBtn.dataset.id = learner.id;
+          saveBtn.textContent = 'Save';
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'secondary-btn';
+          cancelBtn.type = 'button';
+          cancelBtn.dataset.action = 'cancel-edit';
+          cancelBtn.dataset.id = learner.id;
+          cancelBtn.textContent = 'Cancel';
+
+          editorActions.appendChild(saveBtn);
+          editorActions.appendChild(cancelBtn);
+
+          editor.appendChild(grid);
+          editor.appendChild(editorActions);
+          li.appendChild(editor);
+        }
+
+        learnerList.appendChild(li);
+      });
     }
   }
 
@@ -74,15 +462,21 @@
     const normalized = normalizeGradeBand(gradeBand);
     if (!normalized) return;
 
+    const platform = window.DECODE_PLATFORM;
+
     try {
-      window.DECODE_PLATFORM?.setProfile?.({ gradeBand: normalized });
+      platform?.setProfile?.({ gradeBand: normalized });
     } catch {}
 
     const look = gradeBandToLook(normalized);
     if (!look) return;
 
-    const existing = safeParse(localStorage.getItem(SETTINGS_KEY) || '') || {};
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...existing, uiLook: look }));
+    if (platform?.setSettings) {
+      platform.setSettings({ uiLook: look }, { emit: true });
+    } else {
+      const existing = safeParse(localStorage.getItem(SETTINGS_KEY) || '') || {};
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...existing, uiLook: look }));
+    }
     applyLookClass(look);
   }
 
@@ -350,8 +744,7 @@
     }
 
     if (activityLogList && activityLogEmpty) {
-      const log = safeParse(localStorage.getItem('decode_activity_log_v1') || '');
-      const entries = Array.isArray(log) ? log.slice(0, 8) : [];
+      const entries = getRecentActivityEntries().slice(0, 8);
       activityLogList.innerHTML = '';
       activityLogEmpty.textContent = '';
 
@@ -375,4 +768,115 @@
   }
 
   renderProgress();
+  renderLearners();
+
+  exportJsonBtn?.addEventListener('click', handleExportJson);
+  exportCsvBtn?.addEventListener('click', handleExportCsv);
+  importJsonBtn?.addEventListener('click', () => {
+    importFileInput?.click();
+  });
+  importFileInput?.addEventListener('change', () => {
+    const file = importFileInput.files?.[0];
+    handleImportFile(file);
+    importFileInput.value = '';
+  });
+  learnerActiveSelect?.addEventListener('change', () => {
+    switchLearner(learnerActiveSelect.value);
+  });
+  learnerAddBtn?.addEventListener('click', () => {
+    const platform = window.DECODE_PLATFORM;
+    const name = (learnerNameInput?.value || '').trim();
+    const gradeBand = normalizeGradeBand(learnerGradeInput?.value || '');
+    if (!platform?.addLearner) return;
+    if (!name) {
+      setLearnerStatus('Enter a learner name before adding.', true);
+      return;
+    }
+    platform.addLearner({ name, gradeBand });
+    if (learnerNameInput) learnerNameInput.value = '';
+    if (learnerGradeInput) learnerGradeInput.value = '';
+    editingLearnerId = '';
+    platform.refreshLearnerSwitchers?.();
+    renderLearners();
+    setLearnerStatus('Learner added.');
+  });
+  learnerList?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const actionEl = target.closest('button[data-action]');
+    if (!actionEl) return;
+    const id = actionEl.getAttribute('data-id') || '';
+    const action = actionEl.getAttribute('data-action');
+    const platform = window.DECODE_PLATFORM;
+
+    if (action === 'switch') {
+      switchLearner(id);
+      return;
+    }
+
+    if (action === 'edit') {
+      editingLearnerId = id;
+      renderLearners();
+      setLearnerStatus('Editing learner.');
+      return;
+    }
+
+    if (action === 'cancel-edit') {
+      editingLearnerId = '';
+      renderLearners();
+      setLearnerStatus('');
+      return;
+    }
+
+    if (action === 'save-edit') {
+      if (!platform?.updateLearner) return;
+      const row = actionEl.closest('li[data-learner-id]');
+      const editNameInput = row?.querySelector('input[data-role="edit-name"]');
+      const editGradeSelect = row?.querySelector('select[data-role="edit-grade"]');
+      const name = (editNameInput && 'value' in editNameInput) ? editNameInput.value.trim() : '';
+      const gradeBand = normalizeGradeBand((editGradeSelect && 'value' in editGradeSelect) ? editGradeSelect.value : '');
+
+      if (!name) {
+        setLearnerStatus('Learner name cannot be empty.', true);
+        editNameInput?.focus();
+        return;
+      }
+
+      const updated = platform.updateLearner(id, { name, gradeBand });
+      if (!updated) {
+        setLearnerStatus('Could not update learner.', true);
+        return;
+      }
+
+      if (platform.getActiveLearnerId?.() === id) {
+        window.DECODE_PLATFORM?.setProfile?.({ gradeBand: gradeBand || '' });
+        if (gradeBand) syncProfileAndLook(gradeBand);
+      }
+
+      editingLearnerId = '';
+      platform.refreshLearnerSwitchers?.();
+      renderLearners();
+      renderSummary(load());
+      renderProgress();
+      setLearnerStatus('Learner updated.');
+      return;
+    }
+
+    if (action === 'remove') {
+      if (!platform?.removeLearner) return;
+      const confirmRemove = window.confirm('Remove this learner and all learner-specific saved data on this device?');
+      if (!confirmRemove) return;
+      const response = platform.removeLearner(id, { reload: false });
+      if (!response?.ok) {
+        setLearnerStatus('Could not remove learner. At least one learner is required.', true);
+        return;
+      }
+      editingLearnerId = '';
+      platform.refreshLearnerSwitchers?.();
+      renderLearners();
+      renderSummary(load());
+      renderProgress();
+      setLearnerStatus('Learner removed.');
+    }
+  });
 })();
