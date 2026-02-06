@@ -986,8 +986,8 @@ function updateFitScreenMode() {
     // Otherwise the keyboard can be "visible" by rect math but still covered by the overlay.
     const bottomSafeY = storyRect ? Math.max(0, storyRect.top - 6) : (window.innerHeight - 8);
 
-    // Base heuristic: most laptop/projector setups need a tighter layout below ~960px.
-    const needsFitByHeight = window.innerHeight < 960;
+    // Base heuristic: only force fit on clearly short viewports.
+    const needsFitByHeight = window.innerHeight < 860;
 
     let needsFitByLayout = false;
     if (canvas) {
@@ -1025,7 +1025,7 @@ function updateFitScreenMode() {
         const stillOffscreen = keyboardNow
             ? (keyboardNow.getBoundingClientRect().bottom > bottomSafeNowY)
             : false;
-        const shouldTight = shouldFit && (window.innerHeight < 860 || stillClipped || stillOffscreen);
+        const shouldTight = shouldFit && (window.innerHeight < 790 || stillClipped || stillOffscreen);
 
         if (fitScreenTightActive !== shouldTight) {
             fitScreenTightActive = shouldTight;
