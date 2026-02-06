@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decode the Word — Number Sense Sprint</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="platform.js" defer></script>
+    <script src="number-sense.js" defer></script>
+  </head>
+
+  <body class="numsense-page force-light look-35">
+    <div class="numsense-header">
+      <div>
+        <h1><a href="index.html">Decode the Word</a></h1>
+        <div class="numsense-subtitle">Number Sense Sprint: quick probes for quantity, operations, and strategy language.</div>
+      </div>
+      <nav class="header-actions" aria-label="Primary">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn" href="cloze.html">Story Fill</a>
+        <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+        <a class="link-btn active" aria-current="page" href="number-sense.html">Number Sense</a>
+        <a class="link-btn" href="operations.html">Operations</a>
+      </nav>
+    </div>
+
+    <main class="numsense-main">
+      <section class="numsense-panel" aria-label="Session setup and questions">
+        <div class="numsense-panel-header">
+          <div>
+            <h2>Numeracy Sprint</h2>
+            <div class="numsense-help">Run a short probe, get immediate feedback, and log intervention-ready evidence.</div>
+          </div>
+        </div>
+
+        <div class="numsense-setup-grid" aria-label="Session setup">
+          <label class="numsense-field">
+            Grade band
+            <select id="numsense-grade" aria-label="Grade band">
+              <option value="K-2">K-2</option>
+              <option value="3-5">3-5</option>
+              <option value="6-8">6-8</option>
+              <option value="9-12">9-12</option>
+            </select>
+          </label>
+          <label class="numsense-field">
+            Target domain
+            <select id="numsense-domain" aria-label="Target domain">
+              <option value="number-sense">Number sense</option>
+              <option value="operations">Operations</option>
+              <option value="problem-solving">Problem solving</option>
+              <option value="fluency">Math fluency</option>
+              <option value="math-language">Math language</option>
+            </select>
+          </label>
+          <label class="numsense-field">
+            Questions
+            <select id="numsense-rounds" aria-label="Question count">
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+            </select>
+          </label>
+          <button id="numsense-start" type="button" class="primary-btn numsense-start">Start Sprint</button>
+        </div>
+
+        <div class="numsense-hud" aria-label="Scoreboard">
+          <span class="numsense-hud-item">Correct: <strong id="numsense-correct">0</strong></span>
+          <span class="numsense-hud-item">Streak: <strong id="numsense-streak">0</strong></span>
+          <span class="numsense-hud-item">Remaining: <strong id="numsense-remaining">0</strong></span>
+        </div>
+
+        <article class="numsense-card" aria-live="polite">
+          <div class="numsense-kicker" id="numsense-kicker">Ready</div>
+          <h3 id="numsense-prompt">Press Start Sprint to generate your first numeracy prompt.</h3>
+          <p id="numsense-stem" class="numsense-stem"></p>
+          <div id="numsense-options" class="numsense-options" aria-label="Answer choices"></div>
+          <div class="numsense-actions">
+            <button id="numsense-hint" type="button" class="secondary-btn">Hint</button>
+            <button id="numsense-skip" type="button" class="secondary-btn">Skip</button>
+          </div>
+          <div id="numsense-hint-text" class="numsense-hint-text"></div>
+          <div id="numsense-feedback" class="numsense-feedback" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <section class="numsense-panel" aria-label="Live pulse and teacher support">
+        <div class="numsense-panel-header">
+          <div>
+            <h2>Session Pulse</h2>
+            <div class="numsense-help">Use this to shape in-the-moment prompts and next intervention targets.</div>
+          </div>
+        </div>
+
+        <div id="numsense-pulse" class="numsense-pulse">
+          <p>Start a sprint to generate live mastery and gap signals.</p>
+        </div>
+
+        <div class="numsense-fun-card" aria-live="polite">
+          <div class="numsense-fun-title">Fun Boost</div>
+          <div id="numsense-fun" class="numsense-fun-copy">
+            Age-matched jokes, facts, and quotes appear here after each reveal.
+          </div>
+        </div>
+
+        <details class="numsense-coach">
+          <summary>Teacher moves for next trial</summary>
+          <ul id="numsense-coach-list">
+            <li>Start the sprint to unlock targeted coaching moves.</li>
+          </ul>
+        </details>
+
+        <div class="numsense-note">
+          Logs save to local browser storage and feed the Numeracy Pulse in <a href="teacher-report.html">Teacher Report</a>.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

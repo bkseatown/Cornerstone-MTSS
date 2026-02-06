@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decode the Word — Operation Builder</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="platform.js" defer></script>
+    <script src="number-sense.js" defer></script>
+  </head>
+
+  <body class="numsense-page operations-page force-light look-35">
+    <div class="numsense-header">
+      <div>
+        <h1><a href="index.html">Decode the Word</a></h1>
+        <div class="numsense-subtitle">Operation Builder: strategy-first addition, subtraction, multiplication, division, and equation fluency.</div>
+      </div>
+      <nav class="header-actions" aria-label="Primary">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="word-quest.html">Word Quest</a>
+        <a class="link-btn" href="cloze.html">Story Fill</a>
+        <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
+        <a class="link-btn" href="fluency.html">Speed Sprint</a>
+        <a class="link-btn" href="madlibs.html">Silly Stories</a>
+        <a class="link-btn" href="writing.html">Write &amp; Build</a>
+        <a class="link-btn" href="plan-it.html">Plan-It</a>
+        <a class="link-btn" href="number-sense.html">Number Sense</a>
+        <a class="link-btn active" aria-current="page" href="operations.html">Operations</a>
+      </nav>
+    </div>
+
+    <main class="numsense-main">
+      <section class="numsense-panel" aria-label="Session setup and questions">
+        <div class="numsense-panel-header">
+          <div>
+            <h2>Operation Builder</h2>
+            <div class="numsense-help">Target operation strategy and fluency with short, scored probes.</div>
+          </div>
+        </div>
+
+        <div class="numsense-setup-grid" aria-label="Session setup">
+          <label class="numsense-field">
+            Grade band
+            <select id="numsense-grade" aria-label="Grade band">
+              <option value="K-2">K-2</option>
+              <option value="3-5">3-5</option>
+              <option value="6-8">6-8</option>
+              <option value="9-12">9-12</option>
+            </select>
+          </label>
+          <label class="numsense-field">
+            Target domain
+            <select id="numsense-domain" aria-label="Target domain">
+              <option value="operations">Operations</option>
+            </select>
+          </label>
+          <label class="numsense-field">
+            Questions
+            <select id="numsense-rounds" aria-label="Question count">
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+            </select>
+          </label>
+          <button id="numsense-start" type="button" class="primary-btn numsense-start">Start Builder</button>
+        </div>
+
+        <div class="numsense-hud" aria-label="Scoreboard">
+          <span class="numsense-hud-item">Correct: <strong id="numsense-correct">0</strong></span>
+          <span class="numsense-hud-item">Streak: <strong id="numsense-streak">0</strong></span>
+          <span class="numsense-hud-item">Remaining: <strong id="numsense-remaining">0</strong></span>
+        </div>
+
+        <article class="numsense-card" aria-live="polite">
+          <div class="numsense-kicker" id="numsense-kicker">Ready</div>
+          <h3 id="numsense-prompt">Press Start Builder to generate your first operations prompt.</h3>
+          <p id="numsense-stem" class="numsense-stem"></p>
+          <div id="numsense-options" class="numsense-options" aria-label="Answer choices"></div>
+          <div class="numsense-actions">
+            <button id="numsense-hint" type="button" class="secondary-btn">Hint</button>
+            <button id="numsense-skip" type="button" class="secondary-btn">Skip</button>
+          </div>
+          <div id="numsense-hint-text" class="numsense-hint-text"></div>
+          <div id="numsense-feedback" class="numsense-feedback" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <section class="numsense-panel" aria-label="Live pulse and teacher support">
+        <div class="numsense-panel-header">
+          <div>
+            <h2>Operations Pulse</h2>
+            <div class="numsense-help">Track operation strengths/gaps and choose the next intervention move.</div>
+          </div>
+        </div>
+
+        <div id="numsense-pulse" class="numsense-pulse">
+          <p>Start a builder session to generate live operation signals.</p>
+        </div>
+
+        <div class="numsense-fun-card" aria-live="polite">
+          <div class="numsense-fun-title">Fun Boost</div>
+          <div id="numsense-fun" class="numsense-fun-copy">
+            Age-matched jokes, facts, and quotes appear here after each reveal.
+          </div>
+        </div>
+
+        <details class="numsense-coach">
+          <summary>Teacher moves for next trial</summary>
+          <ul id="numsense-coach-list">
+            <li>Start the builder to unlock targeted operation coaching moves.</li>
+          </ul>
+        </details>
+
+        <div class="numsense-note">
+          Logs save to local browser storage and feed the Numeracy Pulse in <a href="teacher-report.html">Teacher Report</a>.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

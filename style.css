@@ -767,6 +767,28 @@ body.report-page {
     font-weight: 650;
 }
 
+.report-builder-label input[type="text"],
+.report-builder-label input[type="search"],
+.report-builder-label input[type="url"] {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 8px 10px;
+    font-size: 0.92rem;
+    font-weight: 650;
+}
+
+.report-builder-label input[type="file"] {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 8px 10px;
+    font-size: 0.86rem;
+    font-weight: 650;
+}
+
 .report-builder-output {
     margin-top: 12px;
     display: grid;
@@ -1086,6 +1108,244 @@ body.report-page {
     font-size: 0.82rem;
     color: #475569;
     font-weight: 650;
+}
+
+.report-protocol-controls {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    align-items: end;
+}
+
+.report-protocol-output {
+    margin-top: 10px;
+}
+
+#report-numeracy-import-status {
+    margin-top: 8px;
+    min-height: 1.2em;
+}
+
+.report-import-details {
+    margin-top: 8px;
+}
+
+.report-import-details summary {
+    cursor: pointer;
+    font-size: 0.84rem;
+    color: #1f2937;
+    font-weight: 800;
+}
+
+.report-import-header-list {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.report-import-header-list code {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.38);
+    background: rgba(241, 245, 249, 0.85);
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.report-import-skip-summary {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 4px;
+    color: #334155;
+    font-size: 0.84rem;
+    font-weight: 650;
+}
+
+#report-media-status,
+#report-media-modal-status {
+    margin-top: 8px;
+    min-height: 1.2em;
+}
+
+#report-media-status.success,
+#report-media-modal-status.success {
+    color: #166534;
+}
+
+#report-media-status.error,
+#report-media-modal-status.error {
+    color: #991b1b;
+}
+
+.report-media-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.36);
+    z-index: 1998;
+}
+
+.report-media-modal {
+    z-index: 1999;
+    width: min(980px, calc(100vw - 28px));
+    max-width: 980px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    text-align: left;
+}
+
+.report-media-modal .modal-content {
+    text-align: left;
+    display: grid;
+    gap: 10px;
+}
+
+.report-media-library {
+    margin-top: 10px;
+}
+
+.report-media-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.report-media-item {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.84);
+    padding: 10px 12px;
+    display: grid;
+    gap: 7px;
+}
+
+.report-media-item-compact {
+    margin-top: 8px;
+}
+
+.report-media-item-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    color: #0f172a;
+    font-size: 0.85rem;
+}
+
+.report-media-item-meta {
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 650;
+}
+
+.report-media-player audio,
+.report-media-player video,
+.report-media-preview {
+    width: 100%;
+    max-height: 220px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #f8fafc;
+}
+
+.report-media-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.report-media-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.report-media-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.32);
+    background: rgba(219, 234, 254, 0.72);
+    color: #1e40af;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 2px 8px;
+}
+
+.report-media-slot {
+    margin-top: 10px;
+    border: 1px dashed rgba(148, 163, 184, 0.5);
+    border-radius: 14px;
+    background: rgba(248, 250, 252, 0.72);
+    padding: 10px 12px;
+}
+
+.report-media-slot-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #0f172a;
+    font-size: 0.84rem;
+}
+
+.report-media-empty {
+    margin-top: 6px;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+#report-numeracy-import-status.success {
+    color: #166534;
+}
+
+#report-numeracy-import-status.error {
+    color: #991b1b;
+}
+
+.report-protocol-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.report-protocol-card {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.84);
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+}
+
+.report-protocol-card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.report-protocol-card ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 4px;
+    color: #334155;
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.report-protocol-note {
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 650;
+    line-height: 1.35;
 }
 
 .report-role-controls {
@@ -8559,6 +8819,364 @@ body.planit-page {
     }
 }
 
+/* ==========================
+   Number Sense Sprint
+   ========================== */
+
+body.numsense-page {
+    min-height: 100dvh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.numsense-header {
+    width: 100%;
+    max-width: var(--page-max);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.numsense-subtitle {
+    color: #334155;
+    font-weight: 650;
+    margin-top: 4px;
+}
+
+.numsense-main {
+    width: calc(100% - 32px);
+    max-width: var(--page-max);
+    display: grid;
+    grid-template-columns: minmax(360px, 1.05fr) minmax(340px, 0.95fr);
+    gap: 16px;
+    padding: 18px;
+    margin: 10px 16px 22px;
+    background: var(--stage-bg);
+    border: 1px solid var(--stage-border);
+    border-radius: 28px;
+    box-shadow: var(--stage-shadow);
+    backdrop-filter: blur(10px);
+    align-items: start;
+}
+
+.numsense-panel {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: var(--lab-radius);
+    padding: 16px;
+    border: 1px solid var(--lab-border);
+    box-shadow: var(--lab-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.numsense-panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.75), rgba(14, 165, 233, 0.85), rgba(99, 102, 241, 0.85));
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.numsense-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+.numsense-panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.numsense-help {
+    color: #475569;
+    font-weight: 650;
+    margin-top: 6px;
+    line-height: 1.35;
+}
+
+.numsense-setup-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    align-items: end;
+}
+
+.numsense-field {
+    display: grid;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 850;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.numsense-field.is-hidden {
+    display: none;
+}
+
+.numsense-field select {
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    background: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.numsense-start {
+    min-height: 42px;
+}
+
+.numsense-hud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.numsense-hud-item {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(248, 250, 252, 0.88);
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 0.86rem;
+}
+
+.numsense-card {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(255, 255, 255, 0.94);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.numsense-kicker {
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.numsense-card h3 {
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.numsense-stem {
+    color: #334155;
+    font-weight: 700;
+    line-height: 1.35;
+    min-height: 1.25em;
+}
+
+.numsense-options {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.numsense-option {
+    border-radius: 14px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(238, 242, 255, 0.88);
+    color: #0f172a;
+    font-weight: 800;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.numsense-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px rgba(79, 70, 229, 0.14);
+    border-color: rgba(79, 70, 229, 0.55);
+}
+
+.numsense-option:disabled {
+    cursor: default;
+    opacity: 0.95;
+}
+
+.numsense-option.is-correct {
+    border-color: rgba(34, 197, 94, 0.58);
+    background: rgba(240, 253, 244, 0.95);
+}
+
+.numsense-option.is-wrong {
+    border-color: rgba(239, 68, 68, 0.56);
+    background: rgba(254, 242, 242, 0.95);
+}
+
+.numsense-option-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.35);
+    color: #312e81;
+    font-weight: 900;
+    flex: 0 0 auto;
+}
+
+.numsense-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.numsense-hint-text {
+    min-height: 1.2em;
+    color: #334155;
+    font-weight: 700;
+}
+
+.numsense-feedback {
+    min-height: 1.2em;
+    font-weight: 750;
+    color: #0f172a;
+}
+
+.numsense-feedback.is-correct {
+    color: #166534;
+}
+
+.numsense-feedback.is-wrong {
+    color: #b91c1c;
+}
+
+.numsense-pulse {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    background: rgba(248, 250, 252, 0.9);
+    padding: 12px;
+}
+
+.numsense-pulse-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.numsense-pulse-card {
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 10px;
+    display: grid;
+    gap: 7px;
+}
+
+.numsense-pulse-card h3 {
+    font-size: 0.84rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+.numsense-pulse-card ul {
+    margin: 0;
+    padding-left: 16px;
+    display: grid;
+    gap: 4px;
+}
+
+.numsense-pulse-card p {
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.numsense-fun-card {
+    border-radius: 16px;
+    border: 1px solid rgba(14, 165, 233, 0.33);
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.74), rgba(224, 231, 255, 0.7));
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+}
+
+.numsense-fun-title {
+    font-weight: 900;
+    color: #0c4a6e;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.numsense-fun-copy {
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.numsense-coach {
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 12px;
+}
+
+.numsense-coach summary {
+    cursor: pointer;
+    font-weight: 850;
+    color: #0f172a;
+}
+
+.numsense-coach ul {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    color: #1f2937;
+    font-weight: 650;
+}
+
+.numsense-note {
+    color: #475569;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.numsense-note a {
+    font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+    .numsense-main {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 740px) {
     .cloze-main,
     .comp-main,
@@ -8566,6 +9184,7 @@ body.planit-page {
     .madlibs-main,
     .writing-main,
     .planit-main,
+    .numsense-main,
     body.word-quest-page #game-canvas {
         width: calc(100% - 20px);
         margin: 8px 10px 18px;
@@ -9395,6 +10014,7 @@ body.force-light .fluency-subtitle,
 body.force-light .madlibs-subtitle,
 body.force-light .writing-subtitle,
 body.force-light .planit-subtitle,
+body.force-light .numsense-subtitle,
 body.force-light .sound-guide-subtitle,
 body.force-light .howto-subtitle {
     color: #1f2937 !important;
@@ -9417,6 +10037,7 @@ body.force-light .cloze-panel,
 body.force-light .comp-panel,
 body.force-light .fluency-panel,
 body.force-light .madlibs-panel,
+body.force-light .numsense-panel,
 body.force-light .sound-guide-card,
 body.force-light .sound-guide-board,
 body.force-light .selected-sound,

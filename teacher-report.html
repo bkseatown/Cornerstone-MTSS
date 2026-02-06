@@ -59,8 +59,123 @@
             <h2>Literacy Pulse</h2>
             <p class="home-subtitle">Auto-generated strengths, barriers, and 4-week intervention priorities.</p>
           </div>
+          <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="literacy-pulse">Add Recording</button>
         </div>
         <div id="report-pulse" class="report-pulse"></div>
+        <div class="report-media-slot" data-media-slot="literacy-pulse"></div>
+      </section>
+
+      <section class="report-card" aria-label="Numeracy pulse">
+        <div class="report-card-header">
+          <div>
+            <h2>Numeracy Pulse (Scaffold)</h2>
+            <p class="home-subtitle">Early numeracy engine with confidence, benchmark fit, and tiered intervention signals.</p>
+          </div>
+          <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="numeracy-pulse">Add Recording</button>
+        </div>
+        <div id="report-numeracy-pulse" class="report-pulse"></div>
+        <div class="report-media-slot" data-media-slot="numeracy-pulse"></div>
+      </section>
+
+      <section class="report-card" aria-label="Numeracy protocol packet">
+        <div class="report-card-header">
+          <div>
+            <h2>Numeracy Intervention Packet (Scaffold)</h2>
+            <p class="home-subtitle">Copy-ready weekly protocol for number sense, operations, problem solving, and math language support.</p>
+          </div>
+          <div class="report-actions">
+            <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="numeracy-packet">Add Recording</button>
+            <button id="report-numeracy-copy" class="secondary-btn" type="button">Copy Numeracy Packet</button>
+          </div>
+        </div>
+        <div class="report-protocol-controls">
+          <label class="report-builder-label">
+            Focus domain
+            <select id="report-numeracy-domain" aria-label="Numeracy focus domain">
+              <option value="auto">Auto (top gap)</option>
+              <option value="number-sense">Number Sense</option>
+              <option value="operations">Operations</option>
+              <option value="problem-solving">Problem Solving</option>
+              <option value="fluency">Math Fluency</option>
+              <option value="math-language">Math Language</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Tier
+            <select id="report-numeracy-tier" aria-label="Numeracy tier">
+              <option value="auto">Auto from engine</option>
+              <option value="1">Tier 1 (core + differentiation)</option>
+              <option value="2">Tier 2 (targeted small group)</option>
+              <option value="3">Tier 3 (intensive individualized)</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Cycle length
+            <select id="report-numeracy-cycle" aria-label="Numeracy cycle length">
+              <option value="4">4 weeks</option>
+              <option value="6">6 weeks</option>
+              <option value="8">8 weeks</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Assessment bundle
+            <select id="report-numeracy-assessment" aria-label="Numeracy assessment bundle">
+              <option value="auto">Auto by grade band</option>
+              <option value="core-classroom">Bridges + IM core only</option>
+              <option value="intervention-triage">Core + GLoSS/IKAN triage</option>
+              <option value="full-stack">Core + screeners (Aimsweb/MAP)</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Strategy stage
+            <select id="report-numeracy-strategy" aria-label="Numeracy strategy stage">
+              <option value="auto">Auto from current evidence</option>
+              <option value="counting-all">Counting all / finger counting</option>
+              <option value="counting-on">Counting on</option>
+              <option value="make-ten-friendly">Make 10 / friendly numbers</option>
+              <option value="derived-facts">Derived facts and decomposition</option>
+              <option value="algorithm-with-reasoning">Algorithm + reasoning transfer</option>
+            </select>
+          </label>
+          <button id="report-numeracy-generate" class="primary-btn" type="button">Generate Numeracy Packet</button>
+        </div>
+        <div id="report-numeracy-output" class="report-protocol-output"></div>
+        <div class="report-media-slot" data-media-slot="numeracy-packet"></div>
+        <div id="report-numeracy-status" class="muted"></div>
+      </section>
+
+      <section class="report-card" aria-label="Numeracy data intake">
+        <div class="report-card-header">
+          <div>
+            <h2>Numeracy Data Intake (CSV)</h2>
+            <p class="home-subtitle">Import IM cooldown/unit data, Aimsweb, or MAP exports to enrich intervention signals.</p>
+          </div>
+          <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="numeracy-import">Add Recording</button>
+        </div>
+        <div class="report-protocol-controls">
+          <label class="report-builder-label">
+            Source template
+            <select id="report-numeracy-import-source" aria-label="Numeracy import source">
+              <option value="im-cooldown">IM cooldown / unit checks</option>
+              <option value="aimsweb">Aimsweb (math)</option>
+              <option value="map">MAP (math)</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            CSV file
+            <input id="report-numeracy-import-file" type="file" accept=".csv,text/csv" aria-label="Numeracy CSV file" />
+          </label>
+          <button id="report-numeracy-import-template-btn" class="secondary-btn" type="button">Download Template CSV</button>
+          <button id="report-numeracy-import-headers-btn" class="secondary-btn" type="button">Download Accepted Headers</button>
+          <button id="report-numeracy-import-all-templates-btn" class="secondary-btn" type="button">Download All Templates Bundle</button>
+          <button id="report-numeracy-import-preview-btn" class="secondary-btn" type="button">Preview CSV</button>
+          <button id="report-numeracy-import-btn" class="primary-btn" type="button">Commit Import</button>
+          <button id="report-numeracy-import-undo-btn" class="secondary-btn" type="button">Undo Last Import</button>
+        </div>
+        <div id="report-numeracy-import-spec" class="report-pulse-note"></div>
+        <div id="report-numeracy-import-preview" class="report-protocol-output"></div>
+        <div class="report-media-slot" data-media-slot="numeracy-import"></div>
+        <div id="report-numeracy-import-status" class="muted"></div>
       </section>
 
       <section class="report-card" aria-label="Shareable summary">
@@ -111,7 +226,10 @@
             <h2>Tiered Intervention Goal Drafts</h2>
             <p class="home-subtitle">Auto-drafts near-term and long-term goals from learner evidence, benchmark expectations, and selected tier.</p>
           </div>
-          <button id="report-goal-copy" class="secondary-btn" type="button">Copy Goal Draft</button>
+          <div class="report-actions">
+            <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="goal-draft">Add Recording</button>
+            <button id="report-goal-copy" class="secondary-btn" type="button">Copy Goal Draft</button>
+          </div>
         </div>
         <div class="report-goal-controls">
           <label class="report-builder-label">
@@ -143,7 +261,66 @@
           <button id="report-goal-generate" class="primary-btn" type="button">Generate Goal Draft</button>
         </div>
         <div id="report-goal-output" class="report-goal-output"></div>
+        <div class="report-media-slot" data-media-slot="goal-draft"></div>
         <div id="report-goal-status" class="muted"></div>
+      </section>
+
+      <section class="report-card" aria-label="Intervention protocol packet">
+        <div class="report-card-header">
+          <div>
+            <h2>Intervention Protocol Packet (MTSS/IEP Ready)</h2>
+            <p class="home-subtitle">Build a copy-ready protocol with weekly trajectory targets, decision rules, and framework-aligned moves.</p>
+          </div>
+          <div class="report-actions">
+            <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="literacy-protocol">Add Recording</button>
+            <button id="report-protocol-copy" class="secondary-btn" type="button">Copy Protocol</button>
+          </div>
+        </div>
+        <div class="report-protocol-controls">
+          <label class="report-builder-label">
+            Focus domain
+            <select id="report-protocol-domain" aria-label="Protocol focus domain">
+              <option value="auto">Auto (top gap)</option>
+              <option value="decoding">Decoding</option>
+              <option value="fluency">Fluency &amp; Prosody</option>
+              <option value="comprehension">Comprehension</option>
+              <option value="written-language">Written Language</option>
+              <option value="executive-function">SEL / Executive Function</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Tier
+            <select id="report-protocol-tier" aria-label="Protocol tier">
+              <option value="auto">Auto from engine</option>
+              <option value="1">Tier 1 (core + differentiation)</option>
+              <option value="2">Tier 2 (targeted small group)</option>
+              <option value="3">Tier 3 (intensive individualized)</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Team role
+            <select id="report-protocol-role" aria-label="Protocol team role">
+              <option value="auto">Auto from learner profile</option>
+              <option value="learning-support">Learning Support / SPED</option>
+              <option value="eal">EAL</option>
+              <option value="slp">Speech-Language (SLP)</option>
+              <option value="sel-counselor">SEL / School Counselor</option>
+              <option value="leadership">Leadership / Admin</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Cycle length
+            <select id="report-protocol-cycle" aria-label="Protocol cycle length">
+              <option value="4">4 weeks</option>
+              <option value="6">6 weeks</option>
+              <option value="8">8 weeks</option>
+            </select>
+          </label>
+          <button id="report-protocol-generate" class="primary-btn" type="button">Generate Protocol</button>
+        </div>
+        <div id="report-protocol-output" class="report-protocol-output"></div>
+        <div class="report-media-slot" data-media-slot="literacy-protocol"></div>
+        <div id="report-protocol-status" class="muted"></div>
       </section>
 
       <section class="report-card" aria-label="Role pathways">
@@ -152,7 +329,10 @@
             <h2>Role-Based Launch Pathways</h2>
             <p class="home-subtitle">Pick a team role and launch a focused daily workflow in one click.</p>
           </div>
-          <button id="report-role-copy" class="secondary-btn" type="button">Copy Pathway</button>
+          <div class="report-actions">
+            <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="role-pathway">Add Recording</button>
+            <button id="report-role-copy" class="secondary-btn" type="button">Copy Pathway</button>
+          </div>
         </div>
         <div class="report-role-controls">
           <label class="report-builder-label" for="report-role-select">
@@ -167,6 +347,7 @@
           </label>
         </div>
         <div id="report-role-pathway" class="report-role-pathway"></div>
+        <div class="report-media-slot" data-media-slot="role-pathway"></div>
         <div id="report-role-status" class="muted"></div>
       </section>
 
@@ -176,6 +357,7 @@
             <h2>One-Tap Lesson Builder</h2>
             <p class="home-subtitle">Build a quick I do · We do · You do with support pathway in one click.</p>
           </div>
+          <button class="secondary-btn report-media-open-section-btn" type="button" data-target-section="lesson-builder">Add Recording</button>
         </div>
         <div class="report-builder-controls">
           <label class="report-builder-label">
@@ -203,7 +385,42 @@
           <button id="report-builder-copy" class="secondary-btn" type="button">Copy Plan</button>
         </div>
         <div id="report-builder-output" class="report-builder-output"></div>
+        <div class="report-media-slot" data-media-slot="lesson-builder"></div>
         <div id="report-builder-status" class="muted"></div>
+      </section>
+
+      <section class="report-card" aria-label="Section media studio">
+        <div class="report-card-header">
+          <div>
+            <h2>Section Media Studio</h2>
+            <p class="home-subtitle">Teacher and student recordings tagged by section, category, and label for quick reuse.</p>
+          </div>
+          <button id="report-media-open-btn" class="primary-btn" type="button">Open Recorder</button>
+        </div>
+        <div class="report-protocol-controls">
+          <label class="report-builder-label">
+            Search
+            <input id="report-media-search" type="search" placeholder="Search by label or tag" />
+          </label>
+          <label class="report-builder-label">
+            Section
+            <select id="report-media-filter-section" aria-label="Media filter section"></select>
+          </label>
+          <label class="report-builder-label">
+            Role
+            <select id="report-media-filter-owner" aria-label="Media filter role">
+              <option value="all">All roles</option>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Category
+            <select id="report-media-filter-category" aria-label="Media filter category"></select>
+          </label>
+        </div>
+        <div id="report-media-library" class="report-media-library"></div>
+        <div id="report-media-status" class="muted"></div>
       </section>
 
       <section class="report-card" aria-label="Standards mastery heatmap">
@@ -220,5 +437,57 @@
         <div id="report-empty" class="muted"></div>
       </section>
     </main>
+
+    <div id="report-media-overlay" class="hidden report-media-overlay"></div>
+    <section id="report-media-modal" class="modal hidden report-media-modal" role="dialog" aria-modal="true" aria-label="Section recording studio">
+      <div class="modal-content">
+        <button id="report-media-close-btn" class="close-btn" type="button" aria-label="Close recording studio">×</button>
+        <h2>Section Recording Studio</h2>
+        <p class="home-subtitle">Record teacher mini-lessons, student reflections, or whiteboard walkthroughs and attach to any report section.</p>
+        <div class="report-protocol-controls">
+          <label class="report-builder-label">
+            Role
+            <select id="report-media-owner" aria-label="Recording owner role">
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Capture type
+            <select id="report-media-source" aria-label="Recording source">
+              <option value="audio">Audio (voice)</option>
+              <option value="video">Video (camera + voice)</option>
+              <option value="screen">Screen/Whiteboard share</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Attach to section
+            <select id="report-media-section" aria-label="Recording section target"></select>
+          </label>
+          <label class="report-builder-label">
+            Category
+            <select id="report-media-category" aria-label="Recording category"></select>
+          </label>
+          <label class="report-builder-label">
+            Label
+            <input id="report-media-label" type="text" placeholder="e.g., Fractions mini-lesson intro" maxlength="120" />
+          </label>
+          <label class="report-builder-label">
+            Tags
+            <input id="report-media-tags" type="text" placeholder="comma,separated,tags" maxlength="160" />
+          </label>
+        </div>
+        <div class="report-protocol-controls">
+          <button id="report-media-start-btn" class="primary-btn" type="button">Start Recording</button>
+          <button id="report-media-stop-btn" class="secondary-btn" type="button">Stop</button>
+          <button id="report-media-save-btn" class="primary-btn" type="button">Save Clip</button>
+          <button id="report-media-discard-btn" class="secondary-btn" type="button">Discard Draft</button>
+        </div>
+        <div class="report-pulse-note">Screen/whiteboard mode opens your device share picker. Choose camera roll, whiteboard app, or on-screen annotations.</div>
+        <audio id="report-media-audio-preview" class="hidden report-media-preview" controls></audio>
+        <video id="report-media-video-preview" class="hidden report-media-preview" controls playsinline></video>
+        <div id="report-media-modal-status" class="muted"></div>
+      </div>
+    </section>
   </body>
 </html>

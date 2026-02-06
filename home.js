@@ -78,6 +78,8 @@
     'fluency_',
     'writing_',
     'planit_',
+    'numsense_',
+    'opsbuilder_',
     'wtw_'
   ];
 

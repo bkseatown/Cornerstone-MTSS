@@ -30,6 +30,8 @@
     'fluency_',
     'writing_',
     'planit_',
+    'numsense_',
+    'opsbuilder_',
     'wtw_'
   ];
 
@@ -48,11 +50,6 @@
       id: 'home',
       href: 'index.html',
       navLabel: 'Home'
-    },
-    {
-      id: 'teacher-report',
-      href: 'teacher-report.html',
-      navLabel: 'Reports'
     },
     {
       id: 'word-quest',
@@ -88,6 +85,21 @@
       id: 'plan-it',
       href: 'plan-it.html',
       navLabel: 'Plan-It'
+    },
+    {
+      id: 'number-sense',
+      href: 'number-sense.html',
+      navLabel: 'Number Sense'
+    },
+    {
+      id: 'operations',
+      href: 'operations.html',
+      navLabel: 'Operations'
+    },
+    {
+      id: 'teacher-report',
+      href: 'teacher-report.html',
+      navLabel: 'Reports'
     }
   ];
 
@@ -98,13 +110,15 @@
     fluency: ['RF.3.4'],
     madlibs: ['L.3.1', 'L.3.3'],
     writing: ['W.3.2', 'W.3.4'],
-    'plan-it': ['SL.3.1', 'W.3.8']
+    'plan-it': ['SL.3.1', 'W.3.8'],
+    'number-sense': ['CCSS-MATH-3-NBT-A-1', 'CCSS-MATH-4-OA-A-3'],
+    operations: ['CCSS-MATH-3-OA-A-1', 'CCSS-MATH-4-NBT-B-4']
   };
 
   const STORY_TRACK_ORDER = ['word-quest', 'fluency', 'comprehension', 'writing', 'plan-it'];
   const STORY_TRACK_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it']);
-  const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it']);
-  const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'teacher-report']);
+  const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
+  const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'teacher-report']);
   const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
 
   const ACCESSIBILITY_DEFAULTS = {
@@ -856,7 +870,9 @@
       fluency: '.fluency-panel',
       madlibs: '.madlibs-panel',
       writing: '.writing-panel',
-      'plan-it': '.planit-panel'
+      'plan-it': '.planit-panel',
+      'number-sense': '.numsense-panel',
+      operations: '.numsense-panel'
     };
 
     const selector = selectorMap[activityId] || '';
