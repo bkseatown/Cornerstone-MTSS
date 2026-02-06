@@ -96,15 +96,178 @@
     }
   };
 
+  const ACTIVITY_HREF = {
+    'word-quest': 'word-quest.html',
+    cloze: 'cloze.html',
+    comprehension: 'comprehension.html',
+    fluency: 'fluency.html',
+    madlibs: 'madlibs.html',
+    writing: 'writing.html',
+    'plan-it': 'plan-it.html'
+  };
+
+  const FOCUS_LIBRARY = {
+    'phonics-decoding': {
+      label: 'Phonics & Decoding',
+      specialistFit: 'SPED · EAL · SLP',
+      summary: 'Explicit sound-symbol mapping and controlled transfer to text.',
+      steps: [
+        {
+          phase: 'I do',
+          activity: 'word-quest',
+          move: 'Model decoding moves and corrective feedback with target patterns.'
+        },
+        {
+          phase: 'We do',
+          activity: 'cloze',
+          move: 'Guide students to apply target words in sentence context.'
+        },
+        {
+          phase: 'You do with support',
+          activity: 'fluency',
+          move: 'Practice connected text with line focus and immediate coaching.'
+        }
+      ],
+      wordQuestFocusByBand: {
+        'K-2': { focus: 'cvc', len: '3' },
+        '3-5': { focus: 'ccvc', len: '4' },
+        '6-8': { focus: 'multisyllable', len: 'any' },
+        '9-12': { focus: 'multisyllable', len: 'any' }
+      }
+    },
+    'fluency-prosody': {
+      label: 'Fluency & Prosody',
+      specialistFit: 'SPED · EAL · SLP',
+      summary: 'Build automaticity, expression, and punctuation-aware reading.',
+      steps: [
+        {
+          phase: 'I do',
+          activity: 'fluency',
+          move: 'Model rate, phrasing, and punctuation in short connected text.'
+        },
+        {
+          phase: 'We do',
+          activity: 'comprehension',
+          move: 'Read together, annotate key evidence, and discuss meaning.'
+        },
+        {
+          phase: 'You do with support',
+          activity: 'writing',
+          move: 'Use sentence stems to retell or summarize with teacher prompts.'
+        }
+      ],
+      wordQuestFocusByBand: {
+        'K-2': { focus: 'digraph', len: '3' },
+        '3-5': { focus: 'r_controlled', len: '5' },
+        '6-8': { focus: 'vowel_team', len: '5' },
+        '9-12': { focus: 'multisyllable', len: 'any' }
+      }
+    },
+    'comprehension-evidence': {
+      label: 'Comprehension & Evidence',
+      specialistFit: 'EAL · SPED · Literacy coach',
+      summary: 'Move from surface reading to evidence-based responses.',
+      steps: [
+        {
+          phase: 'I do',
+          activity: 'comprehension',
+          move: 'Model question unpacking and how to locate evidence.'
+        },
+        {
+          phase: 'We do',
+          activity: 'cloze',
+          move: 'Use context clues and justify answer choices together.'
+        },
+        {
+          phase: 'You do with support',
+          activity: 'writing',
+          move: 'Write a short response citing evidence with scaffolded frames.'
+        }
+      ],
+      wordQuestFocusByBand: {
+        'K-2': { focus: 'cvc', len: '3' },
+        '3-5': { focus: 'cvce', len: '4' },
+        '6-8': { focus: 'vowel_team', len: '5' },
+        '9-12': { focus: 'multisyllable', len: 'any' }
+      }
+    },
+    'writing-language': {
+      label: 'Writing & Language',
+      specialistFit: 'SPED · EAL · Classroom',
+      summary: 'Sentence quality, vocabulary precision, and paragraph coherence.',
+      steps: [
+        {
+          phase: 'I do',
+          activity: 'writing',
+          move: 'Model a topic sentence and one expanded detail sentence.'
+        },
+        {
+          phase: 'We do',
+          activity: 'madlibs',
+          move: 'Co-construct grammar and word choice in a guided playful task.'
+        },
+        {
+          phase: 'You do with support',
+          activity: 'comprehension',
+          move: 'Respond to text prompts with sentence-level feedback.'
+        }
+      ],
+      wordQuestFocusByBand: {
+        'K-2': { focus: 'digraph', len: '3' },
+        '3-5': { focus: 'vowel_team', len: '5' },
+        '6-8': { focus: 'multisyllable', len: 'any' },
+        '9-12': { focus: 'multisyllable', len: 'any' }
+      }
+    },
+    'sel-executive': {
+      label: 'SEL & Executive Function',
+      specialistFit: 'Counseling · SEL · Learning support',
+      summary: 'Self-management, planning stamina, and reflection routines.',
+      steps: [
+        {
+          phase: 'I do',
+          activity: 'plan-it',
+          move: 'Model planning choices, timing, and regulation checkpoints.'
+        },
+        {
+          phase: 'We do',
+          activity: 'writing',
+          move: 'Co-write a simple action plan using supportive language.'
+        },
+        {
+          phase: 'You do with support',
+          activity: 'comprehension',
+          move: 'Self-monitor with evidence prompts and reflective check-ins.'
+        }
+      ],
+      wordQuestFocusByBand: {
+        'K-2': { focus: 'cvc', len: '3' },
+        '3-5': { focus: 'ccvc', len: '4' },
+        '6-8': { focus: 'multisyllable', len: 'any' },
+        '9-12': { focus: 'multisyllable', len: 'any' }
+      }
+    }
+  };
+
   const learnerNameEl = document.getElementById('report-learner-name');
   const generatedAtEl = document.getElementById('report-generated-at');
   const metricsEl = document.getElementById('report-metrics');
   const focusEl = document.getElementById('report-focus');
+  const pulseEl = document.getElementById('report-pulse');
+  const builderGradeEl = document.getElementById('report-builder-grade');
+  const builderFocusEl = document.getElementById('report-builder-focus');
+  const builderDurationEl = document.getElementById('report-builder-duration');
+  const builderGenerateBtn = document.getElementById('report-builder-generate');
+  const builderCopyBtn = document.getElementById('report-builder-copy');
+  const builderOutputEl = document.getElementById('report-builder-output');
+  const builderStatusEl = document.getElementById('report-builder-status');
   const heatmapEl = document.getElementById('report-heatmap');
   const emptyEl = document.getElementById('report-empty');
   const refreshBtn = document.getElementById('report-refresh');
   const exportPdfBtn = document.getElementById('report-export-pdf');
   const printBtn = document.getElementById('report-print');
+
+  let latestBuilderText = '';
 
   function safeParse(json) {
     try {
@@ -206,6 +369,150 @@
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function getActivityHref(activityId, context = {}) {
+    const file = ACTIVITY_HREF[activityId];
+    if (!file) return '#';
+    const url = new URL(file, window.location.href);
+    if (activityId === 'word-quest' && context.wordQuestFocus) {
+      url.searchParams.set('focus', context.wordQuestFocus);
+      if (context.wordQuestLength) {
+        url.searchParams.set('len', context.wordQuestLength);
+      }
+    }
+    return url.toString();
+  }
+
+  function normalizeGradeBand(value) {
+    const band = String(value || '').trim();
+    if (band === 'K-2' || band === '3-5' || band === '6-8' || band === '9-12') return band;
+    return '3-5';
+  }
+
+  function activityDomain(activityId) {
+    if (activityId === 'word-quest') return 'decoding';
+    if (activityId === 'fluency') return 'fluency';
+    if (activityId === 'comprehension' || activityId === 'cloze') return 'comprehension';
+    if (activityId === 'writing' || activityId === 'madlibs') return 'written-language';
+    if (activityId === 'plan-it') return 'executive-function';
+    return 'general';
+  }
+
+  function domainLabel(domainId) {
+    const map = {
+      decoding: 'Decoding',
+      fluency: 'Fluency & prosody',
+      comprehension: 'Comprehension',
+      'written-language': 'Written language',
+      'executive-function': 'Planning & regulation',
+      general: 'General literacy'
+    };
+    return map[domainId] || 'Literacy';
+  }
+
+  function getActivityStats(logs) {
+    const buckets = {};
+    logs.forEach((entry) => {
+      const activity = String(entry?.activity || '');
+      if (!ACTIVITY_LABELS[activity]) return;
+      if (!buckets[activity]) {
+        buckets[activity] = {
+          activity,
+          label: ACTIVITY_LABELS[activity],
+          scores: [],
+          evidence: 0,
+          lastTs: 0
+        };
+      }
+      const score = scoreEntry(entry);
+      if (typeof score === 'number' && !Number.isNaN(score)) {
+        buckets[activity].scores.push(clamp(score));
+      }
+      buckets[activity].evidence += 1;
+      buckets[activity].lastTs = Math.max(buckets[activity].lastTs, Number(entry?.ts || 0));
+    });
+
+    return Object.values(buckets).map((bucket) => ({
+      activity: bucket.activity,
+      label: bucket.label,
+      avg: average(bucket.scores),
+      evidence: bucket.evidence,
+      lastTs: bucket.lastTs
+    }));
+  }
+
+  function getDomainStats(logs) {
+    const buckets = {};
+    logs.forEach((entry) => {
+      const activity = String(entry?.activity || '');
+      const domain = activityDomain(activity);
+      if (!buckets[domain]) {
+        buckets[domain] = { domain, scores: [], evidence: 0 };
+      }
+      const score = scoreEntry(entry);
+      if (typeof score === 'number' && !Number.isNaN(score)) {
+        buckets[domain].scores.push(clamp(score));
+      }
+      buckets[domain].evidence += 1;
+    });
+
+    return Object.values(buckets).map((bucket) => ({
+      domain: bucket.domain,
+      label: domainLabel(bucket.domain),
+      avg: average(bucket.scores),
+      evidence: bucket.evidence
+    }));
+  }
+
+  function mapPlacementFocusToBuilder(focus) {
+    const value = String(focus || '').toLowerCase();
+    if (!value) return 'comprehension-evidence';
+    if (value === 'cvc' || value === 'digraph' || value === 'ccvc' || value === 'cvce' || value === 'vowel_team' || value === 'r_controlled' || value === 'multisyllable') {
+      return 'phonics-decoding';
+    }
+    return 'comprehension-evidence';
+  }
+
+  function mapStandardToBuilder(standard) {
+    const text = String(standard || '');
+    if (text.startsWith('RF')) return text === 'RF.3.4' ? 'fluency-prosody' : 'phonics-decoding';
+    if (text.startsWith('RL') || text.startsWith('RI')) return 'comprehension-evidence';
+    if (text.startsWith('W') || text.startsWith('L')) return 'writing-language';
+    if (text.startsWith('SL')) return 'sel-executive';
+    return 'comprehension-evidence';
+  }
+
+  function recommendBuilderFocus(placementRec, weakestRow, domainStats) {
+    if (placementRec?.focus) return mapPlacementFocusToBuilder(placementRec.focus);
+    if (weakestRow?.standard) return mapStandardToBuilder(weakestRow.standard);
+
+    const weakestDomain = domainStats
+      .filter((row) => row.evidence > 0 && row.avg !== null)
+      .sort((a, b) => (a.avg - b.avg))[0];
+
+    if (!weakestDomain) return 'comprehension-evidence';
+    if (weakestDomain.domain === 'decoding') return 'phonics-decoding';
+    if (weakestDomain.domain === 'fluency') return 'fluency-prosody';
+    if (weakestDomain.domain === 'written-language') return 'writing-language';
+    if (weakestDomain.domain === 'executive-function') return 'sel-executive';
+    return 'comprehension-evidence';
+  }
+
+  function getMinuteSplit(totalMinutes) {
+    const n = Number(totalMinutes || 20);
+    if (n <= 10) return [3, 4, 3];
+    if (n <= 20) return [5, 8, 7];
+    return [8, 12, 10];
   }
 
   function exportPdf() {
@@ -371,6 +678,194 @@
     focusEl.appendChild(weakBody);
   }
 
+  function getSupportProfile() {
+    const settings = readJson('decode_settings', {}) || {};
+    const enabled = [];
+    if (settings.largeText) enabled.push('Large text');
+    if (settings.lineFocus) enabled.push('Line focus');
+    if (settings.reducedStimulation) enabled.push('Reduced stimulation');
+    if (settings.focusMode) enabled.push('Focus mode');
+    if (settings.calmMode) enabled.push('Calm mode');
+    if (settings.fontProfile === 'opendyslexic') enabled.push('OpenDyslexic font profile');
+    if (settings.fontProfile === 'atkinson') enabled.push('Atkinson font profile');
+    return enabled;
+  }
+
+  function buildPulseModel(logs, placementRec, weakestRow) {
+    const activityStats = getActivityStats(logs);
+    const domainStats = getDomainStats(logs)
+      .filter((row) => row.evidence > 0 && row.avg !== null)
+      .sort((a, b) => b.avg - a.avg);
+
+    const strengths = domainStats
+      .filter((row) => row.evidence >= 2 && row.avg >= 0.74)
+      .slice(0, 3);
+
+    const gaps = [...domainStats]
+      .filter((row) => row.evidence >= 2 && row.avg < 0.7)
+      .sort((a, b) => a.avg - b.avg)
+      .slice(0, 3);
+
+    const fallbackStrengths = strengths.length ? strengths : domainStats.slice(0, 2);
+    const fallbackGaps = gaps.length ? gaps : [...domainStats].sort((a, b) => a.avg - b.avg).slice(0, 2);
+
+    const priorities = [];
+    if (placementRec?.headline) {
+      priorities.push(`Placement priority: ${placementRec.headline}`);
+    } else if (placementRec?.focus) {
+      priorities.push(`Placement priority: ${placementRec.focus}`);
+    }
+    if (weakestRow?.standard) {
+      const rec = STANDARD_RECOMMENDATIONS[weakestRow.standard];
+      priorities.push(
+        rec
+          ? `Standards priority: ${weakestRow.standard} -> ${rec.focus}`
+          : `Standards priority: ${weakestRow.standard} (${weakestRow.label})`
+      );
+    }
+    if (fallbackGaps[0]) {
+      priorities.push(`Domain priority: ${fallbackGaps[0].label} (${formatPercent(fallbackGaps[0].avg)})`);
+    }
+
+    const supports = getSupportProfile();
+    const topPriority = priorities[0] || 'Build evidence with 3-5 scored sessions this week.';
+    const domainPriority = fallbackGaps[0]?.label || 'Core literacy';
+
+    return {
+      strengths: fallbackStrengths,
+      gaps: fallbackGaps,
+      priorities: priorities.slice(0, 3),
+      supports,
+      topPriority,
+      domainPriority,
+      activityStats
+    };
+  }
+
+  function renderPulse(pulse) {
+    if (!pulseEl) return;
+
+    const strengthItems = pulse.strengths.length
+      ? pulse.strengths.map((row) => `<li>${escapeHtml(row.label)} · ${formatPercent(row.avg)} (${row.evidence} samples)</li>`).join('')
+      : '<li>Need more scored sessions for a stable strengths pattern.</li>';
+
+    const gapItems = pulse.gaps.length
+      ? pulse.gaps.map((row) => `<li>${escapeHtml(row.label)} · ${formatPercent(row.avg)} (${row.evidence} samples)</li>`).join('')
+      : '<li>No major domain gaps flagged yet. Continue progress monitoring.</li>';
+
+    const priorityItems = pulse.priorities.length
+      ? pulse.priorities.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+      : '<li>Run at least 3 scored sessions to generate priorities.</li>';
+
+    const supportsText = pulse.supports.length
+      ? pulse.supports.map(escapeHtml).join(' · ')
+      : 'No accessibility supports enabled yet. Suggested starter set: Large text · Line focus · Reduced stimulation.';
+
+    pulseEl.innerHTML = `
+      <div class="report-pulse-grid">
+        <article class="report-pulse-card">
+          <h3>Strengths</h3>
+          <ul>${strengthItems}</ul>
+        </article>
+        <article class="report-pulse-card">
+          <h3>Highest-Leverage Gaps</h3>
+          <ul>${gapItems}</ul>
+        </article>
+        <article class="report-pulse-card">
+          <h3>4-Week Intervention Pathway</h3>
+          <ul>
+            <li>Week 1: I do heavy modeling in ${escapeHtml(pulse.domainPriority)}.</li>
+            <li>Week 2: We do guided reps with immediate feedback and correction.</li>
+            <li>Week 3: You do with support, plus brief fluency/comprehension checks.</li>
+            <li>Week 4: Re-check progress and tighten next targets from data.</li>
+          </ul>
+          <div class="report-pulse-note">${escapeHtml(pulse.topPriority)}</div>
+        </article>
+        <article class="report-pulse-card">
+          <h3>Priorities + Supports</h3>
+          <ul>${priorityItems}</ul>
+          <div class="report-pulse-note"><strong>Support profile:</strong> ${supportsText}</div>
+        </article>
+      </div>
+    `;
+  }
+
+  function renderBuilderFocusOptions() {
+    if (!builderFocusEl) return;
+    const entries = Object.entries(FOCUS_LIBRARY);
+    builderFocusEl.innerHTML = entries
+      .map(([id, profile]) => `<option value="${id}">${profile.label}</option>`)
+      .join('');
+  }
+
+  function renderBuilderPlan(context = {}) {
+    if (!builderOutputEl || !builderFocusEl || !builderDurationEl || !builderGradeEl) return;
+
+    const focusId = String(builderFocusEl.value || 'comprehension-evidence');
+    const duration = Number(builderDurationEl.value || 20);
+    const gradeBand = normalizeGradeBand(builderGradeEl.value || context.gradeBand);
+    const profile = FOCUS_LIBRARY[focusId] || FOCUS_LIBRARY['comprehension-evidence'];
+    const split = getMinuteSplit(duration);
+    const wordQuestDefault = profile.wordQuestFocusByBand?.[gradeBand] || { focus: 'all', len: 'any' };
+    const lines = [
+      `${profile.label} · ${duration} minutes · ${gradeBand}`,
+      profile.summary,
+      `Best fit: ${profile.specialistFit}`,
+      ''
+    ];
+
+    const stepCards = profile.steps.map((step, index) => {
+      const minutes = split[index] || split[split.length - 1];
+      const href = getActivityHref(step.activity, {
+        wordQuestFocus: wordQuestDefault.focus,
+        wordQuestLength: wordQuestDefault.len
+      });
+      lines.push(`${index + 1}) ${step.phase} · ${minutes} min · ${ACTIVITY_LABELS[step.activity] || step.activity}`);
+      lines.push(`   ${step.move}`);
+      lines.push(`   ${href}`);
+      return `
+        <article class="report-builder-step">
+          <div class="report-builder-phase">${index + 1}. ${escapeHtml(step.phase)} · ${minutes} min</div>
+          <div class="report-builder-activity">${escapeHtml(ACTIVITY_LABELS[step.activity] || step.activity)}</div>
+          <div class="report-builder-move">${escapeHtml(step.move)}</div>
+          <a class="secondary-btn report-builder-link" href="${href}">Open ${escapeHtml(ACTIVITY_LABELS[step.activity] || step.activity)}</a>
+        </article>
+      `;
+    }).join('');
+
+    lines.push('');
+    lines.push('Instructional spine: explicit model -> guided practice -> independent practice with support.');
+    latestBuilderText = lines.join('\n');
+
+    builderOutputEl.innerHTML = `
+      <div class="report-builder-summary">
+        <div><strong>${escapeHtml(profile.label)}</strong> · ${duration} minutes · ${escapeHtml(gradeBand)}</div>
+        <div>${escapeHtml(profile.summary)}</div>
+        <div><strong>Best fit:</strong> ${escapeHtml(profile.specialistFit)}</div>
+      </div>
+      <div class="report-builder-steps">${stepCards}</div>
+      <div class="report-builder-note">Use this as a daily lesson spine: explicit model -> guided practice -> independent practice with support.</div>
+    `;
+    if (builderStatusEl) builderStatusEl.textContent = '';
+  }
+
+  async function copyBuilderPlan() {
+    if (!latestBuilderText) {
+      if (builderStatusEl) builderStatusEl.textContent = 'Build a lesson first, then copy.';
+      return;
+    }
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(latestBuilderText);
+      } else {
+        throw new Error('clipboard-unavailable');
+      }
+      if (builderStatusEl) builderStatusEl.textContent = 'Lesson plan copied.';
+    } catch {
+      if (builderStatusEl) builderStatusEl.textContent = 'Clipboard unavailable. Copy directly from the lesson cards.';
+    }
+  }
+
   function masteryClass(score) {
     if (score === null || score === undefined) return 'heat-empty';
     if (score >= 0.85) return 'heat-high';
@@ -456,11 +951,31 @@
     const placementRec = getPlacementRecommendation();
     const weakest = getWeakestStandardRow(rows);
     renderFocus(placementRec, weakest);
+
+    const pulse = buildPulseModel(logs, placementRec, weakest);
+    renderPulse(pulse);
+
+    if (builderGradeEl && learner?.gradeBand) {
+      builderGradeEl.value = normalizeGradeBand(learner.gradeBand);
+    }
+    if (builderFocusEl) {
+      const recommendedFocus = recommendBuilderFocus(placementRec, weakest, getDomainStats(logs));
+      builderFocusEl.value = recommendedFocus;
+    }
+    renderBuilderPlan({ gradeBand: learner?.gradeBand });
   }
 
+  renderBuilderFocusOptions();
   refreshBtn?.addEventListener('click', refreshReport);
   exportPdfBtn?.addEventListener('click', exportPdf);
   printBtn?.addEventListener('click', () => window.print());
+  builderGenerateBtn?.addEventListener('click', () => renderBuilderPlan());
+  builderCopyBtn?.addEventListener('click', () => {
+    copyBuilderPlan();
+  });
+  builderGradeEl?.addEventListener('change', () => renderBuilderPlan());
+  builderFocusEl?.addEventListener('change', () => renderBuilderPlan());
+  builderDurationEl?.addEventListener('change', () => renderBuilderPlan());
 
   refreshReport();
 })();

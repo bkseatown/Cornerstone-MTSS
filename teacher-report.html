@@ -52,6 +52,52 @@
         <div id="report-focus" class="report-focus"></div>
       </section>
 
+      <section class="report-card" aria-label="Literacy pulse">
+        <div class="report-card-header">
+          <div>
+            <h2>Literacy Pulse (Beta)</h2>
+            <p class="home-subtitle">Auto-generated strengths, barriers, and 4-week intervention priorities.</p>
+          </div>
+        </div>
+        <div id="report-pulse" class="report-pulse"></div>
+      </section>
+
+      <section class="report-card" aria-label="One-tap lesson builder">
+        <div class="report-card-header">
+          <div>
+            <h2>One-Tap Lesson Builder</h2>
+            <p class="home-subtitle">Build a quick I do · We do · You do with support pathway in one click.</p>
+          </div>
+        </div>
+        <div class="report-builder-controls">
+          <label class="report-builder-label">
+            Grade band
+            <select id="report-builder-grade" aria-label="Builder grade band">
+              <option value="K-2">K-2</option>
+              <option value="3-5">3-5</option>
+              <option value="6-8">6-8</option>
+              <option value="9-12">9-12</option>
+            </select>
+          </label>
+          <label class="report-builder-label">
+            Focus
+            <select id="report-builder-focus" aria-label="Builder focus"></select>
+          </label>
+          <label class="report-builder-label">
+            Minutes
+            <select id="report-builder-duration" aria-label="Builder duration">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </label>
+          <button id="report-builder-generate" class="primary-btn" type="button">Build Lesson</button>
+          <button id="report-builder-copy" class="secondary-btn" type="button">Copy Plan</button>
+        </div>
+        <div id="report-builder-output" class="report-builder-output"></div>
+        <div id="report-builder-status" class="muted"></div>
+      </section>
+
       <section class="report-card" aria-label="Standards mastery heatmap">
         <div class="report-card-header">
           <h2>Standards Mastery Heatmap</h2>
