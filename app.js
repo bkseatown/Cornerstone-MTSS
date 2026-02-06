@@ -981,7 +981,12 @@ function updateFitScreenMode() {
     const keyboardEl = document.getElementById('keyboard');
     const quickRow = document.querySelector('.quick-row');
     const storyTrack = document.getElementById('story-track');
-    const storyRect = storyTrack ? storyTrack.getBoundingClientRect() : null;
+    const storyTrackVisible = !!(
+        storyTrack &&
+        storyTrack.offsetParent !== null &&
+        storyTrack.getBoundingClientRect().height > 0
+    );
+    const storyRect = storyTrackVisible ? storyTrack.getBoundingClientRect() : null;
     // If the Story Track is fixed at the bottom, treat its top edge as the usable viewport bottom.
     // Otherwise the keyboard can be "visible" by rect math but still covered by the overlay.
     const bottomSafeY = storyRect ? Math.max(0, storyRect.top - 6) : (window.innerHeight - 8);
@@ -1020,7 +1025,12 @@ function updateFitScreenMode() {
         const keyboardNow = document.getElementById('keyboard');
         const stillClipped = canvasNow ? (canvasNow.scrollHeight > canvasNow.clientHeight + 12) : false;
         const storyNow = document.getElementById('story-track');
-        const storyNowRect = storyNow ? storyNow.getBoundingClientRect() : null;
+        const storyNowVisible = !!(
+            storyNow &&
+            storyNow.offsetParent !== null &&
+            storyNow.getBoundingClientRect().height > 0
+        );
+        const storyNowRect = storyNowVisible ? storyNow.getBoundingClientRect() : null;
         const bottomSafeNowY = storyNowRect ? Math.max(0, storyNowRect.top - 4) : (window.innerHeight - 6);
         const stillOffscreen = keyboardNow
             ? (keyboardNow.getBoundingClientRect().bottom > bottomSafeNowY)
