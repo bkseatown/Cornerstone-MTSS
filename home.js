@@ -3,6 +3,7 @@
   const PLACEMENT_KEY = 'decode_placement_v1';
   const SETTINGS_KEY = 'decode_settings';
   const HOME_VISUAL_MODE_KEY = 'cornerstone_home_visual_mode_v1';
+  const HOME_DETAILS_MODE_KEY = 'cornerstone_home_details_mode_v1';
 
   const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('placement-modal');
@@ -17,6 +18,11 @@
   const openWordQuest = document.getElementById('placement-open-word-quest');
   const homeVisualFunBtn = document.getElementById('home-visual-fun');
   const homeVisualCalmBtn = document.getElementById('home-visual-calm');
+  const homeWorkspaceToggleBtn = document.getElementById('home-toggle-workspace');
+  const homeHeaderToggleBtn = document.getElementById('home-header-toggle');
+  const homeRoleLaunchBtn = document.getElementById('home-role-launch');
+  const homeRolePreviewEl = document.getElementById('home-role-preview');
+  const homeRolePickButtons = Array.from(document.querySelectorAll('.home-role-pick[data-role-target]'));
 
   const gradeSelect = document.getElementById('placement-grade');
   const skillEls = {
@@ -33,6 +39,11 @@
   function normalizeHomeVisualMode(value) {
     const raw = String(value || '').trim().toLowerCase();
     return raw === 'calm' ? 'calm' : 'fun';
+  }
+
+  function normalizeHomeDetailsMode(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    return raw === 'expanded' ? 'expanded' : 'collapsed';
   }
 
   function readHomeVisualMode() {
@@ -60,12 +71,47 @@
     return normalized;
   }
 
+  function applyHomeDetailsMode(mode, options = {}) {
+    const normalized = normalizeHomeDetailsMode(mode);
+    const expanded = normalized === 'expanded';
+    document.body.classList.toggle('home-details-expanded', expanded);
+    document.body.classList.toggle('home-details-collapsed', !expanded);
+
+    const toggleLabel = expanded ? 'Hide Workspace Tools' : 'Show Workspace Tools';
+    if (homeWorkspaceToggleBtn) {
+      homeWorkspaceToggleBtn.textContent = toggleLabel;
+      homeWorkspaceToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+    if (homeHeaderToggleBtn) {
+      homeHeaderToggleBtn.textContent = expanded ? 'Hide Workspace' : 'Workspace';
+      homeHeaderToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+
+    if (options.persist) {
+      localStorage.setItem(HOME_DETAILS_MODE_KEY, normalized);
+    }
+    if (expanded && options.focusStart) {
+      const anchor = document.getElementById('home-workspace-start');
+      anchor?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return normalized;
+  }
+
   applyHomeVisualMode(readHomeVisualMode(), { persist: false });
+  applyHomeDetailsMode(localStorage.getItem(HOME_DETAILS_MODE_KEY), { persist: false });
   homeVisualFunBtn?.addEventListener('click', () => {
     applyHomeVisualMode('fun', { persist: true });
   });
   homeVisualCalmBtn?.addEventListener('click', () => {
     applyHomeVisualMode('calm', { persist: true });
+  });
+  homeWorkspaceToggleBtn?.addEventListener('click', () => {
+    const expanded = document.body.classList.contains('home-details-expanded');
+    applyHomeDetailsMode(expanded ? 'collapsed' : 'expanded', { persist: true, focusStart: !expanded });
+  });
+  homeHeaderToggleBtn?.addEventListener('click', () => {
+    const expanded = document.body.classList.contains('home-details-expanded');
+    applyHomeDetailsMode(expanded ? 'collapsed' : 'expanded', { persist: true, focusStart: !expanded });
   });
 
   if (!overlay || !modal || !summary || !startBtn || !calcBtn || !clearBtn || !result || !goWordQuest || !gradeSelect) {
@@ -745,6 +791,26 @@
     return models[roleId] || models.teacher;
   }
 
+  function syncRoleStarter(roleId, model) {
+    const normalizedRole = normalizeRoleId(roleId) || 'teacher';
+    homeRolePickButtons.forEach((button) => {
+      const targetRole = normalizeRoleId(button.dataset.roleTarget || '');
+      button.classList.toggle('active', targetRole === normalizedRole);
+      button.setAttribute('aria-pressed', targetRole === normalizedRole ? 'true' : 'false');
+    });
+
+    const primaryAction = model?.actions?.[0] || null;
+    if (homeRoleLaunchBtn) {
+      homeRoleLaunchBtn.href = primaryAction?.href || 'word-quest.html';
+      homeRoleLaunchBtn.textContent = primaryAction?.label || 'Start My Pathway';
+    }
+
+    if (homeRolePreviewEl) {
+      const previewLine = model?.cards?.[0]?.body || model?.mission || 'Role guidance will appear here.';
+      homeRolePreviewEl.textContent = `${model?.label || 'Role'}: ${previewLine}`;
+    }
+  }
+
   function renderRoleDashboard() {
     if (!homeRoleSelect || !homeRoleSignal || !homeRoleSummary || !homeRoleCards || !homeRoleActions) return;
 
@@ -792,6 +858,7 @@
 
     const model = buildRoleModel(selectedRole, context);
     const evidenceText = `${context.literacyWeek} literacy + ${context.numeracyWeek} numeracy sessions this week`;
+    syncRoleStarter(selectedRole, model);
 
     homeRoleSignal.innerHTML = `
       <span class="home-role-chip">${escapeHtml(model.label)}</span>
@@ -1632,6 +1699,16 @@
   });
   homeRoleSelect?.addEventListener('change', () => {
     renderRoleDashboard();
+  });
+  homeRolePickButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const roleId = normalizeRoleId(button.dataset.roleTarget || '');
+      if (!roleId) return;
+      if (homeRoleSelect) {
+        homeRoleSelect.value = roleId;
+      }
+      renderRoleDashboard();
+    });
   });
   homePinSaveBtn?.addEventListener('click', () => {
     const currentPin = String(homePinCurrentInput?.value || '').trim();

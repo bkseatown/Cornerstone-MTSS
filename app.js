@@ -77,6 +77,20 @@ const packedTtsManifestCacheByPath = new Map();
 const packedTtsManifestPromiseByPath = new Map();
 let packedTtsPackRegistryCache = null;
 let packedTtsPackRegistryPromise = null;
+const DECODABLE_SPEED_PRESETS = [0.75, 0.85, 1.0, 1.15, 1.3];
+let decodableFollowAlongState = {
+    title: '',
+    token: 0,
+    card: null,
+    words: [],
+    wordStarts: [],
+    activeWordIndex: -1,
+    timerId: null,
+    audio: null,
+    onTimeUpdate: null,
+    onLoadedMetadata: null
+};
+const decodableWordMetaByTitle = new Map();
 
 // DOM Elements - will be initialized after DOM loads
 let board, keyboard, modalOverlay, welcomeModal, teacherModal, studioModal, gameModal;
@@ -91,6 +105,7 @@ const DEFAULT_SETTINGS = {
     showExamples: true,
     showMouthCues: true,
     speechRate: 0.85,
+    decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
     narrationStyle: 'expressive', // expressive | neutral
     speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
@@ -948,9 +963,22 @@ async function loadPackedTtsManifest() {
     return manifest;
 }
 
-async function playAudioClipUrl(url) {
+function stopAllActiveAudioPlayers() {
+    activeAudioPlayers.forEach((audio) => {
+        try {
+            audio.pause();
+            audio.currentTime = 0;
+        } catch (e) {}
+    });
+    activeAudioPlayers.clear();
+}
+
+async function playAudioClipUrl(url, options = {}) {
     if (!url) return false;
+    const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
+    const onPlay = typeof options.onPlay === 'function' ? options.onPlay : null;
     const audio = new Audio(url);
+    audio.playbackRate = playbackRate;
     activeAudioPlayers.add(audio);
     const cleanup = () => {
         activeAudioPlayers.delete(audio);
@@ -959,6 +987,9 @@ async function playAudioClipUrl(url) {
     audio.onerror = cleanup;
     try {
         await audio.play();
+        if (onPlay) {
+            try { onPlay(audio); } catch (e) {}
+        }
         return true;
     } catch {
         cleanup();
@@ -1015,14 +1046,19 @@ async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
     return false;
 }
 
-async function tryPlayPackedPassageClip({ title = '', languageCode = 'en' } = {}) {
+async function tryPlayPackedPassageClip({
+    title = '',
+    languageCode = 'en',
+    playbackRate = 1,
+    onPlay = null
+} = {}) {
     const key = getPackedPassageManifestKey(title, languageCode);
     if (!key) return false;
 
     const manifest = await loadPackedTtsManifest();
     const primaryClip = manifest?.entries?.[key];
     if (primaryClip) {
-        const played = await playAudioClipUrl(primaryClip);
+        const played = await playAudioClipUrl(primaryClip, { playbackRate, onPlay });
         if (played) return true;
     }
 
@@ -1031,7 +1067,7 @@ async function tryPlayPackedPassageClip({ title = '', languageCode = 'en' } = {}
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            return playAudioClipUrl(fallbackClip);
+            return playAudioClipUrl(fallbackClip, { playbackRate, onPlay });
         }
     }
 
@@ -1289,6 +1325,7 @@ function loadSettings() {
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
+        appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 
         const migrated = localStorage.getItem('bonus_frequency_migrated');
         if (!migrated && (!parsed.bonus || ['sometimes', 'often'].includes(parsed.bonus.frequency))) {
@@ -1312,7 +1349,18 @@ function saveSettings() {
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
+    appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+}
+
+function normalizeDecodableReadSpeed(value = 1.0) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 1.0;
+    return Math.max(0.65, Math.min(1.5, Math.round(numeric * 100) / 100));
+}
+
+function getDecodableReadSpeed() {
+    return normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 }
 
 function getSpeechRate(type = 'word') {
@@ -5903,6 +5951,9 @@ function handleTeacherSubmit() {
 
 function closeModal() {
     const wasGameModalOpen = !gameModal.classList.contains("hidden");
+    stopAllActiveAudioPlayers();
+    stopDecodableFollowAlong({ clearHighlights: true });
+    cancelPendingSpeech(true);
     
     modalOverlay.classList.add("hidden");
     welcomeModal.classList.add("hidden");
@@ -7707,39 +7758,316 @@ function ensureDecodableTextsLibrary() {
     return window.DECODABLE_TEXTS;
 }
 
+function ensureDecodableModal() {
+    let modal = document.getElementById('decodable-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'decodable-modal';
+        modal.className = 'modal hidden decodable-modal';
+        modal.dataset.overlayClose = 'true';
+        modal.innerHTML = `
+            <div class="modal-content decodable-modal-content">
+                <button id="close-decodable-btn" class="close-btn close-decodable" aria-label="Close">✕</button>
+                <h2>Decodable Library</h2>
+                <p class="assessment-subtitle">Pick a passage, then use follow-along reading with adjustable speed.</p>
+                <div class="decodable-toolbar">
+                    <label for="decodable-speed-select"><strong>Read speed</strong></label>
+                    <select id="decodable-speed-select" aria-label="Decodable read speed"></select>
+                    <div id="decodable-speed-note" class="decodable-speed-note" aria-live="polite"></div>
+                </div>
+                <div id="decodable-text-list"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-btn')?.addEventListener('click', closeModal);
+    }
+
+    const speedSelect = modal.querySelector('#decodable-speed-select');
+    if (speedSelect && !speedSelect.dataset.initialized) {
+        speedSelect.innerHTML = DECODABLE_SPEED_PRESETS.map((value) => {
+            const label = `${value.toFixed(2).replace(/\.00$/, '')}x`;
+            return `<option value="${value}">${label}</option>`;
+        }).join('');
+        speedSelect.dataset.initialized = 'true';
+        speedSelect.addEventListener('change', () => {
+            appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(speedSelect.value);
+            saveSettings();
+            const note = document.getElementById('decodable-speed-note');
+            if (note) note.textContent = `Playback set to ${appSettings.decodableReadSpeed.toFixed(2).replace(/\.00$/, '')}x`;
+        });
+    }
+
+    if (speedSelect) {
+        speedSelect.value = String(getDecodableReadSpeed());
+    }
+    const note = modal.querySelector('#decodable-speed-note');
+    if (note) {
+        note.textContent = `Playback set to ${getDecodableReadSpeed().toFixed(2).replace(/\.00$/, '')}x`;
+    }
+
+    return modal;
+}
+
+function tokenizeDecodableContent(content = '') {
+    const raw = String(content || '');
+    const tokens = [];
+    const matcher = /\s+|[^\s]+/g;
+    let match;
+    while ((match = matcher.exec(raw)) !== null) {
+        const tokenText = match[0];
+        tokens.push({
+            text: tokenText,
+            start: match.index,
+            isWord: /[A-Za-z\u00C0-\u024F]/.test(tokenText)
+        });
+    }
+    return tokens;
+}
+
+function renderDecodablePassageContent(container, text, title) {
+    if (!container) return;
+    container.textContent = '';
+    const tokens = tokenizeDecodableContent(text);
+    const fragment = document.createDocumentFragment();
+    const wordStarts = [];
+    let wordIndex = 0;
+
+    tokens.forEach((token) => {
+        if (token.isWord) {
+            const span = document.createElement('span');
+            span.className = 'decodable-word';
+            span.dataset.wordIndex = String(wordIndex);
+            span.textContent = token.text;
+            fragment.appendChild(span);
+            wordStarts.push(token.start);
+            wordIndex += 1;
+        } else {
+            fragment.appendChild(document.createTextNode(token.text));
+        }
+    });
+
+    container.appendChild(fragment);
+    decodableWordMetaByTitle.set(title, { wordStarts, wordCount: wordIndex });
+}
+
+function clearDecodableCardHighlights() {
+    if (decodableFollowAlongState.card) {
+        decodableFollowAlongState.card.classList.remove('is-reading');
+    }
+    decodableFollowAlongState.words.forEach((wordEl) => {
+        wordEl.classList.remove('is-active');
+    });
+}
+
+function stopDecodableFollowAlong({ clearHighlights = true } = {}) {
+    if (decodableFollowAlongState.timerId) {
+        clearInterval(decodableFollowAlongState.timerId);
+        decodableFollowAlongState.timerId = null;
+    }
+    if (decodableFollowAlongState.audio && decodableFollowAlongState.onTimeUpdate) {
+        decodableFollowAlongState.audio.removeEventListener('timeupdate', decodableFollowAlongState.onTimeUpdate);
+    }
+    if (decodableFollowAlongState.audio && decodableFollowAlongState.onLoadedMetadata) {
+        decodableFollowAlongState.audio.removeEventListener('loadedmetadata', decodableFollowAlongState.onLoadedMetadata);
+    }
+    if (clearHighlights) {
+        clearDecodableCardHighlights();
+    }
+    decodableFollowAlongState.card = null;
+    decodableFollowAlongState.words = [];
+    decodableFollowAlongState.wordStarts = [];
+    decodableFollowAlongState.activeWordIndex = -1;
+    decodableFollowAlongState.audio = null;
+    decodableFollowAlongState.onTimeUpdate = null;
+    decodableFollowAlongState.onLoadedMetadata = null;
+}
+
+function setDecodableActiveWord(index, scrollIntoView = true) {
+    if (!decodableFollowAlongState.words.length) return;
+    const safeIndex = Math.max(0, Math.min(decodableFollowAlongState.words.length - 1, Number(index) || 0));
+    if (safeIndex === decodableFollowAlongState.activeWordIndex) return;
+
+    const prev = decodableFollowAlongState.words[decodableFollowAlongState.activeWordIndex];
+    if (prev) prev.classList.remove('is-active');
+
+    const next = decodableFollowAlongState.words[safeIndex];
+    if (!next) return;
+    next.classList.add('is-active');
+    decodableFollowAlongState.activeWordIndex = safeIndex;
+
+    if (scrollIntoView) {
+        next.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+}
+
+function findDecodableCardByTitle(title = '') {
+    const slug = normalizePassageSlug(title);
+    if (!slug) return null;
+    return document.querySelector(`.decodable-text-card[data-passage-slug="${slug}"]`);
+}
+
+function activateDecodableCard(title = '') {
+    const slug = normalizePassageSlug(title);
+    document.querySelectorAll('.decodable-text-card').forEach((card) => {
+        card.classList.toggle('is-selected', card.dataset.passageSlug === slug);
+    });
+}
+
+function beginDecodableFollowAlong(title = '') {
+    stopDecodableFollowAlong({ clearHighlights: true });
+    decodableFollowAlongState.token += 1;
+
+    const card = findDecodableCardByTitle(title);
+    if (!card) return decodableFollowAlongState.token;
+    const words = Array.from(card.querySelectorAll('.decodable-word'));
+    const meta = decodableWordMetaByTitle.get(title) || { wordStarts: [] };
+
+    decodableFollowAlongState.title = title;
+    decodableFollowAlongState.card = card;
+    decodableFollowAlongState.words = words;
+    decodableFollowAlongState.wordStarts = Array.isArray(meta.wordStarts) ? meta.wordStarts : [];
+    decodableFollowAlongState.activeWordIndex = -1;
+
+    card.classList.add('is-reading');
+    if (words.length) {
+        setDecodableActiveWord(0, false);
+    }
+    return decodableFollowAlongState.token;
+}
+
+function resolveDecodableWordIndexFromChar(charIndex = 0) {
+    const starts = decodableFollowAlongState.wordStarts;
+    if (!starts.length) return -1;
+    let resolved = 0;
+    for (let index = 0; index < starts.length; index += 1) {
+        if (starts[index] <= charIndex) {
+            resolved = index;
+        } else {
+            break;
+        }
+    }
+    return resolved;
+}
+
+function scheduleDecodableTimerFollowAlong(token, content, speed) {
+    const totalWords = decodableFollowAlongState.words.length;
+    if (!totalWords) return;
+
+    const estimatedMs = Math.max(1800, estimateSpeechDuration(content, getSpeechRate('sentence')) / Math.max(0.5, speed));
+    const stepMs = Math.max(120, estimatedMs / Math.max(1, totalWords));
+    let index = 0;
+    decodableFollowAlongState.timerId = setInterval(() => {
+        if (token !== decodableFollowAlongState.token) {
+            clearInterval(decodableFollowAlongState.timerId);
+            decodableFollowAlongState.timerId = null;
+            return;
+        }
+        index += 1;
+        if (index >= totalWords) {
+            setDecodableActiveWord(totalWords - 1);
+            clearInterval(decodableFollowAlongState.timerId);
+            decodableFollowAlongState.timerId = null;
+            return;
+        }
+        setDecodableActiveWord(index);
+    }, stepMs);
+}
+
+function bindDecodableAudioFollowAlong(token, audio) {
+    if (!audio) return;
+    decodableFollowAlongState.audio = audio;
+    const update = () => {
+        if (token !== decodableFollowAlongState.token) return;
+        const duration = Number(audio.duration);
+        if (!Number.isFinite(duration) || duration <= 0 || !decodableFollowAlongState.words.length) return;
+        const ratio = Math.max(0, Math.min(1, audio.currentTime / duration));
+        const index = Math.round(ratio * (decodableFollowAlongState.words.length - 1));
+        setDecodableActiveWord(index);
+    };
+    decodableFollowAlongState.onTimeUpdate = update;
+    decodableFollowAlongState.onLoadedMetadata = update;
+    audio.addEventListener('loadedmetadata', update);
+    audio.addEventListener('timeupdate', update);
+}
+
+async function speakDecodableTextWithFollowAlong(text, title, speed = 1, existingToken = null) {
+    if (!('speechSynthesis' in window)) return false;
+    const normalized = normalizeTextForTTS(text);
+    if (!normalized) return false;
+
+    let token = Number.isFinite(existingToken) ? existingToken : beginDecodableFollowAlong(title);
+    if (!decodableFollowAlongState.words.length) {
+        token = beginDecodableFollowAlong(title);
+    }
+    const voices = await getVoicesForSpeech();
+    const preferred = pickBestEnglishVoice(voices);
+    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
+    const utterance = new SpeechSynthesisUtterance(normalized);
+    utterance.rate = clampSpeechRate(getSpeechRate('sentence') * speed);
+    utterance.pitch = clampSpeechPitch(1.0);
+    if (preferred) {
+        utterance.voice = preferred;
+        utterance.lang = preferred.lang;
+    } else if (fallbackLang) {
+        utterance.lang = fallbackLang;
+    }
+    utterance.onboundary = (event) => {
+        if (token !== decodableFollowAlongState.token) return;
+        if (typeof event.charIndex !== 'number') return;
+        const index = resolveDecodableWordIndexFromChar(event.charIndex);
+        if (index >= 0) {
+            setDecodableActiveWord(index);
+        }
+    };
+    utterance.onend = () => {
+        if (token !== decodableFollowAlongState.token) return;
+        if (decodableFollowAlongState.words.length) {
+            setDecodableActiveWord(decodableFollowAlongState.words.length - 1);
+        }
+    };
+    utterance.onerror = () => {
+        if (token !== decodableFollowAlongState.token) return;
+        scheduleDecodableTimerFollowAlong(token, normalized, speed);
+    };
+    speakUtterance(utterance);
+    return true;
+}
+
 // Open decodable texts
 function openDecodableTexts() {
     const decodableTexts = ensureDecodableTextsLibrary();
     if (!decodableTexts.length) return;
-    
-    modalOverlay.classList.remove('hidden');
-    const decodableModal = document.getElementById('decodable-modal');
+
+    const decodableModal = ensureDecodableModal();
+    if (modalOverlay) modalOverlay.classList.remove('hidden');
     decodableModal.classList.remove('hidden');
-    
+
     const listDiv = document.getElementById('decodable-text-list');
-    const modal = document.getElementById('decodable-modal');
-    if (modal) {
-        let recorder = document.getElementById('decodable-recorder');
-        if (!recorder) {
-            recorder = document.createElement('div');
-            recorder.id = 'decodable-recorder';
-            recorder.className = 'practice-recorder-group';
-            modal.querySelector('.modal-content')?.insertAdjacentElement('afterbegin', recorder);
-        }
-        recorder.innerHTML = '<div class="practice-recorder-note">Select a passage to record.</div>';
+    if (!listDiv) return;
+    let recorder = document.getElementById('decodable-recorder');
+    if (!recorder) {
+        recorder = document.createElement('div');
+        recorder.id = 'decodable-recorder';
+        recorder.className = 'practice-recorder-group';
+        decodableModal.querySelector('.modal-content')?.insertAdjacentElement('beforeend', recorder);
     }
-    const pattern = document.getElementById('pattern-select').value;
-    
-    // Filter texts by current pattern
-    const texts = decodableTexts.filter(text => {
-        return pattern === 'all' || (text.tags && text.tags.some(tag => tag === pattern || pattern.includes(tag)));
-    });
-    
-    if (texts.length === 0) {
-        listDiv.innerHTML = '<p style="text-align: center; color: #666;">No texts available for this pattern.</p>';
+    recorder.innerHTML = '<div class="practice-recorder-note">Select a passage to record.</div>';
+
+    const pattern = document.getElementById('pattern-select')?.value || 'all';
+    const texts = decodableTexts.filter((text) => (
+        pattern === 'all' || (text.tags && text.tags.some((tag) => tag === pattern || pattern.includes(tag)))
+    ));
+
+    listDiv.textContent = '';
+    if (!texts.length) {
+        const empty = document.createElement('p');
+        empty.style.textAlign = 'center';
+        empty.style.color = '#666';
+        empty.textContent = 'No texts available for this pattern.';
+        listDiv.appendChild(empty);
         return;
     }
-    
+
     const countsByBand = texts.reduce((acc, text) => {
         const band = text.gradeBand || 'Mixed';
         acc[band] = (acc[band] || 0) + 1;
@@ -7749,33 +8077,73 @@ function openDecodableTexts() {
         .map(([band, count]) => `${band}: ${count}`)
         .join(' · ');
 
-    listDiv.innerHTML = `
-        <div class="decodable-library-meta"><strong>${texts.length} passages ready</strong> · ${countSummary || 'Mixed grade bands'}</div>
-        ${texts.map(text => `
-        <div class="decodable-text-card" onclick="readDecodableText('${text.title}')">
-            <div class="decodable-text-title">${text.title}</div>
-            <div class="decodable-text-level">${text.level}</div>
-            <div class="decodable-text-content">${text.content}</div>
-        </div>
-    `).join('')}
-    `;
+    const meta = document.createElement('div');
+    meta.className = 'decodable-library-meta';
+    meta.innerHTML = `<strong>${texts.length} passages ready</strong> · ${countSummary || 'Mixed grade bands'}`;
+    listDiv.appendChild(meta);
+
+    texts.forEach((text) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'decodable-text-card';
+        card.dataset.title = text.title;
+        card.dataset.passageSlug = normalizePassageSlug(text.title);
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'decodable-text-title';
+        titleEl.textContent = text.title;
+        card.appendChild(titleEl);
+
+        const levelEl = document.createElement('div');
+        levelEl.className = 'decodable-text-level';
+        levelEl.textContent = text.level || 'Mixed level';
+        card.appendChild(levelEl);
+
+        const contentEl = document.createElement('div');
+        contentEl.className = 'decodable-text-content';
+        renderDecodablePassageContent(contentEl, text.content, text.title);
+        card.appendChild(contentEl);
+
+        card.addEventListener('click', () => {
+            readDecodableText(text.title);
+        });
+        listDiv.appendChild(card);
+    });
 }
 
 // Read decodable text aloud
 async function readDecodableText(title) {
-    const text = ensureDecodableTextsLibrary().find(t => t.title === title);
-    if (text) {
-        clearPracticeGroup('passage:');
-        const recorder = document.getElementById('decodable-recorder');
-        if (recorder) {
-            recorder.innerHTML = '';
-            ensurePracticeRecorder(recorder, `passage:${text.title}`, 'Record Passage');
-        }
-        const playedPacked = await tryPlayPackedPassageClip({ title: text.title, languageCode: 'en' });
-        if (!playedPacked) {
-            speak(text.content, 'sentence');
-        }
+    const text = ensureDecodableTextsLibrary().find((entry) => entry.title === title);
+    if (!text) return;
+
+    activateDecodableCard(title);
+    clearPracticeGroup('passage:');
+    const recorder = document.getElementById('decodable-recorder');
+    if (recorder) {
+        recorder.innerHTML = '';
+        ensurePracticeRecorder(recorder, `passage:${text.title}`, 'Record Passage');
     }
+
+    const speed = getDecodableReadSpeed();
+    cancelPendingSpeech(true);
+    stopDecodableFollowAlong({ clearHighlights: true });
+    const token = beginDecodableFollowAlong(title);
+
+    const playedPacked = await tryPlayPackedPassageClip({
+        title: text.title,
+        languageCode: 'en',
+        playbackRate: speed,
+        onPlay: (audio) => {
+            if (token !== decodableFollowAlongState.token) return;
+            bindDecodableAudioFollowAlong(token, audio);
+        }
+    });
+    if (playedPacked) {
+        scheduleDecodableTimerFollowAlong(token, text.content, speed);
+        return;
+    }
+
+    await speakDecodableTextWithFollowAlong(text.content, text.title, speed, token);
 }
 
 // Open progress modal

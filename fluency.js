@@ -287,6 +287,40 @@ The point of the task was bigger than science content. It was practice in academ
     }
 ];
 
+const DIBELS_MCLASS_REFERENCE = {
+    1: {
+        BOY: {
+            lnf: 42,
+            psf: 31,
+            nwfSounds: 30,
+            nwfWords: 5,
+            wrf: 12,
+            orfWcpm: 10,
+            orfAccuracy: 67
+        },
+        MOY: {
+            lnf: 57,
+            psf: 43,
+            nwfSounds: 52,
+            nwfWords: 14,
+            wrf: 17,
+            orfWcpm: 21,
+            orfAccuracy: 87
+        },
+        EOY: {
+            lnf: 59,
+            psf: 45,
+            nwfSounds: 55,
+            nwfWords: 15,
+            wrf: 25,
+            orfWcpm: 39,
+            orfAccuracy: 91
+        }
+    }
+};
+
+const BENCHMARK_SELECTION_KEY = 'fluency_benchmark_v1';
+
 const gradeSelect = document.getElementById('fluency-grade');
 const lexileSelect = document.getElementById('fluency-lexile');
 const passageSelect = document.getElementById('fluency-select');
@@ -302,6 +336,8 @@ const wordsInput = document.getElementById('fluency-words');
 const errorsInput = document.getElementById('fluency-errors');
 const goalInput = document.getElementById('fluency-goal');
 const scoreOutput = document.getElementById('fluency-score');
+const accuracyOutput = document.getElementById('fluency-accuracy');
+const benchmarkResultOutput = document.getElementById('fluency-benchmark-result');
 const feedbackEl = document.getElementById('fluency-feedback');
 const coinsEl = document.getElementById('fluency-coins');
 const streakEl = document.getElementById('fluency-streak');
@@ -317,6 +353,17 @@ const coachWaveCanvas = document.getElementById('fluency-wave-canvas');
 const soundFilterInput = document.getElementById('fluency-sound-filter');
 const soundRefreshBtn = document.getElementById('fluency-sound-refresh');
 const soundClipsListEl = document.getElementById('fluency-sound-clips-list');
+const benchmarkGradeSelect = document.getElementById('fluency-benchmark-grade');
+const benchmarkWindowSelect = document.getElementById('fluency-benchmark-window');
+const benchmarkUseGoalBtn = document.getElementById('fluency-use-benchmark-goal');
+const benchmarkSummaryEl = document.getElementById('fluency-benchmark-summary');
+const benchmarkLnfEl = document.getElementById('bench-lnf');
+const benchmarkPsfEl = document.getElementById('bench-psf');
+const benchmarkNwfSoundsEl = document.getElementById('bench-nwf-sounds');
+const benchmarkNwfWordsEl = document.getElementById('bench-nwf-words');
+const benchmarkWrfEl = document.getElementById('bench-wrf');
+const benchmarkOrfEl = document.getElementById('bench-orf');
+const benchmarkAccuracyEl = document.getElementById('bench-accuracy');
 
 function applyLightTheme() {
     document.body.classList.add('force-light');
@@ -1331,6 +1378,139 @@ function saveFilters() {
     }));
 }
 
+function getDefaultBenchmarkWindow() {
+    const month = new Date().getMonth() + 1;
+    if (month >= 8 && month <= 11) return 'BOY';
+    if (month >= 12 || month <= 3) return 'MOY';
+    return 'EOY';
+}
+
+function getBenchmarkGradeOptions() {
+    return Object.keys(DIBELS_MCLASS_REFERENCE)
+        .map((key) => Number(key))
+        .filter((value) => Number.isFinite(value))
+        .sort((a, b) => a - b);
+}
+
+function buildBenchmarkControls() {
+    if (!benchmarkGradeSelect) return;
+    const grades = getBenchmarkGradeOptions();
+    benchmarkGradeSelect.innerHTML = grades
+        .map((grade) => `<option value="${grade}">Grade ${grade}</option>`)
+        .join('');
+}
+
+function saveBenchmarkSelection() {
+    if (!benchmarkGradeSelect || !benchmarkWindowSelect) return;
+    localStorage.setItem(BENCHMARK_SELECTION_KEY, JSON.stringify({
+        grade: benchmarkGradeSelect.value,
+        window: benchmarkWindowSelect.value
+    }));
+}
+
+function loadBenchmarkSelection() {
+    if (!benchmarkGradeSelect || !benchmarkWindowSelect) return;
+    const parsed = safeParse(localStorage.getItem(BENCHMARK_SELECTION_KEY) || '');
+    const grades = getBenchmarkGradeOptions();
+    const fallbackGrade = grades.length ? String(grades[0]) : '1';
+    const parsedGrade = String(parsed?.grade || '');
+    benchmarkGradeSelect.value = grades.some((grade) => String(grade) === parsedGrade)
+        ? parsedGrade
+        : fallbackGrade;
+    const windowOptions = ['BOY', 'MOY', 'EOY'];
+    benchmarkWindowSelect.value = windowOptions.includes(parsed?.window)
+        ? parsed.window
+        : getDefaultBenchmarkWindow();
+}
+
+function getSelectedBenchmark() {
+    const grade = Number(benchmarkGradeSelect?.value || 0);
+    const windowKey = String(benchmarkWindowSelect?.value || 'BOY');
+    if (!Number.isFinite(grade)) return null;
+    return DIBELS_MCLASS_REFERENCE[grade]?.[windowKey] || null;
+}
+
+function setBenchmarkGridValues(values = null) {
+    const record = values || {};
+    if (benchmarkLnfEl) benchmarkLnfEl.textContent = Number.isFinite(record.lnf) ? `${record.lnf}+` : '—';
+    if (benchmarkPsfEl) benchmarkPsfEl.textContent = Number.isFinite(record.psf) ? `${record.psf}+` : '—';
+    if (benchmarkNwfSoundsEl) benchmarkNwfSoundsEl.textContent = Number.isFinite(record.nwfSounds) ? `${record.nwfSounds}+` : '—';
+    if (benchmarkNwfWordsEl) benchmarkNwfWordsEl.textContent = Number.isFinite(record.nwfWords) ? `${record.nwfWords}+` : '—';
+    if (benchmarkWrfEl) benchmarkWrfEl.textContent = Number.isFinite(record.wrf) ? `${record.wrf}+` : '—';
+    if (benchmarkOrfEl) benchmarkOrfEl.textContent = Number.isFinite(record.orfWcpm) ? `${record.orfWcpm}+` : '—';
+    if (benchmarkAccuracyEl) benchmarkAccuracyEl.textContent = Number.isFinite(record.orfAccuracy) ? `${record.orfAccuracy}%+` : '—';
+}
+
+function renderBenchmarkSummary() {
+    const grade = benchmarkGradeSelect?.value || '1';
+    const windowKey = benchmarkWindowSelect?.value || 'BOY';
+    const benchmark = getSelectedBenchmark();
+    if (!benchmark) {
+        if (benchmarkSummaryEl) {
+            benchmarkSummaryEl.textContent = 'No benchmark loaded for this selection.';
+        }
+        setBenchmarkGridValues(null);
+        if (benchmarkResultOutput) benchmarkResultOutput.textContent = '—';
+        return;
+    }
+
+    setBenchmarkGridValues(benchmark);
+    if (benchmarkSummaryEl) {
+        benchmarkSummaryEl.textContent = `Reference target for Grade ${grade} ${windowKey}: ORF ${benchmark.orfWcpm}+ WCPM and ${benchmark.orfAccuracy}%+ accuracy.`;
+    }
+}
+
+function applySelectedBenchmarkGoal() {
+    const benchmark = getSelectedBenchmark();
+    if (!benchmark || !Number.isFinite(benchmark.orfWcpm)) return;
+    goalInput.value = String(benchmark.orfWcpm);
+    feedbackEl.textContent = `Goal synced to Grade ${benchmarkGradeSelect.value} ${benchmarkWindowSelect.value} ORF benchmark (${benchmark.orfWcpm} WCPM).`;
+}
+
+function evaluateBenchmarkStatus(orf = 0, accuracyPct = null) {
+    const benchmark = getSelectedBenchmark();
+    if (!benchmark) return null;
+    const meetsOrf = Number.isFinite(benchmark.orfWcpm) ? orf >= benchmark.orfWcpm : true;
+    const meetsAccuracy = Number.isFinite(benchmark.orfAccuracy) && Number.isFinite(accuracyPct)
+        ? accuracyPct >= benchmark.orfAccuracy
+        : true;
+    return {
+        meets: meetsOrf && meetsAccuracy,
+        meetsOrf,
+        meetsAccuracy,
+        benchmark
+    };
+}
+
+function renderBenchmarkResult(orf = 0, accuracyPct = null) {
+    if (!benchmarkResultOutput) return;
+    if (!Number.isFinite(orf)) {
+        benchmarkResultOutput.textContent = '—';
+        benchmarkResultOutput.classList.remove('is-good', 'is-warn');
+        return;
+    }
+    const status = evaluateBenchmarkStatus(orf, accuracyPct);
+    if (!status) {
+        benchmarkResultOutput.textContent = 'No benchmark selected';
+        benchmarkResultOutput.classList.remove('is-good', 'is-warn');
+        return;
+    }
+
+    if (status.meets) {
+        benchmarkResultOutput.textContent = 'At/above benchmark';
+        benchmarkResultOutput.classList.add('is-good');
+        benchmarkResultOutput.classList.remove('is-warn');
+        return;
+    }
+
+    const gaps = [];
+    if (!status.meetsOrf) gaps.push(`WCPM below ${status.benchmark.orfWcpm}`);
+    if (!status.meetsAccuracy) gaps.push(`accuracy below ${status.benchmark.orfAccuracy}%`);
+    benchmarkResultOutput.textContent = `Watchlist: ${gaps.join(' and ')}`;
+    benchmarkResultOutput.classList.add('is-warn');
+    benchmarkResultOutput.classList.remove('is-good');
+}
+
 function buildPassageList() {
     const grade = gradeSelect.value;
     const lexile = lexileSelect.value;
@@ -1409,8 +1589,14 @@ function scoreFluency() {
     const words = Number(wordsInput.value || 0);
     const errors = Number(errorsInput.value || 0);
     const minutes = currentDuration / 60;
-    const orf = Math.max(0, words - errors) / minutes;
+    const correctedWords = Math.max(0, words - errors);
+    const orf = correctedWords / minutes;
+    const accuracyPct = words > 0 ? (correctedWords / words) * 100 : null;
     scoreOutput.textContent = orf.toFixed(1);
+    if (accuracyOutput) {
+        accuracyOutput.textContent = Number.isFinite(accuracyPct) ? `${accuracyPct.toFixed(1)}%` : '—';
+    }
+    renderBenchmarkResult(orf, accuracyPct);
 
     const goal = Number(goalInput.value || 0);
     if (goal && orf >= goal) {
@@ -1422,6 +1608,11 @@ function scoreFluency() {
         feedbackEl.textContent = 'Keep going! Try again to beat the goal.';
     } else {
         feedbackEl.textContent = 'Score saved. Set a goal if you want rewards.';
+    }
+
+    const benchmarkStatus = evaluateBenchmarkStatus(orf, accuracyPct);
+    if (benchmarkStatus && !benchmarkStatus.meets) {
+        feedbackEl.textContent += ` Benchmark assist: target is ${benchmarkStatus.benchmark.orfWcpm}+ WCPM and ${benchmarkStatus.benchmark.orfAccuracy}%+ accuracy.`;
     }
     saveProgress();
     updateHud();
@@ -1440,6 +1631,7 @@ function scoreFluency() {
                 focus: currentPassage?.focus,
                 goal: goal || null,
                 orf: Number(orf.toFixed(1)),
+                accuracyPct: Number.isFinite(accuracyPct) ? Number(accuracyPct.toFixed(1)) : null,
                 words,
                 errors
             }
@@ -1456,8 +1648,12 @@ function init() {
     updateHud();
     buildFilters();
     loadFilters();
+    buildBenchmarkControls();
+    loadBenchmarkSelection();
+    renderBenchmarkSummary();
     buildPassageList();
     updateDuration();
+    renderBenchmarkResult(Number.NaN, null);
 
     gradeSelect.addEventListener('change', () => {
         saveFilters();
@@ -1478,6 +1674,19 @@ function init() {
     pauseBtn.addEventListener('click', stopTimer);
     resetBtn.addEventListener('click', resetTimer);
     scoreBtn.addEventListener('click', scoreFluency);
+    benchmarkGradeSelect?.addEventListener('change', () => {
+        saveBenchmarkSelection();
+        renderBenchmarkSummary();
+        renderBenchmarkResult(Number(scoreOutput.textContent || 0), parseFloat(String(accuracyOutput?.textContent || '').replace('%', '')));
+    });
+    benchmarkWindowSelect?.addEventListener('change', () => {
+        saveBenchmarkSelection();
+        renderBenchmarkSummary();
+        renderBenchmarkResult(Number(scoreOutput.textContent || 0), parseFloat(String(accuracyOutput?.textContent || '').replace('%', '')));
+    });
+    benchmarkUseGoalBtn?.addEventListener('click', () => {
+        applySelectedBenchmarkGoal();
+    });
     coachTargetSelect?.addEventListener('change', () => {
         coachExpectedTokens = getCoachExpectedTokens();
         coachGuideTrail = buildCoachGuideTrail(getCoachTargetText(), 140);

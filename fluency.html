@@ -123,7 +123,41 @@
 
           <button id="fluency-check" type="button" class="primary-btn">Score</button>
           <div class="fluency-score-output">Result: <span id="fluency-score">—</span></div>
+          <div class="fluency-score-output">Accuracy: <span id="fluency-accuracy">—</span></div>
+          <div class="fluency-score-output">Benchmark check: <span id="fluency-benchmark-result">—</span></div>
         </div>
+
+        <section class="fluency-benchmark" aria-label="DIBELS benchmark reference">
+          <div class="fluency-benchmark-head">
+            <h3>DIBELS/mCLASS Benchmark Assist</h3>
+            <span class="muted">Reference only (editable local school norms should override).</span>
+          </div>
+          <div class="fluency-benchmark-controls">
+            <label class="fluency-coach-field">
+              Grade
+              <select id="fluency-benchmark-grade" aria-label="Benchmark grade"></select>
+            </label>
+            <label class="fluency-coach-field">
+              Window
+              <select id="fluency-benchmark-window" aria-label="Benchmark window">
+                <option value="BOY">BOY</option>
+                <option value="MOY">MOY</option>
+                <option value="EOY">EOY</option>
+              </select>
+            </label>
+            <button id="fluency-use-benchmark-goal" type="button" class="secondary-btn">Use ORF goal</button>
+          </div>
+          <div id="fluency-benchmark-summary" class="fluency-benchmark-summary"></div>
+          <div class="fluency-benchmark-grid">
+            <div><strong>LNF</strong><span id="bench-lnf">—</span></div>
+            <div><strong>PSF</strong><span id="bench-psf">—</span></div>
+            <div><strong>NWF sounds</strong><span id="bench-nwf-sounds">—</span></div>
+            <div><strong>NWF words</strong><span id="bench-nwf-words">—</span></div>
+            <div><strong>WRF</strong><span id="bench-wrf">—</span></div>
+            <div><strong>ORF WCPM</strong><span id="bench-orf">—</span></div>
+            <div><strong>ORF Accuracy</strong><span id="bench-accuracy">—</span></div>
+          </div>
+        </section>
 
         <div id="fluency-feedback" class="fluency-feedback" aria-live="polite"></div>
       </section>

@@ -10,7 +10,7 @@
     <script src="home.js" defer></script>
   </head>
 
-  <body class="home-page force-light look-35">
+  <body class="home-page force-light look-35 home-details-collapsed">
     <header>
       <div class="header-top">
         <h1>
@@ -18,95 +18,70 @@
         </h1>
         <nav class="header-actions" aria-label="Primary">
           <a class="link-btn active" aria-current="page" href="index.html">Home</a>
-          <a class="link-btn" href="word-quest.html">Word Quest</a>
-          <a class="link-btn" href="cloze.html">Story Fill</a>
-          <a class="link-btn" href="comprehension.html">Read &amp; Think</a>
-          <a class="link-btn" href="fluency.html">Speed Sprint</a>
-          <a class="link-btn" href="madlibs.html">Silly Stories</a>
-          <a class="link-btn" href="writing.html">Write &amp; Build</a>
-          <a class="link-btn" href="plan-it.html">Plan-It</a>
-          <a class="link-btn" href="number-sense.html">Number Sense</a>
-          <a class="link-btn" href="operations.html">Operations</a>
+          <a class="link-btn" href="word-quest.html">Start Activity</a>
+          <a class="link-btn" href="teacher-report.html" data-student-hidden="true">Teacher Report</a>
+          <button id="home-header-toggle" class="link-btn" type="button">Workspace</button>
         </nav>
       </div>
     </header>
 
     <main class="home-main">
-      <section class="home-card home-hero" aria-label="Overview">
+      <section class="home-card home-hero home-hero-lite" aria-label="Welcome">
         <div>
-          <h2>Learning Pathway</h2>
-          <div class="home-brand-block" aria-label="Platform identity">
-            <div class="home-brand-name">CORNERSTONE MTSS</div>
-            <div class="home-brand-tagline">Strong foundations across every tier.</div>
-            <div class="home-brand-alt-grid">
-              <div class="home-brand-alt"><strong>Admin:</strong> Building Tier 1. Strengthening Tier 2. Supporting Tier 3.</div>
-              <div class="home-brand-alt"><strong>Specialists:</strong> From solid ground to open access.</div>
-              <div class="home-brand-alt"><strong>Teachers:</strong> Clear pathways from a strong base.</div>
-              <div class="home-brand-alt"><strong>Parents:</strong> Every learner supported, every step of the way.</div>
-            </div>
-            <p class="home-brand-description">
-              Cornerstone MTSS is a comprehensive, multi-tiered platform that strengthens core instruction, coordinates targeted supports, and removes barriers to learning across literacy, numeracy, and well-being.
-            </p>
-          </div>
+          <div class="home-kicker">CORNERSTONE MTSS</div>
+          <h2>Welcome. Choose your role to begin.</h2>
           <p class="home-lede">
-            A multi-domain intervention hub for literacy, numeracy, SEL/executive function, and specialist collaboration.
+            A calm, guided start for every user. You will get a tailored next step first, then deeper tools only when needed.
           </p>
+
+          <div class="home-start-flow" aria-label="Start flow">
+            <span class="home-flow-chip">1. Choose role</span>
+            <span class="home-flow-chip">2. Start recommended path</span>
+            <span class="home-flow-chip">3. Open workspace tools</span>
+          </div>
+
+          <div class="home-role-picker" aria-label="Role quick select">
+            <button type="button" class="home-role-pick" data-role-target="teacher">Teacher</button>
+            <button type="button" class="home-role-pick" data-role-target="learning-support">Learning Support</button>
+            <button type="button" class="home-role-pick" data-role-target="eal">EAL</button>
+            <button type="button" class="home-role-pick" data-role-target="slp">SLP</button>
+            <button type="button" class="home-role-pick" data-role-target="counselor">Counselor</button>
+            <button type="button" class="home-role-pick" data-role-target="psychologist">Psychologist</button>
+            <button type="button" class="home-role-pick" data-role-target="admin">Administrator</button>
+            <button type="button" class="home-role-pick" data-role-target="dean">Dean</button>
+            <button type="button" class="home-role-pick" data-role-target="parent">Parent</button>
+            <button type="button" class="home-role-pick" data-role-target="student">Student</button>
+          </div>
+
+          <div class="home-cta-row" aria-label="Quick start">
+            <a id="home-role-launch" class="home-cta primary" href="word-quest.html">Start My Pathway</a>
+            <button id="home-toggle-workspace" class="home-cta ghost" type="button">Show Workspace Tools</button>
+          </div>
+          <p id="home-role-preview" class="home-role-preview muted" aria-live="polite">
+            Select a role to preview your first recommended action.
+          </p>
+        </div>
+
+        <aside class="home-hero-panel home-hero-panel-lite" aria-label="Guided first steps">
+          <div class="home-mini-title">First Session Plan</div>
+          <ol class="home-quick-steps">
+            <li>Pick your role.</li>
+            <li>Use the recommended first activity.</li>
+            <li>Run one short session (10-15 minutes).</li>
+            <li>Open workspace tools if you want deeper controls.</li>
+          </ol>
           <div class="home-visual-mode" aria-label="Visual style controls">
             <div class="home-mini-title">Visual style</div>
             <div class="home-visual-mode-row" role="group" aria-label="Home visual style">
               <button id="home-visual-fun" class="home-visual-chip active" type="button" aria-pressed="true">Fun</button>
               <button id="home-visual-calm" class="home-visual-chip" type="button" aria-pressed="false">Calm</button>
             </div>
-            <p class="home-visual-note muted">Calm mode lowers decorative visuals while keeping all features the same.</p>
           </div>
-
-          <div class="home-cta-row" aria-label="Quick start">
-            <a class="home-cta primary" href="word-quest.html">Start Word Quest</a>
-            <a class="home-cta ghost" href="cloze.html">Story Fill</a>
-            <a class="home-cta ghost" href="comprehension.html">Read &amp; Think</a>
-            <a class="home-cta ghost" href="number-sense.html">Number Sense</a>
-            <a class="home-cta ghost" href="operations.html">Operations</a>
-            <a class="home-cta ghost" href="teacher-report.html?demo=autopilot" data-student-hidden="true">Run Demo Pack</a>
-            <a class="home-cta ghost" href="teacher-report.html" data-student-hidden="true">Teacher Report</a>
-          </div>
-
-          <div class="home-pathway-chooser" aria-label="Choose your pathway focus">
-            <div class="home-mini-title">Choose pathway focus</div>
-            <div class="home-pathway-row">
-              <a class="home-pathway-chip active" href="word-quest.html">Literacy</a>
-              <a class="home-pathway-chip" href="number-sense.html">Numeracy</a>
-              <a class="home-pathway-chip" href="plan-it.html">SEL / Executive Function</a>
-              <a class="home-pathway-chip" href="teacher-report.html?role=learning-support" data-student-hidden="true">Learning Support / SPED</a>
-              <a class="home-pathway-chip" href="teacher-report.html?role=eal" data-student-hidden="true">EAL</a>
-              <a class="home-pathway-chip" href="teacher-report.html?role=slp" data-student-hidden="true">Speech-Language (SLP)</a>
-              <a class="home-pathway-chip" href="teacher-report.html?role=sel-counselor" data-student-hidden="true">School Counselor</a>
-              <a class="home-pathway-chip" href="teacher-report.html?role=parent#report-parent-communication" data-student-hidden="true">Parent / Caregiver</a>
-            </div>
-          </div>
-
-          <div class="home-badges" aria-label="Alignment badges">
-            <span class="home-badge">SoR-aligned</span>
-            <span class="home-badge">UDL-ready</span>
-            <span class="home-badge">MTSS-friendly</span>
-            <span class="home-badge">Accessible UI</span>
-          </div>
-        </div>
-
-        <aside class="home-hero-panel" aria-label="Suggested routine">
-          <div class="home-mini-title">10–15 minute routine</div>
-          <ol class="home-quick-steps">
-            <li>Warm-up: sounds &amp; patterns</li>
-            <li>Practice: decoding / fluency</li>
-            <li>Apply: comprehension / writing</li>
-            <li>Reflect: quick check + next step</li>
-          </ol>
-          <p class="home-mini-hint">
-            Tip: keep sessions short and consistent. Students should always know what comes next.
-          </p>
+          <p class="home-mini-hint">Calm mode reduces visual noise without changing tools.</p>
         </aside>
       </section>
 
-      <section class="home-card" aria-label="Placement">
+      <section id="home-workspace-start" class="home-card" data-home-detail aria-label="Placement">
         <div class="home-card-header">
           <h2>Placement (Quick Screener)</h2>
           <p class="home-subtitle">
@@ -123,7 +98,7 @@
         </div>
       </section>
 
-      <section id="learners" class="home-card" aria-label="Learners" data-student-hidden="true">
+      <section id="learners" class="home-card" data-home-detail aria-label="Learners" data-student-hidden="true">
         <div class="home-card-header">
           <h2>Learners</h2>
           <p class="home-subtitle">Switch learners to isolate progress, placement, and activity data.</p>
@@ -162,7 +137,7 @@
         </div>
       </section>
 
-      <section class="home-card" aria-label="Progress">
+      <section class="home-card" data-home-detail aria-label="Progress">
         <div class="home-card-header">
           <h2>Progress (Preview)</h2>
           <p class="home-subtitle">Data is saved on this device/browser only unless you transfer or import it on another device.</p>
@@ -208,7 +183,7 @@
         </div>
       </section>
 
-      <section id="role-dashboard" class="home-card" aria-label="Role dashboard">
+      <section id="role-dashboard" class="home-card" data-home-detail aria-label="Role dashboard">
         <div class="home-card-header">
           <h2>Role Dashboard</h2>
           <p class="home-subtitle">Choose your role to get a tailored daily workflow, evidence lens, and one-click launch actions.</p>
@@ -273,7 +248,7 @@
         </div>
       </section>
 
-      <section class="home-card" aria-label="Skill path">
+      <section class="home-card" data-home-detail aria-label="Skill path">
         <div class="home-card-header">
           <h2>Skill Path (Preview)</h2>
           <p class="home-subtitle">
@@ -305,7 +280,7 @@
         </div>
       </section>
 
-      <section class="home-card" aria-label="Activities">
+      <section class="home-card" data-home-detail aria-label="Activities">
         <div class="home-card-header">
           <h2>Activities</h2>
           <p class="home-subtitle">Pick a module. Each stays focused and predictable for students.</p>
