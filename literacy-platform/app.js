@@ -1855,37 +1855,56 @@ function applyWordQuestDesktopScale() {
     const reservedOutsideCanvas = 46 + chromeAboveCanvas;
     const availableHeight = Math.max(420, viewportHeight - headerHeight - reservedOutsideCanvas);
     // Estimated constant chrome inside the canvas (board padding, hint row, keyboard panel padding).
-    const staticChrome = isCoarsePointerLayout() ? 196 : 186;
+    // Keep this conservative so non-fullscreen desktop/iPad windows avoid clipping.
+    const staticChrome = isCoarsePointerLayout() ? 224 : 208;
 
     let tileSize = (availableHeight - staticChrome) / 8.35;
-    tileSize = Math.max(46, Math.min(74, tileSize));
-    if (viewportHeight < 860) tileSize = Math.min(tileSize, 58);
-    if (viewportHeight < 780) tileSize = Math.min(tileSize, 52);
+    tileSize = Math.max(44, Math.min(68, tileSize));
+    if (viewportHeight < 1000) tileSize = Math.min(tileSize, 62);
+    if (viewportHeight < 920) tileSize = Math.min(tileSize, 57);
+    if (viewportHeight < 840) tileSize = Math.min(tileSize, 52);
 
     let keySize = tileSize * 0.72;
-    keySize = Math.max(34, Math.min(53, keySize));
+    keySize = Math.max(33, Math.min(48, keySize));
 
     let wideKeySize = keySize * 1.62;
-    wideKeySize = Math.max(62, Math.min(94, wideKeySize));
+    wideKeySize = Math.max(60, Math.min(88, wideKeySize));
 
-    const keyboardMax = Math.round((keySize * 10) + 86);
-    const canvasMax = Math.round(Math.max(760, Math.min(1080, keyboardMax + 282)));
+    let keyboardMax = Math.round((keySize * 10) + 80);
+    let canvasMax = Math.round(Math.max(740, Math.min(1040, keyboardMax + 270)));
     const coarsePointer = isCoarsePointerLayout();
-    let bottomGap = coarsePointer ? 36 : 28;
-    if (viewportHeight < 980) bottomGap -= 6;
-    if (viewportHeight < 920) bottomGap -= 6;
-    if (viewportHeight < 860) bottomGap -= 4;
-    if (coarsePointer) {
-        bottomGap += 4;
-    }
-    bottomGap = Math.max(14, Math.min(56, bottomGap));
+    let bottomGap = coarsePointer ? 16 : 10;
+    if (viewportHeight < 980) bottomGap = Math.max(8, bottomGap - 2);
+    if (viewportHeight < 900) bottomGap = Math.max(7, bottomGap - 2);
+    bottomGap = Math.max(7, Math.min(18, bottomGap));
 
-    body.style.setProperty('--wq-tile-size-desktop', `${tileSize.toFixed(1)}px`);
-    body.style.setProperty('--wq-key-size-desktop', `${keySize.toFixed(1)}px`);
-    body.style.setProperty('--wq-key-wide-size-desktop', `${wideKeySize.toFixed(1)}px`);
-    body.style.setProperty('--wq-keyboard-max-desktop', `${keyboardMax}px`);
-    body.style.setProperty('--wq-canvas-max-desktop', `${canvasMax}px`);
-    body.style.setProperty('--wq-desktop-bottom-gap', `${bottomGap}px`);
+    const applyDesktopScaleVars = () => {
+        body.style.setProperty('--wq-tile-size-desktop', `${tileSize.toFixed(1)}px`);
+        body.style.setProperty('--wq-key-size-desktop', `${keySize.toFixed(1)}px`);
+        body.style.setProperty('--wq-key-wide-size-desktop', `${wideKeySize.toFixed(1)}px`);
+        body.style.setProperty('--wq-keyboard-max-desktop', `${keyboardMax}px`);
+        body.style.setProperty('--wq-canvas-max-desktop', `${canvasMax}px`);
+        body.style.setProperty('--wq-desktop-bottom-gap', `${bottomGap}px`);
+    };
+
+    applyDesktopScaleVars();
+
+    // Second pass: if canvas still overflows visible height, shrink once to avoid scroll/cropping.
+    const canvas = document.getElementById('game-canvas');
+    if (canvas) {
+        const availableCanvasHeight = Math.max(390, viewportHeight - headerHeight - reservedOutsideCanvas - 10);
+        const requiredCanvasHeight = Math.ceil(canvas.scrollHeight || 0);
+        if (requiredCanvasHeight > availableCanvasHeight + 2) {
+            const fitRatio = Math.max(0.82, Math.min(0.98, availableCanvasHeight / Math.max(1, requiredCanvasHeight)));
+            tileSize = Math.max(40, Math.min(66, tileSize * fitRatio));
+            keySize = Math.max(30, Math.min(46, keySize * fitRatio));
+            wideKeySize = Math.max(56, Math.min(84, wideKeySize * fitRatio));
+            keyboardMax = Math.round((keySize * 10) + 74);
+            canvasMax = Math.round(Math.max(700, Math.min(1000, keyboardMax + 246)));
+            bottomGap = Math.max(6, Math.min(14, bottomGap - 3));
+            applyDesktopScaleVars();
+        }
+    }
 }
 
 function updateWordQuestScrollFallback() {

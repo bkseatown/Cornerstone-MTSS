@@ -98,7 +98,8 @@
   }
 
   applyHomeVisualMode(readHomeVisualMode(), { persist: false });
-  applyHomeDetailsMode(localStorage.getItem(HOME_DETAILS_MODE_KEY), { persist: false });
+  // Keep homepage first impression low-scroll every load; workspace remains one-click away.
+  applyHomeDetailsMode('collapsed', { persist: false });
   homeVisualFunBtn?.addEventListener('click', () => {
     applyHomeVisualMode('fun', { persist: true });
   });
