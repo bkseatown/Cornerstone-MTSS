@@ -1,6 +1,12 @@
 {
   "en": "en-US-AvaMultilingualNeural",
   "es": "en-US-AvaMultilingualNeural",
-  "zh": "en-US-AvaMultilingualNeural",
-  "tl": "en-US-AvaMultilingualNeural"
+  "zh": "zh-CN-XiaoxiaoNeural",
+  "tl": "fil-PH-BlessicaNeural",
+  "hi": "hi-IN-SwaraNeural",
+  "ms": "ms-MY-YasminNeural",
+  "vi": "vi-VN-HoaiMyNeural",
+  "ar": "ar-SA-ZariyahNeural",
+  "ko": "ko-KR-SunHiNeural",
+  "ja": "ja-JP-NanamiNeural"
 }

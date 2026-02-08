@@ -1,85 +1,143 @@
-# Cornerstone MTSS Handoff
+# Literacy Platform Handoff
 
 Last updated: 2026-02-08
 
-## Critical deployment truth
+## Project + repo
 - Git root: `/Users/robertwilliamknaus/Desktop/New project`
-- GitHub repo: `https://github.com/bkseatown/Cornerstone-MTSS`
-- Live site: `https://bkseatown.github.io/Cornerstone-MTSS/`
-- Pages deploy branch: `main` (confirmed by latest Pages workflow runs)
-- **GitHub Pages serves repo root files**, not `/literacy-platform` by default.
+- App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
+- Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
+- Branch: `main`
+- Latest pushed commit: `4255cf25` (`origin/main`)
+- Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
-## Why this matters
-- There are two copies of the app in this repo:
-  - root (`/Users/.../New project/*.html`, `app.js`, `platform.js`, etc.) -> **live**
-  - subfolder (`/Users/.../New project/literacy-platform/*`) -> local working copy
-- If you only edit `/literacy-platform`, live GitHub Pages will not change.
-- To publish UI/runtime fixes, either:
-  1. sync files from `/literacy-platform` to root before commit/push, or
-  2. intentionally reconfigure Pages source to `/literacy-platform` (not done here).
+## 2026-02-08 latest shipped pass
+- Nav dropdown clipping fix:
+  - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).
+- Global Voice quick access:
+  - New persistent `🔊 Voice` shortcut in top nav across pages.
+  - Quick modal sets English voice dialect + default reveal language + lock toggle.
+  - Preview button dispatches immediate voice preview on Word Quest.
+- Word Quest language options expanded:
+  - Added `Arabic`, `Korean`, `Japanese` in reveal language dropdown and teacher default selector.
+  - Language labels include parenthetical English names.
+- Azure exporter improvements:
+  - Added locale + default voice support for `ms`, `vi`, `ar`, `ko`, `ja`.
+  - Updated `scripts/azure-voice-map.ava-multilingual.example.json` with recommended voices, including a stronger Vietnam voice baseline.
 
-## Most recent live commits
-- `3624bfe0` - Fix TTS manifest path resolution and bust stale script cache
-- `75bf9e8c` - Deploy stabilized root pages with grouped nav and live build stamp
-- `cfdc44ed` - Add global live build stamp for Pages verification
-- `99110883` - Tighten kid-safe reveal copy and update handoff
-- `b181d237` - Stabilize UX, translation audio reliability, and kid-safe copy
+## Non-negotiable user priorities
+1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
+2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
+3. Simplify top navigation and keep Home role-first/guided
+4. Enforce kid-safe, clear reveal definitions/sentences/jokes
 
-## What is now live
-- Grouped top nav (Home + Literacy/Numeracy/Reports/Tools) on root pages.
-- Word Quest has no top-level "Teacher" nav item.
-- Live build badge appears on pages:
-  - format: `Build: <short_sha> | <YYYY-MM-DD HH:MM UTC>`
-  - rendered by `platform.js` element `#global-build-stamp`.
-- Root `app.js` points packed TTS manifests to:
-  - `literacy-platform/audio/tts/tts-manifest.json`
-  - `literacy-platform/audio/tts/packs/pack-registry.json`
-  so root-served app uses existing audio assets without duplicating 1GB into root.
-- `app.js` now resolves TTS base path by URL context (root vs `/literacy-platform`) to avoid `audio/tts/...` 404s.
-- Root and `/literacy-platform` HTML now append cache-busting query string `?v=20260208d` on `platform.js` (and `app.js` on Word Quest) to reduce stale JS cache issues.
+No net-new features before visual/UX stability passes.
 
-## Verification commands used
-- Latest Pages deploy run:
+## Stabilization status snapshot
+### 1) Word Quest fit
+- Verified via Playwright viewport sweep:
+  - `1440x900`, `1280x780`, `1024x1366`, `1024x820`
+  - `docOverflow=0` and `wq-scroll-fallback=false` in all tested viewports.
+- Board + keyboard fit remains stable after recent edits.
+
+### 2) Audio + translation reliability
+- `app.js` now keeps translation hear-buttons enabled when packed clips exist, even if no matching system voice is found.
+- Definition playback uses the correct clip type (`def`) instead of sentence routing.
+- Packed clip lookup is always attempted (`shouldAttemptPackedTtsLookup() => true`) to avoid false "no audio" states.
+- Missing translation text shows clear fallback (`Translation coming soon for this word.`), not fake generated translation.
+- Important runtime note:
+  - `file://` runs can falsely disable some packed translation audio checks (fetch context issue).
+  - Validate from HTTP serving context (`http://localhost`) for real behavior.
+
+### 3) Navigation + Home guidance
+- Grouped nav + role-first Home guidance work was shipped in `b181d237`.
+- Legacy top-level Classroom/Teacher competition is removed from activity top nav; tools are grouped in menu/actions.
+
+### 4) Kid-safe reveal content
+- Young/EAL sanitizer pipeline is active in `app.js` with:
+  - word replacements
+  - blocklist checks
+  - concise safe fallbacks
+  - language-aware punctuation/length cleanup
+- Manual override bank exists in `young-overrides.js` (including: `sharp`, `dull`, `butter`, `blood`, `through`, `history`, `tax`).
+- New local updates (pending push in this handoff state):
+  - `app.js`: expanded young replacements for `scary`, `hurt`, `hate`, and `fight`.
+  - `words.js`: rewrote base `tax` definitions/sentences across `en/es/zh/tl/ms/vi` to be clearer and younger-safe.
+
+## Translation + voice coverage status
+### Written translations (`words.js`)
+- Word count: `500`
+- Coverage (definition + sentence complete):
+  - `en`: `500/500`
+  - `es`: `500/500`
+  - `zh`: `500/500`
+  - `tl`: `500/500`
+  - `ms`: `500/500`
+  - `vi`: `500/500`
+  - `hi`: currently incomplete / per-word gaps remain
+  - `ar`: currently not populated across full bank
+  - `ko`: currently not populated across full bank
+  - `ja`: currently not populated across full bank
+
+### Default Azure pack (`audio/tts`)
+- Manifest: `audio/tts/tts-manifest.json`
+- Entries: `6000`
+  - `en/es/zh/tl`: each `500 word + 500 def + 500 sentence`
+- File check: `missing=0` for manifest entries.
+
+### Named Azure packs (`audio/tts/packs/*`)
+- Registry: `audio/tts/packs/pack-registry.json`
+- Packs: `ava-multi`, `emma-en`, `guy-en-us`, `sonia-en-gb`, `ryan-en-gb`
+- Each pack manifest now includes:
+  - `500 word + 500 def + 500 sentence + 150 passage` (English)
+  - total `1650` entries.
+
+## Terminal commands: regenerate Azure audio for updated word copy
+Use these when definition/sentence text changes and you need fresh saved clips.
+
+### Prereqs
 ```bash
-node -e "const https=require('https');https.get('https://api.github.com/repos/bkseatown/Cornerstone-MTSS/actions/runs?per_page=1',{headers:{'User-Agent':'codex-cli','Accept':'application/vnd.github+json'}},res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{const r=(JSON.parse(d||'{}').workflow_runs||[])[0]||{};console.log(JSON.stringify({status:r.status,conclusion:r.conclusion,head_sha:String(r.head_sha||'').slice(0,8)}));});});"
+cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
+export AZURE_SPEECH_REGION="<your-region>"
+export AZURE_SPEECH_KEY="<your-key>"
 ```
-- Live JS contains new build stamp logic and nav groups:
+
+### Regenerate multilingual clips after copy updates
 ```bash
-node -e "const https=require('https');https.get('https://bkseatown.github.io/Cornerstone-MTSS/platform.js?cachebust='+Date.now(),res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>console.log({hasBuildStamp:d.includes('global-build-stamp'),hasGroups:['Literacy','Numeracy','Reports','Tools'].every(k=>d.includes(k))}));});"
+npm run tts:azure -- \
+  --pack-id=ava-multi \
+  --pack-name="Ava Multilingual" \
+  --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja \
+  --fields=word,def,sentence \
+  --voice-map=scripts/azure-voice-map.ava-multilingual.example.json \
+  --overwrite=false \
+  --retries=1
 ```
 
-## Current stabilization ratings
-- Word Quest no-scroll fit: `9.4/10`
-- Audio/translation reliability: `9.1/10`
-- Top nav + role-first Home: `9.0/10`
-- Kid-safe reveal clarity: `9.3/10`
-- Overall stabilization: `9.2/10`
+### Regenerate updated clips for `tax` in each named English pack
+```bash
+for pack in ava-multi emma-en guy-en-us sonia-en-gb ryan-en-gb; do
+  rm -f "audio/tts/packs/$pack/en/def/tax.mp3" "audio/tts/packs/$pack/en/sentence/tax.mp3"
+done
 
-## Latest pushed work (`af111db1`)
-- Files changed: `index.html`, `home.js`, `style.css`.
-- Home now runs as a real 4-step onboarding wizard:
-  - Step 1 role (Student / Parent-Caregiver / School Team)
-  - Step 2 student name + grade band
-  - Step 3 focus (Reading & Words / Math & Numbers / Both)
-  - Step 4 Quick Check (primary CTA)
-- Duplicate "Student" hero state removed; role chips are the single role control.
-- Home CTA is now `Start Quick Check` (Word Quest no longer the default start path).
-- Added local adaptive Quick Check flow in `home.js`:
-  - literacy and numeracy short branching item banks
-  - "How did you solve it?" strategy chips
-  - local summary persistence + recommended route CTA
-- Home collapsed first view is re-tuned to no-scroll at `1280x780`.
+npm run tts:azure -- --pack-id=ava-multi --pack-name="Ava Multilingual" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-ava.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=emma-en --pack-name="Emma English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-emma.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=guy-en-us --pack-name="Guy English US" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-us-guy.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=sonia-en-gb --pack-name="Sonia British English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-gb-sonia.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=ryan-en-gb --pack-name="Ryan British English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-gb-ryan.example.json --overwrite=false --retries=1
+```
 
-## Remaining known gap
-- Tagalog translation audio can still show as unavailable for some words in Word Quest when no packed TL clip exists (UI now fails safely instead of playing wrong-language audio).
+## Deploy reality
+- Only pushed commits are visible on GitHub/GitHub Pages.
+- If local edits exist, run:
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project"
+git add literacy-platform/app.js literacy-platform/words.js literacy-platform/HANDOFF.md
+git commit -m "Tighten kid-safe reveal sanitization and refresh tax copy"
+git push origin main
+```
 
-## Next max-impact steps
-1. Verify GitHub Pages deployment has finished for `af111db1` and confirm cache-busted live pages show the wizard.
-2. Finish TL/ES/ZH Azure clip coverage for any words still falling back to disabled translation audio.
-3. Refresh visual baselines (`home`, `word-quest`) after stakeholder sign-off on new Home layout.
-
-## Clean working tree note
-- Keep these out of commits unless intentionally needed:
-  - `literacy-platform/playwright-report/*`
-  - `literacy-platform/test-results/*`
-  - local media files / archive folders in repo root.
+## Next max-impact stabilization plan
+1. Complete full strict word-bank sweep for remaining higher-friction terms (`scary/hurt/hate/fight`) with explicit EN/ES/ZH/TL overrides where auto-sanitization still feels awkward.
+2. Re-export only changed clips per affected words and verify hear-buttons per language in HTTP context.
+3. Run focused visual regression (`home` + `word-quest`) and keep artifact outputs out of commits.
+4. Re-rate the four stabilization priorities after that sweep.

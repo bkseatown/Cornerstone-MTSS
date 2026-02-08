@@ -4,21 +4,31 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const DEFAULT_LANGUAGES = ['en', 'es', 'zh', 'tl', 'hi'];
+const DEFAULT_LANGUAGES = ['en', 'es', 'zh', 'tl', 'hi', 'ms', 'vi'];
 const DEFAULT_FIELDS = ['word', 'def', 'sentence'];
 const DEFAULT_VOICE_MAP = {
     en: 'en-US-JennyNeural',
     es: 'es-ES-ElviraNeural',
     zh: 'zh-CN-XiaoxiaoNeural',
     tl: 'fil-PH-BlessicaNeural',
-    hi: 'hi-IN-SwaraNeural'
+    hi: 'hi-IN-SwaraNeural',
+    ms: 'ms-MY-YasminNeural',
+    vi: 'vi-VN-HoaiMyNeural',
+    ar: 'ar-SA-ZariyahNeural',
+    ko: 'ko-KR-SunHiNeural',
+    ja: 'ja-JP-NanamiNeural'
 };
 const LANGUAGE_LOCALE_MAP = {
     en: 'en-US',
     es: 'es-ES',
     zh: 'zh-CN',
     tl: 'fil-PH',
-    hi: 'hi-IN'
+    hi: 'hi-IN',
+    ms: 'ms-MY',
+    vi: 'vi-VN',
+    ar: 'ar-SA',
+    ko: 'ko-KR',
+    ja: 'ja-JP'
 };
 const OUTPUT_FORMAT = 'audio-24khz-96kbitrate-mono-mp3';
 const PHONEME_MANIFEST_PREFIX = '@phoneme:';
@@ -148,6 +158,12 @@ function safePackId(packId = '') {
 function normalizeLangCode(code = 'en') {
     const raw = String(code || '').trim().toLowerCase();
     if (!raw) return 'en';
+    if (raw === 'hindi') return 'hi';
+    if (raw === 'malay' || raw === 'bahasa') return 'ms';
+    if (raw === 'vietnamese') return 'vi';
+    if (raw === 'arabic') return 'ar';
+    if (raw === 'korean') return 'ko';
+    if (raw === 'japanese') return 'ja';
     if (raw === 'fil' || raw === 'tagalog' || raw === 'filipino') return 'tl';
     if (raw.startsWith('zh')) return 'zh';
     return raw.slice(0, 2);
@@ -497,7 +513,8 @@ Required:
   --key=<azure_key>               or env AZURE_SPEECH_KEY
 
 Optional:
-  --languages=en,es,zh,tl,hi      (default: en,es,zh,tl,hi)
+  --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja
+                                   (default: en,es,zh,tl,hi,ms,vi)
   --fields=word,def,sentence      (default: word,def,sentence)
   --dry-run=true                  show task/character counts without calling Azure
   --include-passages=true         include decodable passage clips from app.js

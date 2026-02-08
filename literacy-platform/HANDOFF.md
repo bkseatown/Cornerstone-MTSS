@@ -7,8 +7,22 @@ Last updated: 2026-02-08
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
 - Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Latest pushed stabilization commit: `b181d237` (`origin/main`)
-- Current local (not pushed yet in this handoff state): `literacy-platform/app.js`, `literacy-platform/words.js`
+- Latest pushed commit: `4255cf25` (`origin/main`)
+- Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
+
+## 2026-02-08 latest shipped pass
+- Nav dropdown clipping fix:
+  - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).
+- Global Voice quick access:
+  - New persistent `🔊 Voice` shortcut in top nav across pages.
+  - Quick modal sets English voice dialect + default reveal language + lock toggle.
+  - Preview button dispatches immediate voice preview on Word Quest.
+- Word Quest language options expanded:
+  - Added `Arabic`, `Korean`, `Japanese` in reveal language dropdown and teacher default selector.
+  - Language labels include parenthetical English names.
+- Azure exporter improvements:
+  - Added locale + default voice support for `ms`, `vi`, `ar`, `ko`, `ja`.
+  - Updated `scripts/azure-voice-map.ava-multilingual.example.json` with recommended voices, including a stronger Vietnam voice baseline.
 
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
@@ -59,6 +73,10 @@ No net-new features before visual/UX stability passes.
   - `tl`: `500/500`
   - `ms`: `500/500`
   - `vi`: `500/500`
+  - `hi`: currently incomplete / per-word gaps remain
+  - `ar`: currently not populated across full bank
+  - `ko`: currently not populated across full bank
+  - `ja`: currently not populated across full bank
 
 ### Default Azure pack (`audio/tts`)
 - Manifest: `audio/tts/tts-manifest.json`
@@ -83,14 +101,16 @@ export AZURE_SPEECH_REGION="<your-region>"
 export AZURE_SPEECH_KEY="<your-key>"
 ```
 
-### Regenerate updated clips for `tax` in default multilingual pack (`en/es/zh/tl`)
+### Regenerate multilingual clips after copy updates
 ```bash
-rm -f audio/tts/en/def/tax.mp3 audio/tts/en/sentence/tax.mp3 \
-      audio/tts/es/def/tax.mp3 audio/tts/es/sentence/tax.mp3 \
-      audio/tts/zh/def/tax.mp3 audio/tts/zh/sentence/tax.mp3 \
-      audio/tts/tl/def/tax.mp3 audio/tts/tl/sentence/tax.mp3
-
-npm run tts:azure -- --languages=en,es,zh,tl --fields=def,sentence --overwrite=false --retries=1
+npm run tts:azure -- \
+  --pack-id=ava-multi \
+  --pack-name="Ava Multilingual" \
+  --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja \
+  --fields=word,def,sentence \
+  --voice-map=scripts/azure-voice-map.ava-multilingual.example.json \
+  --overwrite=false \
+  --retries=1
 ```
 
 ### Regenerate updated clips for `tax` in each named English pack
