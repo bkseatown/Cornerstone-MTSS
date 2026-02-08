@@ -3,105 +3,121 @@
 Last updated: 2026-02-08
 
 ## Project + repo
-- Project root: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
-- Git remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
+- Git root: `/Users/robertwilliamknaus/Desktop/New project`
+- App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
+- Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Current local state: dirty working tree with substantial uncommitted changes
-- HEAD vs remote: `HEAD == origin/main` at `3c1e18ba` (no new commits pushed yet)
+- Latest pushed stabilization commit: `b181d237` (`origin/main`)
+- Current local (not pushed yet in this handoff state): `literacy-platform/app.js`, `literacy-platform/words.js`
 
-## User direction (must preserve in future sessions)
-- Stabilization only first, in this order:
-  1. Word Quest no-scroll fit (desktop non-fullscreen + iPad)
-  2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
-  3. Simplified top navigation + role-first guided home
-  4. Kid-safe reveal definitions/sentences/jokes
-- Do not add net-new features until visual/UX checks pass.
-- Preserve existing page set and Word Quest core look/feel.
-- Keep teacher local recording studio concept (do not remove).
+## Non-negotiable user priorities
+1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
+2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
+3. Simplify top navigation and keep Home role-first/guided
+4. Enforce kid-safe, clear reveal definitions/sentences/jokes
 
-## Stabilization progress snapshot
-### 1) Word Quest fit and layout
-- `word-quest.html`, `style.css`, `app.js` adjusted to reduce header chrome and keep board + keyboard visible without forced scroll on typical desktop/iPad viewports.
-- Scroll fallback class behavior exists (`wq-scroll-fallback`) and should only trigger on truly constrained heights.
+No net-new features before visual/UX stability passes.
+
+## Stabilization status snapshot
+### 1) Word Quest fit
+- Verified via Playwright viewport sweep:
+  - `1440x900`, `1280x780`, `1024x1366`, `1024x820`
+  - `docOverflow=0` and `wq-scroll-fallback=false` in all tested viewports.
+- Board + keyboard fit remains stable after recent edits.
 
 ### 2) Audio + translation reliability
-- `app.js` now prioritizes packed TTS clips, then safely falls back.
-- Translation rendering no longer fabricates text when translation is missing; it shows `"Translation coming soon for this word."`.
-- Translation audio selection is language-matched only (prevents English voice speaking translated text in the wrong language).
-- Translation hear-buttons now stay enabled when packed clips exist, even if a matching system voice is missing.
-- Definition playback now uses `def` clip type instead of incorrectly routing to `sentence`.
-- `translations.js` reads from multilingual `WORDS_DATA`.
+- `app.js` now keeps translation hear-buttons enabled when packed clips exist, even if no matching system voice is found.
+- Definition playback uses the correct clip type (`def`) instead of sentence routing.
+- Packed clip lookup is always attempted (`shouldAttemptPackedTtsLookup() => true`) to avoid false "no audio" states.
+- Missing translation text shows clear fallback (`Translation coming soon for this word.`), not fake generated translation.
+- Important runtime note:
+  - `file://` runs can falsely disable some packed translation audio checks (fetch context issue).
+  - Validate from HTTP serving context (`http://localhost`) for real behavior.
 
-### 3) Navigation + guided home
-- `platform.js`, `home.js`, `index.html`, and activity pages updated toward grouped nav and clearer pathways.
-- Legacy top-level Teacher/Classroom nav competition was removed from activity top bars; tools are accessed through grouped nav/actions.
+### 3) Navigation + Home guidance
+- Grouped nav + role-first Home guidance work was shipped in `b181d237`.
+- Legacy top-level Classroom/Teacher competition is removed from activity top nav; tools are grouped in menu/actions.
 
 ### 4) Kid-safe reveal content
-- `app.js` includes young/EAL sanitization pipeline:
-  - unsafe-term blocklists
-  - short/simplified fallback definitions/sentences
-  - language-aware punctuation/length trimming
-- `young-overrides.js` contains manual overrides for specific high-priority words.
+- Young/EAL sanitizer pipeline is active in `app.js` with:
+  - word replacements
+  - blocklist checks
+  - concise safe fallbacks
+  - language-aware punctuation/length cleanup
+- Manual override bank exists in `young-overrides.js` (including: `sharp`, `dull`, `butter`, `blood`, `through`, `history`, `tax`).
+- New local updates (pending push in this handoff state):
+  - `app.js`: expanded young replacements for `scary`, `hurt`, `hate`, and `fight`.
+  - `words.js`: rewrote base `tax` definitions/sentences across `en/es/zh/tl/ms/vi` to be clearer and younger-safe.
 
-## TTS/translation asset status (important)
-### Word-level multilingual audio (default pack)
+## Translation + voice coverage status
+### Written translations (`words.js`)
+- Word count: `500`
+- Coverage (definition + sentence complete):
+  - `en`: `500/500`
+  - `es`: `500/500`
+  - `zh`: `500/500`
+  - `tl`: `500/500`
+  - `ms`: `500/500`
+  - `vi`: `500/500`
+
+### Default Azure pack (`audio/tts`)
 - Manifest: `audio/tts/tts-manifest.json`
-- Entries present: `6000`
-  - `en`: 500 word + 500 def + 500 sentence
-  - `es`: 500 word + 500 def + 500 sentence
-  - `zh`: 500 word + 500 def + 500 sentence
-  - `tl`: 500 word + 500 def + 500 sentence
-- File existence check: `missing = 0` for all manifest entries.
+- Entries: `6000`
+  - `en/es/zh/tl`: each `500 word + 500 def + 500 sentence`
+- File check: `missing=0` for manifest entries.
 
-### Downloaded Azure voice packs (named packs)
+### Named Azure packs (`audio/tts/packs/*`)
 - Registry: `audio/tts/packs/pack-registry.json`
-- Packs present: `ava-multi`, `emma-en`, `guy-en-us`, `sonia-en-gb`, `ryan-en-gb`
-- Each pack currently has:
-  - physical files: `500 word + 500 def + 500 sentence + 150 passage` under `audio/tts/packs/<pack>/en/...`
-  - manifest entries: `1650` total (`500 word + 500 def + 500 sentence + 150 passage`)
-  - fields include `word`, `def`, `sentence`, `passage`
+- Packs: `ava-multi`, `emma-en`, `guy-en-us`, `sonia-en-gb`, `ryan-en-gb`
+- Each pack manifest now includes:
+  - `500 word + 500 def + 500 sentence + 150 passage` (English)
+  - total `1650` entries.
 
-### Translation text coverage
-- `words.js` currently has `500` words with populated `en/es/zh/tl` definition+sentence fields (`500/500` for each language).
-- Hindi is not fully populated in `words.js`; UI may show “coming soon” for missing items.
+## Terminal commands: regenerate Azure audio for updated word copy
+Use these when definition/sentence text changes and you need fresh saved clips.
 
-## Decodable passages status
-- Passage expansion source exists: `decodables-expansion.js` (70 titled entries).
-- Existing fluency passage set in `fluency.js`: 11 passages.
-- Azure passage audio export includes a combined 150 passage set and is present in pack manifests/files:
-  - `audio/tts/packs/<pack>/tts-manifest.json` entries: `150` each.
-
-## Files currently modified/untracked (local only, not yet live)
-- Modified: `app.js`, `platform.js`, `style.css`, `home.js`, `index.html`, `word-quest.html`, `translations.js`, `words.js`, `young-overrides.js`, and several page HTML files (`cloze.html`, `comprehension.html`, `fluency.html`, `madlibs.html`, `writing.html`, `plan-it.html`, `number-sense.html`, `operations.html`).
-- Also modified by test runs: `playwright-report/index.html`, `test-results/.last-run.json`.
-- Untracked new files include: `assessments.html`, `assessments.js`, `favicon.ico`, `favicon.svg`, plus visual test artifact folders.
-
-## Deploy/live reality
-- If not committed and pushed, updates are not on GitHub Pages.
-- Current repo indicates no new commit beyond `3c1e18ba` is on `origin/main`, so the latest local stabilization edits are not yet live.
-
-## Required pre-push cleanup checklist
-1. Decide what belongs in commit vs local artifacts:
-   - normally exclude `playwright-report/` and `test-results/`.
-2. Review and intentionally include/exclude new files:
-   - `assessments.html`, `assessments.js`, `favicon.ico`, `favicon.svg`.
-3. Confirm no accidental outside-repo artifacts are staged.
-
-## Suggested ship commands
+### Prereqs
 ```bash
 cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
-git add app.js platform.js style.css home.js index.html word-quest.html translations.js words.js young-overrides.js cloze.html comprehension.html fluency.html madlibs.html writing.html plan-it.html number-sense.html operations.html
-git add assessments.html assessments.js favicon.ico favicon.svg
-git commit -m "Stabilize Word Quest layout, translation/audio reliability, nav clarity, and kid-safe reveal content"
+export AZURE_SPEECH_REGION="<your-region>"
+export AZURE_SPEECH_KEY="<your-key>"
+```
+
+### Regenerate updated clips for `tax` in default multilingual pack (`en/es/zh/tl`)
+```bash
+rm -f audio/tts/en/def/tax.mp3 audio/tts/en/sentence/tax.mp3 \
+      audio/tts/es/def/tax.mp3 audio/tts/es/sentence/tax.mp3 \
+      audio/tts/zh/def/tax.mp3 audio/tts/zh/sentence/tax.mp3 \
+      audio/tts/tl/def/tax.mp3 audio/tts/tl/sentence/tax.mp3
+
+npm run tts:azure -- --languages=en,es,zh,tl --fields=def,sentence --overwrite=false --retries=1
+```
+
+### Regenerate updated clips for `tax` in each named English pack
+```bash
+for pack in ava-multi emma-en guy-en-us sonia-en-gb ryan-en-gb; do
+  rm -f "audio/tts/packs/$pack/en/def/tax.mp3" "audio/tts/packs/$pack/en/sentence/tax.mp3"
+done
+
+npm run tts:azure -- --pack-id=ava-multi --pack-name="Ava Multilingual" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-ava.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=emma-en --pack-name="Emma English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-emma.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=guy-en-us --pack-name="Guy English US" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-us-guy.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=sonia-en-gb --pack-name="Sonia British English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-gb-sonia.example.json --overwrite=false --retries=1
+npm run tts:azure -- --pack-id=ryan-en-gb --pack-name="Ryan British English" --languages=en --fields=def,sentence --voice-map=scripts/azure-voice-map.en-gb-ryan.example.json --overwrite=false --retries=1
+```
+
+## Deploy reality
+- Only pushed commits are visible on GitHub/GitHub Pages.
+- If local edits exist, run:
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project"
+git add literacy-platform/app.js literacy-platform/words.js literacy-platform/HANDOFF.md
+git commit -m "Tighten kid-safe reveal sanitization and refresh tax copy"
 git push origin main
 ```
 
-## High-priority follow-up tasks (next session)
-1. Re-run viewport fit checks on Word Quest (desktop 1280x780 and iPad sizes) after final CSS consolidation.
-2. Run targeted visual suite for Home + Word Quest and accept/update snapshots only after UX sign-off.
-3. Final content sweep for young/EAL tone on any remaining edgy definitions/sentences that slip through sanitizer.
-
-## Notes for future Codex sessions
-- Start by reading this file, then run `git status -sb` and `git diff --stat`.
-- Assume user wants autonomous execution; avoid repeated confirmation prompts unless blocked by permissions or destructive actions.
-- If Playwright fails in sandbox, rerun with elevated permissions instead of pausing progress.
+## Next max-impact stabilization plan
+1. Complete full strict word-bank sweep for remaining higher-friction terms (`scary/hurt/hate/fight`) with explicit EN/ES/ZH/TL overrides where auto-sanitization still feels awkward.
+2. Re-export only changed clips per affected words and verify hear-buttons per language in HTTP context.
+3. Run focused visual regression (`home` + `word-quest`) and keep artifact outputs out of commits.
+4. Re-rate the four stabilization priorities after that sweep.

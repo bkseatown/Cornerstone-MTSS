@@ -162,28 +162,28 @@ const WORDS_DATA =
   "tax": {
     "pos": "noun",
     "en": {
-      "def": "Money you pay to the government that makes grown-ups look at their paychecks and sigh.",
-      "sentence": "The man opened the envelope, looked at the tax bill, and slowly put his head on the table."
+      "def": "Money people pay to help support schools, parks, roads, and other community services.",
+      "sentence": "Adults pay tax to help keep parks, buses, and libraries running."
     },
     "es": {
-      "def": "Dinero que pagas al gobierno que hace que los adultos miren sus cheques y suspiren.",
-      "sentence": "El hombre abrió el sobre, miró la factura y apoyó lentamente la cabeza en la mesa."
+      "def": "Dinero que las personas pagan para apoyar escuelas, parques, carreteras y otros servicios comunitarios.",
+      "sentence": "Los adultos pagan impuestos para ayudar a que funcionen los parques, autobuses y bibliotecas."
     },
     "zh": {
-      "def": "一种付给政府的钱，大人们看到工资单上的这笔扣款时总会叹气。",
-      "sentence": "男人打开信封，看了看账单，慢慢地把头趴在了桌子上。"
+      "def": "人们缴给政府的一笔钱，用来支持学校、公园、道路等社区服务。",
+      "sentence": "大人交税，帮助公园、公交和图书馆继续运作。"
     },
     "ms": {
-      "def": "Wang yang anda bayar kepada kerajaan yang membuatkan orang dewasa mengeluh apabila melihat gaji mereka.",
-      "sentence": "Lelaki itu membuka sampul surat, melihat bil tersebut, dan perlahan-lahan meletakkan kepalanya di atas meja."
+      "def": "Wang yang dibayar oleh orang ramai untuk menyokong sekolah, taman, jalan raya dan perkhidmatan komuniti.",
+      "sentence": "Orang dewasa membayar cukai untuk membantu taman, bas dan perpustakaan terus berfungsi."
     },
     "vi": {
-      "def": "Tiền bạn nộp cho chính phủ, thứ khiến người lớn nhìn vào phiếu lương và thở dài.",
-      "sentence": "Người đàn ông mở phong bì, nhìn vào hóa đơn, và từ từ gục đầu xuống bàn."
+      "def": "Khoản tiền mọi người đóng để hỗ trợ trường học, công viên, đường sá và các dịch vụ cộng đồng.",
+      "sentence": "Người lớn đóng thuế để giúp công viên, xe buýt và thư viện hoạt động tốt."
     },
     "tl": {
-      "def": "Pera na binabayad mo sa gobyerno na nagpapabuntong-hininga sa mga matatanda kapag nakita ang sweldo nila.",
-      "sentence": "Binuksan ng lalaki ang sobre, tinignan ang bill, at dahan-dahang inilagay ang kanyang ulo sa mesa."
+      "def": "Pera na binabayaran ng mga tao para suportahan ang paaralan, parke, kalsada, at iba pang serbisyong pangkomunidad.",
+      "sentence": "Nagbabayad ng buwis ang mga matatanda para manatiling maayos ang parke, bus, at aklatan."
     },
     "phonics": {
       "syllables": 1,

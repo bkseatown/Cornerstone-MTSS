@@ -6739,8 +6739,13 @@ function confetti() {
 const YOUNG_AUDIENCE_WORD_REPLACEMENTS = [
     [/\bguy\b/gi, 'person'],
     [/\bgross\b/gi, 'messy'],
+    [/\bscary\b/gi, 'surprising'],
     [/\bcrazy\b/gi, 'silly'],
     [/\bterrible\b/gi, 'not great'],
+    [/\bhurt\b/gi, 'feel sore'],
+    [/\bhate\b/gi, 'do not enjoy'],
+    [/\bfight scene\b/gi, 'action scene'],
+    [/\bfight\b/gi, 'game'],
     [/\bcrash(?:ed|ing)?\b/gi, 'bumped'],
     [/\bshriek(?:ed|ing)?\b/gi, 'made a loud sound'],
     [/\bstupid\b/gi, 'tricky'],
