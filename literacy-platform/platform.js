@@ -165,6 +165,24 @@
     }
   ];
 
+  const QUICK_VOICE_DIALECTS = [
+    { value: 'en-US', label: 'American English' },
+    { value: 'en-GB', label: 'British English' }
+  ];
+
+  const QUICK_TRANSLATION_LANGS = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español (Spanish)' },
+    { value: 'zh', label: '中文 (Simplified Chinese)' },
+    { value: 'tl', label: 'Tagalog (Filipino)' },
+    { value: 'hi', label: 'हिन्दी (Hindi)' },
+    { value: 'ms', label: 'Bahasa Melayu (Malay)' },
+    { value: 'vi', label: 'Tiếng Việt (Vietnamese)' },
+    { value: 'ar', label: 'العربية (Arabic)' },
+    { value: 'ko', label: '한국어 (Korean)' },
+    { value: 'ja', label: '日本語 (Japanese)' }
+  ];
+
   const GUIDE_TIP_DISMISS_PREFIX = 'cornerstone_guide_tip_dismissed_v1::';
   const GUIDE_TIPS = {
     home: {
@@ -1729,6 +1747,193 @@
     return details;
   }
 
+  function positionNavMenuPanel(menu) {
+    if (!(menu instanceof HTMLElement)) return;
+    const panel = menu.querySelector('.header-activity-panel');
+    if (!(panel instanceof HTMLElement)) return;
+    panel.style.transform = 'translateX(0)';
+
+    const viewportWidth = Math.max(window.innerWidth || 0, document.documentElement?.clientWidth || 0);
+    if (!viewportWidth) return;
+    const gutter = 8;
+    const rect = panel.getBoundingClientRect();
+    let shift = 0;
+
+    if (rect.left < gutter) {
+      shift += (gutter - rect.left);
+    }
+    if (rect.right > (viewportWidth - gutter)) {
+      shift -= (rect.right - (viewportWidth - gutter));
+    }
+
+    if (Math.abs(shift) > 0.5) {
+      panel.style.transform = `translateX(${Math.round(shift)}px)`;
+    }
+  }
+
+  function positionOpenNavPanels(nav) {
+    if (!(nav instanceof HTMLElement)) return;
+    const openMenus = Array.from(nav.querySelectorAll('.header-activity-menu[open]'));
+    openMenus.forEach((menu) => positionNavMenuPanel(menu));
+  }
+
+  function applyVoiceQuickSettings(patch = {}) {
+    const api = window.DECODE_PLATFORM;
+    if (api?.setSettings && typeof api.setSettings === 'function') {
+      return api.setSettings(patch);
+    }
+    const updated = writeScopedSettings(patch);
+    applyPlatformAccessibilitySettings(updated);
+    window.dispatchEvent(new CustomEvent('decode:settings-changed', { detail: updated }));
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    return updated;
+  }
+
+  function ensureVoiceQuickModal() {
+    let overlay = document.getElementById('voice-quick-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.id = 'voice-quick-overlay';
+    overlay.className = 'voice-quick-overlay hidden';
+    overlay.innerHTML = `
+      <section class="voice-quick-modal" role="dialog" aria-modal="true" aria-labelledby="voice-quick-title">
+        <header class="voice-quick-head">
+          <h2 id="voice-quick-title">Voice & Language</h2>
+          <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
+        </header>
+        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately.</p>
+        <label class="voice-quick-field">
+          <span>English voice</span>
+          <select id="voice-quick-dialect">
+            ${QUICK_VOICE_DIALECTS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
+          </select>
+        </label>
+        <label class="voice-quick-field">
+          <span>Reveal translation default</span>
+          <select id="voice-quick-language">
+            ${QUICK_TRANSLATION_LANGS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
+          </select>
+        </label>
+        <label class="voice-quick-lock">
+          <input type="checkbox" id="voice-quick-pin-language" />
+          Lock reveal language on this learner
+        </label>
+        <div class="voice-quick-actions">
+          <button type="button" class="voice-quick-preview">Preview Voice</button>
+          <button type="button" class="voice-quick-done">Done</button>
+        </div>
+      </section>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeOverlay = () => overlay.classList.add('hidden');
+    const openOverlay = () => {
+      const settings = readScopedSettings();
+      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
+      const languageSelect = overlay.querySelector('#voice-quick-language');
+      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
+
+      if (dialectSelect instanceof HTMLSelectElement) {
+        const nextDialect = String(settings.voiceDialect || QUICK_VOICE_DIALECTS[0].value || 'en-US');
+        dialectSelect.value = QUICK_VOICE_DIALECTS.some((item) => item.value === nextDialect)
+          ? nextDialect
+          : QUICK_VOICE_DIALECTS[0].value;
+      }
+      if (languageSelect instanceof HTMLSelectElement) {
+        const lang = String(settings.translation?.lang || 'en');
+        languageSelect.value = QUICK_TRANSLATION_LANGS.some((item) => item.value === lang) ? lang : 'en';
+      }
+      if (pinToggle instanceof HTMLInputElement) {
+        pinToggle.checked = !!settings.translation?.pinned;
+      }
+
+      overlay.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        (dialectSelect instanceof HTMLSelectElement ? dialectSelect : overlay.querySelector('.voice-quick-done'))?.focus();
+      });
+    };
+
+    const saveFromControls = () => {
+      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
+      const languageSelect = overlay.querySelector('#voice-quick-language');
+      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
+
+      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
+      const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
+      const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
+
+      applyVoiceQuickSettings({
+        voiceDialect: selectedDialect,
+        translation: {
+          pinned: shouldPin,
+          lang: selectedLanguage
+        }
+      });
+    };
+
+    overlay.querySelector('.voice-quick-close')?.addEventListener('click', closeOverlay);
+    overlay.querySelector('.voice-quick-done')?.addEventListener('click', closeOverlay);
+    overlay.querySelector('.voice-quick-preview')?.addEventListener('click', () => {
+      saveFromControls();
+      window.dispatchEvent(new CustomEvent('cornerstone:voice-preview', {
+        detail: {
+          text: 'This is your selected English listening voice.'
+        }
+      }));
+    });
+
+    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
+    if (dialectSelect instanceof HTMLSelectElement) {
+      dialectSelect.addEventListener('change', saveFromControls);
+    }
+    const languageSelect = overlay.querySelector('#voice-quick-language');
+    if (languageSelect instanceof HTMLSelectElement) {
+      languageSelect.addEventListener('change', saveFromControls);
+    }
+    const pinToggle = overlay.querySelector('#voice-quick-pin-language');
+    if (pinToggle instanceof HTMLInputElement) {
+      pinToggle.addEventListener('change', saveFromControls);
+    }
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) closeOverlay();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
+        closeOverlay();
+      }
+    });
+
+    overlay.openQuickVoice = openOverlay;
+    return overlay;
+  }
+
+  function renderGlobalVoiceShortcut(nav) {
+    if (!(nav instanceof HTMLElement)) return;
+    const existing = nav.querySelector('.header-voice-shortcut');
+    if (existing) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'link-btn header-voice-shortcut';
+    button.innerHTML = '<span aria-hidden="true">🔊</span> Voice';
+    button.title = 'Change listening voice and translation language';
+
+    button.addEventListener('click', () => {
+      const overlay = ensureVoiceQuickModal();
+      if (overlay && typeof overlay.openQuickVoice === 'function') {
+        overlay.openQuickVoice();
+      } else {
+        overlay?.classList?.remove('hidden');
+      }
+    });
+    nav.appendChild(button);
+  }
+
   function wirePrimaryNavMenus(nav, currentId = '') {
     if (!nav) return;
     const menus = Array.from(nav.querySelectorAll('.header-activity-menu'));
@@ -1736,12 +1941,30 @@
       if (menu.dataset.bound === 'true') return;
       menu.dataset.bound = 'true';
       menu.addEventListener('toggle', () => {
-        if (!menu.open) return;
+        const panel = menu.querySelector('.header-activity-panel');
+        if (!menu.open) {
+          if (panel instanceof HTMLElement) panel.style.transform = '';
+          return;
+        }
         menus.forEach((other) => {
-          if (other !== menu) other.removeAttribute('open');
+          if (other !== menu) {
+            other.removeAttribute('open');
+            const otherPanel = other.querySelector('.header-activity-panel');
+            if (otherPanel instanceof HTMLElement) otherPanel.style.transform = '';
+          }
+        });
+        requestAnimationFrame(() => {
+          positionNavMenuPanel(menu);
         });
       });
     });
+
+    if (nav.dataset.menuLayoutBound !== 'true') {
+      nav.dataset.menuLayoutBound = 'true';
+      const reposition = () => positionOpenNavPanels(nav);
+      window.addEventListener('resize', reposition);
+      nav.addEventListener('scroll', reposition, { passive: true });
+    }
 
     if (nav.dataset.dismissBound !== 'true') {
       nav.dataset.dismissBound = 'true';
@@ -1795,6 +2018,7 @@
         const menu = createNavGroupMenu(group, currentId, currentFile);
         if (menu) nav.appendChild(menu);
       });
+      renderGlobalVoiceShortcut(nav);
       wirePrimaryNavMenus(nav, currentId);
     });
 

@@ -1862,6 +1862,46 @@ function applyWordQuestToolParamIfPresent() {
     } catch {}
 }
 
+function syncSettingsFromPlatform(nextSettings = {}) {
+    if (!nextSettings || typeof nextSettings !== 'object') return;
+    let changed = false;
+
+    const nextVoiceDialect = String(nextSettings.voiceDialect || '').trim();
+    if (nextVoiceDialect && nextVoiceDialect !== appSettings.voiceDialect) {
+        appSettings.voiceDialect = nextVoiceDialect;
+        sessionEnglishVoice = { dialect: '', voiceUri: '' };
+        changed = true;
+    }
+
+    if (nextSettings.translation && typeof nextSettings.translation === 'object') {
+        const nextTranslationLang = String(nextSettings.translation.lang || appSettings.translation?.lang || 'en').trim() || 'en';
+        const nextTranslationPinned = !!nextSettings.translation.pinned;
+        if (!appSettings.translation) {
+            appSettings.translation = { ...DEFAULT_SETTINGS.translation };
+        }
+        if (nextTranslationLang !== appSettings.translation.lang) {
+            appSettings.translation.lang = nextTranslationLang;
+            changed = true;
+        }
+        if (nextTranslationPinned !== !!appSettings.translation.pinned) {
+            appSettings.translation.pinned = nextTranslationPinned;
+            changed = true;
+        }
+    }
+
+    if (!changed) return;
+    saveSettings();
+    applySettings();
+    updateVoiceInstallPrompt();
+    updateEnhancedVoicePrompt();
+}
+
+function previewSelectedVoice(sampleText = '') {
+    const text = String(sampleText || 'This is your selected English listening voice.').trim();
+    if (!text) return;
+    speak(text, 'sentence');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add('force-light');
     document.documentElement.classList.add('force-light');
@@ -1979,6 +2019,15 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('cornerstone:tool-request', (event) => {
         const action = event?.detail?.action || '';
         openWordQuestToolAction(action);
+    });
+
+    window.addEventListener('decode:settings-changed', (event) => {
+        syncSettingsFromPlatform(event?.detail || {});
+    });
+
+    window.addEventListener('cornerstone:voice-preview', (event) => {
+        const text = event?.detail?.text || '';
+        previewSelectedVoice(text);
     });
 
     applyWordQuestToolParamIfPresent();
@@ -3076,7 +3125,10 @@ function getTranslationVoiceTarget(languageCode) {
         'tl': 'fil',
         'ms': 'ms',
         'pt': 'pt',
-        'hi': 'hi'
+        'hi': 'hi',
+        'ar': 'ar',
+        'ko': 'ko',
+        'ja': 'ja'
     };
     return langMappings[languageCode] || languageCode;
 }
@@ -3303,7 +3355,10 @@ function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
         hi: 'हिन्दी (Hindi)',
         tl: 'Tagalog (Filipino)',
         ms: 'Bahasa Melayu (Malay)',
-        vi: 'Tiếng Việt (Vietnamese)'
+        vi: 'Tiếng Việt (Vietnamese)',
+        ar: 'العربية (Arabic)',
+        ko: '한국어 (Korean)',
+        ja: '日本語 (Japanese)'
     };
     if (normalized === 'en') {
         return fallback || 'English';
@@ -3680,6 +3735,9 @@ function initTeacherTools() {
                     <option value="tl">Tagalog (Filipino)</option>
                     <option value="ms">Bahasa Melayu (Malay)</option>
                     <option value="vi">Tiếng Việt (Vietnamese)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="ko">한국어 (Korean)</option>
+                    <option value="ja">日本語 (Japanese)</option>
                 </select>
 
                 <label for="teacher-audience-mode">Language style</label>
@@ -3803,6 +3861,9 @@ function ensureTeacherLaunchpad() {
                 <option value="tl">Tagalog (Filipino)</option>
                 <option value="ms">Bahasa Melayu (Malay)</option>
                 <option value="vi">Tiếng Việt (Vietnamese)</option>
+                <option value="ar">العربية (Arabic)</option>
+                <option value="ko">한국어 (Korean)</option>
+                <option value="ja">日本語 (Japanese)</option>
             </select>
             <label for="teacher-audience-mode">Language style</label>
             <select id="teacher-audience-mode">
@@ -7076,6 +7137,18 @@ const KID_SAFE_TEXT_FALLBACKS = {
     hi: {
         definition: (word) => `"${word}" कक्षा में पढ़ने, समझने और साफ़ बोलने के लिए अभ्यास शब्द है।`,
         sentence: (word) => `उदाहरण: "हमारी कक्षा ने अभ्यास के दौरान ${word} का स्पष्ट वाक्य में उपयोग किया।"`
+    },
+    ar: {
+        definition: (word) => `"${word}" كلمة تدريب صفية للقراءة والفهم والتعبير الواضح.`,
+        sentence: (word) => `مثال: "استخدم فصلنا كلمة ${word} في جملة واضحة أثناء التدريب."`
+    },
+    ko: {
+        definition: (word) => `"${word}" 는 읽기와 이해, 또렷한 말하기를 위한 수업 연습 단어입니다.`,
+        sentence: (word) => `예시: "우리 반은 연습 시간에 ${word} 를 넣어 또렷한 문장을 만들었어요."`
+    },
+    ja: {
+        definition: (word) => `"${word}" は、読む・理解する・はっきり話す練習のための授業用語です。`,
+        sentence: (word) => `例: "わたしたちのクラスは練習中に ${word} を使って分かりやすい文を作りました。"`
     }
 };
 const SCHOOL_SAFE_REVEAL_OVERRIDES = {
