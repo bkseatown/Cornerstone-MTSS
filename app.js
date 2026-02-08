@@ -171,6 +171,8 @@ const DEFAULT_SETTINGS = {
 const UI_LOOK_CLASSES = ['look-k2', 'look-35', 'look-612'];
 const HOME_ROLE_STORAGE_KEY = 'cornerstone_home_role_v1';
 const HOME_LANGUAGE_PREFERENCE_KEY = 'cornerstone_home_language_pref_v1';
+const SHUFFLE_MEMORY_KEY_PREFIX = 'cornerstone_shuffle_memory_v1::';
+const BONUS_SHUFFLE_ENTRY_DELIM = '||::||';
 const YOUNG_AUDIENCE_ROLE_PATHWAYS = new Set(['eal']);
 const SHUFFLE_FOCUS_AVOID_FOR_YOUNG = new Set(['schwa', 'prefix', 'suffix', 'compound', 'multisyllable']);
 const SHUFFLE_FOCUS_PRIORITY = ['cvc', 'digraph', 'ccvc', 'cvcc', 'trigraph', 'cvce', 'vowel_team', 'r_controlled', 'diphthong', 'floss', 'welded'];
@@ -878,7 +880,34 @@ function clearPackedTtsCaches() {
 function normalizePackManifestPath(rawPath = '') {
     const candidate = String(rawPath || '').trim();
     if (!candidate) return '';
-    return candidate.replace(/^\.\/+/, '');
+    if (/^(https?:)?\/\//i.test(candidate)) return candidate;
+
+    const normalized = candidate
+        .replace(/^\.\/+/, '')
+        .replace(/^\/+/, '');
+    const base = PACKED_TTS_BASE_PATH.replace(/\/+$/, '');
+    const plainBase = 'audio/tts';
+    const scopedBase = 'literacy-platform/audio/tts';
+
+    if (normalized === base || normalized.startsWith(`${base}/`)) {
+        return normalized;
+    }
+
+    if ((normalized === plainBase || normalized.startsWith(`${plainBase}/`)) && base === scopedBase) {
+        const suffix = normalized.slice(plainBase.length).replace(/^\/+/, '');
+        return suffix ? `${base}/${suffix}` : base;
+    }
+
+    if ((normalized === scopedBase || normalized.startsWith(`${scopedBase}/`)) && base === plainBase) {
+        const suffix = normalized.slice(scopedBase.length).replace(/^\/+/, '');
+        return suffix ? `${base}/${suffix}` : base;
+    }
+
+    if (normalized.startsWith('packs/') || normalized.startsWith('tts-manifest')) {
+        return `${base}/${normalized}`;
+    }
+
+    return normalized;
 }
 
 function getDefaultTtsPackOption() {
@@ -991,6 +1020,12 @@ async function loadPackedTtsManifestFromPath(manifestPath = '') {
                 packedTtsManifestCacheByPath.set(normalizedPath, empty);
                 return empty;
             }
+            const normalizedEntries = {};
+            Object.entries(parsed.entries || {}).forEach(([key, value]) => {
+                if (!key || typeof value !== 'string') return;
+                normalizedEntries[key] = normalizePackManifestPath(value);
+            });
+            parsed.entries = normalizedEntries;
             packedTtsManifestCacheByPath.set(normalizedPath, parsed);
             return parsed;
         })
@@ -1016,6 +1051,57 @@ async function loadPackedTtsManifest() {
         manifest.__manifestPath = selectedPack.manifestPath;
     }
     return manifest;
+}
+
+function getPackedClipPathCandidates(rawPath = '') {
+    const normalized = normalizePackManifestPath(rawPath);
+    if (!normalized) return [];
+    const plainBase = 'audio/tts';
+    const scopedBase = 'literacy-platform/audio/tts';
+    const candidates = [normalized];
+
+    if (normalized.startsWith(`${plainBase}/`)) {
+        candidates.push(`${scopedBase}/${normalized.slice(plainBase.length + 1)}`);
+    } else if (normalized.startsWith(`${scopedBase}/`)) {
+        candidates.push(`${plainBase}/${normalized.slice(scopedBase.length + 1)}`);
+    }
+
+    return Array.from(new Set(candidates.filter(Boolean)));
+}
+
+async function playPackedClipWithFallbackPaths(rawPath = '', options = {}) {
+    const candidates = getPackedClipPathCandidates(rawPath);
+    for (const candidate of candidates) {
+        const played = await playAudioClipUrl(candidate, options);
+        if (played) return true;
+    }
+    return false;
+}
+
+async function findPackedTtsClipAcrossPacks(manifestKey = '', languageCode = 'en') {
+    const key = String(manifestKey || '').trim();
+    if (!key) return '';
+    const targetLang = normalizePackedTtsLanguage(languageCode);
+    const registry = await loadPackedTtsPackRegistry();
+    const packs = Array.isArray(registry?.packs) ? registry.packs.slice() : [];
+    if (!packs.length) return '';
+
+    const ordered = packs.sort((a, b) => {
+        const aHasLang = Array.isArray(a?.languages) && a.languages.some((lang) => normalizePackedTtsLanguage(lang) === targetLang);
+        const bHasLang = Array.isArray(b?.languages) && b.languages.some((lang) => normalizePackedTtsLanguage(lang) === targetLang);
+        if (aHasLang !== bHasLang) return aHasLang ? -1 : 1;
+        if (a?.id === 'default' && b?.id !== 'default') return 1;
+        if (b?.id === 'default' && a?.id !== 'default') return -1;
+        return String(a?.name || a?.id || '').localeCompare(String(b?.name || b?.id || ''));
+    });
+
+    for (const pack of ordered) {
+        const manifestPath = pack?.manifestPath || PACKED_TTS_DEFAULT_MANIFEST_PATH;
+        const manifest = await loadPackedTtsManifestFromPath(manifestPath);
+        const clipPath = manifest?.entries?.[key];
+        if (clipPath) return clipPath;
+    }
+    return '';
 }
 
 function stopAllActiveAudioPlayers() {
@@ -1063,7 +1149,7 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
     if (!key) return false;
     const primaryClip = manifest.entries[key];
     if (primaryClip) {
-        const played = await playAudioClipUrl(primaryClip);
+        const played = await playPackedClipWithFallbackPaths(primaryClip);
         if (played) return true;
     }
 
@@ -1072,8 +1158,13 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            return playAudioClipUrl(fallbackClip);
+            const played = await playPackedClipWithFallbackPaths(fallbackClip);
+            if (played) return true;
         }
+    }
+    const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    if (crossPackClip) {
+        return playPackedClipWithFallbackPaths(crossPackClip);
     }
     return false;
 }
@@ -1095,6 +1186,8 @@ async function hasPackedTtsClipForCurrentWord({ text = '', languageCode = 'en', 
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         if (fallbackManifest?.entries?.[key]) return true;
     }
+    const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    if (crossPackClip) return true;
     return false;
 }
 
@@ -1107,7 +1200,7 @@ async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
     const key = getPackedPhonemeManifestKey(normalizedSound, languageCode);
     const primaryClip = manifest?.entries?.[key];
     if (primaryClip) {
-        const played = await playAudioClipUrl(primaryClip);
+        const played = await playPackedClipWithFallbackPaths(primaryClip);
         if (played) return true;
     }
 
@@ -1116,7 +1209,7 @@ async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            return playAudioClipUrl(fallbackClip);
+            return playPackedClipWithFallbackPaths(fallbackClip);
         }
     }
 
@@ -1136,7 +1229,7 @@ async function tryPlayPackedPassageClip({
     const manifest = await loadPackedTtsManifest();
     const primaryClip = manifest?.entries?.[key];
     if (primaryClip) {
-        const played = await playAudioClipUrl(primaryClip, { playbackRate, onPlay });
+        const played = await playPackedClipWithFallbackPaths(primaryClip, { playbackRate, onPlay });
         if (played) return true;
     }
 
@@ -1145,7 +1238,7 @@ async function tryPlayPackedPassageClip({
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            return playAudioClipUrl(fallbackClip, { playbackRate, onPlay });
+            return playPackedClipWithFallbackPaths(fallbackClip, { playbackRate, onPlay });
         }
     }
 
@@ -2871,7 +2964,7 @@ function getTranslationVoiceTarget(languageCode) {
         'es': 'es',
         'zh': 'zh',
         'vi': 'vi',
-        'tl': 'fil',
+        'tl': 'tl',
         'ms': 'ms',
         'pt': 'pt',
         'hi': 'hi'
@@ -2885,7 +2978,7 @@ function voiceMatchesLanguage(voice, targetLang = 'en') {
 }
 
 async function hasVoiceForLanguage(languageCode, options = {}) {
-    const voices = await getVoicesAsync();
+    const voices = await getVoicesForSpeech();
     const targetLang = getTranslationVoiceTarget(languageCode);
     if (options.requireHighQuality) {
         return !!pickBestVoiceForLang(voices, targetLang, { requireHighQuality: true });
@@ -3090,6 +3183,31 @@ function getYoungAudienceDefaultTranslationLanguage() {
     const preferred = getPreferredTranslationLanguage();
     if (preferred && preferred !== 'en') return preferred;
     return 'es';
+}
+
+function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
+    const normalized = normalizePackedTtsLanguage(code);
+    const fallback = String(fallbackLabel || '').trim();
+    const labels = {
+        es: 'Español (Spanish)',
+        zh: '中文 (Simplified Chinese)',
+        hi: 'हिन्दी (Hindi)',
+        tl: 'Tagalog (Filipino)',
+        ms: 'Bahasa Melayu (Malay)',
+        vi: 'Tiếng Việt (Vietnamese)'
+    };
+    if (normalized === 'en') {
+        return fallback || 'English';
+    }
+    return labels[normalized] || fallback || normalized.toUpperCase();
+}
+
+function applyTranslationLanguageOptionLabels(selectEl) {
+    if (!(selectEl instanceof HTMLSelectElement)) return;
+    Array.from(selectEl.options).forEach((option) => {
+        const lang = normalizePackedTtsLanguage(option.value || '');
+        option.textContent = formatTranslationLanguageLabel(lang, option.textContent || '');
+    });
 }
 
 /* --- CONTROLS & EVENTS --- */
@@ -3447,12 +3565,12 @@ function initTeacherTools() {
                 <label for="teacher-translation-default">Reveal language</label>
                 <select id="teacher-translation-default">
                     <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="zh">Chinese (Simplified)</option>
-                    <option value="hi">Hindi</option>
-                    <option value="tl">Tagalog</option>
-                    <option value="ms">Malay</option>
-                    <option value="vi">Vietnamese</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="zh">中文 (Simplified Chinese)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="tl">Tagalog (Filipino)</option>
+                    <option value="ms">Bahasa Melayu (Malay)</option>
+                    <option value="vi">Tiếng Việt (Vietnamese)</option>
                 </select>
 
                 <label for="teacher-audience-mode">Language style</label>
@@ -3506,6 +3624,7 @@ function initTeacherTools() {
 
     const translationSelect = document.getElementById('teacher-translation-default');
     if (translationSelect) {
+        applyTranslationLanguageOptionLabels(translationSelect);
         translationSelect.value = normalizePackedTtsLanguage(appSettings.translation?.lang || 'en');
         translationSelect.onchange = () => {
             appSettings.translation.lang = translationSelect.value;
@@ -3569,12 +3688,12 @@ function ensureTeacherLaunchpad() {
             <label for="teacher-translation-default">Reveal language</label>
             <select id="teacher-translation-default">
                 <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="zh">Chinese (Simplified)</option>
-                <option value="hi">Hindi</option>
-                <option value="tl">Tagalog</option>
-                <option value="ms">Malay</option>
-                <option value="vi">Vietnamese</option>
+                <option value="es">Español (Spanish)</option>
+                <option value="zh">中文 (Simplified Chinese)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="tl">Tagalog (Filipino)</option>
+                <option value="ms">Bahasa Melayu (Malay)</option>
+                <option value="vi">Tiếng Việt (Vietnamese)</option>
             </select>
             <label for="teacher-audience-mode">Language style</label>
             <select id="teacher-audience-mode">
@@ -5082,6 +5201,8 @@ function getWordFromDictionary() {
     }))).filter((tag) => tag && tag !== 'all' && tag !== 'shuffle');
 
     let effectivePattern = pattern;
+    let forcedWord = '';
+    let shuffleUsesAnyLength = false;
     activeRoundFallbackNote = '';
     if (pattern === 'shuffle') {
         const focusCandidates = selectableFocuses.filter((tag) => getPool({ focus: tag }).length > 0);
@@ -5099,7 +5220,27 @@ function getWordFromDictionary() {
         if (orderedCandidates.length) {
             const lengthMatched = orderedCandidates.filter((tag) => getPool({ focus: tag, length: targetLen }).length > 0);
             const source = lengthMatched.length ? lengthMatched : orderedCandidates;
-            effectivePattern = source[Math.floor(Math.random() * source.length)];
+            const shuffleLength = lengthMatched.length ? targetLen : null;
+            shuffleUsesAnyLength = Number.isFinite(targetLen) && shuffleLength === null;
+            const mergedPool = Array.from(new Set(source.flatMap((tag) => getPool({ focus: tag, length: shuffleLength }))));
+            forcedWord = getNonRepeatingShuffleChoice(
+                mergedPool,
+                `word:shuffle:${targetLen || 'any'}:${getResolvedAudienceMode()}`
+            ) || '';
+
+            if (forcedWord) {
+                const tags = Array.isArray(window.WORD_ENTRIES?.[forcedWord]?.tags)
+                    ? window.WORD_ENTRIES[forcedWord].tags
+                    : [];
+                effectivePattern = source.find((tag) => tags.includes(tag))
+                    || orderedCandidates.find((tag) => tags.includes(tag))
+                    || 'all';
+            } else {
+                effectivePattern = getNonRepeatingShuffleChoice(
+                    source,
+                    `focus:${targetLen || 'any'}:${getResolvedAudienceMode()}`
+                ) || source[Math.floor(Math.random() * source.length)];
+            }
         } else {
             effectivePattern = 'all';
         }
@@ -5123,8 +5264,16 @@ function getWordFromDictionary() {
         pool = getPool({ focus: 'all', length: null });
     }
 
+    if (!activeRoundFallbackNote && pattern === 'shuffle' && shuffleUsesAnyLength) {
+        activeRoundFallbackNote = `No shuffle words at length ${targetLen}; this round uses any length.`;
+    }
+
     activeRoundPattern = effectivePattern;
-    const final = pool[Math.floor(Math.random() * pool.length)] || allWords[0] || 'plant';
+    const final = (forcedWord && pool.includes(forcedWord) ? forcedWord : '')
+        || getNonRepeatingShuffleChoice(
+            pool,
+            `word:${effectivePattern || 'all'}:${targetLen || 'any'}:${getResolvedAudienceMode()}`
+        ) || pool[Math.floor(Math.random() * pool.length)] || allWords[0] || 'plant';
     const finalEntry = window.WORD_ENTRIES[final] || { def: '', sentence: '', syllables: final, tags: [] };
     return { word: final, entry: finalEntry };
 }
@@ -6152,6 +6301,7 @@ function showEndModal(win) {
     };
 
     if (languageSelect) {
+        applyTranslationLanguageOptionLabels(languageSelect);
         const pinned = appSettings.translation?.pinned;
         const pinnedLang = appSettings.translation?.lang || 'en';
         const preferredTranslationLang = resolvedAudienceMode === 'young-eal'
@@ -6766,8 +6916,15 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(violence|violent|murder|murdered|corpse|knife|bomb|suicide|self-harm|shoot|shooting|attack)\b/i,
     /\b(booze|hangover|intoxicated)\b/i,
     /\b(sex|sexual|porn|nude|naked)\b/i,
-    /\b(flipped\s+off|pointed\s+to\s+the\s+middle|inappropriate\s+gesture)\b/i
+    /\b(flipped\s+off|pointed\s+to\s+the\s+middle|inappropriate\s+gesture)\b/i,
+    /\bsaw\s+the\s+tiny\b/i
 ];
+const REVEAL_TRAILING_WORDS_TO_TRIM = new Set([
+    'a', 'an', 'the', 'this', 'that', 'these', 'those',
+    'my', 'your', 'our', 'their', 'his', 'her',
+    'and', 'or', 'but', 'to', 'for', 'with',
+    'tiny', 'little', 'small'
+]);
 const KID_SAFE_TEXT_FALLBACKS = {
     en: {
         definition: (word) => `"${word}" is a class word we can decode, read, and use to share clear ideas.`,
@@ -6818,7 +6975,13 @@ function truncateWords(value, maxWords) {
     if (!text) return '';
     const words = text.split(/\s+/).filter(Boolean);
     if (words.length <= maxWords) return text;
-    const clipped = words.slice(0, maxWords).join(' ').replace(/[,:;]+$/, '');
+    const clippedWords = words.slice(0, maxWords);
+    while (clippedWords.length > 6) {
+        const tail = String(clippedWords[clippedWords.length - 1] || '').replace(/[^\p{L}']/gu, '').toLowerCase();
+        if (!REVEAL_TRAILING_WORDS_TO_TRIM.has(tail)) break;
+        clippedWords.pop();
+    }
+    const clipped = clippedWords.join(' ').replace(/[,:;]+$/, '');
     return `${clipped}.`;
 }
 
@@ -6836,6 +6999,10 @@ function ensureEndingPunctuationForLanguage(value, languageCode = 'en') {
     if (lang === 'zh') {
         if (/[。！？]$/.test(text)) return text;
         return `${text}。`;
+    }
+    if (lang === 'hi') {
+        if (/[।॥!?]$/.test(text)) return text;
+        return `${text}।`;
     }
     return ensureEndingPunctuation(text);
 }
@@ -7366,21 +7533,33 @@ function showBonusContent() {
     const pool = getBonusContentPool();
     if (!pool) return;
 
-    // Randomly choose joke, riddle, fact, or quote
     const types = ['jokes', 'riddles', 'facts', 'quotes'].filter((type) => Array.isArray(pool[type]) && pool[type].length);
     if (!types.length) return;
-    const lastKey = localStorage.getItem('last_bonus_key');
-    let type = types[Math.floor(Math.random() * types.length)];
-    let bucket = pool[type];
-    let content = bucket[Math.floor(Math.random() * bucket.length)];
-    let guard = 0;
-    while (lastKey && `${type}:${content}` === lastKey && guard < 5) {
-        type = types[Math.floor(Math.random() * types.length)];
-        bucket = pool[type];
-        content = bucket[Math.floor(Math.random() * bucket.length)];
-        guard += 1;
-    }
-    localStorage.setItem('last_bonus_key', `${type}:${content}`);
+    const modeKey = getResolvedAudienceMode() === 'young-eal' ? 'young-eal' : 'general';
+
+    const entries = types.flatMap((type) => {
+        const bucket = Array.isArray(pool[type]) ? pool[type] : [];
+        return bucket.map((text) => ({
+            type,
+            text,
+            key: `${type}${BONUS_SHUFFLE_ENTRY_DELIM}${text}`
+        }));
+    });
+    if (!entries.length) return;
+
+    const entryMap = new Map(entries.map((entry) => [entry.key, entry]));
+    const pickedKey = getNonRepeatingShuffleChoice(
+        entries.map((entry) => entry.key),
+        `bonus-entry:${modeKey}`
+    ) || entries[Math.floor(Math.random() * entries.length)]?.key;
+    const pickedEntry = pickedKey ? entryMap.get(pickedKey) : entries[0];
+    if (!pickedEntry?.text) return;
+
+    const type = pickedEntry.type;
+    const content = pickedEntry.text;
+    try {
+        localStorage.setItem('last_bonus_key', `${type}:${content}`);
+    } catch (e) {}
     
     const emoji = type === 'jokes'
         ? '😄'
@@ -12060,6 +12239,62 @@ function shuffleList(list) {
         [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
+}
+
+function getShuffleBagKey(scope = '') {
+    return `${SHUFFLE_MEMORY_KEY_PREFIX}${String(scope || '').trim()}`;
+}
+
+function readShuffleBagState(scope = '') {
+    const key = getShuffleBagKey(scope);
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!parsed || typeof parsed !== 'object') return { key, queue: [], signature: '', last: '' };
+        return {
+            key,
+            queue: Array.isArray(parsed.queue) ? parsed.queue : [],
+            signature: typeof parsed.signature === 'string' ? parsed.signature : '',
+            last: typeof parsed.last === 'string' ? parsed.last : ''
+        };
+    } catch {
+        return { key, queue: [], signature: '', last: '' };
+    }
+}
+
+function writeShuffleBagState(state = {}) {
+    const key = state.key || getShuffleBagKey(state.scope || '');
+    const payload = {
+        queue: Array.isArray(state.queue) ? state.queue : [],
+        signature: typeof state.signature === 'string' ? state.signature : '',
+        last: typeof state.last === 'string' ? state.last : ''
+    };
+    try {
+        localStorage.setItem(key, JSON.stringify(payload));
+    } catch (e) {}
+}
+
+function getNonRepeatingShuffleChoice(items = [], scope = 'default') {
+    const pool = Array.from(new Set((Array.isArray(items) ? items : []).filter(Boolean)));
+    if (!pool.length) return '';
+    if (pool.length === 1) return pool[0];
+
+    const signature = `${pool.length}::${pool.slice().sort().join('|')}`;
+    const state = readShuffleBagState(scope);
+    let queue = state.queue.filter((item) => pool.includes(item));
+    if (state.signature !== signature || !queue.length) {
+        queue = shuffleList(pool);
+        if (queue.length > 1 && state.last && queue[queue.length - 1] === state.last) {
+            [queue[0], queue[queue.length - 1]] = [queue[queue.length - 1], queue[0]];
+        }
+    }
+    const next = queue.pop() || pool[Math.floor(Math.random() * pool.length)];
+    writeShuffleBagState({
+        key: state.key,
+        queue,
+        signature,
+        last: next
+    });
+    return next;
 }
 
 function getFeatureBreakdown(responses = []) {

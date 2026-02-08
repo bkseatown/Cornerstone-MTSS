@@ -50,6 +50,28 @@
       def_young: "The study of people, places, and events from long ago.",
       sentence_young: "In history class, we read old stories and imagined interviewing a time traveler."
     },
+    force: {
+      en: {
+        def_young: "Using strength to push or pull something.",
+        sentence_young: "Maya used force to push the heavy gym door, then did a tiny victory dance."
+      },
+      es: {
+        def_young: "Usar fuerza para empujar o jalar algo.",
+        sentence_young: "Maya usó fuerza para empujar la puerta pesada del gimnasio y luego celebró con un bailecito."
+      },
+      zh: {
+        def_young: "用力去推或拉某样东西。",
+        sentence_young: "玛雅用力推开体育馆沉重的门，然后开心地跳了一个小舞步。"
+      },
+      tl: {
+        def_young: "Paggamit ng lakas para itulak o hilahin ang isang bagay.",
+        sentence_young: "Gumamit si Maya ng lakas para itulak ang mabigat na pinto ng gym, tapos napasayaw siya sa tuwa."
+      },
+      hi: {
+        def_young: "किसी चीज़ को धक्का देने या खींचने के लिए ताकत का उपयोग करना।",
+        sentence_young: "माया ने भारी जिम का दरवाज़ा खोलने के लिए ताकत लगाई और खुशी में छोटा सा डांस किया।"
+      }
+    },
     web: {
       def_young: "A sticky net made by a spider.",
       sentence_young: "We saw a spider web shining in the morning light."

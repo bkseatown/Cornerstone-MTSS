@@ -8,6 +8,7 @@
   const HOME_VOICE_DIALECT_PREF_KEY = 'cornerstone_home_voice_dialect_pref_v1';
   const HOME_VOICE_PACK_PREF_KEY = 'cornerstone_home_voice_pack_pref_v1';
   const QUICKCHECK_SUMMARY_KEY = 'cornerstone_quickcheck_summary_v1';
+  const QUICKCHECK_SHUFFLE_KEY_PREFIX = 'cornerstone_quickcheck_queue_v2::';
   const HOME_STUDENT_NAME_KEY = 'cm_student_name';
   const HOME_GRADE_BAND_KEY = 'cm_grade_band';
   const HOME_FOCUS_TODAY_KEY = 'cm_focus_today';
@@ -607,23 +608,46 @@
     ]
   };
 
-  const QUICKCHECK_STRATEGIES = {
-    literacy: ['I stretched sounds', 'I used chunks', 'I looked for patterns', 'I asked for replay'],
-    numeracy: ['I counted on', 'I made 10', 'I broke it apart', 'I used a number line']
+  const QUICKCHECK_STRATEGY_BANK = {
+    literacy: {
+      younger: {
+        correct: ['I listened for the sound', 'I tapped each sound', 'I used letter clues', 'I checked my answer'],
+        incorrect: ['Hear it again', 'Tap each sound slowly', 'Look for letter clues', 'Ask a helper']
+      },
+      older: {
+        correct: ['I sounded it out', 'I used a chunk', 'I looked for patterns', 'I checked my choice'],
+        incorrect: ['Hear it one more time', 'Slow down and sound it out', 'Look for a known pattern', 'Try a different clue']
+      }
+    },
+    numeracy: {
+      younger: {
+        correct: ['I counted objects', 'I used fingers or dots', 'I made 10', 'I checked my answer'],
+        incorrect: ['Count again slowly', 'Use a ten-frame', 'Try make-10', 'Ask for a number line']
+      },
+      older: {
+        correct: ['I counted on', 'I made 10', 'I broke it apart', 'I used a number line'],
+        incorrect: ['Count on and recheck', 'Try make-10 first', 'Break it apart', 'Use a visual model']
+      }
+    }
   };
 
   const QUICKCHECK_QUESTION_BANK = {
     literacy: [
       { id: 'lit-pa-1', level: 0, prompt: 'Which word starts with the same sound as sun?', choices: ['sock', 'cat', 'map', 'dog'], answer: 0 },
       { id: 'lit-pa-2', level: 0, prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
-      { id: 'lit-gr-1', level: 1, prompt: 'Which letters make the /sh/ sound?', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
-      { id: 'lit-gr-2', level: 1, prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
-      { id: 'lit-cvc-1', level: 2, prompt: 'Pick the CVC word.', choices: ['ship', 'cat', 'rain', 'smile'], answer: 1 },
-      { id: 'lit-cvc-2', level: 2, prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
+      { id: 'lit-pa-3', level: 0, prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
+      { id: 'lit-gr-1', level: 1, prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
+      { id: 'lit-gr-2', level: 1, prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
+      { id: 'lit-gr-3', level: 1, prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
+      { id: 'lit-cvc-1', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
+      { id: 'lit-cvc-2', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
+      { id: 'lit-cvc-3', level: 2, prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
       { id: 'lit-db-1', level: 3, prompt: 'Pick the word with an initial blend.', choices: ['ship', 'trip', 'chin', 'math'], answer: 1 },
       { id: 'lit-db-2', level: 3, prompt: 'Pick the word with a digraph.', choices: ['stop', 'frog', 'chat', 'clap'], answer: 2 },
+      { id: 'lit-db-3', level: 3, prompt: 'Which word has a blend at the end?', choices: ['sand', 'ship', 'math', 'knee'], answer: 0 },
       { id: 'lit-vt-1', level: 4, prompt: 'Which word has a vowel team?', choices: ['train', 'trap', 'trim', 'truck'], answer: 0 },
-      { id: 'lit-vt-2', level: 4, prompt: 'Pick the word with long /o/ from a vowel team.', choices: ['boat', 'bot', 'hot', 'hop'], answer: 0 }
+      { id: 'lit-vt-2', level: 4, prompt: 'Pick the word with long /o/ from a vowel team.', choices: ['boat', 'bot', 'hot', 'hop'], answer: 0 },
+      { id: 'lit-vt-3', level: 4, prompt: 'Pick the word with a vowel team.', choices: ['seed', 'send', 'sand', 'stand'], answer: 0 }
     ],
     numeracy: [
       { id: 'num-cq-1', level: 0, prompt: 'How many dots are there? ●●●●●', choices: ['4', '5', '6', '7'], answer: 1 },
@@ -1229,7 +1253,7 @@
           : 'Custom PIN enabled (strict mode: default fallback disabled).')
         : `Using default PIN ${pinState.defaultPin}.`;
       homeRoleSecurity.textContent = selectedRole === 'student'
-        ? `Student Mode is active. Adults in any role can use "Adult Exit" in the top bar. ${pinModeLine} Recovery phrase can also unlock.`
+        ? `Student Mode is active. Adults in any role can use "Unlock Adult Tools" in the top bar. ${pinModeLine} Recovery phrase can also unlock.`
         : `Student Mode security (all adult roles): ${pinModeLine} Keep your recovery phrase in a safe place.`;
     }
 
@@ -1771,14 +1795,92 @@
     return [normalized];
   }
 
+  function shuffleList(items = []) {
+    const next = Array.isArray(items) ? items.slice() : [];
+    for (let i = next.length - 1; i > 0; i -= 1) {
+      const swap = Math.floor(Math.random() * (i + 1));
+      [next[i], next[swap]] = [next[swap], next[i]];
+    }
+    return next;
+  }
+
+  function readQuickCheckQueue(scope = '') {
+    const key = `${QUICKCHECK_SHUFFLE_KEY_PREFIX}${String(scope || '').trim()}`;
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+      return {
+        key,
+        queue: Array.isArray(parsed.queue) ? parsed.queue : [],
+        last: typeof parsed.last === 'string' ? parsed.last : '',
+        signature: typeof parsed.signature === 'string' ? parsed.signature : ''
+      };
+    } catch {
+      return { key, queue: [], last: '', signature: '' };
+    }
+  }
+
+  function writeQuickCheckQueue(state = {}) {
+    if (!state.key) return;
+    const payload = {
+      queue: Array.isArray(state.queue) ? state.queue : [],
+      last: typeof state.last === 'string' ? state.last : '',
+      signature: typeof state.signature === 'string' ? state.signature : ''
+    };
+    localStorage.setItem(state.key, JSON.stringify(payload));
+  }
+
+  function pickQuickCheckFromQueue(items = [], scope = 'default') {
+    const pool = Array.from(new Set((Array.isArray(items) ? items : []).filter(Boolean)));
+    if (!pool.length) return '';
+    if (pool.length === 1) return pool[0];
+    const signature = `${pool.length}:${pool.slice().sort().join('|')}`;
+    const state = readQuickCheckQueue(scope);
+    let queue = state.queue.filter((item) => pool.includes(item));
+    if (state.signature !== signature || !queue.length) {
+      queue = shuffleList(pool);
+      if (queue.length > 1 && state.last && queue[queue.length - 1] === state.last) {
+        [queue[0], queue[queue.length - 1]] = [queue[queue.length - 1], queue[0]];
+      }
+    }
+    const selected = queue.pop() || pool[0];
+    writeQuickCheckQueue({
+      key: state.key,
+      queue,
+      last: selected,
+      signature
+    });
+    return selected;
+  }
+
+  function isYoungerQuickCheckBand(gradeBand = '') {
+    const band = normalizeGradeBand(gradeBand);
+    return !band || band === 'K-2';
+  }
+
+  function getQuickCheckStrategies(domain, { gradeBand = '', isCorrect = true } = {}) {
+    const pack = QUICKCHECK_STRATEGY_BANK[domain] || QUICKCHECK_STRATEGY_BANK.literacy;
+    const lane = isYoungerQuickCheckBand(gradeBand) ? 'younger' : 'older';
+    const selectedPack = pack[lane] || pack.older || pack.younger;
+    if (!selectedPack) return [];
+    const options = selectedPack[isCorrect ? 'correct' : 'incorrect'] || [];
+    return Array.isArray(options) ? options : [];
+  }
+
   function pickQuestionForLevel(domain, targetLevel, askedIds) {
     const pool = (QUICKCHECK_QUESTION_BANK[domain] || []).filter((question) => !askedIds.has(question.id));
     if (!pool.length) return null;
-    const exact = pool.find((question) => Number(question.level) === Number(targetLevel));
-    if (exact) return exact;
-    return pool
-      .slice()
-      .sort((a, b) => Math.abs(Number(a.level) - Number(targetLevel)) - Math.abs(Number(b.level) - Number(targetLevel)))[0] || null;
+    const exactPool = pool.filter((question) => Number(question.level) === Number(targetLevel));
+    const targetPool = exactPool.length
+      ? exactPool
+      : pool
+        .slice()
+        .sort((a, b) => Math.abs(Number(a.level) - Number(targetLevel)) - Math.abs(Number(b.level) - Number(targetLevel)));
+    if (!targetPool.length) return null;
+    const selectedId = pickQuickCheckFromQueue(
+      targetPool.map((question) => question.id),
+      `${domain}:level:${targetLevel}`
+    );
+    return targetPool.find((question) => question.id === selectedId) || targetPool[0];
   }
 
   function activeWizardRole() {
@@ -1918,6 +2020,20 @@
     const levels = QUICKCHECK_LEVELS[domain] || [];
     const safeIndex = Math.max(0, Math.min(levels.length - 1, Number(levelIndex) || 0));
     return levels[safeIndex]?.label || 'Starting point';
+  }
+
+  function playQuickCheckPromptAudio(question = null) {
+    const text = String(question?.audioPrompt || '').trim();
+    if (!text) return;
+    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(`Listen: ${text}`);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.82;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } catch {}
   }
 
   function summarizeQuickCheckDomain(session, domain) {
@@ -2153,34 +2269,57 @@
     setQuickCheckButtonState(false);
   }
 
-  function renderQuickCheckQuestion(session) {
+  function renderQuickCheckQuestion(session, options = {}) {
     const domain = quickCheckCurrentDomain(session);
-    const question = session.currentQuestion || advanceQuickCheckQuestion(session);
+    const reviewPending = !!options.reviewPending && !!session.pendingAnswer;
+    const question = reviewPending
+      ? session.pendingAnswer.question
+      : (session.currentQuestion || advanceQuickCheckQuestion(session));
     if (!question) {
       const payload = buildQuickCheckPayload(session);
       store(payload);
       syncProfileAndLook(payload.gradeBand || '');
       showResult(payload);
       renderSummary(payload);
+      quickCheckStage.innerHTML = `
+        <div class="quickcheck-card quickcheck-complete">
+          <div class="quickcheck-progress">Quick Check complete</div>
+          <div class="quickcheck-title">Your recommended next step is ready below.</div>
+          <p class="quickcheck-copy">Use Start Recommended Path to begin, or restart this check any time.</p>
+        </div>
+      `;
       setQuickCheckButtonState(true);
       return;
     }
+    session.currentQuestion = question;
     const index = Number(session.counts[domain] || 0) + 1;
     const total = session.maxQuestionsPerDomain;
     const progressLabel = domain === 'literacy' ? 'Literacy Quick Check' : 'Numeracy Quick Check';
+    const selectedIndex = reviewPending ? Number(session.pendingAnswer?.selectedIndex) : Number.NaN;
+    const hasAudioPrompt = !!String(question.audioPrompt || '').trim();
+    const promptHint = hasAudioPrompt ? 'Listen first, then pick one answer.' : 'Pick one answer.';
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
         <div class="quickcheck-progress">${escapeHtml(progressLabel)} · Item ${index} of ${total}</div>
         <div class="quickcheck-title">${escapeHtml(question.prompt)}</div>
+        ${hasAudioPrompt ? `
+          <div class="quickcheck-listen-row">
+            <button type="button" class="secondary-btn quickcheck-listen-btn" data-action="play-prompt-audio">Hear sound</button>
+          </div>
+        ` : ''}
+        <div class="quickcheck-copy">${escapeHtml(promptHint)}</div>
         <div class="quickcheck-choice-grid">
           ${question.choices.map((choice, choiceIndex) => `
-            <button type="button" class="quickcheck-choice" data-choice-index="${choiceIndex}">
+            <button type="button" class="quickcheck-choice${choiceIndex === selectedIndex ? ' selected' : ''}" data-choice-index="${choiceIndex}">
               ${escapeHtml(choice)}
             </button>
           `).join('')}
         </div>
       </div>
     `;
+    if (hasAudioPrompt) {
+      playQuickCheckPromptAudio(question);
+    }
   }
 
   function renderQuickCheckPostAnswer(session) {
@@ -2189,18 +2328,28 @@
     const question = pending.question;
     const domain = pending.domain;
     const isCorrect = !!pending.correct;
-    const strategies = QUICKCHECK_STRATEGIES[domain] || [];
+    const strategies = getQuickCheckStrategies(domain, {
+      gradeBand: session.gradeBand,
+      isCorrect
+    });
+    const strategyPrompt = isCorrect
+      ? 'What helped you figure it out?'
+      : 'What could help on the next one?';
+    const answerLine = isCorrect
+      ? `Answer selected: <strong>${escapeHtml(question.choices[pending.selectedIndex] || '')}</strong>`
+      : `Answer selected: <strong>${escapeHtml(question.choices[pending.selectedIndex] || '')}</strong> · Best answer: <strong>${escapeHtml(question.choices[question.answer] || '')}</strong>`;
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-feedback ${isCorrect ? 'success' : 'needs-support'}">${isCorrect ? 'Nice work.' : 'Good try. Let’s keep going.'}</div>
-        <div class="quickcheck-copy">How did you solve it?</div>
+        <div class="quickcheck-feedback ${isCorrect ? 'success' : 'needs-support'}">${isCorrect ? 'Nice work.' : 'Good effort. Let’s keep going.'}</div>
+        <div class="quickcheck-copy">${escapeHtml(strategyPrompt)}</div>
         <div class="quickcheck-strategy-grid">
           ${strategies.map((strategy) => `
             <button type="button" class="quickcheck-strategy-chip" data-strategy="${escapeHtml(strategy)}">${escapeHtml(strategy)}</button>
           `).join('')}
         </div>
-        <div class="quickcheck-copy">Answer selected: <strong>${escapeHtml(question.choices[pending.selectedIndex] || '')}</strong>${isCorrect ? '' : ` · Correct: <strong>${escapeHtml(question.choices[question.answer] || '')}</strong>`}</div>
+        <div class="quickcheck-copy">${answerLine}</div>
         <div class="quickcheck-next-row">
+          <button type="button" class="secondary-btn quickcheck-back-btn" data-action="review-question">Back</button>
           <button type="button" class="primary-btn quickcheck-next-btn" data-action="next-question">Next</button>
         </div>
       </div>
@@ -2242,22 +2391,32 @@
     const target = event.target;
     if (!(target instanceof HTMLElement) || !quickCheckSession) return;
 
+    const playPromptBtn = target.closest('[data-action="play-prompt-audio"]');
+    if (playPromptBtn) {
+      const question = quickCheckSession.pendingAnswer?.question || quickCheckSession.currentQuestion;
+      playQuickCheckPromptAudio(question);
+      return;
+    }
+
     const choiceBtn = target.closest('.quickcheck-choice');
-    if (choiceBtn && quickCheckSession.currentQuestion) {
-      const domain = quickCheckCurrentDomain(quickCheckSession);
+    if (choiceBtn) {
+      const activeQuestion = quickCheckSession.pendingAnswer?.question || quickCheckSession.currentQuestion;
+      if (!activeQuestion) return;
+      const domain = quickCheckSession.pendingAnswer?.domain || quickCheckCurrentDomain(quickCheckSession);
       const selectedIndex = Number(choiceBtn.getAttribute('data-choice-index'));
       if (Number.isNaN(selectedIndex)) return;
-      const question = quickCheckSession.currentQuestion;
-      const isCorrect = selectedIndex === Number(question.answer);
-      quickCheckSession.currentQuestion = null;
-      quickCheckSession.pendingAnswer = { domain, question, selectedIndex, correct: isCorrect, strategy: '' };
-      quickCheckSession.counts[domain] = Number(quickCheckSession.counts[domain] || 0) + 1;
-      if (isCorrect) {
-        quickCheckSession.correct[domain] = Number(quickCheckSession.correct[domain] || 0) + 1;
-        quickCheckSession.highestCorrectLevel[domain] = Math.max(Number(quickCheckSession.highestCorrectLevel[domain] || -1), Number(question.level) || 0);
-        quickCheckSession.levels[domain] = Math.min((QUICKCHECK_LEVELS[domain] || []).length - 1, Number(quickCheckSession.levels[domain] || 0) + 1);
+      const isCorrect = selectedIndex === Number(activeQuestion.answer);
+      if (quickCheckSession.pendingAnswer && quickCheckSession.pendingAnswer.question?.id === activeQuestion.id) {
+        quickCheckSession.pendingAnswer.selectedIndex = selectedIndex;
+        quickCheckSession.pendingAnswer.correct = isCorrect;
       } else {
-        quickCheckSession.levels[domain] = Math.max(0, Number(quickCheckSession.levels[domain] || 0) - 1);
+        quickCheckSession.pendingAnswer = {
+          domain,
+          question: activeQuestion,
+          selectedIndex,
+          correct: isCorrect,
+          strategy: ''
+        };
       }
       renderQuickCheckPostAnswer(quickCheckSession);
       return;
@@ -2273,22 +2432,40 @@
       return;
     }
 
+    const reviewBtn = target.closest('[data-action="review-question"]');
+    if (reviewBtn && quickCheckSession.pendingAnswer) {
+      renderQuickCheckQuestion(quickCheckSession, { reviewPending: true });
+      return;
+    }
+
     const nextBtn = target.closest('[data-action="next-question"]');
     if (nextBtn && quickCheckSession.pendingAnswer) {
       const pending = quickCheckSession.pendingAnswer;
+      const question = pending.question;
+      const domain = pending.domain;
+      const isCorrect = Number(pending.selectedIndex) === Number(question.answer);
+      quickCheckSession.counts[domain] = Number(quickCheckSession.counts[domain] || 0) + 1;
+      if (isCorrect) {
+        quickCheckSession.correct[domain] = Number(quickCheckSession.correct[domain] || 0) + 1;
+        quickCheckSession.highestCorrectLevel[domain] = Math.max(Number(quickCheckSession.highestCorrectLevel[domain] || -1), Number(question.level) || 0);
+        quickCheckSession.levels[domain] = Math.min((QUICKCHECK_LEVELS[domain] || []).length - 1, Number(quickCheckSession.levels[domain] || 0) + 1);
+      } else {
+        quickCheckSession.levels[domain] = Math.max(0, Number(quickCheckSession.levels[domain] || 0) - 1);
+      }
       quickCheckSession.strategyLog.push({
-        domain: pending.domain,
-        questionId: pending.question.id,
+        domain,
+        questionId: question.id,
         strategy: pending.strategy || 'Not selected',
-        correct: !!pending.correct
+        correct: !!isCorrect
       });
       quickCheckSession.history.push({
-        domain: pending.domain,
-        questionId: pending.question.id,
+        domain,
+        questionId: question.id,
         selectedIndex: pending.selectedIndex,
-        correct: !!pending.correct
+        correct: !!isCorrect
       });
       quickCheckSession.pendingAnswer = null;
+      quickCheckSession.currentQuestion = null;
       renderQuickCheckQuestion(quickCheckSession);
     }
   }

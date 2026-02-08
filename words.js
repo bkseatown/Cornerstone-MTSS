@@ -3423,28 +3423,32 @@ const WORDS_DATA =
   "force": {
     "pos": "verb",
     "en": {
-      "def": "To push a door really hard when the sign clearly says 'PULL'.",
-      "sentence": "The man tried to force the door open, turned red in the face, and then saw the tiny 'PULL' sign."
+      "def": "To use strength to push or pull something.",
+      "sentence": "Maya used force to push the heavy gym door, then smiled when it opened."
     },
     "es": {
-      "def": "Empujar una puerta muy fuerte cuando el letrero dice claramente 'TIRE'.",
-      "sentence": "El hombre intentó forzar la puerta para abrirla, se puso rojo y luego vio el pequeño letrero que decía 'TIRE'."
+      "def": "Usar fuerza para empujar o jalar algo.",
+      "sentence": "Maya usó fuerza para empujar la puerta pesada del gimnasio y sonrió cuando se abrió."
     },
     "zh": {
-      "def": "当标志上明明写着“拉”时，你却用力推门。",
-      "sentence": "男人试图用力把门推开，脸都憋红了，然后看见了那个小小的“拉”字标志。"
+      "def": "用力去推或拉某样东西。",
+      "sentence": "玛雅用力推开体育馆沉重的门，门开后她开心地笑了。"
+    },
+    "hi": {
+      "def": "किसी चीज़ को धक्का देने या खींचने के लिए ताकत का उपयोग करना।",
+      "sentence": "माया ने भारी जिम का दरवाज़ा खोलने के लिए ताकत लगाई और दरवाज़ा खुलते ही मुस्कुरा दी।"
     },
     "ms": {
-      "def": "Menolak pintu dengan kuat apabila tanda jelas mengatakan 'TARIK'.",
-      "sentence": "Lelaki itu cuba memaksa pintu terbuka, mukanya menjadi merah, dan kemudian melihat tanda 'TARIK' yang kecil."
+      "def": "Menggunakan tenaga untuk menolak atau menarik sesuatu.",
+      "sentence": "Maya menggunakan tenaga untuk menolak pintu gim yang berat lalu tersenyum apabila pintu itu terbuka."
     },
     "vi": {
-      "def": "Đẩy cửa thật mạnh khi biển báo ghi rõ là 'KÉO'.",
-      "sentence": "Người đàn ông cố dùng sức đẩy cửa, đỏ mặt tía tai, và rồi nhìn thấy tấm biển 'KÉO' nhỏ xíu."
+      "def": "Dùng sức để đẩy hoặc kéo một vật.",
+      "sentence": "Maya dùng lực đẩy cánh cửa phòng gym nặng và mỉm cười khi cửa mở ra."
     },
     "tl": {
-      "def": "Ang itulak ang pinto nang malakas kahit na malinaw na nakasulat na 'PULL'.",
-      "sentence": "Sinubukan ng lalaki na pwersahing buksan ang pinto, namula ang mukha, at saka nakita ang maliit na sign na 'PULL'."
+      "def": "Paggamit ng lakas para itulak o hilahin ang isang bagay.",
+      "sentence": "Gumamit si Maya ng lakas para itulak ang mabigat na pinto ng gym at ngumiti nang bumukas ito."
     },
     "phonics": {
       "syllables": 1,

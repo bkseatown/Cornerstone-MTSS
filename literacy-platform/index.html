@@ -19,7 +19,7 @@
         </h1>
         <nav class="header-actions" aria-label="Primary">
           <a class="link-btn active" aria-current="page" href="index.html">Home</a>
-          <a class="link-btn" href="index.html#role-dashboard">Start</a>
+          <a class="link-btn" href="index.html#home-onboarding-wizard">Start</a>
         </nav>
       </div>
     </header>
@@ -30,34 +30,68 @@
           <div class="home-kicker">CORNERSTONE MTSS</div>
           <h2>Who is using Cornerstone right now?</h2>
           <p class="home-lede">
-            Start in under a minute: pick a role, launch one routine, and get a clear next step.
+            Start in under a minute: pick a role, run Quick Check, and get one clear next step.
           </p>
 
-          <div class="home-entry-segments" aria-label="Choose your pathway group">
-            <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
-            <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
-            <button type="button" class="home-entry-segment" data-entry-group="school">School Team</button>
-          </div>
+          <div id="home-onboarding-wizard" class="home-wizard" aria-label="Getting started wizard">
+            <div class="home-stepper" role="list" aria-label="Getting started steps">
+              <div class="home-step" data-step-index="1" role="listitem">1. Role</div>
+              <div class="home-step" data-step-index="2" role="listitem">2. Who you are</div>
+              <div class="home-step" data-step-index="3" role="listitem">3. Focus</div>
+              <div class="home-step" data-step-index="4" role="listitem">4. Quick Check</div>
+            </div>
 
-          <div class="home-role-picker" aria-label="Role quick select">
-            <button type="button" class="home-role-pick" data-role-target="student" data-entry-group="student">Student</button>
-            <button type="button" class="home-role-pick" data-role-target="parent" data-entry-group="parent">Parent / Caregiver</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="teacher" data-entry-group="school">Teacher</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="learning-support" data-entry-group="school">Learning Support</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="eal" data-entry-group="school">EAL</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="slp" data-entry-group="school">SLP</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="counselor" data-entry-group="school">Counselor</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="psychologist" data-entry-group="school">Psychologist</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="admin" data-entry-group="school">Administrator</button>
-            <button type="button" class="home-role-pick hidden" data-role-target="dean" data-entry-group="school">Dean</button>
-          </div>
+            <div class="home-wizard-block">
+              <div class="home-field-label">Step 1 · Choose role</div>
+              <div class="home-entry-segments" aria-label="Choose your pathway group">
+                <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
+                <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
+                <button type="button" class="home-entry-segment" data-entry-group="school">School Team</button>
+              </div>
+              <div id="home-team-role-wrap" class="home-team-role-wrap hidden">
+                <label class="home-field-label" for="home-team-role-select">School Team role</label>
+                <select id="home-team-role-select" class="home-select" aria-label="School team role">
+                  <option value="teacher">Teacher</option>
+                  <option value="learning-support">Learning Support</option>
+                  <option value="eal">EAL</option>
+                  <option value="slp">SLP</option>
+                  <option value="counselor">Counselor</option>
+                  <option value="psychologist">Psychologist</option>
+                  <option value="admin">Administrator</option>
+                  <option value="dean">Dean</option>
+                </select>
+              </div>
+            </div>
 
-          <div class="home-cta-row" aria-label="Quick start">
-            <a id="home-role-launch" class="home-cta primary" href="word-quest.html">Start My Pathway</a>
-            <button id="home-toggle-workspace" class="home-cta ghost" type="button">Show Workspace Tools</button>
+            <div id="home-student-setup" class="home-wizard-block">
+              <div class="home-field-label">Step 2 · Student details</div>
+              <label class="home-field-label" for="home-student-name">Student name (nickname is okay)</label>
+              <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter student name" />
+              <div class="home-field-label">Grade band (optional)</div>
+              <div class="home-grade-band-row" aria-label="Choose grade band">
+                <button type="button" class="home-grade-band-btn" data-grade-band="K-2">K–2</button>
+                <button type="button" class="home-grade-band-btn" data-grade-band="3-5">3–5</button>
+                <button type="button" class="home-grade-band-btn" data-grade-band="6-8">6–8</button>
+              </div>
+            </div>
+
+            <div class="home-wizard-block">
+              <div class="home-field-label">Step 3 · What are we working on today?</div>
+              <div class="home-focus-options" aria-label="Choose focus">
+                <button type="button" class="home-focus-btn" data-focus-value="literacy">Reading &amp; Words</button>
+                <button type="button" class="home-focus-btn" data-focus-value="numeracy">Math &amp; Numbers</button>
+                <button type="button" class="home-focus-btn" data-focus-value="both">Both</button>
+              </div>
+            </div>
+
+            <div class="home-cta-row" aria-label="Quick start">
+              <button id="home-role-launch" class="home-cta primary" type="button">Start Quick Check</button>
+              <a id="home-explore-activities" class="home-cta ghost" href="#activities-grid">Explore Activities</a>
+              <button id="home-toggle-workspace" class="home-cta ghost" type="button">Show Workspace Tools</button>
+            </div>
           </div>
           <p id="home-role-preview" class="home-role-preview muted" aria-live="polite">
-            Select a role to preview your first recommended launch.
+            Step 4 will recommend your best starting activity.
           </p>
         </div>
 
@@ -65,8 +99,8 @@
           <div class="home-mini-title">Simple, then powerful</div>
           <div class="home-next-steps" aria-label="Guided steps">
             <div class="home-next-step"><span>1</span>Pick role</div>
-            <div class="home-next-step"><span>2</span>Run one focused block</div>
-            <div class="home-next-step"><span>3</span>Capture the next move</div>
+            <div class="home-next-step"><span>2</span>Run Quick Check</div>
+            <div class="home-next-step"><span>3</span>Start recommended path</div>
           </div>
           <div class="home-story-visual" aria-label="Cornerstone values">
             <div class="home-story-row">
@@ -93,12 +127,12 @@
             <label class="home-field-label" for="home-quick-language">Home language support</label>
             <select id="home-quick-language" class="home-select">
               <option value="en">English</option>
-              <option value="es">Spanish (Español)</option>
-              <option value="zh">Chinese (简体中文)</option>
-              <option value="hi">Hindi (हिन्दी)</option>
-              <option value="tl">Tagalog</option>
-              <option value="ms">Malay (Bahasa Melayu)</option>
-              <option value="vi">Vietnamese (Tiếng Việt)</option>
+              <option value="es">Español (Spanish)</option>
+              <option value="zh">中文 (Simplified Chinese)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="tl">Tagalog (Filipino)</option>
+              <option value="ms">Bahasa Melayu (Malay)</option>
+              <option value="vi">Tiếng Việt (Vietnamese)</option>
             </select>
             <label class="home-field-label" for="home-quick-voice-dialect">Narration voice</label>
             <select id="home-quick-voice-dialect" class="home-select">
@@ -125,7 +159,7 @@
         <div class="home-placement-grid">
           <div id="placement-summary" class="home-placement-summary" aria-live="polite"></div>
           <div class="home-cta-row" aria-label="Placement actions">
-            <button id="placement-start" class="home-cta primary" type="button">Start placement screener</button>
+            <button id="placement-start" class="home-cta primary" type="button">Start Quick Check</button>
             <a id="placement-open-word-quest" class="home-cta ghost" href="word-quest.html">Open Word Quest</a>
           </div>
         </div>
@@ -313,7 +347,7 @@
         </div>
       </section>
 
-      <section class="home-card" data-home-detail aria-label="Activities">
+      <section id="activities-grid" class="home-card" data-home-detail aria-label="Activities">
         <div class="home-card-header">
           <h2>Activities</h2>
           <p class="home-subtitle">Pick a module. Each stays focused and predictable for students.</p>
@@ -376,65 +410,18 @@
 
     <div id="modal-overlay" class="hidden" aria-hidden="true"></div>
 
-    <div id="placement-modal" class="modal hidden placement-modal" role="dialog" aria-modal="true" aria-label="Placement screener">
+    <div id="placement-modal" class="modal hidden placement-modal" role="dialog" aria-modal="true" aria-label="Quick Check">
       <div class="modal-content">
         <button id="placement-close" class="close-btn" type="button" aria-label="Close">✕</button>
-        <h2>Quick Placement</h2>
-        <p class="muted">Check what the student can do independently most days.</p>
+        <h2>Quick Check</h2>
+        <p id="placement-subtitle" class="muted">A short adaptive check to find the best starting point.</p>
 
-        <div class="placement-grid" aria-label="Placement form">
-          <div class="placement-field">
-            <label for="placement-grade">Grade band (optional)</label>
-            <select id="placement-grade">
-              <option value="">Choose…</option>
-              <option value="K-2">K–2</option>
-              <option value="3-5">3–5</option>
-              <option value="6-8">6–8</option>
-              <option value="9-12">9–12</option>
-            </select>
-          </div>
-
-          <fieldset class="placement-fieldset">
-            <legend>Decoding skills</legend>
-            <label class="placement-check">
-              <input id="skill-letter-sounds" type="checkbox" />
-              <span>Knows most letter sounds (consonants + short vowels)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-cvc" type="checkbox" />
-              <span>Reads CVC short-vowel words (cat, ship, man)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-digraph" type="checkbox" />
-              <span>Reads digraphs (sh, ch, th)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-blends" type="checkbox" />
-              <span>Reads blends (st, bl, cr)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-magic-e" type="checkbox" />
-              <span>Reads silent‑e words (make, time)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-vowel-team" type="checkbox" />
-              <span>Reads vowel teams (rain, seed, boat)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-r-controlled" type="checkbox" />
-              <span>Reads r‑controlled vowels (car, her, fork)</span>
-            </label>
-            <label class="placement-check">
-              <input id="skill-multisyllable" type="checkbox" />
-              <span>Can break multisyllable words into parts</span>
-            </label>
-          </fieldset>
-        </div>
+        <div id="quickcheck-stage" class="quickcheck-stage" aria-live="polite"></div>
 
         <div class="placement-actions" aria-label="Placement results">
-          <button id="placement-calc" type="button" class="primary-btn">Get recommendation</button>
-          <a id="placement-go-word-quest" class="secondary-btn hidden" href="word-quest.html">Start Word Quest</a>
-          <button id="placement-clear" type="button" class="secondary-btn">Clear</button>
+          <button id="placement-calc" type="button" class="primary-btn">Start Quick Check</button>
+          <a id="placement-go-word-quest" class="secondary-btn hidden" href="word-quest.html">Start Recommended Path</a>
+          <button id="placement-clear" type="button" class="secondary-btn">Reset</button>
         </div>
 
         <div id="placement-result" class="placement-result hidden" aria-live="polite"></div>

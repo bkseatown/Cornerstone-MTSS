@@ -173,7 +173,7 @@
     },
     'word-quest': {
       title: 'Decode Quest Quick Start',
-      body: 'Set focus + word length, press New Round, then use Hear Word for first-pass support.'
+      body: 'Set focus + length, press New Round, then tap Hear Word.'
     },
     cloze: {
       title: 'Sentence Lab Quick Start',
@@ -687,7 +687,7 @@
         exitBtn = document.createElement('button');
         exitBtn.type = 'button';
         exitBtn.className = 'link-btn student-mode-exit-btn';
-        exitBtn.textContent = 'Adult Exit';
+        exitBtn.textContent = 'Unlock Adult Tools';
         exitBtn.title = 'Adult PIN required';
         container.appendChild(exitBtn);
       }
@@ -1820,17 +1820,31 @@
     if (!main) return;
     const guide = existing || document.createElement('aside');
     guide.id = 'page-guide-tip';
-    guide.className = 'page-guide-tip';
+    const compact = activityId === 'word-quest';
+    guide.className = `page-guide-tip${compact ? ' compact-overlay' : ''}`;
     guide.setAttribute('role', 'status');
     guide.setAttribute('aria-live', 'polite');
-    guide.innerHTML = `
-      <div class="page-guide-tip-title">${tip.title}</div>
-      <div class="page-guide-tip-body">${tip.body}</div>
-      <div class="page-guide-tip-actions">
-        <button type="button" class="secondary-btn" data-tip-action="hide">Hide</button>
-        <button type="button" class="secondary-btn" data-tip-action="dismiss">Got it (don't show again)</button>
-      </div>
-    `;
+    if (compact) {
+      guide.innerHTML = `
+        <div class="page-guide-tip-head">
+          <div class="page-guide-tip-title">${tip.title}</div>
+          <button type="button" class="page-guide-tip-close" data-tip-action="hide" aria-label="Hide quick start">✕</button>
+        </div>
+        <div class="page-guide-tip-body">${tip.body}</div>
+        <div class="page-guide-tip-actions">
+          <button type="button" class="secondary-btn" data-tip-action="dismiss">Got it (don't show again)</button>
+        </div>
+      `;
+    } else {
+      guide.innerHTML = `
+        <div class="page-guide-tip-title">${tip.title}</div>
+        <div class="page-guide-tip-body">${tip.body}</div>
+        <div class="page-guide-tip-actions">
+          <button type="button" class="secondary-btn" data-tip-action="hide">Hide</button>
+          <button type="button" class="secondary-btn" data-tip-action="dismiss">Don't show again</button>
+        </div>
+      `;
+    }
 
     if (!existing) {
       main.insertBefore(guide, main.firstChild);

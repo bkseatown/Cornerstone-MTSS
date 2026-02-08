@@ -1278,7 +1278,7 @@
       <div class="report-card-header">
         <h2>Student Mode is On</h2>
       </div>
-      <p class="report-focus-note">This report view is locked for learners. Use student practice pathways or ask an adult to use <strong>Adult Exit</strong> in the top bar.</p>
+      <p class="report-focus-note">This report view is locked for learners. Use student practice pathways or ask an adult to use <strong>Unlock Adult Tools</strong> in the top bar.</p>
       <div class="home-cta-row">
         <a class="home-cta primary" href="word-quest.html">Start Word Quest</a>
         <a class="home-cta ghost" href="number-sense.html">Start Number Sense</a>
