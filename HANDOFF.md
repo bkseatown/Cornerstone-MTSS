@@ -19,6 +19,7 @@ Last updated: 2026-02-08
   2. intentionally reconfigure Pages source to `/literacy-platform` (not done here).
 
 ## Most recent live commits
+- `3624bfe0` - Fix TTS manifest path resolution and bust stale script cache
 - `75bf9e8c` - Deploy stabilized root pages with grouped nav and live build stamp
 - `cfdc44ed` - Add global live build stamp for Pages verification
 - `99110883` - Tighten kid-safe reveal copy and update handoff
@@ -34,6 +35,8 @@ Last updated: 2026-02-08
   - `literacy-platform/audio/tts/tts-manifest.json`
   - `literacy-platform/audio/tts/packs/pack-registry.json`
   so root-served app uses existing audio assets without duplicating 1GB into root.
+- `app.js` now resolves TTS base path by URL context (root vs `/literacy-platform`) to avoid `audio/tts/...` 404s.
+- Root and `/literacy-platform` HTML now append cache-busting query string `?v=20260208d` on `platform.js` (and `app.js` on Word Quest) to reduce stale JS cache issues.
 
 ## Verification commands used
 - Latest Pages deploy run:
