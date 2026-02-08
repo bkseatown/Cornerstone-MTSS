@@ -1,35 +1,32 @@
 {
-  "generatedAt": "2026-02-07T15:12:59.931Z",
+  "generatedAt": "2026-02-08T15:47:07.111Z",
   "region": "eastus",
   "packId": "ava-multi",
   "packName": "Ava Multilingual",
   "languages": [
-    "en"
+    "es",
+    "zh",
+    "tl"
   ],
   "fields": [
-    "word",
-    "def",
-    "sentence",
-    "passage"
+    "word"
   ],
   "voiceMap": {
     "en": "en-US-AvaMultilingualNeural",
-    "es": "es-ES-ElviraNeural",
-    "zh": "zh-CN-XiaoxiaoNeural",
-    "tl": "fil-PH-BlessicaNeural",
+    "es": "en-US-AvaMultilingualNeural",
+    "zh": "en-US-AvaMultilingualNeural",
+    "tl": "en-US-AvaMultilingualNeural",
     "hi": "hi-IN-SwaraNeural"
   },
   "retries": 1,
-  "words": 0,
-  "attempted": 150,
-  "generated": 70,
-  "reused": 80,
+  "words": 500,
+  "attempted": 1500,
+  "generated": 0,
+  "reused": 1500,
   "failed": 0,
-  "generatedByField": {
-    "passage": 70
-  },
+  "generatedByField": {},
   "reusedByField": {
-    "passage": 80
+    "word": 1500
   },
   "failedByField": {},
   "phonemeCatalogSize": 0,

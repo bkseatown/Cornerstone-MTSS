@@ -1,30 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-08T12:54:51.895Z",
+  "updatedAt": "2026-02-08T15:47:07.111Z",
   "packs": [
-    {
-      "id": "ava-multi",
-      "name": "Ava Multilingual",
-      "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-08T12:54:51.895Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "word",
-        "def",
-        "sentence",
-        "passage"
-      ],
-      "voices": {
-        "en": "en-US-AvaMultilingualNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural"
-      }
-    },
     {
       "id": "emma-en",
       "name": "Emma English",
@@ -114,6 +91,28 @@
         "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural"
+      }
+    },
+    {
+      "id": "ava-multi",
+      "name": "Ava Multilingual",
+      "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Ava Multilingual).",
+      "generatedAt": "2026-02-08T15:47:07.111Z",
+      "languages": [
+        "es",
+        "zh",
+        "tl"
+      ],
+      "fields": [
+        "word"
+      ],
+      "voices": {
+        "en": "en-US-AvaMultilingualNeural",
+        "es": "en-US-AvaMultilingualNeural",
+        "zh": "en-US-AvaMultilingualNeural",
+        "tl": "en-US-AvaMultilingualNeural",
         "hi": "hi-IN-SwaraNeural"
       }
     }
