@@ -14,6 +14,11 @@
   const STUDENT_MODE_STRICT_KEY = 'cornerstone_student_mode_strict_v1';
   const STUDENT_MODE_RECOVERY_KEY = 'cornerstone_student_mode_recovery_v1';
   const DEFAULT_STUDENT_MODE_PIN = '2468';
+  const BUILD_STAMP_CACHE_KEY = 'cornerstone_build_stamp_v1';
+  const BUILD_STAMP_CACHE_TTL_MS = 15 * 60 * 1000;
+  const BUILD_STAMP_REPO_OWNER = 'bkseatown';
+  const BUILD_STAMP_REPO_NAME = 'Cornerstone-MTSS';
+  const BUILD_STAMP_BRANCH = 'main';
 
   const LEARNERS_KEY = 'decode_learners_v1';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
@@ -255,6 +260,71 @@
     }
   }
 
+  function pad2(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function formatBuildStampTime(value) {
+    const parsed = new Date(value || Date.now());
+    if (Number.isNaN(parsed.getTime())) return '';
+    return `${parsed.getUTCFullYear()}-${pad2(parsed.getUTCMonth() + 1)}-${pad2(parsed.getUTCDate())} ${pad2(parsed.getUTCHours())}:${pad2(parsed.getUTCMinutes())} UTC`;
+  }
+
+  function readBuildStampCache() {
+    const parsed = safeParse(localStorage.getItem(BUILD_STAMP_CACHE_KEY) || '');
+    if (!parsed || typeof parsed !== 'object') return null;
+    if ((parsed.expiresAt || 0) < Date.now()) return null;
+    if (typeof parsed.sha !== 'string' || !parsed.sha.trim()) return null;
+    if (typeof parsed.time !== 'string' || !parsed.time.trim()) return null;
+    return parsed;
+  }
+
+  function writeBuildStampCache(payload) {
+    if (!payload || typeof payload !== 'object') return;
+    localStorage.setItem(BUILD_STAMP_CACHE_KEY, JSON.stringify({
+      sha: payload.sha,
+      time: payload.time,
+      expiresAt: Date.now() + BUILD_STAMP_CACHE_TTL_MS
+    }));
+  }
+
+  async function fetchLatestBuildStamp() {
+    const endpoint = `https://api.github.com/repos/${BUILD_STAMP_REPO_OWNER}/${BUILD_STAMP_REPO_NAME}/commits/${BUILD_STAMP_BRANCH}`;
+    const response = await fetch(endpoint, {
+      headers: {
+        Accept: 'application/vnd.github+json'
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Build stamp lookup failed (${response.status})`);
+    }
+    const payload = await response.json();
+    const sha = String(payload?.sha || '').trim().slice(0, 8);
+    const commitTime = payload?.commit?.committer?.date || payload?.commit?.author?.date || '';
+    const time = formatBuildStampTime(commitTime);
+    return {
+      sha: sha || 'unknown',
+      time: time || formatBuildStampTime(Date.now())
+    };
+  }
+
+  async function resolveBuildStamp() {
+    const cached = readBuildStampCache();
+    if (cached) {
+      return { sha: cached.sha, time: cached.time };
+    }
+    try {
+      const fresh = await fetchLatestBuildStamp();
+      writeBuildStampCache(fresh);
+      return fresh;
+    } catch {
+      return {
+        sha: 'local',
+        time: formatBuildStampTime(Date.now())
+      };
+    }
+  }
+
   function ensureFavicon() {
     if (!document.head) return;
     if (document.querySelector('link[rel~="icon"]')) return;
@@ -263,6 +333,60 @@
     link.type = 'image/svg+xml';
     link.href = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M16 44V20h13.5c6 0 9.5 3.5 9.5 8.1 0 3.9-2.5 6.8-6.5 7.7L43 44h-7.8l-8.6-7.3H23V44h-7zM23 31h6c2.1 0 3.4-1.2 3.4-2.9s-1.3-2.9-3.4-2.9h-6V31z' fill='white'/%3E%3C/svg%3E";
     document.head.appendChild(link);
+  }
+
+  function ensureBuildStampStyle() {
+    if (!document.head) return;
+    if (document.getElementById('build-stamp-style')) return;
+    const style = document.createElement('style');
+    style.id = 'build-stamp-style';
+    style.textContent = `
+      #global-build-stamp {
+        position: fixed;
+        right: 12px;
+        bottom: 10px;
+        z-index: 2200;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(51, 65, 85, 0.25);
+        background: rgba(248, 250, 252, 0.86);
+        color: #334155;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+        backdrop-filter: blur(6px);
+        font: 600 11px/1.2 "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+        letter-spacing: 0.02em;
+        pointer-events: none;
+      }
+      @media (max-width: 720px) {
+        #global-build-stamp {
+          right: 8px;
+          bottom: 8px;
+          font-size: 10px;
+        }
+      }
+      @media print {
+        #global-build-stamp {
+          display: none !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function renderBuildStamp() {
+    if (!document.body) return;
+    ensureBuildStampStyle();
+    let badge = document.getElementById('global-build-stamp');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = 'global-build-stamp';
+      badge.setAttribute('aria-live', 'polite');
+      document.body.appendChild(badge);
+    }
+    badge.textContent = 'Build: loading...';
+    resolveBuildStamp().then((payload) => {
+      badge.textContent = `Build: ${payload.sha} | ${payload.time}`;
+    });
   }
 
   function normalizeLook(value) {
@@ -1785,6 +1909,7 @@
   };
 
   ensureFavicon();
+  renderBuildStamp();
   renderPrimaryNav();
   applyStudentModeState();
   renderLearnerSwitchers();
