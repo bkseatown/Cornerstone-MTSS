@@ -962,16 +962,20 @@ async function loadPackedTtsPackRegistry({ forceRefresh = false } = {}) {
     if (packedTtsPackRegistryCache) return packedTtsPackRegistryCache;
     if (packedTtsPackRegistryPromise) return packedTtsPackRegistryPromise;
 
-    packedTtsPackRegistryPromise = fetch(PACKED_TTS_PACK_REGISTRY_PATH, { cache: 'no-store' })
-        .then(async (response) => {
-            if (!response.ok) {
-                packedTtsPackRegistryCache = normalizeTtsPackRegistry(null);
-                return packedTtsPackRegistryCache;
+    packedTtsPackRegistryPromise = (async () => {
+            const candidates = getPackedClipPathCandidates(PACKED_TTS_PACK_REGISTRY_PATH);
+            for (const candidate of candidates) {
+                try {
+                    const response = await fetch(candidate, { cache: 'no-store' });
+                    if (!response.ok) continue;
+                    const parsed = await response.json();
+                    packedTtsPackRegistryCache = normalizeTtsPackRegistry(parsed);
+                    return packedTtsPackRegistryCache;
+                } catch (e) {}
             }
-            const parsed = await response.json();
-            packedTtsPackRegistryCache = normalizeTtsPackRegistry(parsed);
+            packedTtsPackRegistryCache = normalizeTtsPackRegistry(null);
             return packedTtsPackRegistryCache;
-        })
+        })()
         .catch(() => {
             packedTtsPackRegistryCache = normalizeTtsPackRegistry(null);
             return packedTtsPackRegistryCache;
@@ -1007,28 +1011,30 @@ async function loadPackedTtsManifestFromPath(manifestPath = '') {
         return packedTtsManifestPromiseByPath.get(normalizedPath);
     }
 
-    const loadPromise = fetch(normalizedPath, { cache: 'no-store' })
-        .then(async (response) => {
-            if (!response.ok) {
-                const empty = { entries: {} };
-                packedTtsManifestCacheByPath.set(normalizedPath, empty);
-                return empty;
+    const loadPromise = (async () => {
+            const candidates = getPackedClipPathCandidates(normalizedPath);
+            for (const candidate of candidates) {
+                try {
+                    const response = await fetch(candidate, { cache: 'no-store' });
+                    if (!response.ok) continue;
+                    const parsed = await response.json();
+                    if (!parsed || typeof parsed !== 'object' || typeof parsed.entries !== 'object') {
+                        continue;
+                    }
+                    const normalizedEntries = {};
+                    Object.entries(parsed.entries || {}).forEach(([key, value]) => {
+                        if (!key || typeof value !== 'string') return;
+                        normalizedEntries[key] = normalizePackManifestPath(value);
+                    });
+                    parsed.entries = normalizedEntries;
+                    packedTtsManifestCacheByPath.set(normalizedPath, parsed);
+                    return parsed;
+                } catch (e) {}
             }
-            const parsed = await response.json();
-            if (!parsed || typeof parsed !== 'object' || typeof parsed.entries !== 'object') {
-                const empty = { entries: {} };
-                packedTtsManifestCacheByPath.set(normalizedPath, empty);
-                return empty;
-            }
-            const normalizedEntries = {};
-            Object.entries(parsed.entries || {}).forEach(([key, value]) => {
-                if (!key || typeof value !== 'string') return;
-                normalizedEntries[key] = normalizePackManifestPath(value);
-            });
-            parsed.entries = normalizedEntries;
-            packedTtsManifestCacheByPath.set(normalizedPath, parsed);
-            return parsed;
-        })
+            const empty = { entries: {} };
+            packedTtsManifestCacheByPath.set(normalizedPath, empty);
+            return empty;
+        })()
         .catch(() => {
             const empty = { entries: {} };
             packedTtsManifestCacheByPath.set(normalizedPath, empty);
@@ -1104,6 +1110,44 @@ async function findPackedTtsClipAcrossPacks(manifestKey = '', languageCode = 'en
     return '';
 }
 
+function orderPacksForLanguage(packs = [], languageCode = 'en') {
+    const targetLang = normalizePackedTtsLanguage(languageCode);
+    const preferredPackId = getPreferredTtsPackId();
+    return packs.slice().sort((a, b) => {
+        if ((a?.id || '') === preferredPackId && (b?.id || '') !== preferredPackId) return -1;
+        if ((b?.id || '') === preferredPackId && (a?.id || '') !== preferredPackId) return 1;
+        const aHasLang = Array.isArray(a?.languages) && a.languages.some((lang) => normalizePackedTtsLanguage(lang) === targetLang);
+        const bHasLang = Array.isArray(b?.languages) && b.languages.some((lang) => normalizePackedTtsLanguage(lang) === targetLang);
+        if (aHasLang !== bHasLang) return aHasLang ? -1 : 1;
+        if (a?.id === 'default' && b?.id !== 'default') return 1;
+        if (b?.id === 'default' && a?.id !== 'default') return -1;
+        return String(a?.name || a?.id || '').localeCompare(String(b?.name || b?.id || ''));
+    });
+}
+
+async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word' } = {}) {
+    const normalizedWord = String(word || '').trim().toLowerCase();
+    if (!normalizedWord) return false;
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+    const normalizedType = normalizePackedTtsType(type);
+    const encodedWord = encodeURIComponent(normalizedWord);
+
+    const registry = await loadPackedTtsPackRegistry();
+    const packs = Array.isArray(registry?.packs) && registry.packs.length
+        ? registry.packs
+        : [getDefaultTtsPackOption()];
+    const orderedPacks = orderPacksForLanguage(packs, normalizedLang);
+
+    for (const pack of orderedPacks) {
+        const packId = String(pack?.id || '').trim();
+        if (!packId) continue;
+        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/${normalizedType}/${encodedWord}.mp3`;
+        const played = await playPackedClipWithFallbackPaths(candidate);
+        if (played) return true;
+    }
+    return false;
+}
+
 function stopAllActiveAudioPlayers() {
     activeAudioPlayers.forEach((audio) => {
         try {
@@ -1164,7 +1208,39 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
     }
     const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
     if (crossPackClip) {
-        return playPackedClipWithFallbackPaths(crossPackClip);
+        const played = await playPackedClipWithFallbackPaths(crossPackClip);
+        if (played) return true;
+    }
+    return tryPlayPackedClipByDirectPath({
+        word,
+        languageCode,
+        type: resolvedType
+    });
+}
+
+async function hasPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word' } = {}) {
+    const normalizedWord = String(word || '').trim().toLowerCase();
+    if (!normalizedWord) return false;
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+    const normalizedType = normalizePackedTtsType(type);
+    const encodedWord = encodeURIComponent(normalizedWord);
+    const registry = await loadPackedTtsPackRegistry();
+    const packs = Array.isArray(registry?.packs) && registry.packs.length
+        ? registry.packs
+        : [getDefaultTtsPackOption()];
+    const orderedPacks = orderPacksForLanguage(packs, normalizedLang);
+
+    for (const pack of orderedPacks) {
+        const packId = String(pack?.id || '').trim();
+        if (!packId) continue;
+        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/${normalizedType}/${encodedWord}.mp3`;
+        const variants = getPackedClipPathCandidates(candidate);
+        for (const variant of variants) {
+            try {
+                const response = await fetch(variant, { method: 'HEAD' });
+                if (response.ok) return true;
+            } catch (e) {}
+        }
     }
     return false;
 }
@@ -1188,7 +1264,11 @@ async function hasPackedTtsClipForCurrentWord({ text = '', languageCode = 'en', 
     }
     const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
     if (crossPackClip) return true;
-    return false;
+    return hasPackedClipByDirectPath({
+        word,
+        languageCode,
+        type: resolvedType
+    });
 }
 
 async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
@@ -2964,7 +3044,7 @@ function getTranslationVoiceTarget(languageCode) {
         'es': 'es',
         'zh': 'zh',
         'vi': 'vi',
-        'tl': 'tl',
+        'tl': 'fil',
         'ms': 'ms',
         'pt': 'pt',
         'hi': 'hi'
@@ -6253,16 +6333,17 @@ function showEndModal(win) {
                 safeSentence ? hasPackedTtsClipForCurrentWord({ text: safeSentence, languageCode: selectedLang, type: 'sentence' }) : Promise.resolve(false)
             ]);
 
-            const canPlayWord = !!safeWord && (packedWordReady || hasVoice);
-            const canPlayDefinition = !!safeDefinition && (packedDefReady || hasVoice);
-            const canPlaySentence = !!safeSentence && (packedSentenceReady || hasVoice);
+            const canPlayWord = !!safeWord;
+            const canPlayDefinition = !!safeDefinition;
+            const canPlaySentence = !!safeSentence;
 
             if (playTranslatedWord) playTranslatedWord.disabled = !canPlayWord;
             if (playTranslatedDef) playTranslatedDef.disabled = !canPlayDefinition;
             if (playTranslatedSentence) playTranslatedSentence.disabled = !canPlaySentence;
 
-            const hasAnyPlayable = canPlayWord || canPlayDefinition || canPlaySentence;
-            if (!hasAnyPlayable && (safeWord || safeDefinition || safeSentence)) {
+            const hasAnyText = canPlayWord || canPlayDefinition || canPlaySentence;
+            const hasAnyPlayable = packedWordReady || packedDefReady || packedSentenceReady || hasVoice;
+            if (!hasAnyPlayable && hasAnyText) {
                 setTranslationAudioNote('Audio unavailable for this language.', true);
             } else {
                 setTranslationAudioNote('');

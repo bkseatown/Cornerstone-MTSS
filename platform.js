@@ -687,8 +687,8 @@
         exitBtn = document.createElement('button');
         exitBtn.type = 'button';
         exitBtn.className = 'link-btn student-mode-exit-btn';
-        exitBtn.textContent = 'Unlock Adult Tools';
-        exitBtn.title = 'Adult PIN required';
+        exitBtn.textContent = 'Teacher Access';
+        exitBtn.title = 'Teacher PIN required';
         container.appendChild(exitBtn);
       }
 
