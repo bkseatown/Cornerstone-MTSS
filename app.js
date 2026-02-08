@@ -1182,10 +1182,38 @@ async function playAudioClipUrl(url, options = {}) {
     }
 }
 
+function shouldUsePackedClipForCurrentRevealText({ text = '', languageCode = 'en', type = 'word' } = {}) {
+    const normalizedText = normalizeTextForCompare(text);
+    if (!normalizedText) return false;
+    const normalizedType = normalizePackedTtsType(type);
+    if (normalizedType === 'word') {
+        return normalizedText === normalizeTextForCompare(currentWord || '');
+    }
+    if (normalizedType !== 'def' && normalizedType !== 'sentence') {
+        return true;
+    }
+
+    const lang = normalizePackedTtsLanguage(languageCode);
+    const mode = getResolvedAudienceMode();
+    const expected = getWordCopyForAudience(currentWord, lang, mode);
+    let expectedText = normalizedType === 'def'
+        ? normalizeTextForCompare(expected?.definition || '')
+        : normalizeTextForCompare(expected?.sentence || '');
+    if (!expectedText && lang !== 'en') {
+        const translated = getTranslationData(currentWord, lang, { audienceMode: mode });
+        expectedText = normalizedType === 'def'
+            ? normalizeTextForCompare(translated?.definition || '')
+            : normalizeTextForCompare(translated?.sentence || '');
+    }
+    if (!expectedText) return false;
+    return normalizedText === expectedText;
+}
+
 async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', type = 'word' } = {}) {
     if (!shouldAttemptPackedTtsLookup()) return false;
     const word = String(currentWord || '').trim().toLowerCase();
     if (!word || !text) return false;
+    if (!shouldUsePackedClipForCurrentRevealText({ text, languageCode, type })) return false;
     const manifest = await loadPackedTtsManifest();
     if (!manifest?.entries) return false;
     const resolvedType = resolveCurrentWordTtsType(text, languageCode, type);
@@ -1249,6 +1277,7 @@ async function hasPackedTtsClipForCurrentWord({ text = '', languageCode = 'en', 
     if (!shouldAttemptPackedTtsLookup()) return false;
     const word = String(currentWord || '').trim().toLowerCase();
     if (!word || !text) return false;
+    if (!shouldUsePackedClipForCurrentRevealText({ text, languageCode, type })) return false;
     const manifest = await loadPackedTtsManifest();
     if (!manifest?.entries) return false;
 
@@ -3211,7 +3240,7 @@ function getTranslationData(word, langCode, options = {}) {
                 word: lower,
                 field: 'definition',
                 languageCode: normalizedLang,
-                allowFallback: false,
+                allowFallback: true,
                 maxWords: 20
             })
             : '',
@@ -3220,7 +3249,7 @@ function getTranslationData(word, langCode, options = {}) {
                 word: lower,
                 field: 'sentence',
                 languageCode: normalizedLang,
-                allowFallback: false,
+                allowFallback: true,
                 maxWords: 24
             })
             : ''
@@ -6998,7 +7027,20 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(booze|hangover|intoxicated)\b/i,
     /\b(sex|sexual|porn|nude|naked)\b/i,
     /\b(flipped\s+off|pointed\s+to\s+the\s+middle|inappropriate\s+gesture)\b/i,
-    /\bsaw\s+the\s+tiny\b/i
+    /\bsaw\s+the\s+tiny\b/i,
+    /\b(zombie|booger(?:s)?|snot|slime|drool(?:ed|ing)?|poop|pee|fart|barf|vomit|puke)\b/i,
+    /\b(lied\s+smoothly|tiny\s+sign)\b/i
+];
+const SCHOOL_SAFE_REPLACEMENTS = [
+    [/\bhate\b/gi, 'do not like'],
+    [/\battacked?\b/gi, 'rushed toward'],
+    [/\bslime\b/gi, 'smudge'],
+    [/\bdrool(?:ed|ing)?\b/gi, 'made a small spill'],
+    [/\bbooger(?:s)?\b/gi, 'sniffles'],
+    [/\bzombie\b/gi, 'costume character'],
+    [/\blied\s+smoothly\b/gi, 'spoke too quickly'],
+    [/\bflipped\s+off\b/gi, 'made an unkind gesture'],
+    [/\bmiddle\s+finger\b/gi, 'unkind gesture']
 ];
 const REVEAL_TRAILING_WORDS_TO_TRIM = new Set([
     'a', 'an', 'the', 'this', 'that', 'these', 'those',
@@ -7008,32 +7050,130 @@ const REVEAL_TRAILING_WORDS_TO_TRIM = new Set([
 ]);
 const KID_SAFE_TEXT_FALLBACKS = {
     en: {
-        definition: (word) => `"${word}" is a class word we can decode, read, and use to share clear ideas.`,
-        sentence: (word) => `Try this: "Our team used ${word} in a sentence and gave it a silly classroom twist."`
+        definition: (word) => `"${word}" is a school-safe practice word for reading, speaking, and writing clearly.`,
+        sentence: (word) => `Example: "Our class used ${word} in a clear sentence during practice."`
     },
     es: {
         definition: (word) => `"${word}" es una palabra de clase para decodificar, leer y usar al explicar ideas.`,
-        sentence: (word) => `Prueba: "Nuestro equipo usó ${word} en una oración y le dio un toque divertido."`
+        sentence: (word) => `Ejemplo: "Nuestra clase usó ${word} en una oración clara durante la práctica."`
     },
     zh: {
         definition: (word) => `"${word}" 是课堂练习词，可以用来练习解码、阅读和表达想法。`,
-        sentence: (word) => `试一试：“我们把 ${word} 放进句子里，还加了一点有趣的创意。”`
+        sentence: (word) => `示例：“我们在练习时把 ${word} 用在了一个清晰的句子里。”`
     },
     tl: {
         definition: (word) => `"${word}" ay salitang pang-klase para sa pagde-decode, pagbasa, at malinaw na paliwanag.`,
-        sentence: (word) => `Subukan ito: "Ginamit namin ang ${word} sa pangungusap at nilagyan ng masayang twist."`
+        sentence: (word) => `Halimbawa: "Ginamit ng klase ang ${word} sa malinaw na pangungusap habang nagpa-practice."`
     },
     vi: {
         definition: (word) => `"${word}" là từ luyện tập trên lớp để giải mã, đọc và diễn đạt ý rõ ràng.`,
-        sentence: (word) => `Hãy thử: "Nhóm em dùng ${word} trong câu và thêm một chi tiết vui."`
+        sentence: (word) => `Ví dụ: "Lớp em dùng ${word} trong một câu rõ ràng khi luyện tập."`
     },
     ms: {
         definition: (word) => `"${word}" ialah perkataan kelas untuk latihan menyahkod, membaca, dan menerangkan idea.`,
-        sentence: (word) => `Cuba ini: "Kumpulan kami guna ${word} dalam ayat dengan sentuhan yang menyeronokkan."`
+        sentence: (word) => `Contoh: "Kelas kami guna ${word} dalam ayat yang jelas semasa latihan."`
     },
     hi: {
         definition: (word) => `"${word}" कक्षा में पढ़ने, समझने और साफ़ बोलने के लिए अभ्यास शब्द है।`,
-        sentence: (word) => `यह आज़माएँ: "हमारी टीम ने ${word} का वाक्य में सही और मज़ेदार उपयोग किया।"`
+        sentence: (word) => `उदाहरण: "हमारी कक्षा ने अभ्यास के दौरान ${word} का स्पष्ट वाक्य में उपयोग किया।"`
+    }
+};
+const SCHOOL_SAFE_REVEAL_OVERRIDES = {
+    theme: {
+        definition: 'The main idea that ties parts of a story, lesson, or event together.',
+        sentence: 'Our class party theme was space, so we made star hats and planet signs.'
+    },
+    claim: {
+        definition: 'To say something belongs to you or is true.',
+        sentence: 'Mina raised her hand to claim the reading chair before recess.'
+    },
+    plea: {
+        definition: 'A strong request for help.',
+        sentence: 'Leo made a polite plea for one more minute to finish his puzzle.'
+    },
+    fern: {
+        definition: 'A green plant with feathery leaves.',
+        sentence: 'The fern near the window grew taller after we watered it.'
+    },
+    horse: {
+        definition: 'A large farm animal that can carry people and pull carts.',
+        sentence: 'The horse trotted around the field while we counted its steps.'
+    },
+    dislike: {
+        definition: 'To not enjoy something very much.',
+        sentence: 'I dislike soggy cereal, so I eat it right away.'
+    },
+    oil: {
+        definition: 'A smooth liquid used in cooking and in machines.',
+        sentence: 'We added a little oil to the pan before cooking vegetables.'
+    },
+    cow: {
+        definition: 'A large farm animal that gives milk.',
+        sentence: 'The cow chewed grass slowly in the sunny field.'
+    },
+    backpack: {
+        definition: 'A bag you carry on your back for school items.',
+        sentence: 'I zipped my backpack and checked that my notebook was inside.'
+    },
+    quickly: {
+        definition: 'At a fast speed.',
+        sentence: 'We quickly lined up when the bell rang.'
+    },
+    if: {
+        definition: 'A word used to show a condition or choice.',
+        sentence: '"If it rains, we will read indoors."'
+    },
+    far: {
+        definition: 'A long distance away.',
+        sentence: 'The library is far from our class, so we walk together.'
+    },
+    nose: {
+        definition: 'The part of your face used for breathing and smelling.',
+        sentence: 'My nose feels cold when I walk outside in winter.'
+    },
+    butter: {
+        definition: 'A soft food spread made from cream.',
+        sentence: 'We spread butter on warm toast at breakfast.'
+    },
+    park: {
+        definition: 'An outdoor place with grass, trees, and play areas.',
+        sentence: 'We met at the park and played tag near the swings.'
+    },
+    hair: {
+        definition: 'The strands that grow on your head.',
+        sentence: 'I brushed my hair before school.'
+    },
+    blood: {
+        definition: 'The red liquid in your body that carries oxygen.',
+        sentence: 'In science, we learned that blood helps move oxygen through the body.'
+    },
+    thermal: {
+        definition: 'Designed to keep heat in and keep you warm.',
+        sentence: 'I wore thermal socks on the cold morning walk.'
+    },
+    cyclone: {
+        definition: 'A powerful spinning wind storm.',
+        sentence: 'The weather map showed a cyclone far out at sea.'
+    },
+    above: {
+        definition: 'Higher than something else.',
+        sentence: 'The kite flew above the trees.'
+    },
+    toward: {
+        definition: 'In the direction of something.',
+        sentence: 'We walked toward the gym when music started.'
+    },
+    during: {
+        definition: 'At the same time as something else.',
+        sentence: 'I took notes during the lesson.'
+    },
+    suddenly: {
+        definition: 'Happening quickly and without warning.',
+        sentence: 'Suddenly, the lights turned on and the room got bright.'
+    },
+    slip: {
+        definition: 'To lose your footing for a moment.',
+        sentence: 'I started to slip on the wet floor, then caught the rail.'
     }
 };
 
@@ -7088,6 +7228,17 @@ function ensureEndingPunctuationForLanguage(value, languageCode = 'en') {
     return ensureEndingPunctuation(text);
 }
 
+function applySchoolSafeReplacements(value, languageCode = 'en') {
+    const lang = normalizePackedTtsLanguage(languageCode);
+    let text = cleanAudienceText(value);
+    if (!text) return '';
+    if (lang !== 'en') return text;
+    SCHOOL_SAFE_REPLACEMENTS.forEach(([pattern, replacement]) => {
+        text = text.replace(pattern, replacement);
+    });
+    return text;
+}
+
 function applyYoungAudienceReplacements(value) {
     let text = cleanAudienceText(value);
     YOUNG_AUDIENCE_WORD_REPLACEMENTS.forEach(([pattern, replacement]) => {
@@ -7116,6 +7267,17 @@ function getKidSafeFallbackText(word, field = 'definition', languageCode = 'en')
     return fallbackBuilder(String(word || '').toLowerCase());
 }
 
+function getSchoolSafeOverrideText(word, field = 'definition', languageCode = 'en') {
+    const lang = normalizePackedTtsLanguage(languageCode);
+    if (lang !== 'en') return '';
+    const key = String(word || '').trim().toLowerCase();
+    if (!key) return '';
+    const entry = SCHOOL_SAFE_REVEAL_OVERRIDES[key];
+    if (!entry || typeof entry !== 'object') return '';
+    const text = field === 'sentence' ? entry.sentence : entry.definition;
+    return cleanAudienceText(text || '');
+}
+
 function trimToFirstSentence(text = '') {
     const cleaned = cleanAudienceText(text);
     if (!cleaned) return '';
@@ -7137,8 +7299,10 @@ function truncateForAudienceLanguage(value, languageCode = 'en', maxWords = 16) 
 
 function isYoungAudienceUnsafeText(value) {
     if (!value) return false;
-    if (YOUNG_AUDIENCE_BLOCKLIST.test(value)) return true;
-    return YOUNG_AUDIENCE_EXTRA_BLOCKLIST.some((pattern) => pattern.test(value));
+    const text = cleanAudienceText(value);
+    if (!text) return false;
+    if (YOUNG_AUDIENCE_BLOCKLIST.test(text)) return true;
+    return YOUNG_AUDIENCE_EXTRA_BLOCKLIST.some((pattern) => pattern.test(text));
 }
 
 function buildKidSafeAudienceText(rawText, {
@@ -7148,6 +7312,7 @@ function buildKidSafeAudienceText(rawText, {
 } = {}) {
     const lang = normalizePackedTtsLanguage(languageCode);
     let text = cleanAudienceText(rawText);
+    text = applySchoolSafeReplacements(text, lang);
     if (lang === 'en') {
         text = applyYoungAudienceReplacements(text);
     }
@@ -7375,7 +7540,12 @@ function sanitizeRevealText(value, {
     maxWords = null
 } = {}) {
     const lang = normalizePackedTtsLanguage(languageCode);
+    const manualOverride = getSchoolSafeOverrideText(word, field, lang);
+    if (manualOverride) {
+        return ensureEndingPunctuationForLanguage(manualOverride, lang);
+    }
     let text = trimToFirstSentence(value);
+    text = applySchoolSafeReplacements(text, lang);
     const limit = Number.isFinite(maxWords) && maxWords > 0
         ? Math.max(6, Math.min(32, maxWords))
         : (field === 'sentence' ? 24 : 20);
