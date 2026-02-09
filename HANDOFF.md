@@ -2,6 +2,30 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 single-home-source redirect + snapshot fallback slice
+- Scope files:
+  - `index.html`
+  - `HANDOFF.md`
+- Why:
+  - Root and `/literacy-platform` had separate `index.html` implementations and were drifting, which made Home changes appear inconsistent depending on entry URL.
+- What changed:
+  - Replaced root `index.html` with a canonical redirect shell that forwards immediately to:
+    - `/literacy-platform/index.html?v=20260209m`
+  - Redirect preserves URL hash and includes a `noscript` fallback link.
+  - This makes `/literacy-platform/index.html` the single live Home source while keeping root URL compatibility.
+- Picture-in-time fallback:
+  - Fallback snapshot reference before this slice: `46380ade`.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/home.js` ✅
+  - `node --check literacy-platform/platform.js` ✅
+  - `node --check literacy-platform/app.js` ✅
+- Redirect smoke (Playwright, file path open) ✅:
+  - root `index.html` resolved to `/literacy-platform/index.html?v=20260209m`
+  - `hasStepper=false`
+  - `hasOldRoleLabel=false`
+
 ## 2026-02-09 Writing Studio teacher+parent snapshot trend slice
 - Scope files:
   - `literacy-platform/writing-studio.html`
