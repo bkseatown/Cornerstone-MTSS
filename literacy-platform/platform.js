@@ -16,9 +16,6 @@
   const DEFAULT_STUDENT_MODE_PIN = '2468';
   const BUILD_STAMP_CACHE_KEY = 'cornerstone_build_stamp_v1';
   const BUILD_STAMP_CACHE_TTL_MS = 15 * 60 * 1000;
-  const BUILD_STAMP_REPO_OWNER = 'bkseatown';
-  const BUILD_STAMP_REPO_NAME = 'Cornerstone-MTSS';
-  const BUILD_STAMP_BRANCH = 'main';
 
   const LEARNERS_KEY = 'decode_learners_v1';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
@@ -539,41 +536,19 @@
     }));
   }
 
-  async function fetchLatestBuildStamp() {
-    const endpoint = `https://api.github.com/repos/${BUILD_STAMP_REPO_OWNER}/${BUILD_STAMP_REPO_NAME}/commits/${BUILD_STAMP_BRANCH}`;
-    const response = await fetch(endpoint, {
-      headers: {
-        Accept: 'application/vnd.github+json'
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Build stamp lookup failed (${response.status})`);
+  function resolveBuildStamp() {
+    const scriptVersion = readPlatformScriptVersion();
+    if (scriptVersion) {
+      return Promise.resolve({
+        sha: scriptVersion,
+        time: ''
+      });
     }
-    const payload = await response.json();
-    const sha = String(payload?.sha || '').trim().slice(0, 8);
-    const commitTime = payload?.commit?.committer?.date || payload?.commit?.author?.date || '';
-    const time = formatBuildStampTime(commitTime);
-    return {
-      sha: sha || 'unknown',
-      time: time || formatBuildStampTime(Date.now())
-    };
-  }
-
-  async function resolveBuildStamp() {
     const cached = readBuildStampCache();
     if (cached) {
-      return { sha: cached.sha, time: cached.time };
+      return Promise.resolve({ sha: cached.sha, time: cached.time });
     }
-    try {
-      const fresh = await fetchLatestBuildStamp();
-      writeBuildStampCache(fresh);
-      return fresh;
-    } catch {
-      return {
-        sha: 'local',
-        time: formatBuildStampTime(Date.now())
-      };
-    }
+    return Promise.resolve({ sha: 'local', time: '' });
   }
 
   function ensureFavicon() {
@@ -635,13 +610,16 @@
       document.body.appendChild(badge);
     }
     badge.textContent = 'Build: loading...';
-    const scriptVersion = readPlatformScriptVersion();
-    if (scriptVersion) {
-      badge.textContent = `Build: ${scriptVersion}`;
-      return;
-    }
     resolveBuildStamp().then((payload) => {
-      badge.textContent = `Build: ${payload.sha} | ${payload.time}`;
+      const sha = String(payload?.sha || '').trim();
+      if (!sha) {
+        badge.textContent = '';
+        return;
+      }
+      const time = String(payload?.time || '').trim();
+      badge.textContent = time ? `Build: ${sha} | ${time}` : `Build: ${sha}`;
+    }).catch(() => {
+      badge.textContent = '';
     });
   }
 

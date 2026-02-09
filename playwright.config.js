@@ -51,7 +51,10 @@ module.exports = defineConfig({
   },
   use: {
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
+    launchOptions: {
+      args: ['--mute-audio']
+    }
   },
   projects: [
     {
@@ -59,7 +62,9 @@ module.exports = defineConfig({
       use: {
         browserName: 'chromium',
         viewport: { width: 1440, height: 900 },
-        launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : undefined
+        launchOptions: chromiumExecutable
+          ? { executablePath: chromiumExecutable, args: ['--mute-audio'] }
+          : { args: ['--mute-audio'] }
       }
     },
     {
@@ -70,7 +75,9 @@ module.exports = defineConfig({
         isMobile: true,
         hasTouch: true,
         deviceScaleFactor: 2,
-        launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : undefined
+        launchOptions: chromiumExecutable
+          ? { executablePath: chromiumExecutable, args: ['--mute-audio'] }
+          : { args: ['--mute-audio'] }
       }
     }
   ]
