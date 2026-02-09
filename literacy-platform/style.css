@@ -14354,10 +14354,10 @@ body.word-quest-page .quick-response-dock {
 
 @media (min-width: 821px) {
     body.word-quest-page {
-        --wq-tile-size-desktop: 70px;
-        --wq-key-size-desktop: 52px;
-        --wq-key-wide-size-desktop: 88px;
-        --wq-keyboard-max-desktop: 690px;
+        --wq-tile-size-desktop: 72px;
+        --wq-key-size-desktop: 58px;
+        --wq-key-wide-size-desktop: 104px;
+        --wq-keyboard-max-desktop: 780px;
         --wq-canvas-max-desktop: 980px;
         --wq-desktop-bottom-gap: 46px;
         overflow: hidden;
@@ -14990,10 +14990,10 @@ body.word-quest-page .quick-custom-word-status {
 
 @media (min-width: 821px) {
     body.word-quest-page {
-        --wq-tile-size-desktop: 58px;
-        --wq-key-size-desktop: 52px;
-        --wq-key-wide-size-desktop: 88px;
-        --wq-keyboard-max-desktop: 760px;
+        --wq-tile-size-desktop: 62px;
+        --wq-key-size-desktop: 58px;
+        --wq-key-wide-size-desktop: 104px;
+        --wq-keyboard-max-desktop: 780px;
         --wq-canvas-max-desktop: 980px;
         --wq-desktop-bottom-gap: 20px;
     }

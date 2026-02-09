@@ -12,7 +12,7 @@
   const TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
   const QUICKCHECK_SUMMARY_KEY = 'cornerstone_quickcheck_summary_v1';
   const QUICKCHECK_SHUFFLE_KEY_PREFIX = 'cornerstone_quickcheck_queue_v2::';
-  const HOME_STATE_KEY_PREFIX = 'cornerstone_home_state_v3::';
+  const HOME_STATE_KEY_PREFIX = 'cornerstone_home_state_v4::';
   const HOME_STUDENT_NAME_KEY = 'cm_student_name';
   const HOME_GRADE_BAND_KEY = 'cm_grade_band';
   const HOME_FOCUS_TODAY_KEY = 'cm_focus_today';
@@ -168,10 +168,10 @@
       ? normalizeSchoolDivision(source.gradeBand || '')
       : normalizeGradeBand(source.gradeBand || '');
     const focus = normalizeFocusToday(source.focus);
-    const quickCheckSummary = source.quickCheckSummary && typeof source.quickCheckSummary === 'object'
+    const quickCheckComplete = !!source.quickCheckComplete;
+    const quickCheckSummary = quickCheckComplete && source.quickCheckSummary && typeof source.quickCheckSummary === 'object'
       ? source.quickCheckSummary
       : null;
-    const quickCheckComplete = !!source.quickCheckComplete || !!quickCheckSummary?.recommendation;
     const wizardStep = normalizeWizardStep(source.wizardStep || 1);
     const parentGoal = String(source.parentGoal || '').trim().toLowerCase();
     const schoolPrimaryArea = String(source.schoolPrimaryArea || '').trim().toLowerCase();

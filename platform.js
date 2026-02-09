@@ -170,6 +170,10 @@
     { value: 'en-GB', label: 'British English' }
   ];
 
+  const QUICK_TTS_BASE_PREF_KEY = 'decode_tts_base_path_v1';
+  const QUICK_TTS_BASE_PLAIN = 'audio/tts';
+  const QUICK_TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
+
   const QUICK_TRANSLATION_LANGS = [
     { value: 'en', label: 'English' },
     { value: 'es', label: 'Español (Spanish)' },
@@ -182,6 +186,87 @@
     { value: 'ko', label: '한국어 (Korean)' },
     { value: 'ja', label: '日本語 (Japanese)' }
   ];
+
+  function normalizeVoicePackId(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return 'default';
+    const cleaned = raw.replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    return cleaned || 'default';
+  }
+
+  function normalizeTtsBasePath(value) {
+    const normalized = String(value || '').trim().replace(/^\/+|\/+$/g, '');
+    if (normalized === QUICK_TTS_BASE_PLAIN || normalized === QUICK_TTS_BASE_SCOPED) {
+      return normalized;
+    }
+    return '';
+  }
+
+  function readPreferredTtsBasePath() {
+    try {
+      return normalizeTtsBasePath(localStorage.getItem(QUICK_TTS_BASE_PREF_KEY) || '');
+    } catch {
+      return '';
+    }
+  }
+
+  function rememberPreferredTtsBasePath(value = '') {
+    const normalized = normalizeTtsBasePath(value);
+    if (!normalized) return;
+    try {
+      localStorage.setItem(QUICK_TTS_BASE_PREF_KEY, normalized);
+    } catch {}
+  }
+
+  function getQuickVoicePackCandidates() {
+    const preferred = readPreferredTtsBasePath();
+    const pathname = String(window.location?.pathname || '').toLowerCase();
+    const inferredPrimary = pathname.includes('/literacy-platform/') ? QUICK_TTS_BASE_PLAIN : QUICK_TTS_BASE_SCOPED;
+    return Array.from(new Set([preferred, inferredPrimary, QUICK_TTS_BASE_PLAIN, QUICK_TTS_BASE_SCOPED].filter(Boolean)));
+  }
+
+  async function loadQuickVoicePackOptions(selectEl, selectedPackId = 'default') {
+    if (!(selectEl instanceof HTMLSelectElement)) return 'default';
+    const candidates = getQuickVoicePackCandidates().map((base) => `${base}/packs/pack-registry.json`);
+    let packs = [];
+    for (const path of candidates) {
+      try {
+        const response = await fetch(path, { cache: 'no-store' });
+        if (!response.ok) continue;
+        const parsed = await response.json();
+        const detectedBase = path.startsWith(`${QUICK_TTS_BASE_PLAIN}/`) ? QUICK_TTS_BASE_PLAIN : QUICK_TTS_BASE_SCOPED;
+        rememberPreferredTtsBasePath(detectedBase);
+        if (parsed && Array.isArray(parsed.packs)) {
+          packs = parsed.packs
+            .filter((pack) => pack && typeof pack === 'object')
+            .map((pack) => ({
+              id: normalizeVoicePackId(pack.id),
+              name: String(pack.name || pack.id || '').trim() || 'Voice Pack'
+            }))
+            .filter((pack) => pack.id && pack.id !== 'default');
+          break;
+        }
+      } catch {}
+    }
+
+    selectEl.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = 'default';
+    defaultOption.textContent = 'Default voice pack';
+    selectEl.appendChild(defaultOption);
+
+    packs.forEach((pack) => {
+      const option = document.createElement('option');
+      option.value = pack.id;
+      option.textContent = pack.name;
+      selectEl.appendChild(option);
+    });
+
+    const normalizedSelected = normalizeVoicePackId(selectedPackId);
+    const hasSelected = Array.from(selectEl.options).some((option) => option.value === normalizedSelected);
+    selectEl.value = hasSelected ? normalizedSelected : 'default';
+    return selectEl.value;
+  }
 
   const GUIDE_TIP_DISMISS_PREFIX = 'cornerstone_guide_tip_dismissed_v1::';
   const GUIDE_TIPS = {
@@ -1830,7 +1915,7 @@
           <h2 id="voice-quick-title">Voice & Language</h2>
           <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
         </header>
-        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately. Downloaded Azure packs still play automatically when available.</p>
+        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately. System voices appear under Voice choice, and downloaded Azure packs appear under Audio pack.</p>
         <label class="voice-quick-field">
           <span>English preset</span>
           <select id="voice-quick-dialect">
@@ -1840,6 +1925,12 @@
         <label class="voice-quick-field">
           <span>Voice choice</span>
           <select id="voice-quick-voice"></select>
+        </label>
+        <label class="voice-quick-field">
+          <span>Audio pack</span>
+          <select id="voice-quick-pack">
+            <option value="default">Default voice pack</option>
+          </select>
         </label>
         <label class="voice-quick-field">
           <span>Reveal translation default</span>
@@ -1862,6 +1953,7 @@
 
     const dialectSelect = overlay.querySelector('#voice-quick-dialect');
     const voiceSelect = overlay.querySelector('#voice-quick-voice');
+    const packSelect = overlay.querySelector('#voice-quick-pack');
     const languageSelect = overlay.querySelector('#voice-quick-language');
     const pinToggle = overlay.querySelector('#voice-quick-pin-language');
     const previewBtn = overlay.querySelector('.voice-quick-preview');
@@ -1972,12 +2064,14 @@
     const saveFromControls = () => {
       const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
       const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
+      const selectedPackId = normalizeVoicePackId(packSelect instanceof HTMLSelectElement ? packSelect.value : 'default');
       const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
       const selectedVoice = resolveSelectedVoice();
 
       applyVoiceQuickSettings({
         voiceDialect: selectedDialect,
         voiceUri: selectedVoice ? voiceIdentifier(selectedVoice) : '',
+        ttsPackId: selectedPackId,
         translation: {
           pinned: shouldPin,
           lang: selectedLanguage
@@ -1991,7 +2085,7 @@
         try { window.speechSynthesis.cancel(); } catch {}
       }
     };
-    const openOverlay = () => {
+    const openOverlay = async () => {
       const settings = readScopedSettings();
       if (dialectSelect instanceof HTMLSelectElement) {
         const nextDialect = String(settings.voiceDialect || QUICK_VOICE_DIALECTS[0].value || 'en-US');
@@ -2007,6 +2101,9 @@
         pinToggle.checked = !!settings.translation?.pinned;
       }
       populateVoiceChoices({ preferredVoiceUri: String(settings.voiceUri || '').trim() });
+      if (packSelect instanceof HTMLSelectElement) {
+        await loadQuickVoicePackOptions(packSelect, String(settings.ttsPackId || 'default'));
+      }
 
       overlay.classList.remove('hidden');
       requestAnimationFrame(() => {
@@ -2052,6 +2149,9 @@
         updatePreviewAvailability();
         saveFromControls();
       });
+    }
+    if (packSelect instanceof HTMLSelectElement) {
+      packSelect.addEventListener('change', saveFromControls);
     }
     if (languageSelect instanceof HTMLSelectElement) {
       languageSelect.addEventListener('change', saveFromControls);

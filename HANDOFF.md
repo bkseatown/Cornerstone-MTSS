@@ -2,6 +2,49 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 stale-cache + voice picker stabilization slice
+- Scope files:
+  - `home.js`
+  - `platform.js`
+  - `style.css`
+  - `index.html`
+  - `word-quest.html`
+  - mirrored to:
+    - `literacy-platform/home.js`
+    - `literacy-platform/platform.js`
+    - `literacy-platform/style.css`
+    - `literacy-platform/index.html`
+    - `literacy-platform/word-quest.html`
+- Home no-default hardening:
+  - Bumped wizard storage key namespace from `cornerstone_home_state_v3::` to `cornerstone_home_state_v4::` to clear stale pre-refactor onboarding state that could auto-open Step 4 with old values.
+  - Tightened state sanitize logic so `quickCheckComplete` is no longer inferred from stale `quickCheckSummary` alone.
+  - Prevents old summary payloads from showing “next step”/Word Quest blocks before a current Quick Check run.
+- Voice quick modal upgrade:
+  - Added `Audio pack` selector to `Voice & Language` modal (`voice-quick-pack`) that loads from `audio/tts/packs/pack-registry.json` (with scoped fallback path handling).
+  - Saved selection to settings as `ttsPackId` alongside dialect/voice/translation options.
+  - Updated microcopy to clarify:
+    - `Voice choice` = browser/system voices
+    - `Audio pack` = downloaded Azure pack choices
+- Word Quest visual adjustments:
+  - Increased desktop keyboard target sizes (`--wq-key-size-desktop`, `--wq-key-wide-size-desktop`) and keyboard max width for readability.
+  - Kept vowel pseudo-dot markers fully disabled (`content: none`).
+- Cache busting:
+  - Updated script queries to force fresh assets after stale `388381a1` browser cache states:
+    - `index.html`: `platform.js?v=20260209f`, `home.js?v=20260209f`
+    - `word-quest.html`: `platform.js?v=20260209f`, `app.js?v=20260209f`
+    - same updates in `/literacy-platform` mirrors.
+
+### Validation run
+- Syntax:
+  - `node --check '/Users/robertwilliamknaus/Desktop/New project/home.js'` ✅
+  - `node --check '/Users/robertwilliamknaus/Desktop/New project/platform.js'` ✅
+  - `node --check '/Users/robertwilliamknaus/Desktop/New project/app.js'` ✅
+- Regression scripts:
+  - `node /tmp/home_flow_check.js` ✅ (Step 1 visible only, no role preselected, Step 4 locked)
+  - `node /tmp/home_detail_visible.js` ✅ (`[]` pre-check hidden detail sections)
+  - `node /tmp/voice_quick_check.js` ✅ (41 voices found; quick modal functional)
+  - `node /tmp/wordquest_regression.js` ✅ (no overflow, no scroll fallback, vowel dot content `none`)
+
 ## Project + repo
 - Git root: `/Users/robertwilliamknaus/Desktop/New project`
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
