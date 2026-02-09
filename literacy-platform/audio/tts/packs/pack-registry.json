@@ -1,30 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T05:52:30.559Z",
+  "updatedAt": "2026-02-09T06:15:15.523Z",
   "packs": [
-    {
-      "id": "ryan-en-gb",
-      "name": "Ryan British English",
-      "manifestPath": "audio/tts/packs/ryan-en-gb/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Ryan British English).",
-      "generatedAt": "2026-02-08T12:54:51.895Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "word",
-        "def",
-        "sentence",
-        "passage"
-      ],
-      "voices": {
-        "en": "en-GB-RyanNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural"
-      }
-    },
     {
       "id": "ava-multi",
       "name": "Ava Multilingual",
@@ -118,6 +95,32 @@
       ],
       "voices": {
         "en": "en-GB-SoniaNeural",
+        "es": "es-ES-ElviraNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "ryan-en-gb",
+      "name": "Ryan British English",
+      "manifestPath": "audio/tts/packs/ryan-en-gb/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Ryan British English).",
+      "generatedAt": "2026-02-09T06:15:15.523Z",
+      "languages": [
+        "en"
+      ],
+      "fields": [
+        "def",
+        "sentence"
+      ],
+      "voices": {
+        "en": "en-GB-RyanNeural",
         "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
