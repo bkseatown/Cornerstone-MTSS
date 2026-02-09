@@ -52,6 +52,7 @@ let wordQuestScrollFallback = false;
 let teacherToolsInitialized = false;
 let isCustomWordRound = false;
 let customWordInLibrary = true;
+let translationCoverageCache = null;
 let activeRoundPattern = 'all';
 let activeRoundFallbackNote = '';
 let voiceHealthCheckInProgress = false;
@@ -3425,6 +3426,62 @@ function getYoungAudienceDefaultTranslationLanguage() {
     return 'es';
 }
 
+function buildTranslationCoverageCache() {
+    const source = (typeof WORDS_DATA !== 'undefined' && WORDS_DATA && typeof WORDS_DATA === 'object')
+        ? WORDS_DATA
+        : null;
+    const byLanguage = {
+        en: { def: 0, sentence: 0, both: 0 },
+        es: { def: 0, sentence: 0, both: 0 },
+        zh: { def: 0, sentence: 0, both: 0 },
+        tl: { def: 0, sentence: 0, both: 0 },
+        hi: { def: 0, sentence: 0, both: 0 },
+        ms: { def: 0, sentence: 0, both: 0 },
+        vi: { def: 0, sentence: 0, both: 0 },
+        ar: { def: 0, sentence: 0, both: 0 },
+        ko: { def: 0, sentence: 0, both: 0 },
+        ja: { def: 0, sentence: 0, both: 0 }
+    };
+    if (!source) {
+        return { total: 0, byLanguage };
+    }
+
+    const words = Object.keys(source);
+    words.forEach((word) => {
+        const entry = source[word] || {};
+        Object.keys(byLanguage).forEach((lang) => {
+            const row = entry?.[lang] || {};
+            const hasDef = !!String(row.def || '').trim();
+            const hasSentence = !!String(row.sentence || '').trim();
+            if (hasDef) byLanguage[lang].def += 1;
+            if (hasSentence) byLanguage[lang].sentence += 1;
+            if (hasDef && hasSentence) byLanguage[lang].both += 1;
+        });
+    });
+
+    return {
+        total: words.length,
+        byLanguage
+    };
+}
+
+function getTranslationCoverageForLanguage(langCode = 'en') {
+    if (!translationCoverageCache) {
+        translationCoverageCache = buildTranslationCoverageCache();
+    }
+    const lang = normalizePackedTtsLanguage(langCode);
+    const total = Number(translationCoverageCache?.total || 0);
+    const row = translationCoverageCache?.byLanguage?.[lang] || { def: 0, sentence: 0, both: 0 };
+    const both = Number(row.both || 0);
+    return {
+        total,
+        def: Number(row.def || 0),
+        sentence: Number(row.sentence || 0),
+        both,
+        percent: total > 0 ? Math.round((both / total) * 100) : 0
+    };
+}
+
 function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
     const normalized = normalizePackedTtsLanguage(code);
     const fallback = String(fallbackLabel || '').trim();
@@ -3442,7 +3499,11 @@ function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
     if (normalized === 'en') {
         return fallback || 'English';
     }
-    return labels[normalized] || fallback || normalized.toUpperCase();
+    const baseLabel = labels[normalized] || fallback || normalized.toUpperCase();
+    const coverage = getTranslationCoverageForLanguage(normalized);
+    if (!coverage.total || coverage.both >= coverage.total) return baseLabel;
+    if (coverage.both <= 0) return `${baseLabel} (coming soon)`;
+    return `${baseLabel} (${coverage.both}/${coverage.total})`;
 }
 
 function applyTranslationLanguageOptionLabels(selectEl) {
@@ -6530,7 +6591,9 @@ function showEndModal(win) {
                 translatedWord.textContent = '';
                 translatedWord.classList.add('hidden');
             }
-            translatedDef.textContent = "Translation coming soon for this word.";
+            const coverage = getTranslationCoverageForLanguage(selectedLang);
+            const coverageNote = coverage.total ? ` (${coverage.both}/${coverage.total} words ready)` : '';
+            translatedDef.textContent = `Translation coming soon for this word.${coverageNote}`;
             translatedSentence.textContent = "";
             if (playTranslatedWord) playTranslatedWord.onclick = null;
             if (playTranslatedDef) playTranslatedDef.onclick = null;
