@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T09:00:46.425Z",
+  "updatedAt": "2026-02-09T09:16:28.365Z",
   "packs": [
     {
       "id": "emma-en",
@@ -111,7 +111,7 @@
       "name": "Ava Multilingual",
       "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
       "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-09T09:00:46.425Z",
+      "generatedAt": "2026-02-09T09:16:28.365Z",
       "languages": [
         "en",
         "es",

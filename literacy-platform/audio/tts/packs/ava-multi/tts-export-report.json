@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T09:00:46.425Z",
+  "generatedAt": "2026-02-09T09:16:28.365Z",
   "region": "eastus",
   "packId": "ava-multi",
   "packName": "Ava Multilingual",
@@ -35,18 +35,23 @@
     "ja": "ja-JP-NanamiNeural"
   },
   "retries": 2,
-  "words": 0,
-  "attempted": 150,
-  "generated": 0,
-  "reused": 150,
+  "words": 500,
+  "attempted": 15079,
+  "generated": 3000,
+  "reused": 12079,
   "failed": 0,
-  "generatedByField": {},
+  "generatedByField": {
+    "word": 3000
+  },
   "reusedByField": {
-    "passage": 150
+    "word": 2000,
+    "def": 5000,
+    "sentence": 5000,
+    "phoneme": 79
   },
   "failedByField": {},
-  "phonemeCatalogSize": 0,
-  "phonemeTasks": 0,
+  "phonemeCatalogSize": 79,
+  "phonemeTasks": 79,
   "skippedMissing": 0,
   "skippedNoVoice": 0,
   "failures": [],

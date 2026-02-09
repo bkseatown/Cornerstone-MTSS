@@ -77,6 +77,28 @@ Last updated: 2026-02-09
 - Voice modal now lists available system English voices (not just American/British presets) in both paths.
 - Word Quest keyboard remains no-scroll fit with vowel indicator dots removed in both paths.
 
+## 2026-02-09 ava-multi TTS completion slice
+- Scope:
+  - Finalized in-progress multilingual `ava-multi` exporter output under:
+    - `literacy-platform/audio/tts/packs/ava-multi/`
+    - `literacy-platform/audio/tts/packs/pack-registry.json`
+- Resulting manifest integrity:
+  - Manifest entries: `15229`
+  - Type totals: `word=5000`, `def=5000`, `sentence=5000`, `phoneme=79`, `passage=150`
+  - Language totals:
+    - `en`: `1729` (includes phoneme + passage)
+    - `es/zh/tl/hi/ms/vi/ar/ko/ja`: `1500` each (`500 word + 500 def + 500 sentence`)
+  - File existence check against manifest:
+    - `checked=15229`, `missing=0`
+- Runtime spot checks:
+  - `translation_runtime_check` reports:
+    - `hiMissingReturnsNull=false`
+    - `msHasRealCopy=true`
+    - `noSpeechWhenVoiceMissing=true`
+    - `noteShowsUnavailable=true`
+- Note:
+  - The legacy helper-based `translation_label_check` script currently fails because `window.getTranslationCoverageForLanguage` is not exposed in the current runtime; this is a test-script mismatch, not a pack generation failure.
+
 ## 2026-02-08 latest shipped pass
 - Nav dropdown clipping fix:
   - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).
