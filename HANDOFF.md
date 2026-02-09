@@ -125,9 +125,12 @@ npm run tts:azure -- \
   --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja \
   --fields=word,def,sentence \
   --voice-map=scripts/azure-voice-map.ava-multilingual.example.json \
+  --overrides=scripts/reveal-safety.overrides.json \
   --overwrite=false \
   --retries=1
 ```
+
+`scripts/reveal-safety.overrides.json` is generated from `SCHOOL_SAFE_REVEAL_OVERRIDES` in `app.js` and keeps Azure clips aligned with school-safe reveal copy.
 
 ### Regenerate updated clips for `tax` in each named English pack
 ```bash

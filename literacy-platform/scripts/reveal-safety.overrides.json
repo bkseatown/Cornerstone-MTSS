@@ -1,0 +1,314 @@
+{
+  "theme": {
+    "en": {
+      "def": "The main idea that ties parts of a story, lesson, or event together.",
+      "sentence": "Our class party theme was space, so we made star hats and planet signs."
+    }
+  },
+  "claim": {
+    "en": {
+      "def": "To say something belongs to you or is true.",
+      "sentence": "Mina raised her hand to claim the reading chair before recess."
+    }
+  },
+  "plea": {
+    "en": {
+      "def": "A strong request for help.",
+      "sentence": "Leo made a polite plea for one more minute to finish his puzzle."
+    }
+  },
+  "fern": {
+    "en": {
+      "def": "A green plant with feathery leaves.",
+      "sentence": "The fern near the window grew taller after we watered it."
+    }
+  },
+  "horse": {
+    "en": {
+      "def": "A large farm animal that can carry people and pull carts.",
+      "sentence": "The horse trotted around the field while we counted its steps."
+    }
+  },
+  "dislike": {
+    "en": {
+      "def": "To not enjoy something very much.",
+      "sentence": "I dislike soggy cereal, so I eat it right away."
+    }
+  },
+  "oil": {
+    "en": {
+      "def": "A smooth liquid used in cooking and in machines.",
+      "sentence": "We added a little oil to the pan before cooking vegetables."
+    }
+  },
+  "cow": {
+    "en": {
+      "def": "A large farm animal that gives milk.",
+      "sentence": "The cow chewed grass slowly in the sunny field."
+    }
+  },
+  "backpack": {
+    "en": {
+      "def": "A bag you carry on your back for school items.",
+      "sentence": "I zipped my backpack and checked that my notebook was inside."
+    }
+  },
+  "quickly": {
+    "en": {
+      "def": "At a fast speed.",
+      "sentence": "We quickly lined up when the bell rang."
+    }
+  },
+  "if": {
+    "en": {
+      "def": "A word used to show a condition or choice.",
+      "sentence": "\"If it rains, we will read indoors.\""
+    }
+  },
+  "far": {
+    "en": {
+      "def": "A long distance away.",
+      "sentence": "The library is far from our class, so we walk together."
+    }
+  },
+  "nose": {
+    "en": {
+      "def": "The part of your face used for breathing and smelling.",
+      "sentence": "My nose feels cold when I walk outside in winter."
+    }
+  },
+  "butter": {
+    "en": {
+      "def": "A soft food spread made from cream.",
+      "sentence": "We spread butter on warm toast at breakfast."
+    }
+  },
+  "park": {
+    "en": {
+      "def": "An outdoor place with grass, trees, and play areas.",
+      "sentence": "We met at the park and played tag near the swings."
+    }
+  },
+  "hair": {
+    "en": {
+      "def": "The strands that grow on your head.",
+      "sentence": "I brushed my hair before school."
+    }
+  },
+  "blood": {
+    "en": {
+      "def": "The red liquid in your body that carries oxygen.",
+      "sentence": "In science, we learned that blood helps move oxygen through the body."
+    }
+  },
+  "thermal": {
+    "en": {
+      "def": "Designed to keep heat in and keep you warm.",
+      "sentence": "I wore thermal socks on the cold morning walk."
+    }
+  },
+  "cyclone": {
+    "en": {
+      "def": "A powerful spinning wind storm.",
+      "sentence": "The weather map showed a cyclone far out at sea."
+    }
+  },
+  "above": {
+    "en": {
+      "def": "Higher than something else.",
+      "sentence": "The kite flew above the trees."
+    }
+  },
+  "toward": {
+    "en": {
+      "def": "In the direction of something.",
+      "sentence": "We walked toward the gym when music started."
+    }
+  },
+  "during": {
+    "en": {
+      "def": "At the same time as something else.",
+      "sentence": "I took notes during the lesson."
+    }
+  },
+  "suddenly": {
+    "en": {
+      "def": "Happening quickly and without warning.",
+      "sentence": "Suddenly, the lights turned on and the room got bright."
+    }
+  },
+  "slip": {
+    "en": {
+      "def": "To lose your footing for a moment.",
+      "sentence": "I started to slip on the wet floor, then caught the rail."
+    }
+  },
+  "mouth": {
+    "en": {
+      "def": "The part of your face you use to speak, smile, and eat.",
+      "sentence": "I opened my mouth wide so the dentist could check my teeth."
+    }
+  },
+  "baby": {
+    "en": {
+      "def": "A very young child who needs care and comfort.",
+      "sentence": "The baby smiled and waved at everyone in the room."
+    }
+  },
+  "web": {
+    "en": {
+      "def": "A thin net made by a spider.",
+      "sentence": "A silver web shined in the morning light near the fence."
+    }
+  },
+  "solo": {
+    "en": {
+      "def": "A part performed by one person.",
+      "sentence": "Nia sang a solo at the class concert."
+    }
+  },
+  "steep": {
+    "en": {
+      "def": "Rising quickly at a sharp angle.",
+      "sentence": "The hill was steep, so we climbed slowly and stayed together."
+    }
+  },
+  "star": {
+    "en": {
+      "def": "A bright object in the night sky.",
+      "sentence": "We counted stars after sunset."
+    }
+  },
+  "misfit": {
+    "en": {
+      "def": "Something that does not match the group.",
+      "sentence": "This puzzle piece is a misfit in this corner."
+    }
+  },
+  "gnat": {
+    "en": {
+      "def": "A very small flying insect.",
+      "sentence": "A gnat buzzed near the window."
+    }
+  },
+  "cage": {
+    "en": {
+      "def": "A safe enclosure for an animal.",
+      "sentence": "The rabbit rested in its cage after playtime."
+    }
+  },
+  "spider": {
+    "en": {
+      "def": "A small animal with eight legs that can spin webs.",
+      "sentence": "A spider built a web between two plants in the garden."
+    }
+  },
+  "mouse": {
+    "en": {
+      "def": "A small furry animal.",
+      "sentence": "A mouse nibbled a seed near the hedge."
+    }
+  },
+  "toothbrush": {
+    "en": {
+      "def": "A brush used to clean your teeth.",
+      "sentence": "I used my toothbrush after breakfast."
+    }
+  },
+  "got": {
+    "en": {
+      "def": "Received or obtained something.",
+      "sentence": "I got my library card and checked out a new book."
+    }
+  },
+  "big": {
+    "en": {
+      "def": "Large in size.",
+      "sentence": "The big box held all our art supplies."
+    }
+  },
+  "soup": {
+    "en": {
+      "def": "A warm liquid food with vegetables, noodles, or other ingredients.",
+      "sentence": "The soup smelled warm and delicious at lunch."
+    }
+  },
+  "tea": {
+    "en": {
+      "def": "A drink made by steeping tea leaves in hot water.",
+      "sentence": "Grandma cooled her tea before taking a sip."
+    }
+  },
+  "fly": {
+    "en": {
+      "def": "A small flying insect.",
+      "sentence": "A fly buzzed near the window."
+    }
+  },
+  "frog": {
+    "en": {
+      "def": "A small jumping animal that lives near water.",
+      "sentence": "The frog hopped across a wet rock."
+    }
+  },
+  "hiccup": {
+    "en": {
+      "def": "A quick sound and movement in your throat that happens by surprise.",
+      "sentence": "I got a hiccup and took slow breaths until it stopped."
+    }
+  },
+  "laugh": {
+    "en": {
+      "def": "To make happy sounds when something is funny.",
+      "sentence": "We laughed at the class puppet show."
+    }
+  },
+  "monster": {
+    "en": {
+      "def": "An imaginary creature in stories and games.",
+      "sentence": "In our story, the monster turned out to be friendly."
+    }
+  },
+  "scared": {
+    "en": {
+      "def": "Feeling worried or afraid.",
+      "sentence": "I felt scared during the storm, so I sat with my family."
+    }
+  },
+  "dot": {
+    "en": {
+      "def": "A small round mark.",
+      "sentence": "I put a dot at the end of my design."
+    }
+  },
+  "construct": {
+    "en": {
+      "def": "To build or put something together.",
+      "sentence": "We used blocks to construct a tall tower."
+    }
+  },
+  "crawl": {
+    "en": {
+      "def": "To move close to the ground on hands and knees.",
+      "sentence": "The baby learned to crawl across the rug."
+    }
+  },
+  "hairy": {
+    "en": {
+      "def": "Covered with a lot of hair.",
+      "sentence": "The dog looked hairy after rolling in the grass."
+    }
+  },
+  "mosquito": {
+    "en": {
+      "def": "A small flying insect that can bite.",
+      "sentence": "We used bug spray to keep mosquitoes away."
+    }
+  },
+  "force": {
+    "en": {
+      "def": "Strength used to push or pull something.",
+      "sentence": "We used gentle force to open the heavy library door."
+    }
+  }
+}
