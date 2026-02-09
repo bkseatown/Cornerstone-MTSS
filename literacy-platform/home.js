@@ -445,11 +445,15 @@
       homeQuickLanguageNote.textContent = `${label} is ready with full reveal translation and packed audio support.`;
       return;
     }
-    if (lang === 'hi' || lang === 'ms' || lang === 'vi') {
-      homeQuickLanguageNote.textContent = `${label} is ready with translation plus classroom-safe fallback and browser audio if a full clip is missing.`;
+    if (lang === 'ms' || lang === 'vi') {
+      homeQuickLanguageNote.textContent = `${label} is ready with full reveal translation and packed definition/sentence audio support.`;
       return;
     }
-    homeQuickLanguageNote.textContent = `${label} is enabled with classroom-safe fallback translation while full pack coverage is completed.`;
+    if (lang === 'hi') {
+      homeQuickLanguageNote.textContent = `${label} is enabled with partial translation coverage. Missing words show “Translation coming soon for this word.”`;
+      return;
+    }
+    homeQuickLanguageNote.textContent = `${label} is enabled as an optional language. Missing words show “Translation coming soon for this word.”`;
   }
 
   function updateQuickVoiceNote(dialect, packName = '') {
@@ -756,18 +760,49 @@
 
   const QUICKCHECK_LEVELS = {
     literacy: [
-      { id: 'phonemic-awareness', label: 'Phonemic awareness', focus: 'cvc', length: '3' },
-      { id: 'graphemes', label: 'Grapheme recognition', focus: 'cvc', length: '3' },
-      { id: 'cvc', label: 'CVC decoding', focus: 'cvc', length: '3' },
-      { id: 'digraphs-blends', label: 'Digraphs + blends', focus: 'digraph', length: '4' },
-      { id: 'vowel-teams', label: 'Vowel teams', focus: 'vowel_team', length: '5' }
+      { id: 'phonemic-awareness', label: 'Phonemic awareness', focus: 'cvc', length: '3', roundId: 'sound-sense' },
+      { id: 'graphemes', label: 'Grapheme recognition', focus: 'cvc', length: '3', roundId: 'sound-sense' },
+      { id: 'cvc', label: 'CVC decoding', focus: 'cvc', length: '3', roundId: 'word-building' },
+      { id: 'digraphs-blends', label: 'Digraphs + blends', focus: 'digraph', length: '4', roundId: 'word-building' },
+      { id: 'vowel-teams', label: 'Vowel teams', focus: 'vowel_team', length: '5', roundId: 'thirty-second-read' }
     ],
     numeracy: [
-      { id: 'counting-quantity', label: 'Counting + quantity' },
-      { id: 'make-10', label: 'Making 10' },
-      { id: 'place-value', label: 'Place value to 100' },
-      { id: 'add-sub-strategies', label: 'Add/sub strategies' }
+      { id: 'counting-quantity', label: 'Counting + quantity', roundId: 'number-sense' },
+      { id: 'make-10', label: 'Making 10', roundId: 'strategy-check' },
+      { id: 'place-value', label: 'Place value to 100', roundId: 'strategy-check' },
+      { id: 'add-sub-strategies', label: 'Add/sub strategies', roundId: 'flexible-thinking' }
     ]
+  };
+
+  const QUICKCHECK_ROUND_META = {
+    literacy: {
+      'sound-sense': {
+        title: 'Round 1 · Sound Sense',
+        hint: 'Hear a sound, match the grapheme, then explain your choice.'
+      },
+      'word-building': {
+        title: 'Round 2 · Word Building',
+        hint: 'Use chunks and patterns to build or decode words.'
+      },
+      'thirty-second-read': {
+        title: 'Round 3 · 30-second Read',
+        hint: 'Choose the best pacing/prosody move for a short read.'
+      }
+    },
+    numeracy: {
+      'number-sense': {
+        title: 'Round 1 · Number Sense',
+        hint: 'Show quantity understanding and quick number structure.'
+      },
+      'strategy-check': {
+        title: 'Round 2 · Strategy Check',
+        hint: 'Pick a strategy path that fits the problem.'
+      },
+      'flexible-thinking': {
+        title: 'Round 3 · Flexible Thinking',
+        hint: 'Solve the same problem with a second method.'
+      }
+    }
   };
 
   const QUICKCHECK_STRATEGY_BANK = {
@@ -795,31 +830,32 @@
 
   const QUICKCHECK_QUESTION_BANK = {
     literacy: [
-      { id: 'lit-pa-1', level: 0, prompt: 'Which word starts with the same sound as sun?', choices: ['sock', 'cat', 'map', 'dog'], answer: 0 },
-      { id: 'lit-pa-2', level: 0, prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
-      { id: 'lit-pa-3', level: 0, prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
-      { id: 'lit-gr-1', level: 1, prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
-      { id: 'lit-gr-2', level: 1, prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
-      { id: 'lit-gr-3', level: 1, prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
-      { id: 'lit-cvc-1', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
-      { id: 'lit-cvc-2', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
-      { id: 'lit-cvc-3', level: 2, prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
-      { id: 'lit-db-1', level: 3, prompt: 'Pick the word with an initial blend.', choices: ['ship', 'trip', 'chin', 'math'], answer: 1 },
-      { id: 'lit-db-2', level: 3, prompt: 'Pick the word with a digraph.', choices: ['stop', 'frog', 'chat', 'clap'], answer: 2 },
-      { id: 'lit-db-3', level: 3, prompt: 'Which word has a blend at the end?', choices: ['sand', 'ship', 'math', 'knee'], answer: 0 },
-      { id: 'lit-vt-1', level: 4, prompt: 'Which word has a vowel team?', choices: ['train', 'trap', 'trim', 'truck'], answer: 0 },
-      { id: 'lit-vt-2', level: 4, prompt: 'Pick the word with long /o/ from a vowel team.', choices: ['boat', 'bot', 'hot', 'hop'], answer: 0 },
-      { id: 'lit-vt-3', level: 4, prompt: 'Pick the word with a vowel team.', choices: ['seed', 'send', 'sand', 'stand'], answer: 0 }
+      { id: 'lit-pa-1', level: 0, metric: 'accuracy', prompt: 'Which word starts with the same sound as sun?', choices: ['sock', 'cat', 'map', 'dog'], answer: 0 },
+      { id: 'lit-pa-2', level: 0, metric: 'accuracy', prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
+      { id: 'lit-pa-3', level: 0, metric: 'accuracy', prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
+      { id: 'lit-gr-1', level: 1, metric: 'accuracy', prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
+      { id: 'lit-gr-2', level: 1, metric: 'accuracy', prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
+      { id: 'lit-gr-3', level: 1, metric: 'accuracy', prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
+      { id: 'lit-cvc-1', level: 2, metric: 'accuracy', prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
+      { id: 'lit-cvc-2', level: 2, metric: 'accuracy', prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
+      { id: 'lit-cvc-3', level: 2, metric: 'accuracy', prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
+      { id: 'lit-db-1', level: 3, metric: 'accuracy', prompt: 'Pick the word with an initial blend.', choices: ['ship', 'trip', 'chin', 'math'], answer: 1 },
+      { id: 'lit-db-2', level: 3, metric: 'accuracy', prompt: 'Pick the word with a digraph.', choices: ['stop', 'frog', 'chat', 'clap'], answer: 2 },
+      { id: 'lit-db-3', level: 3, metric: 'accuracy', prompt: 'Which word has a blend at the end?', choices: ['sand', 'ship', 'math', 'knee'], answer: 0 },
+      { id: 'lit-read-1', level: 4, metric: 'rate', prompt: '30-second read: which pacing target is best?', choices: ['Race as fast as possible', 'Steady pace with clear stops', 'Pause after every word', 'Whisper very quietly'], answer: 1 },
+      { id: 'lit-read-2', level: 4, metric: 'prosody', prompt: '30-second read: what shows strong prosody?', choices: ['Flat voice for every sentence', 'No pauses at punctuation', 'Expression that matches punctuation', 'Skip words to keep speed'], answer: 2 },
+      { id: 'lit-read-3', level: 4, metric: 'prosody', prompt: 'When a sentence has a comma, what should the reader do?', choices: ['Take a short pause', 'Stop reading', 'Speed up', 'Drop the last word'], answer: 0 }
     ],
     numeracy: [
-      { id: 'num-cq-1', level: 0, prompt: 'How many dots are there? ●●●●●', choices: ['4', '5', '6', '7'], answer: 1 },
-      { id: 'num-cq-2', level: 0, prompt: 'What number comes after 39?', choices: ['38', '40', '41', '49'], answer: 1 },
-      { id: 'num-m10-1', level: 1, prompt: 'What makes 10 with 6?', choices: ['2', '3', '4', '5'], answer: 2 },
-      { id: 'num-m10-2', level: 1, prompt: '8 + __ = 10', choices: ['1', '2', '3', '4'], answer: 1 },
-      { id: 'num-pv-1', level: 2, prompt: 'In 47, the 4 means...', choices: ['4 ones', '4 tens', '40 ones', '7 tens'], answer: 1 },
-      { id: 'num-pv-2', level: 2, prompt: 'Which number is greater?', choices: ['58', '85', '55', '48'], answer: 1 },
-      { id: 'num-str-1', level: 3, prompt: 'What is 27 + 6?', choices: ['32', '33', '34', '31'], answer: 1 },
-      { id: 'num-str-2', level: 3, prompt: 'What is 42 - 9?', choices: ['31', '32', '33', '34'], answer: 2 }
+      { id: 'num-cq-1', level: 0, metric: 'number-sense', prompt: 'How many dots are there? ●●●●●', choices: ['4', '5', '6', '7'], answer: 1 },
+      { id: 'num-cq-2', level: 0, metric: 'number-sense', prompt: 'What number comes after 39?', choices: ['38', '40', '41', '49'], answer: 1 },
+      { id: 'num-m10-1', level: 1, metric: 'strategy-check', prompt: 'What makes 10 with 6?', choices: ['2', '3', '4', '5'], answer: 2 },
+      { id: 'num-m10-2', level: 1, metric: 'strategy-check', prompt: '8 + __ = 10', choices: ['1', '2', '3', '4'], answer: 1 },
+      { id: 'num-pv-1', level: 2, metric: 'strategy-check', prompt: 'In 47, the 4 means...', choices: ['4 ones', '4 tens', '40 ones', '7 tens'], answer: 1 },
+      { id: 'num-pv-2', level: 2, metric: 'strategy-check', prompt: 'Which number is greater?', choices: ['58', '85', '55', '48'], answer: 1 },
+      { id: 'num-flex-1', level: 3, metric: 'flexible-thinking', prompt: '38 + 25 can be solved another way by...', choices: ['Using only counting by ones', 'Making 100 by regrouping tens and ones', 'Ignoring the tens', 'Subtracting instead'], answer: 1 },
+      { id: 'num-flex-2', level: 3, metric: 'flexible-thinking', prompt: 'For 42 - 9, a strong second strategy is to...', choices: ['Add 9 instead', 'Count back 9 or subtract 10 then add 1', 'Guess near 30 and stop', 'Skip the ones place'], answer: 1 },
+      { id: 'num-flex-3', level: 3, metric: 'flexible-thinking', prompt: 'Which choice shows flexible thinking?', choices: ['Only one method every time', 'Try a second strategy to verify', 'Avoid visual models', 'Never check answers'], answer: 1 }
     ]
   };
 
@@ -1202,14 +1238,14 @@
         tagline: 'Clear pathways from a strong base.',
         mission: `Keep Tier 1 strong while targeting the highest-need skill gaps for ${learnerLabel}.`,
         cards: [
-          { title: 'Primary Lens', body: `Top literacy gap: ${literacyGap}. Top numeracy gap: ${numeracyGap}.` },
-          { title: 'What To Protect', body: `Maintain core access while extending strengths (${literacyStrength}; ${numeracyStrength}).` },
-          { title: 'Evidence Check', body: weeklyLine }
+          { title: 'Class Heatmap', body: `Red: ${literacyGap} · Yellow: ${numeracyGap} · Green: ${literacyStrength}.` },
+          { title: 'One-Click Grouping', body: 'Create target groups and assign Word Quest/Number Sense in one pass.' },
+          { title: 'Auto Reports', body: `Drafted progress notes + framework-aligned evidence. ${weeklyLine}` }
         ],
         actions: [
           { label: 'Open Teacher Report', href: roleReportHref('teacher', '#report-role-pathway'), kind: 'primary' },
-          { label: 'Run Word Quest', href: context.wordQuestUrl, kind: 'ghost' },
-          { label: 'Run Number Sense', href: 'number-sense.html', kind: 'ghost' }
+          { label: 'Create Group Set', href: roleReportHref('teacher', '#report-intervention-timeline'), kind: 'ghost' },
+          { label: 'Send Parent Note Draft', href: roleReportHref('teacher', '#report-parent-communication'), kind: 'ghost' }
         ]
       },
       admin: {
@@ -1217,9 +1253,9 @@
         tagline: 'Building Tier 1. Strengthening Tier 2. Supporting Tier 3.',
         mission: 'Monitor implementation quality, evidence confidence, and support-intensity fit across teams.',
         cards: [
-          { title: 'System Priority', body: `Current risk concentration: ${literacyGap} (literacy) and ${numeracyGap} (numeracy).` },
-          { title: 'Momentum Signal', body: weeklyLine },
-          { title: 'Decision Lens', body: 'Use timeline + outcomes to verify that staffing decisions follow data.' }
+          { title: 'Tier Distribution', body: 'Track Tier 1 / Tier 2 / Tier 3 placement and movement each week.' },
+          { title: 'Class-by-Class Heatmap', body: `Priority concentration: ${literacyGap} and ${numeracyGap}.` },
+          { title: 'Intervention Impact', body: `Progress-over-time view with implementation checks. ${weeklyLine}` }
         ],
         actions: [
           { label: 'Open Leadership View', href: roleReportHref('admin', '#report-outcomes'), kind: 'primary' },
@@ -1247,9 +1283,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Tighten intervention cycles with explicit teaching, guided transfer, and documentation fidelity.',
         cards: [
-          { title: 'Intervention Target', body: `Priority targets: ${literacyGap} and ${numeracyGap}.` },
-          { title: 'Strength Leverage', body: `Use strengths to build transfer (${literacyStrength}; ${numeracyStrength}).` },
-          { title: 'Evidence Check', body: weeklyLine }
+          { title: 'Speech + Literacy Tracker', body: 'Log articulation clarity, consistency, and transfer into decoding tasks.' },
+          { title: 'Communication Lab', body: 'Target turn-taking, repair prompts, and body-language cues in short loops.' },
+          { title: 'Intervention Target', body: `Priority targets: ${literacyGap} and ${numeracyGap}.` }
         ],
         actions: [
           { label: 'Open LS Dashboard', href: roleReportHref('learning-support', '#report-iesp-output'), kind: 'primary' },
@@ -1262,9 +1298,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Connect articulation/phonology and prosody goals to reading and expressive language transfer.',
         cards: [
-          { title: 'Speech-Literacy Focus', body: `Current language-linked gap: ${literacyGap}.` },
-          { title: 'Transfer Anchor', body: `Use oral rehearsal to support ${numeracyGap} explanations in math language.` },
-          { title: 'Evidence Check', body: weeklyLine }
+          { title: 'Articulation Tracker', body: 'Track accuracy, clarity, and consistency by target sound.' },
+          { title: 'Communication Lab', body: 'Practice facial expression, body language, and conversation repair moves.' },
+          { title: 'Transfer Anchor', body: `Use oral rehearsal to support ${numeracyGap} explanations in math language.` }
         ],
         actions: [
           { label: 'Open SLP Pathway', href: roleReportHref('slp', '#report-role-pathway'), kind: 'primary' },
@@ -1278,8 +1314,8 @@
         mission: 'Support language access without reducing rigor through vocabulary, syntax, and discourse scaffolds.',
         cards: [
           { title: 'Language Access Target', body: `Highest language-heavy needs: ${literacyGap} and ${numeracyGap}.` },
-          { title: 'Bridge To Classroom', body: 'Pair sentence frames with evidence responses in reading and math.' },
-          { title: 'Evidence Check', body: weeklyLine }
+          { title: 'Communication Lab', body: 'Use conversational repair prompts: “I didn’t understand. Can you rephrase?”' },
+          { title: 'Bridge To Classroom', body: 'Pair sentence frames with evidence responses in reading and math.' }
         ],
         actions: [
           { label: 'Open EAL Pathway', href: roleReportHref('eal', '#report-role-pathway'), kind: 'primary' },
@@ -1292,9 +1328,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Build self-management, persistence, and reflection language during academic tasks.',
         cards: [
-          { title: 'SEL/EF Priority', body: `Current regulation/EF pressure point: ${literacyGap}.` },
-          { title: 'Student Voice', body: 'Use quick reflection routines to capture thoughts, emotions, actions, and next step.' },
-          { title: 'Evidence Check', body: weeklyLine }
+          { title: 'Wellbeing Quick Check', body: '5-minute check-in: feeling scale + top stressor + immediate support cue.' },
+          { title: 'Skills Micro-Lessons', body: 'Friend conflict, pressure coping, digital boundaries, planning routines.' },
+          { title: 'Student Voice', body: 'Each lesson ends with reflection, one action step, and one home prompt.' }
         ],
         actions: [
           { label: 'Open Counselor Pathway', href: roleReportHref('counselor', '#report-role-pathway'), kind: 'primary' },
@@ -1322,13 +1358,13 @@
         tagline: 'Strong foundations across every tier.',
         mission: `Know your next step, practice with focus, and track your wins for ${learnerLabel}.`,
         cards: [
-          { title: 'My Next Literacy Goal', body: `Focus today: ${literacyGap}.` },
-          { title: 'My Next Math Goal', body: `Focus today: ${numeracyGap}.` },
-          { title: 'My Strengths', body: `You are already showing strength in ${literacyStrength} and ${numeracyStrength}.` }
+          { title: 'My Path', body: `Today focus: ${literacyGap}. You only get 2–3 short tasks to keep momentum high.` },
+          { title: 'Fluency Studio', body: 'Read aloud, watch your wave, and earn Clear Speaker / Smooth Reader / Paced Well badges.' },
+          { title: 'Sound Lab + Typing Quest', body: 'Practice target sounds, then type key words tied to your current literacy level.' }
         ],
         actions: [
           { label: 'Start Word Quest', href: context.wordQuestUrl, kind: 'primary' },
-          { label: 'Start Number Sense', href: 'number-sense.html', kind: 'ghost' },
+          { label: 'Open Fluency Studio', href: 'fluency.html', kind: 'ghost' },
           { label: 'Build Confidence (Plan-It)', href: 'plan-it.html', kind: 'ghost' }
         ]
       },
@@ -1337,9 +1373,9 @@
         tagline: 'Every learner supported, every step of the way.',
         mission: `Support ${learnerLabel} with simple, consistent home routines aligned to school goals.`,
         cards: [
-          { title: 'Current School Focus', body: `Reading: ${literacyGap}. Math: ${numeracyGap}.` },
-          { title: 'What Is Going Well', body: `Current strengths: ${literacyStrength}; ${numeracyStrength}.` },
-          { title: 'Home Routine Cue', body: '5-10 minutes daily: one reading strategy + one conceptual math strategy.' }
+          { title: 'Understand The Focus', body: `Reading: ${literacyGap}. Math: ${numeracyGap}. Plain language, no jargon.` },
+          { title: 'Practice Together', body: '10 minutes/day with mini games and clear scripts for home routines.' },
+          { title: 'Tech + Wellbeing', body: 'Supportive guidance for screen time, phone boundaries, and AI safety at home.' }
         ],
         actions: [
           { label: 'Open Parent Pathway', href: roleReportHref('parent', '#report-parent-communication'), kind: 'primary' },
@@ -2090,8 +2126,9 @@
       pendingAnswer: null,
       strategyLog: [],
       history: [],
+      metricBuckets: createMetricBuckets(),
       currentQuestion: null,
-      maxQuestionsPerDomain: 4
+      maxQuestionsPerDomain: 5
     };
   }
 
@@ -2184,6 +2221,142 @@
     return levels[safeIndex]?.label || 'Starting point';
   }
 
+  function quickCheckLevelMeta(domain, levelIndex) {
+    const levels = QUICKCHECK_LEVELS[domain] || [];
+    const safeIndex = Math.max(0, Math.min(levels.length - 1, Number(levelIndex) || 0));
+    return levels[safeIndex] || null;
+  }
+
+  function quickCheckRoundMeta(domain, levelIndex) {
+    const levelMeta = quickCheckLevelMeta(domain, levelIndex);
+    const roundId = String(levelMeta?.roundId || '').trim();
+    const domainMeta = QUICKCHECK_ROUND_META[domain] || {};
+    if (roundId && domainMeta[roundId]) return domainMeta[roundId];
+    const fallbackKey = Object.keys(domainMeta)[0];
+    return fallbackKey ? domainMeta[fallbackKey] : { title: 'Quick Check', hint: 'Pick one answer and keep going.' };
+  }
+
+  function createMetricBuckets() {
+    const makeBucket = () => ({ total: 0, correct: 0 });
+    return {
+      literacy: {
+        accuracy: makeBucket(),
+        rate: makeBucket(),
+        prosody: makeBucket()
+      },
+      numeracy: {
+        'number-sense': makeBucket(),
+        'strategy-check': makeBucket(),
+        'flexible-thinking': makeBucket()
+      }
+    };
+  }
+
+  function metricKeyForQuestion(domain, question = null) {
+    const raw = String(question?.metric || '').trim().toLowerCase();
+    if (domain === 'literacy') {
+      if (raw === 'rate') return 'rate';
+      if (raw === 'prosody') return 'prosody';
+      return 'accuracy';
+    }
+    if (raw === 'number-sense' || raw === 'strategy-check' || raw === 'flexible-thinking') {
+      return raw;
+    }
+    return 'strategy-check';
+  }
+
+  function updateMetricBuckets(session, domain, question, isCorrect) {
+    const key = metricKeyForQuestion(domain, question);
+    const domainBuckets = session?.metricBuckets?.[domain];
+    if (!domainBuckets || !domainBuckets[key]) return;
+    domainBuckets[key].total += 1;
+    if (isCorrect) domainBuckets[key].correct += 1;
+  }
+
+  function metricPercent(bucket) {
+    const total = Number(bucket?.total || 0);
+    const correct = Number(bucket?.correct || 0);
+    if (total <= 0) return 0;
+    return Math.round((correct / total) * 100);
+  }
+
+  function quickCheckBand(score = 0) {
+    if (score >= 85) return 'green';
+    if (score >= 65) return 'yellow';
+    return 'red';
+  }
+
+  function buildFluencyGrowthSnapshot() {
+    const logs = getRecentActivityEntries()
+      .filter((entry) => String(entry?.activity || '').toLowerCase() === 'fluency')
+      .sort((a, b) => Number(a?.ts || 0) - Number(b?.ts || 0))
+      .slice(-6);
+    return logs.map((entry) => {
+      const when = Number(entry?.ts || 0);
+      const detail = entry?.detail || {};
+      const orf = Number(detail.orf || entry?.score || 0);
+      const accuracy = Number(detail.accuracyPct || 0);
+      return {
+        date: when ? new Date(when).toLocaleDateString() : '—',
+        orf: Number.isFinite(orf) ? Number(orf.toFixed(0)) : 0,
+        accuracy: Number.isFinite(accuracy) ? Number(accuracy.toFixed(0)) : 0
+      };
+    });
+  }
+
+  function buildPathwayPlanner(payload = {}) {
+    const recommendation = payload?.recommendation || {};
+    const literacy = payload?.domains?.literacy || null;
+    const numeracy = payload?.domains?.numeracy || null;
+    const literacyNeed = literacy?.levelLabel || 'decoding patterns';
+    const numeracyNeed = numeracy?.levelLabel || 'number strategy checks';
+    const primaryLabel = recommendation.activityLabel || 'Word Quest';
+    const primaryFocus = recommendation.headline || 'Targeted practice lane';
+
+    const today = [
+      `8 min ${primaryLabel}: ${primaryFocus}`,
+      '5 min Fluency Studio: live read coach with clear-speaker badges',
+      '3 min Sound Lab: targeted phoneme or strategy loop'
+    ];
+
+    const groups = [
+      `Group A: blends/digraph support (${literacyNeed})`,
+      `Group B: vowel teams and transfer practice`,
+      `Group C: fluency/prosody with strategy reflection`
+    ];
+
+    return {
+      today,
+      groups,
+      teacherSummary: [
+        `Likely literacy gap: ${literacyNeed}.`,
+        `Likely numeracy gap: ${numeracyNeed}.`
+      ]
+    };
+  }
+
+  function buildFluencyStudioSnapshot(payload = {}, session = null) {
+    const literacySummary = payload?.domains?.literacy || null;
+    const literacyBuckets = session?.metricBuckets?.literacy || {};
+    const accuracyScore = literacySummary?.accuracy || metricPercent(literacyBuckets.accuracy);
+    const rateFromItems = metricPercent(literacyBuckets.rate);
+    const prosodyFromItems = metricPercent(literacyBuckets.prosody);
+    const rateScore = literacyBuckets.rate?.total ? rateFromItems : Math.max(55, Math.round((accuracyScore || 0) * 0.9));
+    const prosodyScore = literacyBuckets.prosody?.total ? prosodyFromItems : Math.max(58, Math.round((accuracyScore || 0) * 0.92));
+    const growth = buildFluencyGrowthSnapshot();
+    return {
+      accuracyScore,
+      rateScore,
+      prosodyScore,
+      badges: [
+        { label: 'Clear Speaker', score: accuracyScore, band: quickCheckBand(accuracyScore) },
+        { label: 'Smooth Reader', score: prosodyScore, band: quickCheckBand(prosodyScore) },
+        { label: 'Paced Well', score: rateScore, band: quickCheckBand(rateScore) }
+      ],
+      growth
+    };
+  }
+
   function playQuickCheckPromptAudio(question = null) {
     const text = String(question?.audioPrompt || '').trim();
     if (!text) return;
@@ -2205,13 +2378,15 @@
     const highestCorrect = Number(session.highestCorrectLevel[domain] || -1);
     const fallbackLevel = Number(session.levels[domain] || 0);
     const safeLevel = Math.max(0, Math.min((QUICKCHECK_LEVELS[domain] || []).length - 1, highestCorrect >= 0 ? highestCorrect : fallbackLevel));
+    const roundMeta = quickCheckRoundMeta(domain, safeLevel);
     return {
       domain,
       total,
       correct,
       accuracy,
       levelIndex: safeLevel,
-      levelLabel: quickCheckLevelLabel(domain, safeLevel)
+      levelLabel: quickCheckLevelLabel(domain, safeLevel),
+      roundTitle: roundMeta?.title || 'Quick Check'
     };
   }
 
@@ -2237,6 +2412,7 @@
           length: 'any',
           headline: 'Start with Number Sense: counting and quantity.',
           notes: 'Use concrete visuals first, then quick verbal checks.',
+          teacherLead: 'Likely gap: mapping quantity to numerals.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=counting',
           ctaLabel: 'Start Number Sense'
@@ -2248,6 +2424,7 @@
           length: 'any',
           headline: 'Start with Number Sense: making 10.',
           notes: 'Use make-10 strategy cards and short number talks.',
+          teacherLead: 'Likely gap: making 10 efficiently with visual anchors.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=make10',
           ctaLabel: 'Start Number Sense'
@@ -2259,6 +2436,7 @@
           length: 'any',
           headline: 'Start with Number Sense: place value to 100.',
           notes: 'Bridge tens and ones with visual models before timed practice.',
+          teacherLead: 'Likely strength: place-value language with visual models.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=place-value',
           ctaLabel: 'Start Number Sense'
@@ -2269,6 +2447,7 @@
         length: 'any',
         headline: 'Start with strategy-first operations practice.',
         notes: 'Prioritize explain-your-thinking prompts before speed goals.',
+        teacherLead: 'Likely strength: flexible strategy choice. Likely gap: second-method verification.',
         activityLabel: 'Strategy Studio',
         activityHref: 'operations.html?lane=strategy',
         ctaLabel: 'Start Strategy Studio'
@@ -2290,6 +2469,9 @@
       length: levelMeta?.length || '3',
       headline: `Start with ${(levelMeta?.label || 'CVC decoding').toLowerCase()} in Word Quest.`,
       notes: notesByLevel[levelMeta?.id] || 'Use short rounds and explicit strategy language.',
+      teacherLead: levelMeta?.id === 'vowel-teams'
+        ? 'Likely needs Tier 2 support in: vowel teams + blends.'
+        : 'Likely needs Tier 2 support in targeted decoding patterns.',
       activityLabel: 'Word Quest',
       activityHref: wordQuestHref(levelMeta?.focus || 'cvc', levelMeta?.length || '3'),
       ctaLabel: 'Start Word Quest'
@@ -2309,10 +2491,13 @@
       gradeBand: session.gradeBand || '',
       focusToday: session.focusToday,
       domains,
+      metricBuckets: session.metricBuckets,
       strategyLog: session.strategyLog.slice(),
       updatedAt: new Date().toISOString()
     };
     payload.recommendation = recommendationFromQuickCheck(payload);
+    payload.pathwayPlanner = buildPathwayPlanner(payload);
+    payload.fluencyStudio = buildFluencyStudioSnapshot(payload, session);
     return payload;
   }
 
@@ -2343,15 +2528,28 @@
     }
     const literacySummary = payload?.domains?.literacy;
     const numeracySummary = payload?.domains?.numeracy;
+    const planner = payload?.pathwayPlanner;
+    const fluency = payload?.fluencyStudio;
     const bullets = [];
     if (recommendation.headline) bullets.push(recommendation.headline);
     if (literacySummary) bullets.push(`Literacy: ${literacySummary.levelLabel} (${literacySummary.correct}/${literacySummary.total} correct)`);
     if (numeracySummary) bullets.push(`Numeracy: ${numeracySummary.levelLabel} (${numeracySummary.correct}/${numeracySummary.total} correct)`);
     if (recommendation.notes) bullets.push(recommendation.notes);
+    if (recommendation.teacherLead) bullets.push(`Teacher cue: ${recommendation.teacherLead}`);
+    if (planner?.today?.length) bullets.push(`Today: ${planner.today[0]}`);
+    if (planner?.today?.[1]) bullets.push(`Then: ${planner.today[1]}`);
+    if (fluency?.badges?.length) {
+      const badgeLine = fluency.badges.map((badge) => `${badge.label} ${badge.score}%`).join(' · ');
+      bullets.push(`Fluency Studio: ${badgeLine}`);
+    }
+    if (payload?.entryGroup === 'school' && planner?.groups?.length) {
+      bullets.push(`Auto groups: ${planner.groups[0]}`);
+      if (planner.groups[1]) bullets.push(planner.groups[1]);
+    }
 
     homePostCheckCard.classList.remove('hidden');
     homePostCheckTitle.textContent = recommendation.activityLabel || 'Start recommended path';
-    homePostCheckBullets.innerHTML = bullets.slice(0, 4).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+    homePostCheckBullets.innerHTML = bullets.slice(0, 7).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
     homePostCheckLaunch.href = String(recommendation.activityHref || wordQuestHref(recommendation.focus, recommendation.length));
   }
 
@@ -2362,7 +2560,7 @@
     if (completed && readWizardStep() < 4) {
       localStorage.setItem(HOME_WIZARD_STEP_KEY, '4');
     }
-    document.querySelectorAll('[data-precheck-hidden]').forEach((node) => {
+    document.querySelectorAll('[data-precheck-hidden], [data-home-detail]').forEach((node) => {
       if (!(node instanceof HTMLElement)) return;
       node.classList.toggle('hidden', !completed);
     });
@@ -2381,14 +2579,34 @@
     }
     const literacySummary = payload?.domains?.literacy;
     const numeracySummary = payload?.domains?.numeracy;
+    const planner = payload?.pathwayPlanner;
+    const fluencyStudio = payload?.fluencyStudio;
     const studentName = String(payload?.studentName || '').trim();
     const kidLead = studentName
       ? `Nice work, ${escapeHtml(studentName)}. You are ready to start here.`
       : 'Nice work. You are ready to start here.';
     const teacherRows = [literacySummary, numeracySummary]
       .filter(Boolean)
-      .map((domainSummary) => `<li>${escapeHtml(domainSummary.levelLabel)} · ${domainSummary.correct}/${domainSummary.total} correct</li>`)
+      .map((domainSummary) => `<li>${escapeHtml(domainSummary.roundTitle || domainSummary.levelLabel)} · ${domainSummary.correct}/${domainSummary.total} correct</li>`)
       .join('');
+    const todayRows = Array.isArray(planner?.today)
+      ? planner.today.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+      : '';
+    const groupRows = Array.isArray(planner?.groups)
+      ? planner.groups.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+      : '';
+    const badgeRows = Array.isArray(fluencyStudio?.badges)
+      ? fluencyStudio.badges.map((badge) => `<li><strong>${escapeHtml(badge.label)}</strong>: ${badge.score}% (${escapeHtml(badge.band)})</li>`).join('')
+      : '';
+    const growthBars = Array.isArray(fluencyStudio?.growth)
+      ? fluencyStudio.growth.slice(-4).map((row) => `
+        <div class="home-growth-row">
+          <span>${escapeHtml(row.date)}</span>
+          <div class="home-growth-bar"><i style="width:${Math.max(8, Math.min(100, Number(row.accuracy || 0)))}%"></i></div>
+          <span>${escapeHtml(String(row.accuracy || 0))}%</span>
+        </div>
+      `).join('')
+      : '';
 
     result.classList.remove('hidden');
     result.innerHTML = `
@@ -2396,10 +2614,35 @@
       <div class="placement-result-main">${kidLead}</div>
       <div class="muted" style="margin-top:6px;"><strong>${escapeHtml(rec.activityLabel || 'Recommended activity')}</strong>: ${escapeHtml(rec.headline || '')}</div>
       ${rec.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(rec.notes)}</div>` : ''}
+      ${rec.teacherLead ? `<div class="muted" style="margin-top:6px;"><strong>Teacher cue:</strong> ${escapeHtml(rec.teacherLead)}</div>` : ''}
       <div class="placement-teacher-block" style="margin-top:10px;">
         <div class="home-mini-title">Teacher view</div>
         <ul class="home-progress-list" style="margin-top:4px;">${teacherRows || '<li>No domain summary available.</li>'}</ul>
       </div>
+      ${todayRows ? `
+        <div class="placement-teacher-block" style="margin-top:10px;">
+          <div class="home-mini-title">Pathway Planner · Today</div>
+          <ul class="home-progress-list" style="margin-top:4px;">${todayRows}</ul>
+        </div>
+      ` : ''}
+      ${groupRows ? `
+        <div class="placement-teacher-block" style="margin-top:10px;">
+          <div class="home-mini-title">Auto groups</div>
+          <ul class="home-progress-list" style="margin-top:4px;">${groupRows}</ul>
+        </div>
+      ` : ''}
+      ${badgeRows ? `
+        <div class="placement-teacher-block" style="margin-top:10px;">
+          <div class="home-mini-title">Fluency Studio badges</div>
+          <ul class="home-progress-list" style="margin-top:4px;">${badgeRows}</ul>
+        </div>
+      ` : ''}
+      ${growthBars ? `
+        <div class="placement-teacher-block" style="margin-top:10px;">
+          <div class="home-mini-title">Weekly fluency growth</div>
+          <div class="home-growth-grid">${growthBars}</div>
+        </div>
+      ` : ''}
     `;
     const href = String(rec.activityHref || wordQuestHref(rec.focus, rec.length));
     goWordQuest.href = href;
@@ -2429,14 +2672,17 @@
 
     const literacySummary = data?.domains?.literacy;
     const numeracySummary = data?.domains?.numeracy;
+    const planner = data?.pathwayPlanner;
     const summaryParts = [];
     if (literacySummary) summaryParts.push(`Literacy: ${literacySummary.levelLabel}`);
     if (numeracySummary) summaryParts.push(`Numeracy: ${numeracySummary.levelLabel}`);
+    if (planner?.today?.[0]) summaryParts.push(`Today: ${planner.today[0]}`);
 
     summary.innerHTML = `
       <div class="home-mini-title">Current recommendation</div>
       <div class="home-placement-line"><strong>${escapeHtml(rec.activityLabel || 'Next path')}</strong> · updated <strong>${updatedText}</strong></div>
       <div class="muted">${escapeHtml(rec.headline || '')}</div>
+      ${rec.teacherLead ? `<div class="muted">${escapeHtml(rec.teacherLead)}</div>` : ''}
       ${summaryParts.length ? `<div class="muted">${summaryParts.map((part) => escapeHtml(part)).join(' · ')}</div>` : ''}
     `;
 
@@ -2458,20 +2704,26 @@
       : focusToday === 'both'
         ? 'Reading & Words + Math & Numbers'
         : 'Reading & Words';
+    const roundsCopy = focusToday === 'numeracy'
+      ? 'Rounds: Number Sense → Strategy Check → Flexible Thinking.'
+      : focusToday === 'both'
+        ? 'Rounds: Literacy Sound Sense + Word Building + 30-second Read, then Numeracy Number Sense + Strategy + Flexible Thinking.'
+        : 'Rounds: Sound Sense → Word Building → 30-second Read.';
     const nameLine = group === 'student' && studentName
       ? `<div class="quickcheck-inline-note">Learner: <strong>${escapeHtml(studentName)}</strong>${gradeBand ? ` (${escapeHtml(gradeBand)})` : ''}</div>`
       : '';
     if (placementSubtitle) {
       placementSubtitle.textContent = group === 'student'
-        ? 'A short adaptive check to find the best starting point.'
-        : 'A quick check to set a clear first step for this pathway.';
+        ? 'An adaptive check (about 8–10 minutes) to find the best starting point.'
+        : 'A short adaptive check to set a clear first step for this pathway.';
     }
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
         <div class="quickcheck-title">Ready to run Quick Check?</div>
         <p class="quickcheck-copy">Role: <strong>${escapeHtml(roleLabel)}</strong> · Focus: <strong>${escapeHtml(focusLabel)}</strong>.</p>
         ${nameLine}
-        <p class="quickcheck-copy">You will answer short items with strategy choices, then get a recommended next step.</p>
+        <p class="quickcheck-copy">${escapeHtml(roundsCopy)}</p>
+        <p class="quickcheck-copy">You will answer short adaptive items, then get a pathway plan with one clear next step.</p>
       </div>
     `;
     result.classList.add('hidden');
@@ -2505,13 +2757,15 @@
     const index = Number(session.counts[domain] || 0) + 1;
     const total = session.maxQuestionsPerDomain;
     const progressLabel = domain === 'literacy' ? 'Literacy Quick Check' : 'Numeracy Quick Check';
+    const roundMeta = quickCheckRoundMeta(domain, Number(question.level || 0));
     const selectedIndex = reviewPending ? Number(session.pendingAnswer?.selectedIndex) : Number.NaN;
     const hasAudioPrompt = !!String(question.audioPrompt || '').trim();
     const promptHint = hasAudioPrompt ? 'Listen first, then pick one answer.' : 'Pick one answer.';
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-progress">${escapeHtml(progressLabel)} · Item ${index} of ${total}</div>
+        <div class="quickcheck-progress">${escapeHtml(progressLabel)} · ${escapeHtml(roundMeta.title || 'Round')} · Item ${index} of ${total}</div>
         <div class="quickcheck-title">${escapeHtml(question.prompt)}</div>
+        <div class="quickcheck-inline-note">${escapeHtml(roundMeta.hint || '')}</div>
         ${hasAudioPrompt ? `
           <div class="quickcheck-listen-row">
             <button type="button" class="secondary-btn quickcheck-listen-btn" data-action="play-prompt-audio">Hear sound</button>
@@ -2538,6 +2792,7 @@
     const question = pending.question;
     const domain = pending.domain;
     const isCorrect = !!pending.correct;
+    const roundMeta = quickCheckRoundMeta(domain, Number(question?.level || 0));
     const strategies = getQuickCheckStrategies(domain, {
       gradeBand: session.gradeBand,
       isCorrect
@@ -2550,6 +2805,7 @@
       : `Answer selected: <strong>${escapeHtml(question.choices[pending.selectedIndex] || '')}</strong> · Best answer: <strong>${escapeHtml(question.choices[question.answer] || '')}</strong>`;
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
+        <div class="quickcheck-progress">${escapeHtml(roundMeta.title || 'Quick Check')}</div>
         <div class="quickcheck-feedback ${isCorrect ? 'success' : 'needs-support'}">${isCorrect ? 'Nice work.' : 'Good effort. Let’s keep going.'}</div>
         <div class="quickcheck-copy">${escapeHtml(strategyPrompt)}</div>
         <div class="quickcheck-strategy-grid">
@@ -2654,6 +2910,8 @@
       const question = pending.question;
       const domain = pending.domain;
       const isCorrect = Number(pending.selectedIndex) === Number(question.answer);
+      updateMetricBuckets(quickCheckSession, domain, question, isCorrect);
+      const roundMeta = quickCheckRoundMeta(domain, Number(question.level || 0));
       quickCheckSession.counts[domain] = Number(quickCheckSession.counts[domain] || 0) + 1;
       if (isCorrect) {
         quickCheckSession.correct[domain] = Number(quickCheckSession.correct[domain] || 0) + 1;
@@ -2664,6 +2922,7 @@
       }
       quickCheckSession.strategyLog.push({
         domain,
+        round: roundMeta?.title || '',
         questionId: question.id,
         strategy: pending.strategy || 'Not selected',
         correct: !!isCorrect

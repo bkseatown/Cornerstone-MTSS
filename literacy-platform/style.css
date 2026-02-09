@@ -105,6 +105,18 @@ body.theme-playful {
     --theme-grid-opacity: 0.24;
 }
 
+body.theme-professional {
+    --theme-bg: linear-gradient(180deg, #f9fafb 0%, #eef2f7 100%);
+    --theme-grid-dot: rgba(15, 23, 42, 0.08);
+    --theme-grid-size: 34px;
+    --theme-grid-opacity: 0.14;
+}
+
+body.theme-professional .home-card::before,
+body.theme-professional .modal-content::before {
+    opacity: 0.18;
+}
+
 body.theme-high-contrast {
     --theme-bg:
         linear-gradient(180deg, #f8fbff 0%, #ebf2ff 48%, #e2ebff 100%);
@@ -4660,6 +4672,36 @@ main {
     font-size: 1.05rem;
     font-weight: 750;
     color: #0f172a;
+}
+
+.home-growth-grid {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.home-growth-row {
+    display: grid;
+    grid-template-columns: minmax(76px, auto) minmax(120px, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 680;
+}
+
+.home-growth-bar {
+    border-radius: 999px;
+    background: rgba(226, 232, 240, 0.92);
+    height: 8px;
+    overflow: hidden;
+}
+
+.home-growth-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 100%);
 }
 
 #phoneme-modal {

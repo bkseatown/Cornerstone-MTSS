@@ -245,7 +245,7 @@
   const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
   const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'assessments', 'teacher-report']);
   const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
-  const THEME_PRESETS = ['calm', 'playful', 'high-contrast', 'minimal-ink'];
+  const THEME_PRESETS = ['calm', 'playful', 'professional'];
 
   const ACCESSIBILITY_DEFAULTS = {
     calmMode: false,
@@ -263,6 +263,7 @@
 
   function normalizeThemePreset(value) {
     const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'high-contrast' || raw === 'minimal-ink') return 'professional';
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
   }
 
@@ -1050,7 +1051,7 @@
     body.classList.toggle('line-focus', !!normalized.lineFocus);
     body.classList.remove('font-atkinson', 'font-opendyslexic');
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
-    body.classList.remove('theme-calm', 'theme-playful', 'theme-high-contrast', 'theme-minimal-ink');
+    body.classList.remove('theme-calm', 'theme-playful', 'theme-professional', 'theme-high-contrast', 'theme-minimal-ink');
     body.classList.add(`theme-${normalized.themePreset}`);
 
     const uiLook = normalizeLook(normalized.uiLook);
@@ -1596,8 +1597,7 @@
             <select data-setting="themePreset">
               <option value="calm">Calm</option>
               <option value="playful">Playful</option>
-              <option value="high-contrast">High Contrast</option>
-              <option value="minimal-ink">Minimal Ink</option>
+              <option value="professional">Professional</option>
             </select>
           </label>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
