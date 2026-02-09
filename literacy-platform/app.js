@@ -7589,6 +7589,114 @@ const SCHOOL_SAFE_REVEAL_OVERRIDES = {
     silly: {
         definition: 'Playful in a light and funny way.',
         sentence: 'Our class shared a silly joke before we started reading.'
+    },
+    always: {
+        definition: 'At every time, without skipping.',
+        sentence: 'We always put our names on our classwork before turning it in.'
+    },
+    beast: {
+        definition: 'A large wild animal.',
+        sentence: 'In the story, the beast turned out to be a shy forest animal.'
+    },
+    bee: {
+        definition: 'A small flying insect that helps pollinate flowers.',
+        sentence: 'A bee moved from flower to flower in the school garden.'
+    },
+    bike: {
+        definition: 'A two-wheeled vehicle you pedal.',
+        sentence: 'I wore my helmet before riding my bike on the path.'
+    },
+    burst: {
+        definition: 'To break open suddenly.',
+        sentence: 'The balloon burst with a loud pop during the science demo.'
+    },
+    button: {
+        definition: 'A small fastener used to close clothing.',
+        sentence: 'I checked each button before lining up for class pictures.'
+    },
+    cafeteria: {
+        definition: 'A school room where students eat meals.',
+        sentence: 'Our class walked quietly to the cafeteria for lunch.'
+    },
+    feast: {
+        definition: 'A large special meal.',
+        sentence: 'The class read a story about a family feast and holiday songs.'
+    },
+    finger: {
+        definition: 'One of the five digits on your hand.',
+        sentence: 'I counted on each finger to solve the math problem.'
+    },
+    floor: {
+        definition: 'The bottom surface of a room that you stand on.',
+        sentence: 'We kept our art supplies off the floor and on the table.'
+    },
+    flower: {
+        definition: 'The colorful part of a plant that can make seeds.',
+        sentence: 'Each flower in our plot opened wider in the morning sun.'
+    },
+    foot: {
+        definition: 'The lower part of your leg used for standing and walking.',
+        sentence: 'I tapped my foot softly while waiting my turn.'
+    },
+    how: {
+        definition: 'A question word used to ask about method or process.',
+        sentence: 'How did you solve that problem so clearly?'
+    },
+    illuminate: {
+        definition: 'To light something so it is easier to see.',
+        sentence: 'The lamp helped illuminate the page during reading practice.'
+    },
+    knit: {
+        definition: 'To make fabric by looping yarn with needles.',
+        sentence: 'My grandma taught me how to knit a small square.'
+    },
+    lightning: {
+        definition: 'A bright flash of electricity in the sky during a storm.',
+        sentence: 'We counted seconds after lightning to track the storm distance.'
+    },
+    manual: {
+        definition: 'Done by hand instead of by automation.',
+        sentence: 'The teacher showed a manual way to sort cards by pattern.'
+    },
+    memory: {
+        definition: 'Your ability to store and recall information.',
+        sentence: 'Memory strategies helped me remember the spelling list.'
+    },
+    plank: {
+        definition: 'A long, flat piece of wood.',
+        sentence: 'We balanced the plank on blocks to build a model bridge.'
+    },
+    principal: {
+        definition: 'The leader of a school.',
+        sentence: 'The principal greeted students at the front gate this morning.'
+    },
+    ruler: {
+        definition: 'A straight tool used to measure length.',
+        sentence: 'I used a ruler to draw a neat line across the page.'
+    },
+    soap: {
+        definition: 'A cleaning product used with water.',
+        sentence: 'We used soap and warm water before lunch.'
+    },
+    thorn: {
+        definition: 'A sharp point on the stem of some plants.',
+        sentence: 'We used gloves to avoid the thorn on the rose stem.'
+    },
+    tummy: {
+        definition: 'A child-friendly word for the stomach.',
+        sentence: 'My tummy felt better after water and a short rest.'
+    },
+    undo: {
+        definition: 'To reverse your last action.',
+        sentence: 'I used undo to fix a typing mistake in my paragraph.'
+    },
+    vet: {
+        definition: 'An animal doctor.',
+        sentence: 'The vet checked the puppy and said it was healthy.'
+    },
+    year: {
+        definition: 'A period of twelve months.',
+        sentence: 'This year our class started a new reading challenge.'
     }
 };
 

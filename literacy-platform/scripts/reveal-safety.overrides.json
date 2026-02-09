@@ -311,6 +311,144 @@
       "sentence": "We used gentle force to open the heavy library door."
     }
   },
+  "dog": {
+    "en": {
+      "def": "A loyal animal that can be trained to help, play, and keep people company.",
+      "sentence": "The dog waited by the door and wagged its tail when we came home."
+    }
+  },
+  "stress": {
+    "en": {
+      "def": "A heavy feeling that can show up when work feels hard.",
+      "sentence": "When I felt stress, I took a breath and finished one step at a time."
+    }
+  },
+  "gross": {
+    "en": {
+      "def": "A word for something that feels or smells unpleasant.",
+      "sentence": "The old food smelled gross, so we cleaned the lunchbox right away."
+    }
+  },
+  "trunk": {
+    "en": {
+      "def": "An elephant’s long nose used for grabbing, spraying, and smelling.",
+      "sentence": "The elephant used its trunk to lift a stick and splash water."
+    }
+  },
+  "snort": {
+    "en": {
+      "def": "A short burst of air from your nose, often during a big laugh.",
+      "sentence": "The class started to laugh, and one kid let out a tiny snort."
+    }
+  },
+  "fetch": {
+    "en": {
+      "def": "To go get something and bring it back.",
+      "sentence": "Please fetch the marker from the table so we can keep writing."
+    }
+  },
+  "eat": {
+    "en": {
+      "def": "To put food in your mouth and chew it.",
+      "sentence": "We sit down to eat lunch before we go outside."
+    }
+  },
+  "butterfly": {
+    "en": {
+      "def": "A colorful insect with wings that starts life as a caterpillar.",
+      "sentence": "A butterfly landed on the flower and opened its wings in the sun."
+    }
+  },
+  "snowman": {
+    "en": {
+      "def": "A figure made from rolled snow.",
+      "sentence": "We built a snowman and gave it a scarf and button eyes."
+    }
+  },
+  "fearless": {
+    "en": {
+      "def": "Feeling brave when trying something hard.",
+      "sentence": "Nia felt fearless as she read her poem to the class."
+    }
+  },
+  "knight": {
+    "en": {
+      "def": "A historical soldier who wore armor.",
+      "sentence": "In the story, the knight rode to the castle gate."
+    }
+  },
+  "it's": {
+    "en": {
+      "def": "A short form of \"it is\" or \"it has\".",
+      "sentence": "\"It's time to line up,\" the teacher said with a smile."
+    }
+  },
+  "fall": {
+    "en": {
+      "def": "To move downward from a higher place.",
+      "sentence": "The leaf began to fall when the wind picked up."
+    }
+  },
+  "some": {
+    "en": {
+      "def": "An amount that is not all, but more than a little.",
+      "sentence": "I saved some crackers for later in the day."
+    }
+  },
+  "eye": {
+    "en": {
+      "def": "The part of your face used for seeing.",
+      "sentence": "My eye blinked fast when bright light came in the window."
+    }
+  },
+  "sock": {
+    "en": {
+      "def": "A soft piece of clothing worn on your foot.",
+      "sentence": "I put on dry socks after recess in the rain."
+    }
+  },
+  "room": {
+    "en": {
+      "def": "A space inside a building with a specific use.",
+      "sentence": "We cleaned the room before starting our project."
+    }
+  },
+  "dad": {
+    "en": {
+      "def": "A father in a family.",
+      "sentence": "My dad read the story with me before bed."
+    }
+  },
+  "sneeze": {
+    "en": {
+      "def": "A sudden burst of air from your nose and mouth.",
+      "sentence": "I covered my mouth when I had to sneeze."
+    }
+  },
+  "snore": {
+    "en": {
+      "def": "A breathing sound some people make while sleeping.",
+      "sentence": "My brother can snore loudly after a long day."
+    }
+  },
+  "pink": {
+    "en": {
+      "def": "A color between red and white.",
+      "sentence": "She used a pink marker for the title on her poster."
+    }
+  },
+  "stapler": {
+    "en": {
+      "def": "A tool that joins papers with a small metal staple.",
+      "sentence": "We used the stapler to keep the packet pages together."
+    }
+  },
+  "reflection": {
+    "en": {
+      "def": "The image you see in a mirror or shiny surface.",
+      "sentence": "I could see my reflection in the classroom window."
+    }
+  },
   "pause": {
     "en": {
       "def": "To stop for a short moment, then continue.",
@@ -333,6 +471,168 @@
     "en": {
       "def": "Playful in a light and funny way.",
       "sentence": "Our class shared a silly joke before we started reading."
+    }
+  },
+  "always": {
+    "en": {
+      "def": "At every time, without skipping.",
+      "sentence": "We always put our names on our classwork before turning it in."
+    }
+  },
+  "beast": {
+    "en": {
+      "def": "A large wild animal.",
+      "sentence": "In the story, the beast turned out to be a shy forest animal."
+    }
+  },
+  "bee": {
+    "en": {
+      "def": "A small flying insect that helps pollinate flowers.",
+      "sentence": "A bee moved from flower to flower in the school garden."
+    }
+  },
+  "bike": {
+    "en": {
+      "def": "A two-wheeled vehicle you pedal.",
+      "sentence": "I wore my helmet before riding my bike on the path."
+    }
+  },
+  "burst": {
+    "en": {
+      "def": "To break open suddenly.",
+      "sentence": "The balloon burst with a loud pop during the science demo."
+    }
+  },
+  "button": {
+    "en": {
+      "def": "A small fastener used to close clothing.",
+      "sentence": "I checked each button before lining up for class pictures."
+    }
+  },
+  "cafeteria": {
+    "en": {
+      "def": "A school room where students eat meals.",
+      "sentence": "Our class walked quietly to the cafeteria for lunch."
+    }
+  },
+  "feast": {
+    "en": {
+      "def": "A large special meal.",
+      "sentence": "The class read a story about a family feast and holiday songs."
+    }
+  },
+  "finger": {
+    "en": {
+      "def": "One of the five digits on your hand.",
+      "sentence": "I counted on each finger to solve the math problem."
+    }
+  },
+  "floor": {
+    "en": {
+      "def": "The bottom surface of a room that you stand on.",
+      "sentence": "We kept our art supplies off the floor and on the table."
+    }
+  },
+  "flower": {
+    "en": {
+      "def": "The colorful part of a plant that can make seeds.",
+      "sentence": "Each flower in our plot opened wider in the morning sun."
+    }
+  },
+  "foot": {
+    "en": {
+      "def": "The lower part of your leg used for standing and walking.",
+      "sentence": "I tapped my foot softly while waiting my turn."
+    }
+  },
+  "how": {
+    "en": {
+      "def": "A question word used to ask about method or process.",
+      "sentence": "How did you solve that problem so clearly?"
+    }
+  },
+  "illuminate": {
+    "en": {
+      "def": "To light something so it is easier to see.",
+      "sentence": "The lamp helped illuminate the page during reading practice."
+    }
+  },
+  "knit": {
+    "en": {
+      "def": "To make fabric by looping yarn with needles.",
+      "sentence": "My grandma taught me how to knit a small square."
+    }
+  },
+  "lightning": {
+    "en": {
+      "def": "A bright flash of electricity in the sky during a storm.",
+      "sentence": "We counted seconds after lightning to track the storm distance."
+    }
+  },
+  "manual": {
+    "en": {
+      "def": "Done by hand instead of by automation.",
+      "sentence": "The teacher showed a manual way to sort cards by pattern."
+    }
+  },
+  "memory": {
+    "en": {
+      "def": "Your ability to store and recall information.",
+      "sentence": "Memory strategies helped me remember the spelling list."
+    }
+  },
+  "plank": {
+    "en": {
+      "def": "A long, flat piece of wood.",
+      "sentence": "We balanced the plank on blocks to build a model bridge."
+    }
+  },
+  "principal": {
+    "en": {
+      "def": "The leader of a school.",
+      "sentence": "The principal greeted students at the front gate this morning."
+    }
+  },
+  "ruler": {
+    "en": {
+      "def": "A straight tool used to measure length.",
+      "sentence": "I used a ruler to draw a neat line across the page."
+    }
+  },
+  "soap": {
+    "en": {
+      "def": "A cleaning product used with water.",
+      "sentence": "We used soap and warm water before lunch."
+    }
+  },
+  "thorn": {
+    "en": {
+      "def": "A sharp point on the stem of some plants.",
+      "sentence": "We used gloves to avoid the thorn on the rose stem."
+    }
+  },
+  "tummy": {
+    "en": {
+      "def": "A child-friendly word for the stomach.",
+      "sentence": "My tummy felt better after water and a short rest."
+    }
+  },
+  "undo": {
+    "en": {
+      "def": "To reverse your last action.",
+      "sentence": "I used undo to fix a typing mistake in my paragraph."
+    }
+  },
+  "vet": {
+    "en": {
+      "def": "An animal doctor.",
+      "sentence": "The vet checked the puppy and said it was healthy."
+    }
+  },
+  "year": {
+    "en": {
+      "def": "A period of twelve months.",
+      "sentence": "This year our class started a new reading challenge."
     }
   }
 }
