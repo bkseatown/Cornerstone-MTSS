@@ -12,22 +12,12 @@
   const TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
   const QUICKCHECK_SUMMARY_KEY = 'cornerstone_quickcheck_summary_v1';
   const QUICKCHECK_SHUFFLE_KEY_PREFIX = 'cornerstone_quickcheck_queue_v2::';
+  const HOME_STATE_KEY_PREFIX = 'cornerstone_home_state_v3::';
   const HOME_STUDENT_NAME_KEY = 'cm_student_name';
   const HOME_GRADE_BAND_KEY = 'cm_grade_band';
-  const HOME_STUDENT_EAL_KEY = 'cm_student_eal';
-  const HOME_STUDENT_VIBE_KEY = 'cm_student_vibe';
-  const HOME_PARENT_NAME_KEY = 'cm_parent_name';
-  const HOME_PARENT_GRADE_KEY = 'cm_parent_grade_band';
-  const HOME_PARENT_GOALS_KEY = 'cm_parent_goals';
-  const HOME_PARENT_FOCUS_KEY = 'cm_parent_focus';
-  const HOME_SCHOOL_NAME_KEY = 'cm_school_name';
-  const HOME_SCHOOL_GRADE_KEY = 'cm_school_grade_band';
-  const HOME_SCHOOL_CONCERN_KEY = 'cm_school_concern';
   const HOME_FOCUS_TODAY_KEY = 'cm_focus_today';
   const HOME_ROLE_WIZARD_KEY = 'cm_role';
   const HOME_WIZARD_STEP_KEY = 'cm_home_step';
-  const HOME_NON_STUDENT_UNLOCK_KEY = 'cornerstone_home_non_student_unlock_v1';
-  const HOME_ONBOARDING_STATE_KEY = 'cornerstone_home_onboarding_state_v1';
 
   const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('placement-modal');
@@ -46,8 +36,6 @@
   const homeHeaderToggleBtn = document.getElementById('home-header-toggle');
   const homeRoleLaunchBtn = document.getElementById('home-role-launch');
   const homeRolePreviewEl = document.getElementById('home-role-preview');
-  const homeWhyStripEl = document.getElementById('home-why-strip');
-  const homeHeroStepsEl = document.getElementById('home-hero-steps');
   const homeQuickLanguageSelect = document.getElementById('home-quick-language');
   const homeQuickVoiceDialectSelect = document.getElementById('home-quick-voice-dialect');
   const homeQuickVoicePackSelect = document.getElementById('home-quick-voice-pack');
@@ -60,44 +48,34 @@
   const homeWizardSteps = Array.from(document.querySelectorAll('.home-step[data-step-index]'));
   const homeStepPanels = Array.from(document.querySelectorAll('.home-step-panel[data-home-step-panel]'));
   const homeStepSummaries = document.getElementById('home-step-summaries');
+  const homeWizardResetBtn = document.getElementById('home-wizard-reset');
   const homeRoleStepNextBtn = document.getElementById('home-step-role-next');
   const homeDetailsStepBackBtn = document.getElementById('home-step-details-back');
   const homeDetailsStepNextBtn = document.getElementById('home-step-details-next');
   const homeFocusStepBackBtn = document.getElementById('home-step-focus-back');
   const homeFocusStepNextBtn = document.getElementById('home-step-focus-next');
   const homeQuickCheckStepBackBtn = document.getElementById('home-step-quickcheck-back');
-  const homeSkipQuickCheckBtn = document.getElementById('home-skip-quickcheck');
-  const homeQuickCheckLabelEl = document.getElementById('home-step-quickcheck-label');
-  const homeQuickCheckHintEl = homeQuickCheckLabelEl?.parentElement?.querySelector('.home-mini-hint') || null;
   const homeTeamRoleWrap = document.getElementById('home-team-role-wrap');
   const homeTeamRoleSelect = document.getElementById('home-team-role-select');
   const homeParentSetup = document.getElementById('home-parent-setup');
   const homeStudentSetup = document.getElementById('home-student-setup');
   const homeSchoolSetup = document.getElementById('home-school-setup');
   const homeStudentNameInput = document.getElementById('home-student-name');
-  const homeStudentEalToggle = document.getElementById('home-student-eal');
-  const homeStudentVibeSelect = document.getElementById('home-student-vibe');
   const homeParentNameInput = document.getElementById('home-parent-name');
-  const homeParentGradeSelect = document.getElementById('home-parent-grade');
-  const homeParentFocusSelect = document.getElementById('home-parent-focus');
+  const homeParentGradeBandSelect = document.getElementById('home-parent-grade-band');
+  const homeParentGoalSelect = document.getElementById('home-parent-goal');
   const homeSchoolNameInput = document.getElementById('home-school-name');
-  const homeSchoolGradeSelect = document.getElementById('home-school-grade');
-  const homeSchoolConcernSelect = document.getElementById('home-school-concern');
-  const homeParentGoalButtons = Array.from(document.querySelectorAll('.home-goal-btn[data-parent-goal]'));
+  const homeSchoolDivisionSelect = document.getElementById('home-school-division');
+  const homeSchoolAreaSelect = document.getElementById('home-school-area');
   const homeGradeBandButtons = Array.from(document.querySelectorAll('.home-grade-band-btn[data-grade-band]'));
   const homeFocusButtons = Array.from(document.querySelectorAll('.home-focus-btn[data-focus-value]'));
   const homePostCheckCard = document.getElementById('home-post-check');
   const homePostCheckTitle = document.getElementById('home-post-check-title');
+  const homePostCheckConfidence = document.getElementById('home-post-check-confidence');
   const homePostCheckBullets = document.getElementById('home-post-check-bullets');
   const homePostCheckLaunch = document.getElementById('home-post-check-launch');
+  const homePostCheckExplore = document.getElementById('home-post-check-explore');
   const homePostCheckRerun = document.getElementById('home-post-check-rerun');
-  const homeNextBest = document.getElementById('home-next-best');
-  const homeNextBestTitle = document.getElementById('home-next-best-title');
-  const homeNextBestCopy = document.getElementById('home-next-best-copy');
-  const homeNextBestActions = document.getElementById('home-next-best-actions');
-  const homeToolkit = document.getElementById('home-toolkit');
-  const homeToolkitTitle = document.getElementById('home-toolkit-title');
-  const homeToolkitGrid = document.getElementById('home-toolkit-grid');
   const placementSubtitle = document.getElementById('placement-subtitle');
   const quickCheckStage = document.getElementById('quickcheck-stage');
 
@@ -120,15 +98,6 @@
     psychologist: 'school'
   });
 
-  const HOME_PARENT_GOAL_LABELS = Object.freeze({
-    'homework-help': 'homework help',
-    'reading-support': 'reading support',
-    'math-support': 'math support',
-    sel: 'SEL support',
-    both: 'both',
-    'parenting-supports': 'parenting supports'
-  });
-
   function normalizeHomeVisualMode(value) {
     const raw = String(value || '').trim().toLowerCase();
     return raw === 'calm' ? 'calm' : 'fun';
@@ -141,219 +110,136 @@
 
   function normalizeHomeEntryGroup(value) {
     const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'student') return 'student';
     if (raw === 'parent') return 'parent';
     if (raw === 'school') return 'school';
-    return 'student';
+    return '';
   }
 
   function normalizeFocusToday(value) {
     const raw = String(value || '').trim().toLowerCase();
     if (raw === 'numeracy') return 'numeracy';
     if (raw === 'both') return 'both';
-    return 'literacy';
-  }
-
-  function readFocusToday() {
-    return normalizeFocusToday(localStorage.getItem(HOME_FOCUS_TODAY_KEY));
-  }
-
-  function readStudentName() {
-    return String(localStorage.getItem(HOME_STUDENT_NAME_KEY) || '').trim();
-  }
-
-  function readStudentGradeBand() {
-    return normalizeGradeBand(localStorage.getItem(HOME_GRADE_BAND_KEY) || '');
-  }
-
-  function readStudentIsEnglishLearner() {
-    return localStorage.getItem(HOME_STUDENT_EAL_KEY) === '1';
-  }
-
-  function normalizeStudentVibe(value) {
-    const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'fun') return 'fun';
-    if (raw === 'calm') return 'calm';
+    if (raw === 'literacy') return 'literacy';
     return '';
   }
 
-  function readStudentVibe() {
-    return normalizeStudentVibe(localStorage.getItem(HOME_STUDENT_VIBE_KEY) || '');
+  function normalizeSchoolDivision(value) {
+    const raw = String(value || '').trim().toUpperCase();
+    if (raw === 'ES' || raw === 'MS' || raw === 'HS') return raw;
+    return '';
   }
 
-  function readParentName() {
-    return String(localStorage.getItem(HOME_PARENT_NAME_KEY) || '').trim();
+  function createDefaultHomeState() {
+    return {
+      role: '',
+      subrole: '',
+      learnerName: '',
+      gradeBand: '',
+      focus: '',
+      quickCheckComplete: false,
+      quickCheckSummary: null,
+      wizardStep: 1,
+      parentGoal: '',
+      schoolPrimaryArea: ''
+    };
   }
 
-  function readParentGradeBand() {
-    return normalizeGradeBand(localStorage.getItem(HOME_PARENT_GRADE_KEY) || '');
-  }
-
-  function readParentGoals() {
-    const focused = String(localStorage.getItem(HOME_PARENT_FOCUS_KEY) || '').trim().toLowerCase();
-    if (focused) return [focused];
+  function getHomeStateScopeId() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(HOME_PARENT_GOALS_KEY) || '[]');
-      if (!Array.isArray(parsed)) return [];
-      return parsed
-        .map((value) => String(value || '').trim().toLowerCase())
-        .filter(Boolean);
-    } catch {
-      return [];
-    }
-  }
-
-  function writeParentGoals(goals = []) {
-    const normalized = Array.from(new Set((Array.isArray(goals) ? goals : [])
-      .map((value) => String(value || '').trim().toLowerCase())
-      .filter(Boolean)));
-    if (!normalized.length) {
-      localStorage.removeItem(HOME_PARENT_GOALS_KEY);
-      localStorage.removeItem(HOME_PARENT_FOCUS_KEY);
-      return [];
-    }
-    localStorage.setItem(HOME_PARENT_GOALS_KEY, JSON.stringify(normalized));
-    localStorage.setItem(HOME_PARENT_FOCUS_KEY, normalized[0]);
-    return normalized;
-  }
-
-  function readSchoolName() {
-    return String(localStorage.getItem(HOME_SCHOOL_NAME_KEY) || '').trim();
-  }
-
-  function readSchoolGradeBand() {
-    return normalizeGradeBand(localStorage.getItem(HOME_SCHOOL_GRADE_KEY) || '');
-  }
-
-  function readSchoolConcern() {
-    return String(localStorage.getItem(HOME_SCHOOL_CONCERN_KEY) || '').trim();
-  }
-
-  function readNonStudentUnlock() {
-    return localStorage.getItem(HOME_NON_STUDENT_UNLOCK_KEY) === '1';
-  }
-
-  function writeNonStudentUnlock(enabled) {
-    if (enabled) {
-      localStorage.setItem(HOME_NON_STUDENT_UNLOCK_KEY, '1');
-    } else {
-      localStorage.removeItem(HOME_NON_STUDENT_UNLOCK_KEY);
-    }
-  }
-
-  function activeOnboardingProfileId() {
-    const learnerId = String(window.DECODE_PLATFORM?.getActiveLearnerId?.() || '').trim();
-    if (learnerId) return `learner:${learnerId}`;
-    const fallbackStudentName = readStudentName();
-    if (fallbackStudentName) return `student:${fallbackStudentName.toLowerCase()}`;
+      const learner = window.DECODE_PLATFORM?.getActiveLearner?.();
+      const idCandidate = learner?.id || learner?.name || localStorage.getItem('decode_active_learner_id_v1') || '';
+      const cleaned = String(idCandidate || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+      if (cleaned) return cleaned;
+    } catch {}
     return 'global';
   }
 
-  function readOnboardingStateMap() {
-    const parsed = safeParse(localStorage.getItem(HOME_ONBOARDING_STATE_KEY) || '');
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    return parsed;
+  function getHomeStateStorageKey() {
+    return `${HOME_STATE_KEY_PREFIX}${getHomeStateScopeId()}`;
   }
 
-  function writeOnboardingStateMap(map = {}) {
-    const next = map && typeof map === 'object' && !Array.isArray(map) ? map : {};
-    localStorage.setItem(HOME_ONBOARDING_STATE_KEY, JSON.stringify(next));
-  }
-
-  function readOnboardingProfileState() {
-    const map = readOnboardingStateMap();
-    const profileId = activeOnboardingProfileId();
-    const state = map[profileId];
-    if (!state || typeof state !== 'object' || Array.isArray(state)) return null;
-    return state;
-  }
-
-  function collectOnboardingStateSnapshot(extra = {}) {
-    const quickCheckPayload = Object.prototype.hasOwnProperty.call(extra, 'quickCheckPayload')
-      ? extra.quickCheckPayload
-      : load();
-    const roleId = normalizeRoleId(localStorage.getItem(HOME_ROLE_WIZARD_KEY) || activeWizardRole()) || 'student';
-    const quickCheckComplete = Object.prototype.hasOwnProperty.call(extra, 'quickCheckCompleted')
-      ? !!extra.quickCheckCompleted
-      : hasQuickCheckRecommendation(quickCheckPayload);
-    const nonStudentUnlock = Object.prototype.hasOwnProperty.call(extra, 'nonStudentUnlock')
-      ? !!extra.nonStudentUnlock
-      : readNonStudentUnlock();
-    const profileState = {
-      profileId: activeOnboardingProfileId(),
-      entryGroup: readHomeEntryGroup(),
-      roleId,
-      wizardStep: readWizardStep(),
-      studentName: readStudentName(),
-      gradeBand: readStudentGradeBand(),
-      studentEal: readStudentIsEnglishLearner(),
-      studentVibe: readStudentVibe(),
-      parentName: readParentName(),
-      parentGradeBand: readParentGradeBand(),
-      parentGoals: readParentGoals(),
-      schoolName: readSchoolName(),
-      schoolGradeBand: readSchoolGradeBand(),
-      schoolConcern: readSchoolConcern(),
-      focusToday: readFocusToday(),
-      nonStudentUnlock,
-      quickCheckCompleted: quickCheckComplete,
-      quickCheckUpdatedAt: String(quickCheckPayload?.updatedAt || ''),
-      quickCheckPayload: quickCheckPayload && typeof quickCheckPayload === 'object' ? quickCheckPayload : null,
-      updatedAt: new Date().toISOString()
+  function sanitizeHomeState(value) {
+    const source = value && typeof value === 'object' ? value : {};
+    const role = normalizeHomeEntryGroup(source.role);
+    const subrole = role === 'school' ? normalizeRoleId(source.subrole || '') : '';
+    const learnerName = String(source.learnerName || '').trim();
+    const gradeBand = role === 'school'
+      ? normalizeSchoolDivision(source.gradeBand || '')
+      : normalizeGradeBand(source.gradeBand || '');
+    const focus = normalizeFocusToday(source.focus);
+    const quickCheckSummary = source.quickCheckSummary && typeof source.quickCheckSummary === 'object'
+      ? source.quickCheckSummary
+      : null;
+    const quickCheckComplete = !!source.quickCheckComplete || !!quickCheckSummary?.recommendation;
+    const wizardStep = normalizeWizardStep(source.wizardStep || 1);
+    const parentGoal = String(source.parentGoal || '').trim().toLowerCase();
+    const schoolPrimaryArea = String(source.schoolPrimaryArea || '').trim().toLowerCase();
+    return {
+      role,
+      subrole,
+      learnerName,
+      gradeBand,
+      focus,
+      quickCheckComplete,
+      quickCheckSummary,
+      wizardStep,
+      parentGoal,
+      schoolPrimaryArea
     };
-    return { ...profileState, ...extra };
   }
 
-  function persistOnboardingProfileState(extra = {}) {
-    const map = readOnboardingStateMap();
-    const profileId = activeOnboardingProfileId();
-    const previous = map[profileId] && typeof map[profileId] === 'object' ? map[profileId] : {};
-    const next = { ...previous, ...collectOnboardingStateSnapshot(extra), profileId };
-    map[profileId] = next;
-    writeOnboardingStateMap(map);
-    return next;
-  }
-
-  function applyOnboardingProfileState(state = null) {
-    if (!state || typeof state !== 'object') return false;
-    const setString = (key, value) => {
-      const normalized = String(value || '').trim();
-      if (normalized) {
-        localStorage.setItem(key, normalized);
-      } else {
-        localStorage.removeItem(key);
-      }
-    };
-    setString(HOME_ENTRY_GROUP_KEY, normalizeHomeEntryGroup(state.entryGroup || 'student'));
-    setString(HOME_ROLE_WIZARD_KEY, normalizeRoleId(state.roleId || '') || 'student');
-    localStorage.setItem(HOME_WIZARD_STEP_KEY, String(normalizeWizardStep(state.wizardStep || 1)));
-    setString(HOME_STUDENT_NAME_KEY, state.studentName || '');
-    setString(HOME_GRADE_BAND_KEY, normalizeGradeBand(state.gradeBand || ''));
-    localStorage.setItem(HOME_STUDENT_EAL_KEY, state.studentEal ? '1' : '0');
-    setString(HOME_STUDENT_VIBE_KEY, normalizeStudentVibe(state.studentVibe || ''));
-    setString(HOME_PARENT_NAME_KEY, state.parentName || '');
-    setString(HOME_PARENT_GRADE_KEY, normalizeGradeBand(state.parentGradeBand || ''));
-    writeParentGoals(Array.isArray(state.parentGoals) ? state.parentGoals : []);
-    setString(HOME_SCHOOL_NAME_KEY, state.schoolName || '');
-    setString(HOME_SCHOOL_GRADE_KEY, normalizeGradeBand(state.schoolGradeBand || ''));
-    setString(HOME_SCHOOL_CONCERN_KEY, state.schoolConcern || '');
-    setString(HOME_FOCUS_TODAY_KEY, normalizeFocusToday(state.focusToday || 'literacy'));
-    writeNonStudentUnlock(!!state.nonStudentUnlock);
-    if (Object.prototype.hasOwnProperty.call(state, 'quickCheckPayload')) {
-      if (state.quickCheckPayload && typeof state.quickCheckPayload === 'object') {
-        localStorage.setItem(PLACEMENT_KEY, JSON.stringify(state.quickCheckPayload));
-        localStorage.setItem(QUICKCHECK_SUMMARY_KEY, JSON.stringify(state.quickCheckPayload));
-      } else {
-        localStorage.removeItem(PLACEMENT_KEY);
-        localStorage.removeItem(QUICKCHECK_SUMMARY_KEY);
-      }
+  function readHomeState() {
+    const key = getHomeStateStorageKey();
+    const parsed = safeParse(localStorage.getItem(key) || '');
+    if (parsed && typeof parsed === 'object') {
+      return sanitizeHomeState(parsed);
     }
-    return true;
+    return sanitizeHomeState(createDefaultHomeState());
   }
 
-  function hydrateOnboardingFromProfileState() {
-    const state = readOnboardingProfileState();
-    if (!state) return false;
-    return applyOnboardingProfileState(state);
+  function syncLegacyHomeFields(state) {
+    try {
+      if (state.learnerName) localStorage.setItem(HOME_STUDENT_NAME_KEY, state.learnerName);
+      else localStorage.removeItem(HOME_STUDENT_NAME_KEY);
+
+      if (state.gradeBand) localStorage.setItem(HOME_GRADE_BAND_KEY, state.gradeBand);
+      else localStorage.removeItem(HOME_GRADE_BAND_KEY);
+
+      if (state.focus) localStorage.setItem(HOME_FOCUS_TODAY_KEY, state.focus);
+      else localStorage.removeItem(HOME_FOCUS_TODAY_KEY);
+
+      if (state.role) localStorage.setItem(HOME_ENTRY_GROUP_KEY, state.role);
+      else localStorage.removeItem(HOME_ENTRY_GROUP_KEY);
+
+      if (state.wizardStep) localStorage.setItem(HOME_WIZARD_STEP_KEY, String(state.wizardStep));
+      else localStorage.removeItem(HOME_WIZARD_STEP_KEY);
+
+      if (state.role === 'school' && state.subrole) localStorage.setItem(HOME_ROLE_WIZARD_KEY, state.subrole);
+      else if (state.role === 'student') localStorage.setItem(HOME_ROLE_WIZARD_KEY, 'student');
+      else if (state.role === 'parent') localStorage.setItem(HOME_ROLE_WIZARD_KEY, 'parent');
+      else localStorage.removeItem(HOME_ROLE_WIZARD_KEY);
+    } catch {}
+  }
+
+  function writeHomeState(nextPatch = {}, options = {}) {
+    const base = options.reset ? createDefaultHomeState() : readHomeState();
+    const merged = sanitizeHomeState({ ...base, ...nextPatch });
+    localStorage.setItem(getHomeStateStorageKey(), JSON.stringify(merged));
+    syncLegacyHomeFields(merged);
+    return merged;
+  }
+
+  function readFocusToday() {
+    return normalizeFocusToday(readHomeState().focus);
+  }
+
+  function readStudentName() {
+    return String(readHomeState().learnerName || '').trim();
+  }
+
+  function readStudentGradeBand() {
+    return normalizeGradeBand(readHomeState().gradeBand || '');
   }
 
   function normalizeWizardStep(value) {
@@ -363,13 +249,14 @@
   }
 
   function readWizardStep() {
-    return normalizeWizardStep(localStorage.getItem(HOME_WIZARD_STEP_KEY) || 1);
+    return normalizeWizardStep(readHomeState().wizardStep || 1);
   }
 
   function summarizeRoleSelection() {
     const group = readHomeEntryGroup();
+    if (!group) return 'Not selected';
     if (group === 'school') {
-      const role = normalizeRoleId(homeTeamRoleSelect?.value || homeRoleSelect?.value || '');
+      const role = normalizeRoleId(homeTeamRoleSelect?.value || readHomeState().subrole || '');
       return HOME_ROLE_LABELS?.[role] || 'School Team';
     }
     if (group === 'parent') return 'Parent / Caregiver';
@@ -378,88 +265,33 @@
 
   function summarizeWhoYouAre() {
     const group = readHomeEntryGroup();
+    const state = readHomeState();
+    const name = String(state.learnerName || '').trim();
+    const band = String(state.gradeBand || '').trim();
     if (group === 'student') {
-      const name = readStudentName();
-      const band = readStudentGradeBand();
-      const eal = readStudentIsEnglishLearner();
-      const vibe = readStudentVibe();
-      if (name && band && vibe) return `${name} (${band}) · ${vibe}`;
       if (name && band) return `${name} (${band})`;
-      if (name && eal) return `${name} (learning English)`;
       if (name) return name;
-      return 'Student details pending';
+      return 'Details pending';
+    }
+    if (group === 'parent') {
+      if (name && band) return `${name} (child ${band})`;
+      if (name) return name;
+      return 'Details pending';
     }
     if (group === 'school') {
-      const roleLabel = HOME_ROLE_LABELS?.[normalizeRoleId(homeTeamRoleSelect?.value || homeRoleSelect?.value || '')] || 'School Team';
-      const schoolGrade = readSchoolGradeBand();
-      if (schoolGrade) return `${roleLabel} (${schoolGrade})`;
+      const roleLabel = HOME_ROLE_LABELS?.[normalizeRoleId(state.subrole || '')] || 'School Team';
+      if (band) return `${roleLabel} (${band})`;
       return roleLabel;
     }
-    const parentName = readParentName();
-    const parentBand = readParentGradeBand();
-    const goals = readParentGoals();
-    if (parentName && parentBand && goals.length) {
-      return `${parentName} (${parentBand}) · ${HOME_PARENT_GOAL_LABELS[goals[0]] || goals[0]}`;
-    }
-    if (parentName && parentBand) return `${parentName} (${parentBand})`;
-    if (parentName) return parentName;
-    return 'Home support pathway';
+    return 'Not started';
   }
 
   function summarizeFocusSelection() {
     const focus = readFocusToday();
     if (focus === 'numeracy') return 'Math & Numbers';
     if (focus === 'both') return 'Reading & Words + Math & Numbers';
+    if (!focus) return 'Not selected';
     return 'Reading & Words';
-  }
-
-  function isQuickCheckRequiredForGroup(group = readHomeEntryGroup()) {
-    return normalizeHomeEntryGroup(group) === 'student';
-  }
-
-  function detailsStepComplete(group = readHomeEntryGroup()) {
-    const normalizedGroup = normalizeHomeEntryGroup(group);
-    if (normalizedGroup === 'student') {
-      return !!readStudentName() && !!readStudentGradeBand();
-    }
-    if (normalizedGroup === 'parent') {
-      return !!readParentName() && !!readParentGradeBand();
-    }
-    return true;
-  }
-
-  function quickCheckStepComplete(payload = load(), group = readHomeEntryGroup()) {
-    const recommendationReady = hasQuickCheckRecommendation(payload);
-    if (isQuickCheckRequiredForGroup(group)) return recommendationReady;
-    return recommendationReady || readNonStudentUnlock();
-  }
-
-  function maxWizardStepForGroup(group = readHomeEntryGroup()) {
-    const normalizedGroup = normalizeHomeEntryGroup(group);
-    if (!detailsStepComplete(normalizedGroup)) return 2;
-    return 4;
-  }
-
-  function refreshQuickCheckStepUi(payload = load()) {
-    const group = readHomeEntryGroup();
-    const required = isQuickCheckRequiredForGroup(group);
-    const completed = quickCheckStepComplete(payload, group);
-    if (homeQuickCheckLabelEl) {
-      homeQuickCheckLabelEl.textContent = required
-        ? 'Step 4 · Quick Check (required)'
-        : 'Step 4 · Quick Check (optional)';
-    }
-    if (homeQuickCheckHintEl) {
-      homeQuickCheckHintEl.textContent = required
-        ? 'A short adaptive check (about 5–8 minutes) gives one clear starting point before activities open.'
-        : 'A short adaptive check (about 5–8 minutes) gives one clear starting point. School Team and Parent roles can skip for now.';
-    }
-    if (homeRoleLaunchBtn) {
-      homeRoleLaunchBtn.textContent = completed ? 'Run Quick Check Again' : (required ? 'Start Quick Check' : 'Run Quick Check');
-    }
-    if (homeSkipQuickCheckBtn) {
-      homeSkipQuickCheckBtn.classList.toggle('hidden', required || completed);
-    }
   }
 
   function renderWizardStepSummaries(activeStep = 1) {
@@ -484,9 +316,43 @@
       <div class="home-step-summary-chip">
         <span class="home-step-summary-label">${escapeHtml(row.label)}:</span>
         <span class="home-step-summary-value">${escapeHtml(row.value)}</span>
-        <button type="button" class="home-step-summary-edit" data-edit-step="${row.step}">Edit</button>
+        <button type="button" class="home-step-summary-change" data-edit-step="${row.step}">Change</button>
       </div>
     `).join('');
+  }
+
+  function hasRoleSelection(state) {
+    const role = normalizeHomeEntryGroup(state?.role || '');
+    if (!role) return false;
+    if (role !== 'school') return true;
+    return !!normalizeRoleId(state?.subrole || '');
+  }
+
+  function hasWhoDetails(state) {
+    const role = normalizeHomeEntryGroup(state?.role || '');
+    const name = String(state?.learnerName || '').trim();
+    if (role === 'student') return !!name;
+    if (role === 'parent') return !!name;
+    if (role === 'school') return !!normalizeSchoolDivision(state?.gradeBand || '');
+    return false;
+  }
+
+  function hasFocusSelection(state) {
+    return !!normalizeFocusToday(state?.focus || '');
+  }
+
+  function maxUnlockedWizardStep(state = readHomeState()) {
+    if (!hasRoleSelection(state)) return 1;
+    if (!hasWhoDetails(state)) return 2;
+    if (!hasFocusSelection(state)) return 3;
+    return 4;
+  }
+
+  function wizardStepSummary(step) {
+    if (step === 1) return 'Step 1 of 4: Choose who is using Cornerstone.';
+    if (step === 2) return 'Step 2 of 4: Add who is being supported today.';
+    if (step === 3) return 'Step 3 of 4: Pick your focus for this session.';
+    return 'Step 4 of 4: Run Quick Check to unlock your next step.';
   }
 
   function applyWizardPanels(activeStep = 1) {
@@ -501,50 +367,45 @@
   }
 
   function applyWizardStepState(activeStep = 1, options = {}) {
-    const maxStep = maxWizardStepForGroup(readHomeEntryGroup());
-    const safeStep = Math.min(normalizeWizardStep(activeStep), maxStep);
+    const currentState = readHomeState();
+    const unlockedMax = maxUnlockedWizardStep(currentState);
+    const safeStep = Math.min(normalizeWizardStep(activeStep), unlockedMax);
     homeWizardSteps.forEach((stepEl) => {
       const idx = Number(stepEl.dataset.stepIndex || 0);
-      stepEl.classList.toggle('active', idx === safeStep);
-      stepEl.classList.toggle('complete', idx > 0 && idx < safeStep);
-      const canJumpBack = idx > 0 && idx < safeStep;
-      stepEl.disabled = !canJumpBack;
-      stepEl.classList.toggle('clickable', canJumpBack);
-      stepEl.setAttribute('aria-disabled', canJumpBack ? 'false' : 'true');
+      const isActive = idx === safeStep;
+      const isComplete = idx > 0 && idx < safeStep;
+      const isLocked = idx > unlockedMax;
+      const isClickable = !isLocked && idx !== safeStep;
+      stepEl.classList.toggle('active', isActive);
+      stepEl.classList.toggle('complete', isComplete);
+      stepEl.classList.toggle('locked', isLocked);
+      stepEl.classList.toggle('clickable', isClickable);
+      stepEl.setAttribute('aria-current', isActive ? 'step' : 'false');
+      stepEl.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
+      stepEl.setAttribute('tabindex', isLocked ? '-1' : '0');
     });
     applyWizardPanels(safeStep);
-    refreshQuickCheckStepUi();
     if (homeRolePreviewEl) {
-      const summary = safeStep === 1
-        ? 'Step 1 of 4: Choose role.'
-        : safeStep === 2
-          ? 'Step 2 of 4: Add who you are.'
-        : safeStep === 3
-            ? 'Step 3 of 4: Pick today’s focus.'
-            : (isQuickCheckRequiredForGroup()
-              ? 'Step 4 of 4: Complete Quick Check to unlock activities.'
-              : 'Step 4 of 4: Run Quick Check or skip for now.');
-      homeRolePreviewEl.textContent = summary;
+      homeRolePreviewEl.textContent = wizardStepSummary(safeStep);
     }
     if (options.persist) {
-      localStorage.setItem(HOME_WIZARD_STEP_KEY, String(safeStep));
-      persistOnboardingProfileState({ wizardStep: safeStep });
+      writeHomeState({ wizardStep: safeStep });
     }
     return safeStep;
   }
 
-  function activeWizardStepForGroup(group, payload = load()) {
-    const normalizedGroup = normalizeHomeEntryGroup(group);
-    const storedStep = normalizeWizardStep(readWizardStep());
-    const maxStep = maxWizardStepForGroup(normalizedGroup);
-    const clampedStep = Math.min(storedStep, maxStep);
-    if (clampedStep < 4) return clampedStep;
-    if (quickCheckStepComplete(payload, normalizedGroup)) return 4;
-    return 4;
+  function activeWizardStepForGroup(group) {
+    const normalizedGroup = normalizeHomeEntryGroup(group || readHomeEntryGroup());
+    const current = readHomeState();
+    const scopedState = { ...current, role: normalizedGroup || current.role };
+    const unlockedMax = maxUnlockedWizardStep(scopedState);
+    const storedStep = readWizardStep();
+    if (storedStep <= 1) return 1;
+    return Math.max(1, Math.min(storedStep, unlockedMax));
   }
 
   function readHomeEntryGroup() {
-    return normalizeHomeEntryGroup(localStorage.getItem(HOME_ENTRY_GROUP_KEY));
+    return normalizeHomeEntryGroup(readHomeState().role || '');
   }
 
   function getEntryGroupForRole(roleId) {
@@ -555,7 +416,6 @@
   function applyHomeEntryGroup(group, options = {}) {
     const normalizedGroup = normalizeHomeEntryGroup(group);
     const shouldPersist = !!options.persist;
-    const preserveCurrentRole = !!options.preserveCurrentRole;
 
     homeEntryGroupButtons.forEach((button) => {
       const buttonGroup = normalizeHomeEntryGroup(button.dataset.entryGroup || '');
@@ -564,22 +424,10 @@
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
 
-    const visibleRoleButtons = [];
     homeRolePickButtons.forEach((button) => {
       const buttonGroup = normalizeHomeEntryGroup(button.dataset.entryGroup || '');
-      const isVisible = buttonGroup === normalizedGroup;
-      button.classList.toggle('hidden', !isVisible);
-      if (isVisible) visibleRoleButtons.push(button);
+      button.classList.toggle('hidden', !normalizedGroup || buttonGroup !== normalizedGroup);
     });
-
-    const defaultRole = HOME_ENTRY_GROUP_DEFAULT_ROLE[normalizedGroup] || 'teacher';
-    const selectedRole = normalizeRoleId(homeRoleSelect?.value || '');
-    const selectedIsVisible = visibleRoleButtons.length
-      ? visibleRoleButtons.some((button) => normalizeRoleId(button.dataset.roleTarget || '') === selectedRole)
-      : getEntryGroupForRole(selectedRole) === normalizedGroup;
-    if (!preserveCurrentRole && homeRoleSelect && (!selectedRole || !selectedIsVisible)) {
-      homeRoleSelect.value = defaultRole;
-    }
 
     if (homeTeamRoleWrap) {
       homeTeamRoleWrap.classList.toggle('hidden', normalizedGroup !== 'school');
@@ -593,31 +441,21 @@
     if (homeSchoolSetup) {
       homeSchoolSetup.classList.toggle('hidden', normalizedGroup !== 'school');
     }
-    if (normalizedGroup === 'school' && homeTeamRoleSelect) {
-      const teamRole = normalizeRoleId(homeTeamRoleSelect.value || '') || 'teacher';
-      if (!preserveCurrentRole && homeRoleSelect) {
-        homeRoleSelect.value = teamRole;
-      }
-    } else if (normalizedGroup === 'parent' && homeRoleSelect) {
-      homeRoleSelect.value = 'parent';
-    } else if (normalizedGroup === 'student' && homeRoleSelect) {
-      homeRoleSelect.value = 'student';
+
+    if (homeTeamRoleSelect) {
+      const state = readHomeState();
+      homeTeamRoleSelect.value = normalizedGroup === 'school'
+        ? (normalizeRoleId(state.subrole || homeTeamRoleSelect.value || '') || '')
+        : '';
     }
 
     const requestedStep = normalizeWizardStep(options.step || activeWizardStepForGroup(normalizedGroup));
     applyWizardStepState(requestedStep, { persist: shouldPersist });
-    refreshQuickCheckStepUi();
 
     if (shouldPersist) {
-      localStorage.setItem(HOME_ENTRY_GROUP_KEY, normalizedGroup);
-      if (normalizedGroup === 'student') {
-        writeNonStudentUnlock(false);
-      }
-      const wizardRole = normalizedGroup === 'school'
-        ? (normalizeRoleId(homeTeamRoleSelect?.value || '') || normalizeRoleId(homeRoleSelect?.value || '') || 'teacher')
-        : defaultRole;
-      localStorage.setItem(HOME_ROLE_WIZARD_KEY, wizardRole);
-      persistOnboardingProfileState({ entryGroup: normalizedGroup, roleId: wizardRole });
+      const nextPatch = { role: normalizedGroup };
+      if (normalizedGroup !== 'school') nextPatch.subrole = '';
+      writeHomeState(nextPatch);
     }
     return normalizedGroup;
   }
@@ -746,7 +584,7 @@
     if (!homeQuickLanguageNote) return;
     const lang = normalizeStarterLanguage(langCode);
     if (lang === 'en') {
-      homeQuickLanguageNote.textContent = 'English-only mode selected. Full translation and audio can be enabled any time.';
+      homeQuickLanguageNote.textContent = 'English-only mode selected. Translation can still be turned on later.';
       return;
     }
     const labelByLanguage = {
@@ -761,11 +599,7 @@
       ja: 'Japanese'
     };
     const label = labelByLanguage[lang] || lang.toUpperCase();
-    if (lang === 'es' || lang === 'zh' || lang === 'tl' || lang === 'hi' || lang === 'ms' || lang === 'vi' || lang === 'ar' || lang === 'ko' || lang === 'ja') {
-      homeQuickLanguageNote.textContent = `${label} is ready with full reveal translation. Packed audio plays when matching clips are installed.`;
-      return;
-    }
-    homeQuickLanguageNote.textContent = `${label} is enabled as an optional language with school-safe reveal copy.`;
+    homeQuickLanguageNote.textContent = `${label} is ready as the default reveal translation in Word Quest.`;
   }
 
   function updateQuickVoiceNote(dialect, packName = '') {
@@ -1072,49 +906,18 @@
 
   const QUICKCHECK_LEVELS = {
     literacy: [
-      { id: 'phonemic-awareness', label: 'Phonemic awareness', focus: 'cvc', length: '3', roundId: 'sound-sense' },
-      { id: 'graphemes', label: 'Grapheme recognition', focus: 'cvc', length: '3', roundId: 'sound-sense' },
-      { id: 'cvc', label: 'CVC decoding', focus: 'cvc', length: '3', roundId: 'word-building' },
-      { id: 'digraphs-blends', label: 'Digraphs + blends', focus: 'digraph', length: '4', roundId: 'word-building' },
-      { id: 'vowel-teams', label: 'Vowel teams', focus: 'vowel_team', length: '5', roundId: 'thirty-second-read' }
+      { id: 'phonemic-awareness', label: 'Phonemic awareness', focus: 'cvc', length: '3' },
+      { id: 'graphemes', label: 'Grapheme recognition', focus: 'cvc', length: '3' },
+      { id: 'cvc', label: 'CVC decoding', focus: 'cvc', length: '3' },
+      { id: 'digraphs-blends', label: 'Digraphs + blends', focus: 'digraph', length: '4' },
+      { id: 'vowel-teams', label: 'Vowel teams', focus: 'vowel_team', length: '5' }
     ],
     numeracy: [
-      { id: 'counting-quantity', label: 'Counting + quantity', roundId: 'number-sense' },
-      { id: 'make-10', label: 'Making 10', roundId: 'strategy-check' },
-      { id: 'place-value', label: 'Place value to 100', roundId: 'strategy-check' },
-      { id: 'add-sub-strategies', label: 'Add/sub strategies', roundId: 'flexible-thinking' }
+      { id: 'counting-quantity', label: 'Counting + quantity' },
+      { id: 'make-10', label: 'Making 10' },
+      { id: 'place-value', label: 'Place value to 100' },
+      { id: 'add-sub-strategies', label: 'Add/sub strategies' }
     ]
-  };
-
-  const QUICKCHECK_ROUND_META = {
-    literacy: {
-      'sound-sense': {
-        title: 'Round 1 · Sound Sense',
-        hint: 'Hear a sound, match the grapheme, then explain your choice.'
-      },
-      'word-building': {
-        title: 'Round 2 · Word Building',
-        hint: 'Use chunks and patterns to build or decode words.'
-      },
-      'thirty-second-read': {
-        title: 'Round 3 · 30-second Read',
-        hint: 'Choose the best pacing/prosody move for a short read.'
-      }
-    },
-    numeracy: {
-      'number-sense': {
-        title: 'Round 1 · Number Sense',
-        hint: 'Show quantity understanding and quick number structure.'
-      },
-      'strategy-check': {
-        title: 'Round 2 · Strategy Check',
-        hint: 'Pick a strategy path that fits the problem.'
-      },
-      'flexible-thinking': {
-        title: 'Round 3 · Flexible Thinking',
-        hint: 'Solve the same problem with a second method.'
-      }
-    }
   };
 
   const QUICKCHECK_STRATEGY_BANK = {
@@ -1142,32 +945,31 @@
 
   const QUICKCHECK_QUESTION_BANK = {
     literacy: [
-      { id: 'lit-pa-1', level: 0, metric: 'accuracy', prompt: 'Which word starts with the same sound as sun?', choices: ['sock', 'cat', 'map', 'dog'], answer: 0 },
-      { id: 'lit-pa-2', level: 0, metric: 'accuracy', prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
-      { id: 'lit-pa-3', level: 0, metric: 'accuracy', prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
-      { id: 'lit-gr-1', level: 1, metric: 'accuracy', prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
-      { id: 'lit-gr-2', level: 1, metric: 'accuracy', prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
-      { id: 'lit-gr-3', level: 1, metric: 'accuracy', prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
-      { id: 'lit-cvc-1', level: 2, metric: 'accuracy', prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
-      { id: 'lit-cvc-2', level: 2, metric: 'accuracy', prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
-      { id: 'lit-cvc-3', level: 2, metric: 'accuracy', prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
-      { id: 'lit-db-1', level: 3, metric: 'accuracy', prompt: 'Pick the word with an initial blend.', choices: ['ship', 'trip', 'chin', 'math'], answer: 1 },
-      { id: 'lit-db-2', level: 3, metric: 'accuracy', prompt: 'Pick the word with a digraph.', choices: ['stop', 'frog', 'chat', 'clap'], answer: 2 },
-      { id: 'lit-db-3', level: 3, metric: 'accuracy', prompt: 'Which word has a blend at the end?', choices: ['sand', 'ship', 'math', 'knee'], answer: 0 },
-      { id: 'lit-read-1', level: 4, metric: 'rate', prompt: '30-second read: which pacing target is best?', choices: ['Race as fast as possible', 'Steady pace with clear stops', 'Pause after every word', 'Whisper very quietly'], answer: 1 },
-      { id: 'lit-read-2', level: 4, metric: 'prosody', prompt: '30-second read: what shows strong prosody?', choices: ['Flat voice for every sentence', 'No pauses at punctuation', 'Expression that matches punctuation', 'Skip words to keep speed'], answer: 2 },
-      { id: 'lit-read-3', level: 4, metric: 'prosody', prompt: 'When a sentence has a comma, what should the reader do?', choices: ['Take a short pause', 'Stop reading', 'Speed up', 'Drop the last word'], answer: 0 }
+      { id: 'lit-pa-1', level: 0, prompt: 'Which word starts with the same sound as sun?', choices: ['sock', 'cat', 'map', 'dog'], answer: 0 },
+      { id: 'lit-pa-2', level: 0, prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
+      { id: 'lit-pa-3', level: 0, prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
+      { id: 'lit-gr-1', level: 1, prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
+      { id: 'lit-gr-2', level: 1, prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
+      { id: 'lit-gr-3', level: 1, prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
+      { id: 'lit-cvc-1', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
+      { id: 'lit-cvc-2', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
+      { id: 'lit-cvc-3', level: 2, prompt: 'Which word rhymes with "pin"?', choices: ['pan', 'pen', 'fin', 'fan'], answer: 2 },
+      { id: 'lit-db-1', level: 3, prompt: 'Pick the word with an initial blend.', choices: ['ship', 'trip', 'chin', 'math'], answer: 1 },
+      { id: 'lit-db-2', level: 3, prompt: 'Pick the word with a digraph.', choices: ['stop', 'frog', 'chat', 'clap'], answer: 2 },
+      { id: 'lit-db-3', level: 3, prompt: 'Which word has a blend at the end?', choices: ['sand', 'ship', 'math', 'knee'], answer: 0 },
+      { id: 'lit-vt-1', level: 4, prompt: 'Which word has a vowel team?', choices: ['train', 'trap', 'trim', 'truck'], answer: 0 },
+      { id: 'lit-vt-2', level: 4, prompt: 'Pick the word with long /o/ from a vowel team.', choices: ['boat', 'bot', 'hot', 'hop'], answer: 0 },
+      { id: 'lit-vt-3', level: 4, prompt: 'Pick the word with a vowel team.', choices: ['seed', 'send', 'sand', 'stand'], answer: 0 }
     ],
     numeracy: [
-      { id: 'num-cq-1', level: 0, metric: 'number-sense', prompt: 'How many dots are there? ●●●●●', choices: ['4', '5', '6', '7'], answer: 1 },
-      { id: 'num-cq-2', level: 0, metric: 'number-sense', prompt: 'What number comes after 39?', choices: ['38', '40', '41', '49'], answer: 1 },
-      { id: 'num-m10-1', level: 1, metric: 'strategy-check', prompt: 'What makes 10 with 6?', choices: ['2', '3', '4', '5'], answer: 2 },
-      { id: 'num-m10-2', level: 1, metric: 'strategy-check', prompt: '8 + __ = 10', choices: ['1', '2', '3', '4'], answer: 1 },
-      { id: 'num-pv-1', level: 2, metric: 'strategy-check', prompt: 'In 47, the 4 means...', choices: ['4 ones', '4 tens', '40 ones', '7 tens'], answer: 1 },
-      { id: 'num-pv-2', level: 2, metric: 'strategy-check', prompt: 'Which number is greater?', choices: ['58', '85', '55', '48'], answer: 1 },
-      { id: 'num-flex-1', level: 3, metric: 'flexible-thinking', prompt: '38 + 25 can be solved another way by...', choices: ['Using only counting by ones', 'Making 100 by regrouping tens and ones', 'Ignoring the tens', 'Subtracting instead'], answer: 1 },
-      { id: 'num-flex-2', level: 3, metric: 'flexible-thinking', prompt: 'For 42 - 9, a strong second strategy is to...', choices: ['Add 9 instead', 'Count back 9 or subtract 10 then add 1', 'Guess near 30 and stop', 'Skip the ones place'], answer: 1 },
-      { id: 'num-flex-3', level: 3, metric: 'flexible-thinking', prompt: 'Which choice shows flexible thinking?', choices: ['Only one method every time', 'Try a second strategy to verify', 'Avoid visual models', 'Never check answers'], answer: 1 }
+      { id: 'num-cq-1', level: 0, prompt: 'How many dots are there? ●●●●●', choices: ['4', '5', '6', '7'], answer: 1 },
+      { id: 'num-cq-2', level: 0, prompt: 'What number comes after 39?', choices: ['38', '40', '41', '49'], answer: 1 },
+      { id: 'num-m10-1', level: 1, prompt: 'What makes 10 with 6?', choices: ['2', '3', '4', '5'], answer: 2 },
+      { id: 'num-m10-2', level: 1, prompt: '8 + __ = 10', choices: ['1', '2', '3', '4'], answer: 1 },
+      { id: 'num-pv-1', level: 2, prompt: 'In 47, the 4 means...', choices: ['4 ones', '4 tens', '40 ones', '7 tens'], answer: 1 },
+      { id: 'num-pv-2', level: 2, prompt: 'Which number is greater?', choices: ['58', '85', '55', '48'], answer: 1 },
+      { id: 'num-str-1', level: 3, prompt: 'What is 27 + 6?', choices: ['32', '33', '34', '31'], answer: 1 },
+      { id: 'num-str-2', level: 3, prompt: 'What is 42 - 9?', choices: ['31', '32', '33', '34'], answer: 2 }
     ]
   };
 
@@ -1426,7 +1228,7 @@
       comprehension: 'comprehension.html',
       fluency: 'fluency.html',
       madlibs: 'madlibs.html',
-      writing: 'writing-studio.html',
+      writing: 'writing.html',
       'plan-it': 'plan-it.html',
       'number-sense': 'number-sense.html',
       operations: 'operations.html',
@@ -1550,14 +1352,14 @@
         tagline: 'Clear pathways from a strong base.',
         mission: `Keep Tier 1 strong while targeting the highest-need skill gaps for ${learnerLabel}.`,
         cards: [
-          { title: 'Class Heatmap', body: `Red: ${literacyGap} · Yellow: ${numeracyGap} · Green: ${literacyStrength}.` },
-          { title: 'One-Click Grouping', body: 'Create target groups and assign Word Quest/Number Sense in one pass.' },
-          { title: 'Auto Reports', body: `Drafted progress notes + framework-aligned evidence. ${weeklyLine}` }
+          { title: 'Primary Lens', body: `Top literacy gap: ${literacyGap}. Top numeracy gap: ${numeracyGap}.` },
+          { title: 'What To Protect', body: `Maintain core access while extending strengths (${literacyStrength}; ${numeracyStrength}).` },
+          { title: 'Evidence Check', body: weeklyLine }
         ],
         actions: [
           { label: 'Open Teacher Report', href: roleReportHref('teacher', '#report-role-pathway'), kind: 'primary' },
-          { label: 'Create Group Set', href: roleReportHref('teacher', '#report-intervention-timeline'), kind: 'ghost' },
-          { label: 'Send Parent Note Draft', href: roleReportHref('teacher', '#report-parent-communication'), kind: 'ghost' }
+          { label: 'Run Word Quest', href: context.wordQuestUrl, kind: 'ghost' },
+          { label: 'Run Number Sense', href: 'number-sense.html', kind: 'ghost' }
         ]
       },
       admin: {
@@ -1565,9 +1367,9 @@
         tagline: 'Building Tier 1. Strengthening Tier 2. Supporting Tier 3.',
         mission: 'Monitor implementation quality, evidence confidence, and support-intensity fit across teams.',
         cards: [
-          { title: 'Tier Distribution', body: 'Track Tier 1 / Tier 2 / Tier 3 placement and movement each week.' },
-          { title: 'Class-by-Class Heatmap', body: `Priority concentration: ${literacyGap} and ${numeracyGap}.` },
-          { title: 'Intervention Impact', body: `Progress-over-time view with implementation checks. ${weeklyLine}` }
+          { title: 'System Priority', body: `Current risk concentration: ${literacyGap} (literacy) and ${numeracyGap} (numeracy).` },
+          { title: 'Momentum Signal', body: weeklyLine },
+          { title: 'Decision Lens', body: 'Use timeline + outcomes to verify that staffing decisions follow data.' }
         ],
         actions: [
           { label: 'Open Leadership View', href: roleReportHref('admin', '#report-outcomes'), kind: 'primary' },
@@ -1595,9 +1397,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Tighten intervention cycles with explicit teaching, guided transfer, and documentation fidelity.',
         cards: [
-          { title: 'Speech + Literacy Tracker', body: 'Log articulation clarity, consistency, and transfer into decoding tasks.' },
-          { title: 'Communication Lab', body: 'Target turn-taking, repair prompts, and body-language cues in short loops.' },
-          { title: 'Intervention Target', body: `Priority targets: ${literacyGap} and ${numeracyGap}.` }
+          { title: 'Intervention Target', body: `Priority targets: ${literacyGap} and ${numeracyGap}.` },
+          { title: 'Strength Leverage', body: `Use strengths to build transfer (${literacyStrength}; ${numeracyStrength}).` },
+          { title: 'Evidence Check', body: weeklyLine }
         ],
         actions: [
           { label: 'Open LS Dashboard', href: roleReportHref('learning-support', '#report-iesp-output'), kind: 'primary' },
@@ -1610,9 +1412,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Connect articulation/phonology and prosody goals to reading and expressive language transfer.',
         cards: [
-          { title: 'Articulation Tracker', body: 'Track accuracy, clarity, and consistency by target sound.' },
-          { title: 'Communication Lab', body: 'Practice facial expression, body language, and conversation repair moves.' },
-          { title: 'Transfer Anchor', body: `Use oral rehearsal to support ${numeracyGap} explanations in math language.` }
+          { title: 'Speech-Literacy Focus', body: `Current language-linked gap: ${literacyGap}.` },
+          { title: 'Transfer Anchor', body: `Use oral rehearsal to support ${numeracyGap} explanations in math language.` },
+          { title: 'Evidence Check', body: weeklyLine }
         ],
         actions: [
           { label: 'Open SLP Pathway', href: roleReportHref('slp', '#report-role-pathway'), kind: 'primary' },
@@ -1626,8 +1428,8 @@
         mission: 'Support language access without reducing rigor through vocabulary, syntax, and discourse scaffolds.',
         cards: [
           { title: 'Language Access Target', body: `Highest language-heavy needs: ${literacyGap} and ${numeracyGap}.` },
-          { title: 'Communication Lab', body: 'Use conversational repair prompts: “I didn’t understand. Can you rephrase?”' },
-          { title: 'Bridge To Classroom', body: 'Pair sentence frames with evidence responses in reading and math.' }
+          { title: 'Bridge To Classroom', body: 'Pair sentence frames with evidence responses in reading and math.' },
+          { title: 'Evidence Check', body: weeklyLine }
         ],
         actions: [
           { label: 'Open EAL Pathway', href: roleReportHref('eal', '#report-role-pathway'), kind: 'primary' },
@@ -1640,9 +1442,9 @@
         tagline: 'From solid ground to open access.',
         mission: 'Build self-management, persistence, and reflection language during academic tasks.',
         cards: [
-          { title: 'Wellbeing Quick Check', body: '5-minute check-in: feeling scale + top stressor + immediate support cue.' },
-          { title: 'Skills Micro-Lessons', body: 'Friend conflict, pressure coping, digital boundaries, planning routines.' },
-          { title: 'Student Voice', body: 'Each lesson ends with reflection, one action step, and one home prompt.' }
+          { title: 'SEL/EF Priority', body: `Current regulation/EF pressure point: ${literacyGap}.` },
+          { title: 'Student Voice', body: 'Use quick reflection routines to capture thoughts, emotions, actions, and next step.' },
+          { title: 'Evidence Check', body: weeklyLine }
         ],
         actions: [
           { label: 'Open Counselor Pathway', href: roleReportHref('counselor', '#report-role-pathway'), kind: 'primary' },
@@ -1670,13 +1472,13 @@
         tagline: 'Strong foundations across every tier.',
         mission: `Know your next step, practice with focus, and track your wins for ${learnerLabel}.`,
         cards: [
-          { title: 'My Path', body: `Today focus: ${literacyGap}. You only get 2–3 short tasks to keep momentum high.` },
-          { title: 'Fluency Studio', body: 'Read aloud, watch your wave, and earn Clear Speaker / Smooth Reader / Paced Well badges.' },
-          { title: 'Sound Lab + Typing Quest', body: 'Practice target sounds, then type key words tied to your current literacy level.' }
+          { title: 'My Next Literacy Goal', body: `Focus today: ${literacyGap}.` },
+          { title: 'My Next Math Goal', body: `Focus today: ${numeracyGap}.` },
+          { title: 'My Strengths', body: `You are already showing strength in ${literacyStrength} and ${numeracyStrength}.` }
         ],
         actions: [
           { label: 'Start Word Quest', href: context.wordQuestUrl, kind: 'primary' },
-          { label: 'Open Fluency Studio', href: 'fluency.html', kind: 'ghost' },
+          { label: 'Start Number Sense', href: 'number-sense.html', kind: 'ghost' },
           { label: 'Build Confidence (Plan-It)', href: 'plan-it.html', kind: 'ghost' }
         ]
       },
@@ -1685,9 +1487,9 @@
         tagline: 'Every learner supported, every step of the way.',
         mission: `Support ${learnerLabel} with simple, consistent home routines aligned to school goals.`,
         cards: [
-          { title: 'Understand The Focus', body: `Reading: ${literacyGap}. Math: ${numeracyGap}. Plain language, no jargon.` },
-          { title: 'Practice Together', body: '10 minutes/day with mini games and clear scripts for home routines.' },
-          { title: 'Tech + Wellbeing', body: 'Supportive guidance for screen time, phone boundaries, and AI safety at home.' }
+          { title: 'Current School Focus', body: `Reading: ${literacyGap}. Math: ${numeracyGap}.` },
+          { title: 'What Is Going Well', body: `Current strengths: ${literacyStrength}; ${numeracyStrength}.` },
+          { title: 'Home Routine Cue', body: '5-10 minutes daily: one reading strategy + one conceptual math strategy.' }
         ],
         actions: [
           { label: 'Open Parent Pathway', href: roleReportHref('parent', '#report-parent-communication'), kind: 'primary' },
@@ -1702,15 +1504,12 @@
 
   function syncRoleStarter(roleId, model) {
     const normalizedRole = normalizeRoleId(roleId) || 'teacher';
-    const selectedEntryGroup = applyHomeEntryGroup(getEntryGroupForRole(normalizedRole), {
-      persist: false,
-      preserveCurrentRole: true
-    });
 
     homeRolePickButtons.forEach((button) => {
       const targetRole = normalizeRoleId(button.dataset.roleTarget || '');
       const buttonGroup = normalizeHomeEntryGroup(button.dataset.entryGroup || '');
-      const isActive = targetRole === normalizedRole && buttonGroup === selectedEntryGroup;
+      const selectedEntryGroup = readHomeEntryGroup();
+      const isActive = !!selectedEntryGroup && targetRole === normalizedRole && buttonGroup === selectedEntryGroup;
       button.classList.toggle('active', isActive);
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
@@ -1718,11 +1517,6 @@
     if (homeRoleLaunchBtn) {
       homeRoleLaunchBtn.textContent = 'Start Quick Check';
       homeRoleLaunchBtn.setAttribute('data-role-target', normalizedRole);
-    }
-
-    if (homeRolePreviewEl) {
-      const previewLine = model?.cards?.[0]?.body || model?.mission || 'Role guidance will appear here.';
-      homeRolePreviewEl.textContent = `${model?.label || 'Role'}: ${previewLine}`;
     }
   }
 
@@ -2089,12 +1883,8 @@
     platform.refreshLearnerSwitchers?.();
     const settings = safeParse(localStorage.getItem(SETTINGS_KEY) || '');
     if (settings?.uiLook) applyLookClass(settings.uiLook);
-    hydrateOnboardingFromProfileState();
-    syncWizardFromStorage();
     editingLearnerId = '';
-    const summaryPayload = load();
-    renderSummary(summaryPayload);
-    syncHomePrecheckState(summaryPayload);
+    renderSummary(load());
     renderProgress();
     renderLearners();
     if (changed) {
@@ -2306,7 +2096,8 @@
   function quickCheckDomainsForFocus(focusToday) {
     const normalized = normalizeFocusToday(focusToday);
     if (normalized === 'both') return ['literacy', 'numeracy'];
-    return [normalized];
+    if (normalized === 'numeracy') return ['numeracy'];
+    return ['literacy'];
   }
 
   function shuffleList(items = []) {
@@ -2398,14 +2189,14 @@
   }
 
   function activeWizardRole() {
-    const group = readHomeEntryGroup();
-    const storedRole = normalizeRoleId(localStorage.getItem(HOME_ROLE_WIZARD_KEY) || '');
+    const state = readHomeState();
+    const group = normalizeHomeEntryGroup(state.role || '');
     if (group === 'student') return 'student';
     if (group === 'parent') return 'parent';
     if (group === 'school') {
-      return normalizeRoleId(homeTeamRoleSelect?.value || '') || storedRole || normalizeRoleId(homeRoleSelect?.value || '') || 'teacher';
+      return normalizeRoleId(homeTeamRoleSelect?.value || state.subrole || '');
     }
-    return storedRole || normalizeRoleId(homeRoleSelect?.value || '') || 'student';
+    return '';
   }
 
   function createQuickCheckSession(options = {}) {
@@ -2442,9 +2233,8 @@
       pendingAnswer: null,
       strategyLog: [],
       history: [],
-      metricBuckets: createMetricBuckets(),
       currentQuestion: null,
-      maxQuestionsPerDomain: 5
+      maxQuestionsPerDomain: 4
     };
   }
 
@@ -2509,8 +2299,7 @@
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
     if (options.persist) {
-      localStorage.setItem(HOME_FOCUS_TODAY_KEY, normalized);
-      persistOnboardingProfileState({ focusToday: normalized });
+      writeHomeState({ focus: normalized });
     }
     return normalized;
   }
@@ -2523,30 +2312,7 @@
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
     if (options.persist) {
-      if (normalized) {
-        localStorage.setItem(HOME_GRADE_BAND_KEY, normalized);
-      } else {
-        localStorage.removeItem(HOME_GRADE_BAND_KEY);
-      }
-      persistOnboardingProfileState({ gradeBand: normalized });
-    }
-    return normalized;
-  }
-
-  function setParentGoalButtons(goals = [], options = {}) {
-    const normalized = writeParentGoals(goals);
-    const selectedSet = new Set(normalized);
-    if (homeParentFocusSelect) {
-      homeParentFocusSelect.value = normalized[0] || '';
-    }
-    homeParentGoalButtons.forEach((button) => {
-      const goal = String(button.dataset.parentGoal || '').trim().toLowerCase();
-      const isActive = selectedSet.has(goal);
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    if (options.persist) {
-      persistOnboardingProfileState({ parentGoals: normalized });
+      writeHomeState({ gradeBand: normalized });
     }
     return normalized;
   }
@@ -2555,142 +2321,6 @@
     const levels = QUICKCHECK_LEVELS[domain] || [];
     const safeIndex = Math.max(0, Math.min(levels.length - 1, Number(levelIndex) || 0));
     return levels[safeIndex]?.label || 'Starting point';
-  }
-
-  function quickCheckLevelMeta(domain, levelIndex) {
-    const levels = QUICKCHECK_LEVELS[domain] || [];
-    const safeIndex = Math.max(0, Math.min(levels.length - 1, Number(levelIndex) || 0));
-    return levels[safeIndex] || null;
-  }
-
-  function quickCheckRoundMeta(domain, levelIndex) {
-    const levelMeta = quickCheckLevelMeta(domain, levelIndex);
-    const roundId = String(levelMeta?.roundId || '').trim();
-    const domainMeta = QUICKCHECK_ROUND_META[domain] || {};
-    if (roundId && domainMeta[roundId]) return domainMeta[roundId];
-    const fallbackKey = Object.keys(domainMeta)[0];
-    return fallbackKey ? domainMeta[fallbackKey] : { title: 'Quick Check', hint: 'Pick one answer and keep going.' };
-  }
-
-  function createMetricBuckets() {
-    const makeBucket = () => ({ total: 0, correct: 0 });
-    return {
-      literacy: {
-        accuracy: makeBucket(),
-        rate: makeBucket(),
-        prosody: makeBucket()
-      },
-      numeracy: {
-        'number-sense': makeBucket(),
-        'strategy-check': makeBucket(),
-        'flexible-thinking': makeBucket()
-      }
-    };
-  }
-
-  function metricKeyForQuestion(domain, question = null) {
-    const raw = String(question?.metric || '').trim().toLowerCase();
-    if (domain === 'literacy') {
-      if (raw === 'rate') return 'rate';
-      if (raw === 'prosody') return 'prosody';
-      return 'accuracy';
-    }
-    if (raw === 'number-sense' || raw === 'strategy-check' || raw === 'flexible-thinking') {
-      return raw;
-    }
-    return 'strategy-check';
-  }
-
-  function updateMetricBuckets(session, domain, question, isCorrect) {
-    const key = metricKeyForQuestion(domain, question);
-    const domainBuckets = session?.metricBuckets?.[domain];
-    if (!domainBuckets || !domainBuckets[key]) return;
-    domainBuckets[key].total += 1;
-    if (isCorrect) domainBuckets[key].correct += 1;
-  }
-
-  function metricPercent(bucket) {
-    const total = Number(bucket?.total || 0);
-    const correct = Number(bucket?.correct || 0);
-    if (total <= 0) return 0;
-    return Math.round((correct / total) * 100);
-  }
-
-  function quickCheckBand(score = 0) {
-    if (score >= 85) return 'green';
-    if (score >= 65) return 'yellow';
-    return 'red';
-  }
-
-  function buildFluencyGrowthSnapshot() {
-    const logs = getRecentActivityEntries()
-      .filter((entry) => String(entry?.activity || '').toLowerCase() === 'fluency')
-      .sort((a, b) => Number(a?.ts || 0) - Number(b?.ts || 0))
-      .slice(-6);
-    return logs.map((entry) => {
-      const when = Number(entry?.ts || 0);
-      const detail = entry?.detail || {};
-      const orf = Number(detail.orf || entry?.score || 0);
-      const accuracy = Number(detail.accuracyPct || 0);
-      return {
-        date: when ? new Date(when).toLocaleDateString() : '—',
-        orf: Number.isFinite(orf) ? Number(orf.toFixed(0)) : 0,
-        accuracy: Number.isFinite(accuracy) ? Number(accuracy.toFixed(0)) : 0
-      };
-    });
-  }
-
-  function buildPathwayPlanner(payload = {}) {
-    const recommendation = payload?.recommendation || {};
-    const literacy = payload?.domains?.literacy || null;
-    const numeracy = payload?.domains?.numeracy || null;
-    const literacyNeed = literacy?.levelLabel || 'decoding patterns';
-    const numeracyNeed = numeracy?.levelLabel || 'number strategy checks';
-    const primaryLabel = recommendation.activityLabel || 'Word Quest';
-    const primaryFocus = recommendation.headline || 'Targeted practice lane';
-
-    const today = [
-      `8 min ${primaryLabel}: ${primaryFocus}`,
-      '5 min Fluency Studio: live read coach with clear-speaker badges',
-      '3 min Sound Lab: targeted phoneme or strategy loop'
-    ];
-
-    const groups = [
-      `Group A: blends/digraph support (${literacyNeed})`,
-      `Group B: vowel teams and transfer practice`,
-      `Group C: fluency/prosody with strategy reflection`
-    ];
-
-    return {
-      today,
-      groups,
-      teacherSummary: [
-        `Likely literacy gap: ${literacyNeed}.`,
-        `Likely numeracy gap: ${numeracyNeed}.`
-      ]
-    };
-  }
-
-  function buildFluencyStudioSnapshot(payload = {}, session = null) {
-    const literacySummary = payload?.domains?.literacy || null;
-    const literacyBuckets = session?.metricBuckets?.literacy || {};
-    const accuracyScore = literacySummary?.accuracy || metricPercent(literacyBuckets.accuracy);
-    const rateFromItems = metricPercent(literacyBuckets.rate);
-    const prosodyFromItems = metricPercent(literacyBuckets.prosody);
-    const rateScore = literacyBuckets.rate?.total ? rateFromItems : Math.max(55, Math.round((accuracyScore || 0) * 0.9));
-    const prosodyScore = literacyBuckets.prosody?.total ? prosodyFromItems : Math.max(58, Math.round((accuracyScore || 0) * 0.92));
-    const growth = buildFluencyGrowthSnapshot();
-    return {
-      accuracyScore,
-      rateScore,
-      prosodyScore,
-      badges: [
-        { label: 'Clear Speaker', score: accuracyScore, band: quickCheckBand(accuracyScore) },
-        { label: 'Smooth Reader', score: prosodyScore, band: quickCheckBand(prosodyScore) },
-        { label: 'Paced Well', score: rateScore, band: quickCheckBand(rateScore) }
-      ],
-      growth
-    };
   }
 
   function playQuickCheckPromptAudio(question = null) {
@@ -2714,15 +2344,13 @@
     const highestCorrect = Number(session.highestCorrectLevel[domain] || -1);
     const fallbackLevel = Number(session.levels[domain] || 0);
     const safeLevel = Math.max(0, Math.min((QUICKCHECK_LEVELS[domain] || []).length - 1, highestCorrect >= 0 ? highestCorrect : fallbackLevel));
-    const roundMeta = quickCheckRoundMeta(domain, safeLevel);
     return {
       domain,
       total,
       correct,
       accuracy,
       levelIndex: safeLevel,
-      levelLabel: quickCheckLevelLabel(domain, safeLevel),
-      roundTitle: roundMeta?.title || 'Quick Check'
+      levelLabel: quickCheckLevelLabel(domain, safeLevel)
     };
   }
 
@@ -2748,7 +2376,6 @@
           length: 'any',
           headline: 'Start with Number Sense: counting and quantity.',
           notes: 'Use concrete visuals first, then quick verbal checks.',
-          teacherLead: 'Likely gap: mapping quantity to numerals.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=counting',
           ctaLabel: 'Start Number Sense'
@@ -2760,7 +2387,6 @@
           length: 'any',
           headline: 'Start with Number Sense: making 10.',
           notes: 'Use make-10 strategy cards and short number talks.',
-          teacherLead: 'Likely gap: making 10 efficiently with visual anchors.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=make10',
           ctaLabel: 'Start Number Sense'
@@ -2772,7 +2398,6 @@
           length: 'any',
           headline: 'Start with Number Sense: place value to 100.',
           notes: 'Bridge tens and ones with visual models before timed practice.',
-          teacherLead: 'Likely strength: place-value language with visual models.',
           activityLabel: 'Number Sense Lab',
           activityHref: 'number-sense.html?lane=place-value',
           ctaLabel: 'Start Number Sense'
@@ -2783,7 +2408,6 @@
         length: 'any',
         headline: 'Start with strategy-first operations practice.',
         notes: 'Prioritize explain-your-thinking prompts before speed goals.',
-        teacherLead: 'Likely strength: flexible strategy choice. Likely gap: second-method verification.',
         activityLabel: 'Strategy Studio',
         activityHref: 'operations.html?lane=strategy',
         ctaLabel: 'Start Strategy Studio'
@@ -2805,9 +2429,6 @@
       length: levelMeta?.length || '3',
       headline: `Start with ${(levelMeta?.label || 'CVC decoding').toLowerCase()} in Word Quest.`,
       notes: notesByLevel[levelMeta?.id] || 'Use short rounds and explicit strategy language.',
-      teacherLead: levelMeta?.id === 'vowel-teams'
-        ? 'Likely needs Tier 2 support in: vowel teams + blends.'
-        : 'Likely needs Tier 2 support in targeted decoding patterns.',
       activityLabel: 'Word Quest',
       activityHref: wordQuestHref(levelMeta?.focus || 'cvc', levelMeta?.length || '3'),
       ctaLabel: 'Start Word Quest'
@@ -2827,23 +2448,20 @@
       gradeBand: session.gradeBand || '',
       focusToday: session.focusToday,
       domains,
-      metricBuckets: session.metricBuckets,
       strategyLog: session.strategyLog.slice(),
       updatedAt: new Date().toISOString()
     };
     payload.recommendation = recommendationFromQuickCheck(payload);
-    payload.pathwayPlanner = buildPathwayPlanner(payload);
-    payload.fluencyStudio = buildFluencyStudioSnapshot(payload, session);
     return payload;
   }
 
   function store(data) {
     localStorage.setItem(PLACEMENT_KEY, JSON.stringify(data));
     localStorage.setItem(QUICKCHECK_SUMMARY_KEY, JSON.stringify(data));
-    persistOnboardingProfileState({
-      quickCheckPayload: data,
-      quickCheckCompleted: hasQuickCheckRecommendation(data),
-      nonStudentUnlock: readNonStudentUnlock()
+    writeHomeState({
+      quickCheckComplete: !!data?.recommendation,
+      quickCheckSummary: data && typeof data === 'object' ? data : null,
+      wizardStep: 4
     });
   }
 
@@ -2857,206 +2475,89 @@
     return !!(payload && typeof payload === 'object' && payload.recommendation);
   }
 
-  function renderHomePostCheckCard(payload = null) {
+  function confidenceLabelFromSummary(payload = null) {
+    const domainRows = Object.values(payload?.domains || {}).filter((row) => row && typeof row === 'object');
+    if (!domainRows.length) return 'Good start';
+    const totals = domainRows.map((row) => Number(row.accuracy || 0)).filter((value) => Number.isFinite(value));
+    if (!totals.length) return 'Good start';
+    const avg = totals.reduce((sum, value) => sum + value, 0) / totals.length;
+    if (avg >= 78) return 'Good start';
+    if (avg >= 58) return 'Keep going';
+    return 'Needs support';
+  }
+
+  function renderHomePostCheckCard(payload = null, completed = false) {
     if (!homePostCheckCard || !homePostCheckTitle || !homePostCheckBullets || !homePostCheckLaunch) return;
     const recommendation = payload?.recommendation || null;
-    if (!recommendation) {
+    if (!completed) {
       homePostCheckCard.classList.add('hidden');
-      homePostCheckTitle.textContent = 'Run Quick Check to get a recommendation.';
+      homePostCheckTitle.textContent = 'Next best step';
       homePostCheckBullets.innerHTML = '';
-      homePostCheckLaunch.href = 'word-quest.html';
+      homePostCheckLaunch.href = '#activities-grid';
+      homePostCheckLaunch.textContent = 'Continue Recommended Path';
+      if (homePostCheckConfidence) homePostCheckConfidence.textContent = 'Good start';
       return;
     }
+
     const literacySummary = payload?.domains?.literacy;
     const numeracySummary = payload?.domains?.numeracy;
-    const planner = payload?.pathwayPlanner;
-    const fluency = payload?.fluencyStudio;
     const bullets = [];
-    if (recommendation.headline) bullets.push(recommendation.headline);
+    if (recommendation?.headline) bullets.push(recommendation.headline);
     if (literacySummary) bullets.push(`Literacy: ${literacySummary.levelLabel} (${literacySummary.correct}/${literacySummary.total} correct)`);
     if (numeracySummary) bullets.push(`Numeracy: ${numeracySummary.levelLabel} (${numeracySummary.correct}/${numeracySummary.total} correct)`);
-    if (recommendation.notes) bullets.push(recommendation.notes);
-    if (recommendation.teacherLead) bullets.push(`Teacher cue: ${recommendation.teacherLead}`);
-    if (planner?.today?.length) bullets.push(`Today: ${planner.today[0]}`);
-    if (planner?.today?.[1]) bullets.push(`Then: ${planner.today[1]}`);
-    if (fluency?.badges?.length) {
-      const badgeLine = fluency.badges.map((badge) => `${badge.label} ${badge.score}%`).join(' · ');
-      bullets.push(`Fluency Studio: ${badgeLine}`);
-    }
-    if (payload?.entryGroup === 'school' && planner?.groups?.length) {
-      bullets.push(`Auto groups: ${planner.groups[0]}`);
-      if (planner.groups[1]) bullets.push(planner.groups[1]);
+    if (recommendation?.notes) bullets.push(recommendation.notes);
+    if (!recommendation) {
+      const focus = readFocusToday();
+      if (focus === 'numeracy') bullets.push('Start with one short math strategy activity.');
+      else if (focus === 'both') bullets.push('Start with one reading and one math activity.');
+      else bullets.push('Start with one short reading and words activity.');
+      bullets.push('Use Explore Activities to choose a starter lane.');
     }
 
     homePostCheckCard.classList.remove('hidden');
-    homePostCheckTitle.textContent = recommendation.activityLabel || 'Start recommended path';
-    homePostCheckBullets.innerHTML = bullets.slice(0, 3).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
-    homePostCheckLaunch.href = String(recommendation.activityHref || wordQuestHref(recommendation.focus, recommendation.length));
-  }
-
-  function renderHomeNextBestActions(payload = null, { unlocked = false } = {}) {
-    if (!homeNextBest || !homeNextBestTitle || !homeNextBestCopy || !homeNextBestActions) return;
-    if (!unlocked) {
-      homeNextBest.classList.add('hidden');
-      homeNextBestActions.innerHTML = '';
-      return;
+    homePostCheckTitle.textContent = recommendation ? 'Next best step' : 'Choose your next step';
+    homePostCheckBullets.innerHTML = bullets.slice(0, 4).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+    if (homePostCheckConfidence) {
+      homePostCheckConfidence.textContent = confidenceLabelFromSummary(payload);
     }
-    const roleId = normalizeRoleId(activeWizardRole()) || 'student';
-    const focus = readFocusToday();
-    const recommendation = payload?.recommendation || null;
-    const defaultWordQuestHref = recommendation?.activityHref || wordQuestHref(recommendation?.focus, recommendation?.length);
-    const numeracyHref = 'number-sense.html';
-    const focusHref = focus === 'numeracy'
-      ? numeracyHref
-      : focus === 'both'
-        ? defaultWordQuestHref
-        : defaultWordQuestHref;
-
-    const variants = {
-      student: {
-        title: 'Student pathway',
-        copy: 'Follow one short path at a time and keep your streak moving.',
-        actions: [
-          { label: 'Start Recommended Path', href: focusHref, kind: 'primary' },
-          { label: 'Student Toolkit', href: 'student-toolkit.html', kind: 'ghost' },
-          { label: 'Open Fluency Studio', href: 'fluency.html', kind: 'ghost' },
-          { label: 'View Progress', href: 'teacher-report.html?role=student#report-outcomes', kind: 'ghost' }
-        ]
-      },
-      parent: {
-        title: 'Parent / Caregiver pathway',
-        copy: 'Use one clear home action tonight, then share progress back to school.',
-        actions: [
-          { label: 'Tonight Plan', href: focusHref, kind: 'primary' },
-          { label: 'Parent Toolkit', href: 'parent-toolkit.html', kind: 'ghost' },
-          { label: 'Parent Report', href: 'teacher-report.html?role=parent#report-parent-communication', kind: 'ghost' },
-          { label: 'Open Tools', href: 'plan-it.html', kind: 'ghost' }
-        ]
-      },
-      school: {
-        title: 'School Team pathway',
-        copy: 'Use quick evidence, form groups, then launch the next intervention block.',
-        actions: [
-          { label: 'Open Teacher Report', href: `teacher-report.html?role=${encodeURIComponent(roleId)}`, kind: 'primary' },
-          { label: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit`, href: roleToolkitHref(roleId), kind: 'ghost' },
-          { label: 'Launch Word Quest', href: defaultWordQuestHref, kind: 'ghost' },
-          { label: 'Launch Number Sense', href: numeracyHref, kind: 'ghost' }
-        ]
-      }
-    };
-    const entryGroup = normalizeHomeEntryGroup(readHomeEntryGroup());
-    const model = entryGroup === 'student'
-      ? variants.student
-      : entryGroup === 'parent'
-        ? variants.parent
-        : variants.school;
-    homeNextBest.classList.remove('hidden');
-    homeNextBestTitle.textContent = model.title;
-    homeNextBestCopy.textContent = model.copy;
-    homeNextBestActions.innerHTML = model.actions
-      .map((action) => `<a class="home-cta ${action.kind === 'primary' ? 'primary' : 'ghost'}" href="${escapeHtml(action.href)}">${escapeHtml(action.label)}</a>`)
-      .join('');
-  }
-
-  function roleToolkitHref(roleId = '') {
-    const normalized = normalizeRoleId(roleId);
-    if (normalized === 'teacher') return 'teacher-toolkit.html';
-    if (normalized === 'learning-support') return 'learning-support-toolkit.html';
-    if (normalized === 'eal') return 'eal-toolkit.html';
-    if (normalized === 'slp') return 'slp-toolkit.html';
-    if (normalized === 'counselor') return 'counselor-toolkit.html';
-    if (normalized === 'psychologist') return 'psychologist-toolkit.html';
-    if (normalized === 'admin') return 'administrator-toolkit.html';
-    if (normalized === 'dean') return 'dean-toolkit.html';
-    if (normalized === 'parent') return 'parent-toolkit.html';
-    return 'student-toolkit.html';
-  }
-
-  function renderHomeToolkitPanel(payload = null, { unlocked = false } = {}) {
-    if (!homeToolkit || !homeToolkitTitle || !homeToolkitGrid) return;
-    if (!unlocked) {
-      homeToolkit.classList.add('hidden');
-      homeToolkitGrid.innerHTML = '';
-      return;
+    if (recommendation) {
+      homePostCheckLaunch.href = String(recommendation.activityHref || '#activities-grid');
+      homePostCheckLaunch.textContent = 'Continue Recommended Path';
+    } else {
+      homePostCheckLaunch.href = '#activities-grid';
+      homePostCheckLaunch.textContent = 'Choose a starter activity';
     }
-    const roleId = normalizeRoleId(activeWizardRole()) || 'student';
-    const entryGroup = normalizeHomeEntryGroup(readHomeEntryGroup());
-    const recommendation = payload?.recommendation || null;
-    const recommendedHref = String(recommendation?.activityHref || wordQuestHref(recommendation?.focus, recommendation?.length));
-    const schoolToolkitHref = roleToolkitHref(roleId);
-    const tiles = entryGroup === 'student'
-      ? [
-          { title: 'Start Recommended Path', body: 'Continue from your Quick Check result.', href: recommendedHref },
-          { title: 'Student Toolkit', body: 'Streaks, strategy badges, and guided practice flow.', href: 'student-toolkit.html' },
-          { title: 'Writing Studio', body: 'Plan, draft, revise, publish with clear scaffolds.', href: 'writing-studio.html' },
-          { title: 'Explore Math & Numbers', body: 'Quick number sense and strategy routines.', href: 'number-sense.html' }
-        ]
-      : entryGroup === 'parent'
-        ? [
-            { title: 'Parent Toolkit', body: 'How to help tonight with calm, clear routines.', href: 'parent-toolkit.html' },
-            { title: 'Start Recommended Path', body: 'One clear activity to run tonight.', href: recommendedHref },
-            { title: 'Writing Studio', body: 'Step Up-aligned writing support in one place.', href: 'writing-studio.html' },
-            { title: 'View Parent Report', body: 'Progress snapshot you can share with school.', href: 'teacher-report.html?role=parent#report-parent-communication' }
-          ]
-        : [
-            { title: 'School Team Toolkit Hub', body: 'Role-specific toolkit pages and roadmap previews.', href: 'school-team-toolkit.html' },
-            { title: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit`, body: 'Role-aligned workflows and intervention supports.', href: schoolToolkitHref },
-            { title: 'Start Recommended Path', body: 'Launch the top activity from Quick Check.', href: recommendedHref },
-            { title: 'Open Impact Dashboard', body: 'View trends, groups, and report outputs.', href: `teacher-report.html?role=${encodeURIComponent(roleId)}` }
-          ];
-
-    homeToolkit.classList.remove('hidden');
-    homeToolkitTitle.textContent = entryGroup === 'school'
-      ? `${HOME_ROLE_LABELS[roleId] || 'School Team'} toolkit`
-      : entryGroup === 'parent'
-        ? 'Parent toolkit'
-        : 'Student toolkit';
-    homeToolkitGrid.innerHTML = tiles
-      .map((tile) => `
-        <a class="home-toolkit-tile" href="${escapeHtml(tile.href)}">
-          <div class="home-toolkit-tile-title">${escapeHtml(tile.title)}</div>
-          <div class="home-toolkit-tile-copy">${escapeHtml(tile.body)}</div>
-        </a>
-      `)
-      .join('');
+    if (homePostCheckExplore) {
+      homePostCheckExplore.href = '#activities-grid';
+    }
   }
 
   function syncHomePrecheckState(payload = load()) {
-    const entryGroup = readHomeEntryGroup();
-    const completed = hasQuickCheckRecommendation(payload);
-    const unlocked = isQuickCheckRequiredForGroup(entryGroup)
-      ? completed
-      : (completed || readNonStudentUnlock());
-    document.body.classList.toggle('home-precheck', !unlocked);
-    document.body.classList.toggle('home-quickcheck-complete', unlocked);
-    if (unlocked && readWizardStep() < 4) {
-      localStorage.setItem(HOME_WIZARD_STEP_KEY, '4');
+    const state = readHomeState();
+    const summaryPayload = payload && typeof payload === 'object'
+      ? payload
+      : (state.quickCheckSummary && typeof state.quickCheckSummary === 'object' ? state.quickCheckSummary : null);
+    const completed = !!state.quickCheckComplete;
+    document.body.classList.toggle('home-precheck', !completed);
+    document.body.classList.toggle('home-quickcheck-complete', completed);
+    if (homeWizard) {
+      homeWizard.classList.toggle('hidden', completed);
     }
-    document.querySelectorAll('[data-precheck-hidden], [data-home-detail]').forEach((node) => {
+    if (completed && readWizardStep() < 4) {
+      writeHomeState({ wizardStep: 4 });
+    }
+    document.querySelectorAll('[data-precheck-hidden]').forEach((node) => {
       if (!(node instanceof HTMLElement)) return;
-      node.classList.toggle('hidden', !unlocked);
+      node.classList.toggle('hidden', !completed);
     });
-    if (homeRolePreviewEl) {
-      homeRolePreviewEl.classList.toggle('hidden', unlocked);
-    }
-    if (homeWhyStripEl) {
-      homeWhyStripEl.classList.toggle('hidden', unlocked);
-    }
-    if (homeHeroStepsEl) {
-      homeHeroStepsEl.classList.toggle('hidden', unlocked);
-    }
-    if (!unlocked) {
+    document.querySelectorAll('[data-home-detail]').forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      node.classList.toggle('hidden', !completed);
+    });
+    if (!completed) {
       applyHomeDetailsMode('collapsed', { persist: false });
     }
-    renderHomePostCheckCard(payload);
-    renderHomeNextBestActions(payload, { unlocked: false });
-    renderHomeToolkitPanel(payload, { unlocked: false });
-    refreshQuickCheckStepUi(payload);
-    persistOnboardingProfileState({
-      quickCheckPayload: payload,
-      quickCheckCompleted: completed,
-      nonStudentUnlock: readNonStudentUnlock()
-    });
+    renderHomePostCheckCard(completed ? summaryPayload : null, completed);
   }
 
   function showResult(payload) {
@@ -3068,34 +2569,14 @@
     }
     const literacySummary = payload?.domains?.literacy;
     const numeracySummary = payload?.domains?.numeracy;
-    const planner = payload?.pathwayPlanner;
-    const fluencyStudio = payload?.fluencyStudio;
     const studentName = String(payload?.studentName || '').trim();
     const kidLead = studentName
       ? `Nice work, ${escapeHtml(studentName)}. You are ready to start here.`
       : 'Nice work. You are ready to start here.';
     const teacherRows = [literacySummary, numeracySummary]
       .filter(Boolean)
-      .map((domainSummary) => `<li>${escapeHtml(domainSummary.roundTitle || domainSummary.levelLabel)} · ${domainSummary.correct}/${domainSummary.total} correct</li>`)
+      .map((domainSummary) => `<li>${escapeHtml(domainSummary.levelLabel)} · ${domainSummary.correct}/${domainSummary.total} correct</li>`)
       .join('');
-    const todayRows = Array.isArray(planner?.today)
-      ? planner.today.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
-      : '';
-    const groupRows = Array.isArray(planner?.groups)
-      ? planner.groups.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
-      : '';
-    const badgeRows = Array.isArray(fluencyStudio?.badges)
-      ? fluencyStudio.badges.map((badge) => `<li><strong>${escapeHtml(badge.label)}</strong>: ${badge.score}% (${escapeHtml(badge.band)})</li>`).join('')
-      : '';
-    const growthBars = Array.isArray(fluencyStudio?.growth)
-      ? fluencyStudio.growth.slice(-4).map((row) => `
-        <div class="home-growth-row">
-          <span>${escapeHtml(row.date)}</span>
-          <div class="home-growth-bar"><i style="width:${Math.max(8, Math.min(100, Number(row.accuracy || 0)))}%"></i></div>
-          <span>${escapeHtml(String(row.accuracy || 0))}%</span>
-        </div>
-      `).join('')
-      : '';
 
     result.classList.remove('hidden');
     result.innerHTML = `
@@ -3103,35 +2584,10 @@
       <div class="placement-result-main">${kidLead}</div>
       <div class="muted" style="margin-top:6px;"><strong>${escapeHtml(rec.activityLabel || 'Recommended activity')}</strong>: ${escapeHtml(rec.headline || '')}</div>
       ${rec.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(rec.notes)}</div>` : ''}
-      ${rec.teacherLead ? `<div class="muted" style="margin-top:6px;"><strong>Teacher cue:</strong> ${escapeHtml(rec.teacherLead)}</div>` : ''}
       <div class="placement-teacher-block" style="margin-top:10px;">
         <div class="home-mini-title">Teacher view</div>
         <ul class="home-progress-list" style="margin-top:4px;">${teacherRows || '<li>No domain summary available.</li>'}</ul>
       </div>
-      ${todayRows ? `
-        <div class="placement-teacher-block" style="margin-top:10px;">
-          <div class="home-mini-title">Pathway Planner · Today</div>
-          <ul class="home-progress-list" style="margin-top:4px;">${todayRows}</ul>
-        </div>
-      ` : ''}
-      ${groupRows ? `
-        <div class="placement-teacher-block" style="margin-top:10px;">
-          <div class="home-mini-title">Auto groups</div>
-          <ul class="home-progress-list" style="margin-top:4px;">${groupRows}</ul>
-        </div>
-      ` : ''}
-      ${badgeRows ? `
-        <div class="placement-teacher-block" style="margin-top:10px;">
-          <div class="home-mini-title">Fluency Studio badges</div>
-          <ul class="home-progress-list" style="margin-top:4px;">${badgeRows}</ul>
-        </div>
-      ` : ''}
-      ${growthBars ? `
-        <div class="placement-teacher-block" style="margin-top:10px;">
-          <div class="home-mini-title">Weekly fluency growth</div>
-          <div class="home-growth-grid">${growthBars}</div>
-        </div>
-      ` : ''}
     `;
     const href = String(rec.activityHref || wordQuestHref(rec.focus, rec.length));
     goWordQuest.href = href;
@@ -3148,8 +2604,8 @@
         <div class="home-mini-title">Current recommendation</div>
         <div class="muted">Not set yet. Run Quick Check to get a starting path.</div>
       `;
-      if (openWordQuest) openWordQuest.href = 'word-quest.html';
-      renderHomePostCheckCard(null);
+      if (openWordQuest) openWordQuest.href = '#activities-grid';
+      renderHomePostCheckCard(null, false);
       return;
     }
 
@@ -3161,24 +2617,22 @@
 
     const literacySummary = data?.domains?.literacy;
     const numeracySummary = data?.domains?.numeracy;
-    const planner = data?.pathwayPlanner;
     const summaryParts = [];
     if (literacySummary) summaryParts.push(`Literacy: ${literacySummary.levelLabel}`);
     if (numeracySummary) summaryParts.push(`Numeracy: ${numeracySummary.levelLabel}`);
-    if (planner?.today?.[0]) summaryParts.push(`Today: ${planner.today[0]}`);
 
     summary.innerHTML = `
       <div class="home-mini-title">Current recommendation</div>
       <div class="home-placement-line"><strong>${escapeHtml(rec.activityLabel || 'Next path')}</strong> · updated <strong>${updatedText}</strong></div>
       <div class="muted">${escapeHtml(rec.headline || '')}</div>
-      ${rec.teacherLead ? `<div class="muted">${escapeHtml(rec.teacherLead)}</div>` : ''}
       ${summaryParts.length ? `<div class="muted">${summaryParts.map((part) => escapeHtml(part)).join(' · ')}</div>` : ''}
     `;
 
     const href = String(rec.activityHref || wordQuestHref(rec.focus, rec.length));
     goWordQuest.href = href;
     if (openWordQuest) openWordQuest.href = href;
-    renderHomePostCheckCard(data);
+    const completed = !!readHomeState().quickCheckComplete;
+    renderHomePostCheckCard(completed ? data : null, completed);
   }
 
   function renderQuickCheckIntro() {
@@ -3193,28 +2647,20 @@
       : focusToday === 'both'
         ? 'Reading & Words + Math & Numbers'
         : 'Reading & Words';
-    const roundsCopy = focusToday === 'numeracy'
-      ? 'Rounds: Number Sense → Strategy Check → Flexible Thinking.'
-      : focusToday === 'both'
-        ? 'Rounds: Literacy Sound Sense + Word Building + 30-second Read, then Numeracy Number Sense + Strategy + Flexible Thinking.'
-        : 'Rounds: Sound Sense → Word Building → 30-second Read.';
     const nameLine = group === 'student' && studentName
       ? `<div class="quickcheck-inline-note">Learner: <strong>${escapeHtml(studentName)}</strong>${gradeBand ? ` (${escapeHtml(gradeBand)})` : ''}</div>`
       : '';
     if (placementSubtitle) {
       placementSubtitle.textContent = group === 'student'
-        ? 'An adaptive check (about 5–8 minutes) to find the best starting point.'
-        : 'A short adaptive check to set a clear first step for this pathway.';
+        ? 'A short adaptive check to find the best starting point.'
+        : 'A quick check to set a clear first step for this pathway.';
     }
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
         <div class="quickcheck-title">Ready to run Quick Check?</div>
         <p class="quickcheck-copy">Role: <strong>${escapeHtml(roleLabel)}</strong> · Focus: <strong>${escapeHtml(focusLabel)}</strong>.</p>
         ${nameLine}
-        <p class="quickcheck-copy">${escapeHtml(roundsCopy)}</p>
-        <p class="quickcheck-copy">${group === 'student'
-    ? 'You will answer short adaptive items, then get a pathway plan with one clear next step.'
-    : 'You can run this now for data-rich placement, or skip from Home and return later.'}</p>
+        <p class="quickcheck-copy">You will answer short items with strategy choices, then get a recommended next step.</p>
       </div>
     `;
     result.classList.add('hidden');
@@ -3248,15 +2694,13 @@
     const index = Number(session.counts[domain] || 0) + 1;
     const total = session.maxQuestionsPerDomain;
     const progressLabel = domain === 'literacy' ? 'Literacy Quick Check' : 'Numeracy Quick Check';
-    const roundMeta = quickCheckRoundMeta(domain, Number(question.level || 0));
     const selectedIndex = reviewPending ? Number(session.pendingAnswer?.selectedIndex) : Number.NaN;
     const hasAudioPrompt = !!String(question.audioPrompt || '').trim();
     const promptHint = hasAudioPrompt ? 'Listen first, then pick one answer.' : 'Pick one answer.';
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-progress">${escapeHtml(progressLabel)} · ${escapeHtml(roundMeta.title || 'Round')} · Item ${index} of ${total}</div>
+        <div class="quickcheck-progress">${escapeHtml(progressLabel)} · Item ${index} of ${total}</div>
         <div class="quickcheck-title">${escapeHtml(question.prompt)}</div>
-        <div class="quickcheck-inline-note">${escapeHtml(roundMeta.hint || '')}</div>
         ${hasAudioPrompt ? `
           <div class="quickcheck-listen-row">
             <button type="button" class="secondary-btn quickcheck-listen-btn" data-action="play-prompt-audio">Hear sound</button>
@@ -3283,7 +2727,6 @@
     const question = pending.question;
     const domain = pending.domain;
     const isCorrect = !!pending.correct;
-    const roundMeta = quickCheckRoundMeta(domain, Number(question?.level || 0));
     const strategies = getQuickCheckStrategies(domain, {
       gradeBand: session.gradeBand,
       isCorrect
@@ -3296,7 +2739,6 @@
       : `Answer selected: <strong>${escapeHtml(question.choices[pending.selectedIndex] || '')}</strong> · Best answer: <strong>${escapeHtml(question.choices[question.answer] || '')}</strong>`;
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-progress">${escapeHtml(roundMeta.title || 'Quick Check')}</div>
         <div class="quickcheck-feedback ${isCorrect ? 'success' : 'needs-support'}">${isCorrect ? 'Nice work.' : 'Good effort. Let’s keep going.'}</div>
         <div class="quickcheck-copy">${escapeHtml(strategyPrompt)}</div>
         <div class="quickcheck-strategy-grid">
@@ -3322,53 +2764,35 @@
   }
 
   function syncWizardFromStorage() {
-    hydrateOnboardingFromProfileState();
-    const group = readHomeEntryGroup();
-    const storedRole = normalizeRoleId(localStorage.getItem(HOME_ROLE_WIZARD_KEY) || '');
-    const role = group === 'school'
-      ? (storedRole || normalizeRoleId(homeTeamRoleSelect?.value || '') || 'teacher')
-      : group === 'parent'
-        ? 'parent'
-        : 'student';
-    if (homeRoleSelect) {
-      homeRoleSelect.value = role;
+    const state = readHomeState();
+    const group = normalizeHomeEntryGroup(state.role || '');
+    if (homeTeamRoleSelect) {
+      homeTeamRoleSelect.value = group === 'school' ? normalizeRoleId(state.subrole || '') : '';
     }
-    if (homeTeamRoleSelect && group === 'school') {
-      homeTeamRoleSelect.value = role;
-    }
-    const resolvedGroup = getEntryGroupForRole(role);
-    applyHomeEntryGroup(resolvedGroup, { persist: false, preserveCurrentRole: true });
     if (homeStudentNameInput) {
-      homeStudentNameInput.value = readStudentName();
-    }
-    if (homeStudentEalToggle) {
-      homeStudentEalToggle.checked = readStudentIsEnglishLearner();
-    }
-    if (homeStudentVibeSelect) {
-      homeStudentVibeSelect.value = readStudentVibe();
+      homeStudentNameInput.value = group === 'student' ? String(state.learnerName || '') : '';
     }
     if (homeParentNameInput) {
-      homeParentNameInput.value = readParentName();
+      homeParentNameInput.value = group === 'parent' ? String(state.learnerName || '') : '';
     }
-    if (homeParentGradeSelect) {
-      homeParentGradeSelect.value = readParentGradeBand();
+    if (homeParentGradeBandSelect) {
+      homeParentGradeBandSelect.value = group === 'parent' ? normalizeGradeBand(state.gradeBand || '') : '';
     }
-    if (homeParentFocusSelect) {
-      homeParentFocusSelect.value = readParentGoals()[0] || '';
+    if (homeParentGoalSelect) {
+      homeParentGoalSelect.value = group === 'parent' ? String(state.parentGoal || '') : '';
     }
     if (homeSchoolNameInput) {
-      homeSchoolNameInput.value = readSchoolName();
+      homeSchoolNameInput.value = group === 'school' ? String(state.learnerName || '') : '';
     }
-    if (homeSchoolGradeSelect) {
-      homeSchoolGradeSelect.value = readSchoolGradeBand();
+    if (homeSchoolDivisionSelect) {
+      homeSchoolDivisionSelect.value = group === 'school' ? normalizeSchoolDivision(state.gradeBand || '') : '';
     }
-    if (homeSchoolConcernSelect) {
-      homeSchoolConcernSelect.value = readSchoolConcern();
+    if (homeSchoolAreaSelect) {
+      homeSchoolAreaSelect.value = group === 'school' ? String(state.schoolPrimaryArea || '') : '';
     }
-    setParentGoalButtons(readParentGoals(), { persist: false });
-    setGradeBandButtons(readStudentGradeBand(), { persist: false });
-    setFocusButtons(readFocusToday(), { persist: false });
-    refreshQuickCheckStepUi();
+    applyHomeEntryGroup(group, { persist: false, step: normalizeWizardStep(state.wizardStep || 1) });
+    setGradeBandButtons(group === 'student' ? normalizeGradeBand(state.gradeBand || '') : '', { persist: false });
+    setFocusButtons(normalizeFocusToday(state.focus || ''), { persist: false });
   }
 
   function handleQuickCheckStageClick(event) {
@@ -3428,8 +2852,6 @@
       const question = pending.question;
       const domain = pending.domain;
       const isCorrect = Number(pending.selectedIndex) === Number(question.answer);
-      updateMetricBuckets(quickCheckSession, domain, question, isCorrect);
-      const roundMeta = quickCheckRoundMeta(domain, Number(question.level || 0));
       quickCheckSession.counts[domain] = Number(quickCheckSession.counts[domain] || 0) + 1;
       if (isCorrect) {
         quickCheckSession.correct[domain] = Number(quickCheckSession.correct[domain] || 0) + 1;
@@ -3440,7 +2862,6 @@
       }
       quickCheckSession.strategyLog.push({
         domain,
-        round: roundMeta?.title || '',
         questionId: question.id,
         strategy: pending.strategy || 'Not selected',
         correct: !!isCorrect
@@ -3457,84 +2878,91 @@
     }
   }
 
+  function canAdvanceRoleStep() {
+    const group = readHomeEntryGroup();
+    if (!group) {
+      if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a role to continue.';
+      return false;
+    }
+    if (group === 'school') {
+      const subrole = normalizeRoleId(homeTeamRoleSelect?.value || '');
+      if (!subrole) {
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a School Team role to continue.';
+        homeTeamRoleSelect?.focus();
+        return false;
+      }
+      writeHomeState({ role: 'school', subrole });
+      return true;
+    }
+    writeHomeState({ role: group, subrole: '' });
+    return true;
+  }
+
+  function canAdvanceFocusStep() {
+    const focus = readFocusToday();
+    if (!focus) {
+      if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 3 of 4: choose a focus before continuing.';
+      return false;
+    }
+    return true;
+  }
+
   function goWizardStep(step) {
-    applyWizardStepState(step, { persist: true });
+    const targetStep = normalizeWizardStep(step);
+    const maxStep = maxUnlockedWizardStep(readHomeState());
+    if (targetStep > maxStep) {
+      if (homeRolePreviewEl) {
+        homeRolePreviewEl.textContent = targetStep === 4
+          ? 'Finish Steps 1-3 before starting Quick Check.'
+          : `Complete Step ${targetStep - 1} first.`;
+      }
+      return;
+    }
+    applyWizardStepState(targetStep, { persist: true });
   }
 
   function canAdvanceDetailsStep() {
     const group = readHomeEntryGroup();
     if (group === 'student') {
       const studentName = String(homeStudentNameInput?.value || '').trim();
-      const gradeBand = normalizeGradeBand(localStorage.getItem(HOME_GRADE_BAND_KEY) || '');
-      const vibe = normalizeStudentVibe(homeStudentVibeSelect?.value || '');
       if (!studentName) {
-        if (homeRolePreviewEl) {
-          homeRolePreviewEl.textContent = 'Enter student name to continue.';
-        }
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: add a student name before continuing.';
         homeStudentNameInput?.focus();
         return false;
       }
-      if (!gradeBand) {
-        if (homeRolePreviewEl) {
-          homeRolePreviewEl.textContent = 'Choose a grade band to continue.';
-        }
-        homeGradeBandButtons[0]?.focus();
-        return false;
-      }
-      localStorage.setItem(HOME_STUDENT_NAME_KEY, studentName);
-      if (vibe) {
-        localStorage.setItem(HOME_STUDENT_VIBE_KEY, vibe);
-      } else {
-        localStorage.removeItem(HOME_STUDENT_VIBE_KEY);
-      }
+      writeHomeState({ learnerName: studentName });
       return true;
     }
     if (group === 'parent') {
       const parentName = String(homeParentNameInput?.value || '').trim();
-      const parentBand = normalizeGradeBand(homeParentGradeSelect?.value || '');
-      const parentFocus = String(homeParentFocusSelect?.value || '').trim().toLowerCase();
       if (!parentName) {
-        if (homeRolePreviewEl) {
-          homeRolePreviewEl.textContent = 'Enter your name to continue.';
-        }
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: add your first name before continuing.';
         homeParentNameInput?.focus();
         return false;
       }
-      if (!parentBand) {
-        if (homeRolePreviewEl) {
-          homeRolePreviewEl.textContent = 'Choose student grade band to continue.';
-        }
-        homeParentGradeSelect?.focus();
-        return false;
-      }
-      localStorage.setItem(HOME_PARENT_NAME_KEY, parentName);
-      localStorage.setItem(HOME_PARENT_GRADE_KEY, parentBand);
-      if (parentFocus) {
-        writeParentGoals([parentFocus]);
-      } else {
-        writeParentGoals([]);
-      }
+      writeHomeState({
+        learnerName: parentName,
+        gradeBand: normalizeGradeBand(homeParentGradeBandSelect?.value || ''),
+        parentGoal: String(homeParentGoalSelect?.value || '').trim().toLowerCase()
+      });
       return true;
     }
-    const schoolRole = normalizeRoleId(homeTeamRoleSelect?.value || '');
-    if (!schoolRole) {
-      if (homeRolePreviewEl) {
-        homeRolePreviewEl.textContent = 'Choose a School Team role to continue.';
+    if (group === 'school') {
+      const division = normalizeSchoolDivision(homeSchoolDivisionSelect?.value || '');
+      if (!division) {
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: choose division focus (ES, MS, or HS).';
+        homeSchoolDivisionSelect?.focus();
+        return false;
       }
-      homeTeamRoleSelect?.focus();
-      return false;
+      writeHomeState({
+        learnerName: String(homeSchoolNameInput?.value || '').trim(),
+        gradeBand: division,
+        schoolPrimaryArea: String(homeSchoolAreaSelect?.value || '').trim().toLowerCase()
+      });
+      return true;
     }
-    localStorage.setItem(HOME_ROLE_WIZARD_KEY, schoolRole);
-    const schoolName = String(homeSchoolNameInput?.value || '').trim();
-    const schoolBand = normalizeGradeBand(homeSchoolGradeSelect?.value || '');
-    const schoolConcern = String(homeSchoolConcernSelect?.value || '').trim();
-    if (schoolName) localStorage.setItem(HOME_SCHOOL_NAME_KEY, schoolName);
-    else localStorage.removeItem(HOME_SCHOOL_NAME_KEY);
-    if (schoolBand) localStorage.setItem(HOME_SCHOOL_GRADE_KEY, schoolBand);
-    else localStorage.removeItem(HOME_SCHOOL_GRADE_KEY);
-    if (schoolConcern) localStorage.setItem(HOME_SCHOOL_CONCERN_KEY, schoolConcern);
-    else localStorage.removeItem(HOME_SCHOOL_CONCERN_KEY);
-    return true;
+    if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a role before continuing.';
+    return false;
   }
 
   function bindWizardSummaryEdits() {
@@ -3551,30 +2979,20 @@
   }
 
   function openQuickCheckFromWizard() {
-    const roleId = activeWizardRole();
-    const group = getEntryGroupForRole(roleId);
-    const studentName = String(homeStudentNameInput?.value || '').trim();
-    if (group === 'student') {
-      if (!studentName) {
-        if (homeRolePreviewEl) {
-          homeRolePreviewEl.textContent = 'Step 2: enter a student name before running Quick Check.';
-        }
-        homeStudentNameInput?.focus();
-        applyWizardStepState(2, { persist: true });
-        return;
-      }
-      if (studentName) {
-        localStorage.setItem(HOME_STUDENT_NAME_KEY, studentName);
-      }
-      localStorage.setItem(HOME_ROLE_WIZARD_KEY, 'student');
-    } else {
-      localStorage.setItem(HOME_ROLE_WIZARD_KEY, roleId);
-      writeNonStudentUnlock(false);
+    if (!canAdvanceRoleStep()) return;
+    if (!canAdvanceDetailsStep()) {
+      applyWizardStepState(2, { persist: true });
+      return;
     }
+    if (!canAdvanceFocusStep()) {
+      applyWizardStepState(3, { persist: true });
+      return;
+    }
+    const roleId = activeWizardRole();
+    if (!roleId) return;
     const gradeBand = readStudentGradeBand();
     if (gradeBand) syncProfileAndLook(gradeBand);
     applyWizardStepState(4, { persist: true });
-    persistOnboardingProfileState({ roleId, nonStudentUnlock: readNonStudentUnlock() });
     openModal();
     renderQuickCheckIntro();
   }
@@ -3588,6 +3006,7 @@
   });
 
   homeRoleStepNextBtn?.addEventListener('click', () => {
+    if (!canAdvanceRoleStep()) return;
     goWizardStep(2);
   });
 
@@ -3605,6 +3024,7 @@
   });
 
   homeFocusStepNextBtn?.addEventListener('click', () => {
+    if (!canAdvanceFocusStep()) return;
     goWizardStep(4);
   });
 
@@ -3612,21 +3032,38 @@
     goWizardStep(3);
   });
 
-  homeSkipQuickCheckBtn?.addEventListener('click', () => {
-    if (isQuickCheckRequiredForGroup()) return;
-    writeNonStudentUnlock(true);
-    persistOnboardingProfileState({
-      nonStudentUnlock: true,
-      quickCheckPayload: load(),
-      quickCheckCompleted: hasQuickCheckRecommendation(load())
-    });
-    syncHomePrecheckState(load());
-    goWizardStep(4);
-  });
-
   homePostCheckRerun?.addEventListener('click', () => {
     openModal();
     renderQuickCheckIntro();
+  });
+
+  homeWizardSteps.forEach((stepEl) => {
+    const jumpToStep = () => {
+      if (!(stepEl instanceof HTMLButtonElement)) return;
+      if (stepEl.classList.contains('locked')) return;
+      const step = normalizeWizardStep(stepEl.dataset.stepIndex || 1);
+      goWizardStep(step);
+    };
+    stepEl.addEventListener('click', jumpToStep);
+    stepEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      jumpToStep();
+    });
+  });
+
+  homeWizardResetBtn?.addEventListener('click', () => {
+    localStorage.removeItem(PLACEMENT_KEY);
+    localStorage.removeItem(QUICKCHECK_SUMMARY_KEY);
+    writeHomeState({}, { reset: true });
+    result.classList.add('hidden');
+    goWordQuest.classList.add('hidden');
+    quickCheckSession = null;
+    syncWizardFromStorage();
+    applyWizardStepState(1, { persist: true });
+    renderQuickCheckIntro();
+    renderSummary(null);
+    syncHomePrecheckState(null);
   });
 
   closeBtn?.addEventListener('click', closeModal);
@@ -3642,16 +3079,6 @@
   });
 
   quickCheckStage.addEventListener('click', handleQuickCheckStageClick);
-
-  homeWizardSteps.forEach((stepButton) => {
-    stepButton.addEventListener('click', () => {
-      const requested = normalizeWizardStep(stepButton.dataset.stepIndex || 1);
-      const currentStep = readWizardStep();
-      if (requested < currentStep) {
-        goWizardStep(requested);
-      }
-    });
-  });
 
   calcBtn.addEventListener('click', () => {
     if (!quickCheckSession) {
@@ -3675,21 +3102,18 @@
   clearBtn.addEventListener('click', () => {
     localStorage.removeItem(PLACEMENT_KEY);
     localStorage.removeItem(QUICKCHECK_SUMMARY_KEY);
-    writeNonStudentUnlock(false);
     result.classList.add('hidden');
     goWordQuest.classList.add('hidden');
     quickCheckSession = null;
-    localStorage.setItem(HOME_WIZARD_STEP_KEY, '1');
+    writeHomeState({
+      quickCheckComplete: false,
+      quickCheckSummary: null,
+      wizardStep: 1
+    });
     goWizardStep(1);
     renderQuickCheckIntro();
     renderSummary(null);
     syncHomePrecheckState(null);
-    persistOnboardingProfileState({
-      wizardStep: 1,
-      nonStudentUnlock: false,
-      quickCheckCompleted: false,
-      quickCheckPayload: null
-    });
   });
 
   // Initial render
@@ -3807,7 +3231,7 @@
       homeRoleSelect.value = roleId;
     }
     localStorage.setItem(HOME_ROLE_WIZARD_KEY, roleId);
-    applyHomeEntryGroup('school', { persist: true, preserveCurrentRole: true, step: 1 });
+    applyHomeEntryGroup('school', { persist: true, preserveCurrentRole: true, step: 2 });
     renderRoleDashboard();
     renderQuickCheckIntro();
   });
@@ -3830,100 +3254,8 @@
     } else {
       localStorage.removeItem(HOME_STUDENT_NAME_KEY);
     }
-    persistOnboardingProfileState({ studentName: value });
-    applyWizardStepState(activeWizardStepForGroup('student', load()));
+    applyWizardStepState(activeWizardStepForGroup('student'));
     renderQuickCheckIntro();
-  });
-  homeStudentEalToggle?.addEventListener('change', () => {
-    const enabled = !!homeStudentEalToggle.checked;
-    localStorage.setItem(HOME_STUDENT_EAL_KEY, enabled ? '1' : '0');
-    persistOnboardingProfileState({ studentEal: enabled });
-    applyWizardStepState(activeWizardStepForGroup('student', load()));
-    renderQuickCheckIntro();
-  });
-  homeStudentVibeSelect?.addEventListener('change', () => {
-    const vibe = normalizeStudentVibe(homeStudentVibeSelect.value || '');
-    if (vibe) {
-      localStorage.setItem(HOME_STUDENT_VIBE_KEY, vibe);
-    } else {
-      localStorage.removeItem(HOME_STUDENT_VIBE_KEY);
-    }
-    persistOnboardingProfileState({ studentVibe: vibe });
-    applyWizardStepState(activeWizardStepForGroup('student', load()));
-  });
-  homeParentNameInput?.addEventListener('input', () => {
-    const value = String(homeParentNameInput.value || '').trim();
-    if (value) {
-      localStorage.setItem(HOME_PARENT_NAME_KEY, value);
-    } else {
-      localStorage.removeItem(HOME_PARENT_NAME_KEY);
-    }
-    persistOnboardingProfileState({ parentName: value });
-    applyWizardStepState(activeWizardStepForGroup('parent', load()));
-    renderQuickCheckIntro();
-  });
-  homeParentGradeSelect?.addEventListener('change', () => {
-    const gradeBand = normalizeGradeBand(homeParentGradeSelect.value || '');
-    if (gradeBand) {
-      localStorage.setItem(HOME_PARENT_GRADE_KEY, gradeBand);
-    } else {
-      localStorage.removeItem(HOME_PARENT_GRADE_KEY);
-    }
-    persistOnboardingProfileState({ parentGradeBand: gradeBand });
-    applyWizardStepState(activeWizardStepForGroup('parent', load()));
-    renderQuickCheckIntro();
-  });
-  homeParentFocusSelect?.addEventListener('change', () => {
-    const focus = String(homeParentFocusSelect.value || '').trim().toLowerCase();
-    if (focus) {
-      writeParentGoals([focus]);
-    } else {
-      writeParentGoals([]);
-    }
-    persistOnboardingProfileState({ parentGoals: readParentGoals() });
-    applyWizardStepState(activeWizardStepForGroup('parent', load()));
-  });
-  homeSchoolNameInput?.addEventListener('input', () => {
-    const value = String(homeSchoolNameInput.value || '').trim();
-    if (value) {
-      localStorage.setItem(HOME_SCHOOL_NAME_KEY, value);
-    } else {
-      localStorage.removeItem(HOME_SCHOOL_NAME_KEY);
-    }
-    persistOnboardingProfileState({ schoolName: value });
-  });
-  homeSchoolGradeSelect?.addEventListener('change', () => {
-    const gradeBand = normalizeGradeBand(homeSchoolGradeSelect.value || '');
-    if (gradeBand) {
-      localStorage.setItem(HOME_SCHOOL_GRADE_KEY, gradeBand);
-    } else {
-      localStorage.removeItem(HOME_SCHOOL_GRADE_KEY);
-    }
-    persistOnboardingProfileState({ schoolGradeBand: gradeBand });
-  });
-  homeSchoolConcernSelect?.addEventListener('change', () => {
-    const concern = String(homeSchoolConcernSelect.value || '').trim();
-    if (concern) {
-      localStorage.setItem(HOME_SCHOOL_CONCERN_KEY, concern);
-    } else {
-      localStorage.removeItem(HOME_SCHOOL_CONCERN_KEY);
-    }
-    persistOnboardingProfileState({ schoolConcern: concern });
-  });
-  homeParentGoalButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const goal = String(button.dataset.parentGoal || '').trim().toLowerCase();
-      if (!goal) return;
-      const next = new Set(readParentGoals());
-      if (next.has(goal)) {
-        next.delete(goal);
-      } else {
-        next.add(goal);
-      }
-      setParentGoalButtons(Array.from(next), { persist: true });
-      applyWizardStepState(activeWizardStepForGroup('parent', load()));
-      renderQuickCheckIntro();
-    });
   });
   homeGradeBandButtons.forEach((button) => {
     button.addEventListener('click', () => {
@@ -3931,7 +3263,7 @@
       if (!band) return;
       setGradeBandButtons(band, { persist: true });
       syncProfileAndLook(band);
-      applyWizardStepState(activeWizardStepForGroup(readHomeEntryGroup(), load()));
+      applyWizardStepState(activeWizardStepForGroup(readHomeEntryGroup()));
       renderQuickCheckIntro();
     });
   });
@@ -3939,7 +3271,7 @@
     button.addEventListener('click', () => {
       const focusValue = normalizeFocusToday(button.dataset.focusValue || '');
       setFocusButtons(focusValue, { persist: true });
-      applyWizardStepState(activeWizardStepForGroup(readHomeEntryGroup(), load()));
+      applyWizardStepState(activeWizardStepForGroup(readHomeEntryGroup()));
       renderQuickCheckIntro();
     });
   });

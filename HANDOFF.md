@@ -48,6 +48,35 @@ Last updated: 2026-02-09
 - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
   - Confirms no overflow, no scroll fallback, and `vowelDotContent: "none"`.
 
+## 2026-02-09 parity sync slice (root <-> literacy-platform)
+- Goal:
+  - Remove path-dependent behavior so opening app from repo root or `/literacy-platform` shows the same Home/Voice/Word Quest behavior.
+- Synced files from root into `/literacy-platform`:
+  - `literacy-platform/home.js`
+  - `literacy-platform/index.html`
+  - `literacy-platform/platform.js`
+  - `literacy-platform/app.js`
+  - `literacy-platform/style.css`
+- Cache-bust update:
+  - `index.html` and `literacy-platform/index.html` now reference `platform.js?v=20260209e`.
+
+### Validation commands run for parity
+- Root path:
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_flow_check.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_detail_visible.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/voice_quick_check.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
+- `/literacy-platform` path:
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_flow_check.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_detail_visible.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/voice_quick_check.js`
+  - `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
+
+### Notes
+- Home pre-check now starts with no role selected and only Step 1 visible in both paths.
+- Voice modal now lists available system English voices (not just American/British presets) in both paths.
+- Word Quest keyboard remains no-scroll fit with vowel indicator dots removed in both paths.
+
 ## 2026-02-08 latest shipped pass
 - Nav dropdown clipping fix:
   - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).

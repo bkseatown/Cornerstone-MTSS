@@ -52,7 +52,6 @@ let wordQuestScrollFallback = false;
 let teacherToolsInitialized = false;
 let isCustomWordRound = false;
 let customWordInLibrary = true;
-let translationCoverageCache = null;
 let activeRoundPattern = 'all';
 let activeRoundFallbackNote = '';
 let voiceHealthCheckInProgress = false;
@@ -130,8 +129,6 @@ function resolvePackedTtsBasePath() {
 const PACKED_TTS_BASE_PATH = resolvePackedTtsBasePath();
 const PACKED_TTS_DEFAULT_MANIFEST_PATH = `${PACKED_TTS_BASE_PATH}/tts-manifest.json`;
 const PACKED_TTS_PACK_REGISTRY_PATH = `${PACKED_TTS_BASE_PATH}/packs/pack-registry.json`;
-const ENFORCE_NATURAL_ONLY_VOICE = true;
-const ENFORCE_PACKED_TTS_ONLY = true;
 const packedTtsManifestCacheByPath = new Map();
 const packedTtsManifestPromiseByPath = new Map();
 let packedTtsPackRegistryCache = null;
@@ -166,12 +163,12 @@ const DEFAULT_SETTINGS = {
     speechRate: 0.85,
     decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
-    voiceUri: '',
     narrationStyle: 'expressive', // expressive | neutral
-    speechQualityMode: 'natural-only', // natural-preferred | natural-only | fallback-any
+    speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'default',
+    voiceUri: '',
     audienceMode: 'auto', // auto | general | young-eal
-    autoHear: false,
+    autoHear: true,
     showRevealRecordingTools: false,
     funHud: {
         enabled: true,
@@ -280,7 +277,6 @@ function normalizeNarrationStyle(value) {
 }
 
 function normalizeSpeechQualityMode(value) {
-    if (ENFORCE_NATURAL_ONLY_VOICE) return 'natural-only';
     const raw = String(value || '').toLowerCase().trim();
     if (raw === 'natural-only' || raw === 'strict' || raw === 'high-only') return 'natural-only';
     if (raw === 'fallback-any' || raw === 'allow-basic' || raw === 'compatibility') return 'fallback-any';
@@ -313,11 +309,6 @@ function normalizeGuessCount(value) {
 
 function normalizeCustomWordInput(value) {
     return String(value || '').trim().toLowerCase();
-}
-
-function isSystemSpeechFallbackAllowed(options = {}) {
-    if (ENFORCE_PACKED_TTS_ONLY) return false;
-    return options?.allowSystemFallback !== false;
 }
 
 function isBlockedCustomWord(value) {
@@ -1239,35 +1230,6 @@ function stopAllActiveAudioPlayers() {
     activeAudioPlayers.clear();
 }
 
-async function playAudioBlob(blob, options = {}) {
-    if (!blob) return false;
-    const revokeObjectUrl = options.revokeObjectUrl !== false;
-    const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
-    const onPlay = typeof options.onPlay === 'function' ? options.onPlay : null;
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.playbackRate = playbackRate;
-    activeAudioPlayers.add(audio);
-    const cleanup = () => {
-        activeAudioPlayers.delete(audio);
-        if (revokeObjectUrl) {
-            try { URL.revokeObjectURL(url); } catch (e) {}
-        }
-    };
-    audio.onended = cleanup;
-    audio.onerror = cleanup;
-    try {
-        await audio.play();
-        if (onPlay) {
-            try { onPlay(audio); } catch (e) {}
-        }
-        return true;
-    } catch {
-        cleanup();
-        return false;
-    }
-}
-
 async function playAudioClipUrl(url, options = {}) {
     if (!url) return false;
     const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
@@ -1438,20 +1400,6 @@ async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
         }
     }
 
-    const registry = await loadPackedTtsPackRegistry();
-    const packs = Array.isArray(registry?.packs) && registry.packs.length
-        ? registry.packs
-        : [getDefaultTtsPackOption()];
-    const orderedPacks = orderPacksForLanguage(packs, 'en');
-    const encodedSound = encodeURIComponent(normalizedSound);
-    for (const pack of orderedPacks) {
-        const packId = String(pack?.id || '').trim();
-        if (!packId) continue;
-        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/phoneme/${encodedSound}.mp3`;
-        const played = await playPackedClipWithFallbackPaths(candidate);
-        if (played) return true;
-    }
-
     return false;
 }
 
@@ -1479,24 +1427,6 @@ async function tryPlayPackedPassageClip({
         if (fallbackClip) {
             return playPackedClipWithFallbackPaths(fallbackClip, { playbackRate, onPlay });
         }
-    }
-
-    const slug = normalizePassageSlug(title);
-    if (!slug) return false;
-    const normalizedLang = normalizePackedTtsLanguage(languageCode);
-    const encodedSlug = encodeURIComponent(slug);
-    const registry = await loadPackedTtsPackRegistry();
-    const packs = Array.isArray(registry?.packs) && registry.packs.length
-        ? registry.packs
-        : [getDefaultTtsPackOption()];
-    const orderedPacks = orderPacksForLanguage(packs, normalizedLang);
-
-    for (const pack of orderedPacks) {
-        const packId = String(pack?.id || '').trim();
-        if (!packId) continue;
-        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/passage/${encodedSlug}.mp3`;
-        const played = await playPackedClipWithFallbackPaths(candidate, { playbackRate, onPlay });
-        if (played) return true;
     }
 
     return false;
@@ -1698,7 +1628,9 @@ async function tryPlayRecordedPhoneme(sound = '') {
         phonemeAudioCache.set(key, cached);
     }
     if (!cached?.url) return false;
-    return playAudioClipUrl(cached.url);
+    const audio = new Audio(cached.url);
+    audio.play();
+    return true;
 }
 
 function prefetchWarmupPhonemes() {
@@ -1750,11 +1682,6 @@ function loadSettings() {
         appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
-        appSettings.voiceUri = String(appSettings.voiceUri || '').trim();
-        if (appSettings.voiceUri) {
-            setStoredEnglishVoiceUriForDialect(appSettings.voiceDialect || DEFAULT_SETTINGS.voiceDialect, appSettings.voiceUri);
-        }
-        appSettings.autoHear = false;
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 
@@ -1779,8 +1706,6 @@ function saveSettings() {
     appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
-    appSettings.voiceUri = String(appSettings.voiceUri || '').trim();
-    appSettings.autoHear = false;
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
@@ -1879,10 +1804,6 @@ function applySettings() {
     const speechQualitySelect = document.getElementById('speech-quality-select');
     if (speechQualitySelect) {
         speechQualitySelect.value = getSpeechQualityMode();
-        if (ENFORCE_NATURAL_ONLY_VOICE) {
-            speechQualitySelect.disabled = true;
-            speechQualitySelect.title = 'Robotic voice fallback is disabled. Natural-only mode is enforced.';
-        }
     }
 
     const ttsPackSelect = document.getElementById('tts-pack-select');
@@ -1900,8 +1821,7 @@ function applySettings() {
 
     const autoHearToggle = document.getElementById('toggle-auto-hear');
     if (autoHearToggle) {
-        autoHearToggle.checked = false;
-        autoHearToggle.disabled = true;
+        autoHearToggle.checked = appSettings.autoHear !== false;
     }
 
     applySoundWallSectionVisibility();
@@ -2030,13 +1950,6 @@ function syncSettingsFromPlatform(nextSettings = {}) {
         sessionEnglishVoice = { dialect: '', voiceUri: '' };
         changed = true;
     }
-    const nextVoiceUri = String(nextSettings.voiceUri || '').trim();
-    if (nextVoiceUri && nextVoiceUri !== appSettings.voiceUri) {
-        appSettings.voiceUri = nextVoiceUri;
-        setStoredEnglishVoiceUriForDialect(appSettings.voiceDialect || DEFAULT_SETTINGS.voiceDialect, nextVoiceUri);
-        sessionEnglishVoice = { dialect: '', voiceUri: '' };
-        changed = true;
-    }
 
     if (nextSettings.translation && typeof nextSettings.translation === 'object') {
         const nextTranslationLang = String(nextSettings.translation.lang || appSettings.translation?.lang || 'en').trim() || 'en';
@@ -2064,7 +1977,7 @@ function syncSettingsFromPlatform(nextSettings = {}) {
 function previewSelectedVoice(sampleText = '') {
     const text = String(sampleText || 'This is your selected English listening voice.').trim();
     if (!text) return;
-    speak(text, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
+    speak(text, 'sentence');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2418,14 +2331,14 @@ function applyWordQuestDesktopScale() {
     if (viewportHeight < 840) tileSize = Math.min(tileSize, 46);
     if (viewportHeight < 790) tileSize = Math.min(tileSize, 42);
 
-    let keySize = tileSize * (coarsePointer ? 1.02 : 0.97);
-    keySize = Math.max(coarsePointer ? 34 : 32, Math.min(52, keySize));
+    let keySize = tileSize * (coarsePointer ? 1.07 : 1.03);
+    keySize = Math.max(coarsePointer ? 36 : 34, Math.min(56, keySize));
 
     let wideKeySize = keySize * 1.72;
-    wideKeySize = Math.max(62, Math.min(94, wideKeySize));
+    wideKeySize = Math.max(70, Math.min(102, wideKeySize));
 
-    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 92 : 84));
-    let canvasMax = Math.round(Math.max(660, Math.min(950, keyboardMax + 224)));
+    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 104 : 96));
+    let canvasMax = Math.round(Math.max(680, Math.min(980, keyboardMax + 236)));
     let bottomGap = coarsePointer ? 14 : 10;
     if (viewportHeight < 930) bottomGap = Math.max(8, bottomGap - 3);
     if (viewportHeight < 860) bottomGap = Math.max(8, bottomGap - 2);
@@ -2471,10 +2384,10 @@ function applyWordQuestDesktopScale() {
             const combinedDemand = Math.max(requiredCanvasHeight, availableCanvasHeight + layoutOverflow);
             const fitRatio = Math.max(0.74, Math.min(0.95, availableCanvasHeight / Math.max(1, combinedDemand)));
             tileSize = Math.max(30, Math.min(58, tileSize * fitRatio));
-            keySize = Math.max(coarsePointer ? 32 : 30, Math.min(50, keySize * fitRatio));
-            wideKeySize = Math.max(56, Math.min(90, wideKeySize * fitRatio));
-            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 82 : 74));
-            canvasMax = Math.round(Math.max(620, Math.min(920, keyboardMax + 198)));
+            keySize = Math.max(coarsePointer ? 33 : 31, Math.min(54, keySize * fitRatio));
+            wideKeySize = Math.max(62, Math.min(98, wideKeySize * fitRatio));
+            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 90 : 82));
+            canvasMax = Math.round(Math.max(640, Math.min(950, keyboardMax + 214)));
             bottomGap = Math.max(4, Math.min(14, bottomGap - 1));
             applyDesktopScaleVars();
             requiredCanvasHeight = Math.ceil(canvas.scrollHeight || 0);
@@ -2702,7 +2615,6 @@ function initVoiceLoader() {
         voiceSelect.dataset.bound = 'true';
         voiceSelect.onchange = () => {
             appSettings.voiceDialect = voiceSelect.value || DEFAULT_SETTINGS.voiceDialect;
-            appSettings.voiceUri = '';
             sessionEnglishVoice = { dialect: '', voiceUri: '' };
             saveSettings();
             if (cachedVoices.length) {
@@ -2900,17 +2812,7 @@ function speakSentenceWithProsody(text, voice, lang, baseRate) {
     }, 35);
 }
 
-function isVoiceAllowedForSpeechPolicy(voice, qualityMode = getSpeechQualityMode()) {
-    if (!voice) return false;
-    if (qualityMode === 'fallback-any') return true;
-    if (qualityMode === 'natural-only') return isHighQualityVoice(voice);
-    return !isLowQualityVoice(voice);
-}
-
 function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') {
-    if (!isVoiceAllowedForSpeechPolicy(voice)) {
-        return false;
-    }
     const normalized = normalizeTextForTTS(text);
     const normalizedType = type === 'sentence' ? 'sentence' : (type === 'phoneme' ? 'phoneme' : 'word');
     const isSentence = normalizedType === 'sentence';
@@ -2920,7 +2822,7 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
 
     if (isSentence && expressive && countSpeechWords(normalized) >= 4 && /[.,!?;:]/.test(normalized)) {
         speakSentenceWithProsody(normalized, voice, fallbackLang, rate);
-        return true;
+        return;
     }
 
     const msg = new SpeechSynthesisUtterance(normalized);
@@ -2935,15 +2837,11 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
         ? clampSpeechPitch(expressive ? 1.03 : 1.0)
         : (normalizedType === 'phoneme' ? 1.02 : 1.0);
     speakUtterance(msg);
-    return true;
 }
 
-async function speak(text, type = "word", options = {}) {
+async function speak(text, type = "word") {
     if (!text) return;
     cancelPendingSpeech(true);
-    if (options.stopExistingAudio) {
-        stopAllActiveAudioPlayers();
-    }
 
     // 1. Check Studio Recording
     let dbKey = "";
@@ -2970,8 +2868,11 @@ async function speak(text, type = "word", options = {}) {
     const blob = useTeacherVoice ? await getAudioFromDB(dbKey) : null;
     
     if (blob) {
-        const playedBlob = await playAudioBlob(blob);
-        if (playedBlob) return true;
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+        audio.onended = () => URL.revokeObjectURL(url);
+        return; 
     }
 
     const packedType = type === 'sentence' ? 'sentence' : 'word';
@@ -2980,25 +2881,13 @@ async function speak(text, type = "word", options = {}) {
         languageCode: 'en',
         type: packedType
     });
-    if (packedPlayed) return true;
-
-    const allowSystemFallback = isSystemSpeechFallbackAllowed(options);
-    if (!allowSystemFallback) return false;
+    if (packedPlayed) return;
 
     // 2. Fallback to System Voice
     const voices = await getVoicesForSpeech();
-    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
-        notifyMissingEnglishVoice();
-        return false;
-    }
-    const spoken = speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, preferred.lang);
-    if (!spoken) {
-        notifyMissingEnglishVoice();
-        return false;
-    }
-    return true;
+    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
+    speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, fallbackLang);
 }
 
 function getPreferredEnglishDialect() {
@@ -3408,12 +3297,9 @@ function getBestTranslationVoice(voices, targetLang) {
 }
 
 /* Play text in a specific language for translations */
-async function playTextInLanguage(text, languageCode, type = 'sentence', options = {}) {
+async function playTextInLanguage(text, languageCode, type = 'sentence') {
     if (!text) return;
     cancelPendingSpeech(true);
-    if (options.stopExistingAudio) {
-        stopAllActiveAudioPlayers();
-    }
 
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
@@ -3422,39 +3308,27 @@ async function playTextInLanguage(text, languageCode, type = 'sentence', options
     });
     if (packedPlayed) {
         setTranslationAudioNote('');
-        return true;
-    }
-    if (!isSystemSpeechFallbackAllowed(options)) {
-        setTranslationAudioNote('Audio unavailable for this language.', true);
-        return false;
+        return;
     }
     
     const msg = new SpeechSynthesisUtterance(text);
     const voices = await getVoicesForSpeech();
     const targetLang = getTranslationVoiceTarget(languageCode);
-    const qualityMode = getSpeechQualityMode();
     
     const preferredVoice = getBestTranslationVoice(voices, targetLang);
     const usingHighQualityVoice = !!(preferredVoice && isHighQualityVoice(preferredVoice));
     
-    if (
-        preferredVoice
-        && voiceMatchesLanguage(preferredVoice, targetLang)
-        && isVoiceAllowedForSpeechPolicy(preferredVoice, qualityMode)
-    ) {
+    if (preferredVoice && voiceMatchesLanguage(preferredVoice, targetLang)) {
         msg.voice = preferredVoice;
         msg.lang = preferredVoice.lang;
         if (usingHighQualityVoice) {
             setTranslationAudioNote('');
-        } else if (qualityMode === 'fallback-any') {
-            setTranslationAudioNote('Using an available device voice for this language.');
         } else {
-            setTranslationAudioNote('Audio unavailable for this language.', true);
-            return false;
+            setTranslationAudioNote('Using an available device voice for this language.');
         }
     } else {
-        setTranslationAudioNote('Audio unavailable for this language.', true);
-        return false;
+        notifyMissingTranslationVoice();
+        return;
     }
     
     const packedType = normalizePackedTtsType(type);
@@ -3463,20 +3337,17 @@ async function playTextInLanguage(text, languageCode, type = 'sentence', options
     msg.pitch = 1.0;
     
     speakUtterance(msg);
-    return true;
 }
 
 function getTranslationData(word, langCode, options = {}) {
     if (!word || !langCode || langCode === 'en') return null;
     const lower = word.toLowerCase();
-    if (!window.WORD_ENTRIES?.[lower]) return null;
+    if (!window.WORD_ENTRIES?.[lower]) {
+        return null;
+    }
     const normalizedLang = normalizePackedTtsLanguage(langCode);
     const audienceMode = normalizeAudienceMode(options.audienceMode || getResolvedAudienceMode());
     const englishCopy = getWordCopyForAudience(lower, 'en', audienceMode);
-    const englishUnsafeSignals = {
-        definition: isYoungAudienceUnsafeText(cleanAudienceText(englishCopy.definition || '')),
-        sentence: isYoungAudienceUnsafeText(cleanAudienceText(englishCopy.sentence || ''))
-    };
 
     const sanitizeAgainstEnglish = ({ wordText = '', definition = '', sentence = '' } = {}) => {
         const englishDefinition = normalizeTextForCompare(englishCopy.definition || '');
@@ -3492,27 +3363,27 @@ function getTranslationData(word, langCode, options = {}) {
             sentence: cleanSentence && cleanSentence !== englishSentence ? sentence : ''
         };
     };
-    const sanitizeTranslationCopy = ({ wordText = '', definition = '', sentence = '' } = {}) => {
-        const definitionSource = englishUnsafeSignals.definition ? '' : definition;
-        const sentenceSource = englishUnsafeSignals.sentence ? '' : sentence;
-        return {
+    const sanitizeTranslationCopy = ({ wordText = '', definition = '', sentence = '' } = {}) => ({
         word: cleanAudienceText(wordText),
-        definition: sanitizeRevealText(definitionSource, {
+        definition: definition
+            ? sanitizeRevealText(definition, {
                 word: lower,
                 field: 'definition',
                 languageCode: normalizedLang,
                 allowFallback: true,
                 maxWords: 20
-            }),
-        sentence: sanitizeRevealText(sentenceSource, {
+            })
+            : '',
+        sentence: sentence
+            ? sanitizeRevealText(sentence, {
                 word: lower,
                 field: 'sentence',
                 languageCode: normalizedLang,
                 allowFallback: true,
                 maxWords: 24
             })
-        };
-    };
+            : ''
+    });
 
     const audienceCopy = getWordCopyForAudience(lower, normalizedLang, audienceMode);
     if (audienceCopy.definition || audienceCopy.sentence) {
@@ -3553,62 +3424,6 @@ function getYoungAudienceDefaultTranslationLanguage() {
     return 'es';
 }
 
-function buildTranslationCoverageCache() {
-    const source = (typeof WORDS_DATA !== 'undefined' && WORDS_DATA && typeof WORDS_DATA === 'object')
-        ? WORDS_DATA
-        : null;
-    const byLanguage = {
-        en: { def: 0, sentence: 0, both: 0 },
-        es: { def: 0, sentence: 0, both: 0 },
-        zh: { def: 0, sentence: 0, both: 0 },
-        tl: { def: 0, sentence: 0, both: 0 },
-        hi: { def: 0, sentence: 0, both: 0 },
-        ms: { def: 0, sentence: 0, both: 0 },
-        vi: { def: 0, sentence: 0, both: 0 },
-        ar: { def: 0, sentence: 0, both: 0 },
-        ko: { def: 0, sentence: 0, both: 0 },
-        ja: { def: 0, sentence: 0, both: 0 }
-    };
-    if (!source) {
-        return { total: 0, byLanguage };
-    }
-
-    const words = Object.keys(source);
-    words.forEach((word) => {
-        const entry = source[word] || {};
-        Object.keys(byLanguage).forEach((lang) => {
-            const row = entry?.[lang] || {};
-            const hasDef = !!String(row.def || '').trim();
-            const hasSentence = !!String(row.sentence || '').trim();
-            if (hasDef) byLanguage[lang].def += 1;
-            if (hasSentence) byLanguage[lang].sentence += 1;
-            if (hasDef && hasSentence) byLanguage[lang].both += 1;
-        });
-    });
-
-    return {
-        total: words.length,
-        byLanguage
-    };
-}
-
-function getTranslationCoverageForLanguage(langCode = 'en') {
-    if (!translationCoverageCache) {
-        translationCoverageCache = buildTranslationCoverageCache();
-    }
-    const lang = normalizePackedTtsLanguage(langCode);
-    const total = Number(translationCoverageCache?.total || 0);
-    const row = translationCoverageCache?.byLanguage?.[lang] || { def: 0, sentence: 0, both: 0 };
-    const both = Number(row.both || 0);
-    return {
-        total,
-        def: Number(row.def || 0),
-        sentence: Number(row.sentence || 0),
-        both,
-        percent: total > 0 ? Math.round((both / total) * 100) : 0
-    };
-}
-
 function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
     const normalized = normalizePackedTtsLanguage(code);
     const fallback = String(fallbackLabel || '').trim();
@@ -3626,11 +3441,7 @@ function formatTranslationLanguageLabel(code = '', fallbackLabel = '') {
     if (normalized === 'en') {
         return fallback || 'English';
     }
-    const baseLabel = labels[normalized] || fallback || normalized.toUpperCase();
-    const coverage = getTranslationCoverageForLanguage(normalized);
-    if (!coverage.total || coverage.both >= coverage.total) return baseLabel;
-    if (coverage.both <= 0) return `${baseLabel} (coming soon)`;
-    return `${baseLabel} (${coverage.both}/${coverage.total})`;
+    return labels[normalized] || fallback || normalized.toUpperCase();
 }
 
 function applyTranslationLanguageOptionLabels(selectEl) {
@@ -3810,7 +3621,7 @@ function initControls() {
                 hearWordBtn.innerHTML = '🔊 Playing...';
                 hearWordBtn.style.opacity = '0.7';
                 
-                speak(currentWord, 'word', { allowSystemFallback: false, stopExistingAudio: true });
+                speak(currentWord, 'word');
                 
                 // Reset button after a short delay
                 setTimeout(() => {
@@ -3855,7 +3666,7 @@ function initControls() {
                 hearSentenceBtn.innerHTML = '🔊 Playing...';
                 hearSentenceBtn.style.opacity = '0.7';
                 
-                speak(sentence, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
+                speak(sentence, 'sentence');
                 
                 // Reset button after a short delay
                 setTimeout(() => {
@@ -3899,7 +3710,7 @@ function initControls() {
     
     document.getElementById("speak-btn").onclick = () => {
         if (isCurrentWordAudioBlocked()) return;
-        speak(currentWord, "word", { allowSystemFallback: false, stopExistingAudio: true });
+        speak(currentWord, "word");
     };
     document.getElementById("play-again-btn").onclick = () => {
         closeModal();
@@ -4032,8 +3843,8 @@ function initTeacherTools() {
                 </select>
 
                 <label class="toggle-row inline">
-                    <input type="checkbox" id="toggle-auto-hear-session" disabled />
-                    Reveal audio is manual only
+                    <input type="checkbox" id="toggle-auto-hear-session" />
+                    Auto-read reveal card
                 </label>
                 <label class="toggle-row inline">
                     <input type="checkbox" id="toggle-fun-mode-session" />
@@ -4097,9 +3908,11 @@ function initTeacherTools() {
 
     const autoHearToggle = document.getElementById('toggle-auto-hear-session');
     if (autoHearToggle) {
-        autoHearToggle.checked = false;
-        autoHearToggle.disabled = true;
-        autoHearToggle.onchange = null;
+        autoHearToggle.checked = appSettings.autoHear !== false;
+        autoHearToggle.onchange = () => {
+            appSettings.autoHear = autoHearToggle.checked;
+            saveSettings();
+        };
     }
     const funModeToggle = document.getElementById('toggle-fun-mode-session');
     if (funModeToggle) {
@@ -4152,7 +3965,7 @@ function ensureTeacherLaunchpad() {
                 <option value="often">Often</option>
                 <option value="always">Always</option>
             </select>
-            <label class="toggle-row inline"><input type="checkbox" id="toggle-auto-hear-session" disabled /> Reveal audio is manual only</label>
+            <label class="toggle-row inline"><input type="checkbox" id="toggle-auto-hear-session" /> Auto-read reveal card</label>
             <label class="toggle-row inline"><input type="checkbox" id="toggle-fun-mode-session" /> Fun mode (coins/hearts)</label>
         </div>
     `;
@@ -4531,8 +4344,8 @@ function ensureAutoHearToggle() {
     const row = document.createElement('label');
     row.className = 'toggle-row';
     row.innerHTML = `
-        <input type="checkbox" id="toggle-auto-hear" disabled />
-        Reveal audio is manual only
+        <input type="checkbox" id="toggle-auto-hear" />
+        Auto-play word, definition, and sentence
     `;
     grid.appendChild(row);
 }
@@ -5009,8 +4822,8 @@ function ensureVoicePreferencesControls() {
         </select>
         <label for="speech-quality-select"><strong>Voice quality</strong></label>
         <select id="speech-quality-select" aria-label="Voice quality mode">
-            <option value="natural-only">Natural only (enforced)</option>
-            <option value="natural-preferred">Natural preferred</option>
+            <option value="natural-preferred">Natural preferred (recommended)</option>
+            <option value="natural-only">Natural only</option>
             <option value="fallback-any">Allow basic fallback</option>
         </select>
         <label for="tts-pack-select"><strong>Audio voice pack</strong></label>
@@ -5483,7 +5296,8 @@ async function playPreview(type) {
     const key = type === "word" ? `${word}_word` : `${word}_sentence`;
     const blob = await getAudioFromDB(key);
     if (blob) {
-        await playAudioBlob(blob);
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
     }
 }
 
@@ -5833,20 +5647,14 @@ function updateAdaptiveActions() {
     // Always show "Hear word"
     hearWord.style.display = 'inline-block';
     hearWord.classList.add('hint-primary');
-    hearWord.onclick = async () => {
-        const played = await speak(word, 'word', { allowSystemFallback: false, stopExistingAudio: true });
-        if (!played) showToast('Word audio unavailable (Azure clip not found).');
-    };
+    hearWord.onclick = () => speak(word, 'word');
     
     // Show "Hear sentence" only if sentence exists
     const sentenceText = audienceCopy.sentence || entry?.sentence || entry?.en?.sentence || '';
     if (sentenceText && sentenceText.length > 5) {
         hearSentence.style.display = 'inline-block';
         hearSentence.classList.add('hint-primary');
-        hearSentence.onclick = async () => {
-            const played = await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
-            if (!played) showToast('Sentence audio unavailable (Azure clip not found).');
-        };
+        hearSentence.onclick = () => speak(sentenceText, 'sentence');
     } else {
         hearSentence.style.display = 'none';
     }
@@ -5858,9 +5666,7 @@ function updateAdaptiveActions() {
         hearSound.onclick = () => {
             // Play sound then word
             speakPhoneme(firstSound);
-            setTimeout(() => {
-                speak(word, 'word', { allowSystemFallback: false, stopExistingAudio: true });
-            }, 600);
+            setTimeout(() => speak(word, 'word'), 600);
         };
     } else {
         hearSound.style.display = 'none';
@@ -6205,6 +6011,27 @@ function estimateSpeechDuration(text, rate = 1) {
     return Math.min(9000, base / normalized);
 }
 
+function autoPlayReveal(definitionText, sentenceText) {
+    if (appSettings.autoHear === false) return;
+    if (isCurrentWordAudioBlocked()) return;
+    const wordText = currentWord || '';
+    const speechRateWord = getSpeechRate('word');
+    const speechRateSentence = getSpeechRate('sentence');
+
+    let delay = 150;
+    if (wordText) {
+        setTimeout(() => speak(wordText, 'word'), delay);
+        delay += estimateSpeechDuration(wordText, speechRateWord);
+    }
+    if (definitionText) {
+        setTimeout(() => speakText(definitionText, 'definition'), delay);
+        delay += estimateSpeechDuration(definitionText, speechRateSentence);
+    }
+    if (sentenceText) {
+        setTimeout(() => speak(sentenceText, 'sentence'), delay);
+    }
+}
+
 function prepareTranslationSection() {
     const languageSelect = document.getElementById("language-select");
     let section = document.querySelector(".translation-selector");
@@ -6358,10 +6185,26 @@ function setupModalAudioControls(definitionText, sentenceText) {
         actionRow.id = 'modal-action-row';
         actionRow.className = 'modal-action-row';
     }
-    appSettings.autoHear = false;
-    const autoReadRow = document.getElementById('auto-read-toggle');
-    if (autoReadRow) {
-        autoReadRow.remove();
+
+    let autoReadRow = document.getElementById('auto-read-toggle');
+    if (!autoReadRow) {
+        autoReadRow = document.createElement('div');
+        autoReadRow.id = 'auto-read-toggle';
+        autoReadRow.className = 'auto-read-toggle';
+        autoReadRow.innerHTML = `
+            <label class="auto-read-label">
+                <input type="checkbox" id="auto-read-checkbox" />
+                Auto-read word, definition, and sentence
+            </label>
+        `;
+    }
+    const autoReadCheckbox = autoReadRow.querySelector('#auto-read-checkbox');
+    if (autoReadCheckbox) {
+        autoReadCheckbox.checked = appSettings.autoHear !== false;
+        autoReadCheckbox.onchange = () => {
+            appSettings.autoHear = autoReadCheckbox.checked;
+            saveSettings();
+        };
     }
 
     let speakBtn = document.getElementById('speak-btn');
@@ -6372,11 +6215,8 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     speakBtn.textContent = 'Hear Word';
     speakBtn.classList.add('modal-audio-btn');
-    speakBtn.onclick = async () => {
-        const played = currentWord
-            ? await speak(currentWord, 'word', { allowSystemFallback: false, stopExistingAudio: true })
-            : false;
-        if (!played) showToast('Word audio unavailable (Azure clip not found).');
+    speakBtn.onclick = () => {
+        if (currentWord) speak(currentWord, 'word');
     };
     if (!audioControls.contains(speakBtn)) audioControls.appendChild(speakBtn);
 
@@ -6389,11 +6229,8 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     defBtn.textContent = 'Hear Definition';
     defBtn.disabled = !definitionText;
-    defBtn.onclick = async () => {
-        const played = definitionText
-            ? await speakText(definitionText, 'definition', { allowSystemFallback: false, stopExistingAudio: true })
-            : false;
-        if (!played && definitionText) showToast('Definition audio unavailable (Azure clip not found).');
+    defBtn.onclick = () => {
+        if (definitionText) speakText(definitionText, 'definition');
     };
     if (!audioControls.contains(defBtn)) audioControls.appendChild(defBtn);
 
@@ -6406,11 +6243,8 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     sentenceBtn.textContent = 'Hear Sentence';
     sentenceBtn.disabled = !sentenceText;
-    sentenceBtn.onclick = async () => {
-        const played = sentenceText
-            ? await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true })
-            : false;
-        if (!played && sentenceText) showToast('Sentence audio unavailable (Azure clip not found).');
+    sentenceBtn.onclick = () => {
+        if (sentenceText) speak(sentenceText, 'sentence');
     };
     if (!audioControls.contains(sentenceBtn)) audioControls.appendChild(sentenceBtn);
 
@@ -6446,13 +6280,16 @@ function setupModalAudioControls(definitionText, sentenceText) {
     if (translationSelector && translationParent === modalContent) {
         safeInsertBefore(modalContent, audioControls, translationSelector);
         safeInsertBefore(modalContent, actionRow, translationSelector);
+        safeInsertBefore(modalContent, autoReadRow, translationSelector);
     } else if (sentenceEl && sentenceEl.parentElement) {
         const parent = sentenceEl.parentElement;
         safeInsertAfter(parent, audioControls, sentenceEl);
         safeInsertAfter(parent, actionRow, audioControls);
+        safeInsertAfter(parent, autoReadRow, actionRow);
     } else {
         safeInsertBefore(modalContent, audioControls, null);
         safeInsertAfter(modalContent, actionRow, audioControls);
+        safeInsertAfter(modalContent, autoReadRow, actionRow);
     }
 
     // Teacher tools (local-only recordings)
@@ -6506,18 +6343,11 @@ function setupModalAudioControls(definitionText, sentenceText) {
         controls.appendChild(recorderGroup);
     }
 
-    const anchor = (translationSelector && translationSelector.parentElement === modalContent) ? translationSelector : actionRow;
+    const anchor = (translationSelector && translationSelector.parentElement === modalContent) ? translationSelector : autoReadRow;
     safeInsertAfter(modalContent, teacherTools, anchor);
 }
 
 function showEndModal(win) {
-    // Always hard-stop any in-flight speech/audio before opening reveal.
-    // This prevents overlap from diagnostics, prior prompts, or queued utterances.
-    stopAllActiveAudioPlayers();
-    cancelPendingSpeech(true);
-    voiceHealthCheckToken += 1;
-    voiceHealthCheckInProgress = false;
-
     // Track progress
     trackProgress(currentWord, win, guesses.length);
     try {
@@ -6662,38 +6492,33 @@ function showEndModal(win) {
             translatedSentence.textContent = safeSentence ? `"${safeSentence}"` : '';
 
             if (playTranslatedWord) {
-                playTranslatedWord.onclick = safeWord
-                    ? () => playTextInLanguage(safeWord, selectedLang, 'word', { allowSystemFallback: false, stopExistingAudio: true })
-                    : null;
+                playTranslatedWord.onclick = safeWord ? () => playTextInLanguage(safeWord, selectedLang, 'word') : null;
             }
             if (playTranslatedDef) {
-                playTranslatedDef.onclick = safeDefinition
-                    ? () => playTextInLanguage(safeDefinition, selectedLang, 'def', { allowSystemFallback: false, stopExistingAudio: true })
-                    : null;
+                playTranslatedDef.onclick = safeDefinition ? () => playTextInLanguage(safeDefinition, selectedLang, 'def') : null;
             }
             if (playTranslatedSentence) {
-                playTranslatedSentence.onclick = safeSentence
-                    ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence', { allowSystemFallback: false, stopExistingAudio: true })
-                    : null;
+                playTranslatedSentence.onclick = safeSentence ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence') : null;
             }
 
             translationDisplay.classList.remove("hidden");
-            const [packedWordReady, packedDefReady, packedSentenceReady] = await Promise.all([
+            const [hasVoice, packedWordReady, packedDefReady, packedSentenceReady] = await Promise.all([
+                hasVoiceForLanguage(selectedLang),
                 safeWord ? hasPackedTtsClipForCurrentWord({ text: safeWord, languageCode: selectedLang, type: 'word' }) : Promise.resolve(false),
                 safeDefinition ? hasPackedTtsClipForCurrentWord({ text: safeDefinition, languageCode: selectedLang, type: 'def' }) : Promise.resolve(false),
                 safeSentence ? hasPackedTtsClipForCurrentWord({ text: safeSentence, languageCode: selectedLang, type: 'sentence' }) : Promise.resolve(false)
             ]);
 
-            const canPlayWord = !!safeWord && packedWordReady;
-            const canPlayDefinition = !!safeDefinition && packedDefReady;
-            const canPlaySentence = !!safeSentence && packedSentenceReady;
+            const canPlayWord = !!safeWord;
+            const canPlayDefinition = !!safeDefinition;
+            const canPlaySentence = !!safeSentence;
 
             if (playTranslatedWord) playTranslatedWord.disabled = !canPlayWord;
             if (playTranslatedDef) playTranslatedDef.disabled = !canPlayDefinition;
             if (playTranslatedSentence) playTranslatedSentence.disabled = !canPlaySentence;
 
-            const hasAnyText = !!safeWord || !!safeDefinition || !!safeSentence;
-            const hasAnyPlayable = canPlayWord || canPlayDefinition || canPlaySentence;
+            const hasAnyText = canPlayWord || canPlayDefinition || canPlaySentence;
+            const hasAnyPlayable = packedWordReady || packedDefReady || packedSentenceReady || hasVoice;
             if (!hasAnyPlayable && hasAnyText) {
                 setTranslationAudioNote('Audio unavailable for this language.', true);
             } else {
@@ -6704,9 +6529,7 @@ function showEndModal(win) {
                 translatedWord.textContent = '';
                 translatedWord.classList.add('hidden');
             }
-            const coverage = getTranslationCoverageForLanguage(selectedLang);
-            const coverageNote = coverage.total ? ` (${coverage.both}/${coverage.total} words ready)` : '';
-            translatedDef.textContent = `Translation coming soon for this word.${coverageNote}`;
+            translatedDef.textContent = "Translation coming soon for this word.";
             translatedSentence.textContent = "";
             if (playTranslatedWord) playTranslatedWord.onclick = null;
             if (playTranslatedDef) playTranslatedDef.onclick = null;
@@ -6788,6 +6611,8 @@ function showEndModal(win) {
     
     // Store that we should show bonus when modal closes
     sessionStorage.setItem('showBonusOnClose', 'true');
+
+    autoPlayReveal(def, sentence);
 }
 
 function openTeacherMode() {
@@ -6828,7 +6653,7 @@ function initTeacherVoiceControl() {
         const enabled = toggle.checked;
         localStorage.setItem('useTeacherRecordings', enabled.toString());
         updateVoiceIndicator();
-        showToast(enabled ? '✅ Teacher voice enabled' : '🔊 Using packed voice clips');
+        showToast(enabled ? '✅ Teacher voice enabled' : '🔊 Using system voice');
     };
 
     if (deleteWordBtn) {
@@ -7157,7 +6982,8 @@ async function togglePracticeRecording(key) {
 function playPracticeRecording(key) {
     const recording = practiceRecordings.get(key);
     if (!recording?.url) return;
-    playAudioClipUrl(recording.url);
+    const audio = new Audio(recording.url);
+    audio.play();
 }
 
 function updatePracticeRecorderUI(key, isRecording = false) {
@@ -7274,6 +7100,8 @@ async function downloadPracticeAudioBundle() {
 
 function checkFirstTimeVisitor() {
     if (!localStorage.getItem("decode_v5_visited")) {
+        modalOverlay.classList.remove("hidden");
+        welcomeModal.classList.remove("hidden");
         localStorage.setItem("decode_v5_visited", "true");
     }
 }
@@ -7357,12 +7185,7 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(underwear\s+for\s+your\s+foot|squishy\s+balls)\b/i,
     /\b(smells\s+like\s+milk|tiny\s+human|baby\s+elephant)\b/i,
     /\b(guy\s+who\s+tells\s+bad\s+jokes|falls\s+asleep\s+watching\s+movies)\b/i,
-    /\b(gravity\s+pulling\s+you\s+down|surprise\s+hug\s+with\s+the\s+floor)\b/i,
-    /\b(fight\s+scene|food\s+fight)\b/i,
-    /\b(hide\s+it\s+under\s+your\s+napkin|fish\s+go\s+to\s+the\s+bathroom)\b/i,
-    /\b(knocks?\s+on\s+the\s+bathroom\s+door|underwear\s+on\s+your\s+head)\b/i,
-    /\b(fast\s+way\s+to\s+point\s+out\s+something\s+gross)\b/i,
-    /\b(spaghetti\s+growing\s+on\s+your\s+head)\b/i
+    /\b(gravity\s+pulling\s+you\s+down|surprise\s+hug\s+with\s+the\s+floor)\b/i
 ];
 const SCHOOL_SAFE_REPLACEMENTS = [
     [/\bhate\b/gi, 'do not like'],
@@ -7723,130 +7546,6 @@ const SCHOOL_SAFE_REVEAL_OVERRIDES = {
     reflection: {
         definition: 'The image you see in a mirror or shiny surface.',
         sentence: 'I could see my reflection in the classroom window.'
-    },
-    pause: {
-        definition: 'To stop for a short moment, then continue.',
-        sentence: 'We used a short pause at each comma so the sentence sounded clear.'
-    },
-    sea: {
-        definition: 'A large area of salt water connected to an ocean.',
-        sentence: 'The sea looked calm in the morning, and boats moved slowly near the shore.'
-    },
-    who: {
-        definition: 'A question word used when asking about a person.',
-        sentence: 'Who is reading the first line today?'
-    },
-    silly: {
-        definition: 'Playful in a light and funny way.',
-        sentence: 'Our class shared a silly joke before we started reading.'
-    },
-    always: {
-        definition: 'At every time, without skipping.',
-        sentence: 'We always put our names on our classwork before turning it in.'
-    },
-    beast: {
-        definition: 'A large wild animal.',
-        sentence: 'In the story, the beast turned out to be a shy forest animal.'
-    },
-    bee: {
-        definition: 'A small flying insect that helps pollinate flowers.',
-        sentence: 'A bee moved from flower to flower in the school garden.'
-    },
-    bike: {
-        definition: 'A two-wheeled vehicle you pedal.',
-        sentence: 'I wore my helmet before riding my bike on the path.'
-    },
-    burst: {
-        definition: 'To break open suddenly.',
-        sentence: 'The balloon burst with a loud pop during the science demo.'
-    },
-    button: {
-        definition: 'A small fastener used to close clothing.',
-        sentence: 'I checked each button before lining up for class pictures.'
-    },
-    cafeteria: {
-        definition: 'A school room where students eat meals.',
-        sentence: 'Our class walked quietly to the cafeteria for lunch.'
-    },
-    feast: {
-        definition: 'A large special meal.',
-        sentence: 'The class read a story about a family feast and holiday songs.'
-    },
-    finger: {
-        definition: 'One of the five digits on your hand.',
-        sentence: 'I counted on each finger to solve the math problem.'
-    },
-    floor: {
-        definition: 'The bottom surface of a room that you stand on.',
-        sentence: 'We kept our art supplies off the floor and on the table.'
-    },
-    flower: {
-        definition: 'The colorful part of a plant that can make seeds.',
-        sentence: 'Each flower in our plot opened wider in the morning sun.'
-    },
-    foot: {
-        definition: 'The lower part of your leg used for standing and walking.',
-        sentence: 'I tapped my foot softly while waiting my turn.'
-    },
-    how: {
-        definition: 'A question word used to ask about method or process.',
-        sentence: 'How did you solve that problem so clearly?'
-    },
-    illuminate: {
-        definition: 'To light something so it is easier to see.',
-        sentence: 'The lamp helped illuminate the page during reading practice.'
-    },
-    knit: {
-        definition: 'To make fabric by looping yarn with needles.',
-        sentence: 'My grandma taught me how to knit a small square.'
-    },
-    lightning: {
-        definition: 'A bright flash of electricity in the sky during a storm.',
-        sentence: 'We counted seconds after lightning to track the storm distance.'
-    },
-    manual: {
-        definition: 'Done by hand instead of by automation.',
-        sentence: 'The teacher showed a manual way to sort cards by pattern.'
-    },
-    memory: {
-        definition: 'Your ability to store and recall information.',
-        sentence: 'Memory strategies helped me remember the spelling list.'
-    },
-    plank: {
-        definition: 'A long, flat piece of wood.',
-        sentence: 'We balanced the plank on blocks to build a model bridge.'
-    },
-    principal: {
-        definition: 'The leader of a school.',
-        sentence: 'The principal greeted students at the front gate this morning.'
-    },
-    ruler: {
-        definition: 'A straight tool used to measure length.',
-        sentence: 'I used a ruler to draw a neat line across the page.'
-    },
-    soap: {
-        definition: 'A cleaning product used with water.',
-        sentence: 'We used soap and warm water before lunch.'
-    },
-    thorn: {
-        definition: 'A sharp point on the stem of some plants.',
-        sentence: 'We used gloves to avoid the thorn on the rose stem.'
-    },
-    tummy: {
-        definition: 'A child-friendly word for the stomach.',
-        sentence: 'My tummy felt better after water and a short rest.'
-    },
-    undo: {
-        definition: 'To reverse your last action.',
-        sentence: 'I used undo to fix a typing mistake in my paragraph.'
-    },
-    vet: {
-        definition: 'An animal doctor.',
-        sentence: 'The vet checked the puppy and said it was healthy.'
-    },
-    year: {
-        definition: 'A period of twelve months.',
-        sentence: 'This year our class started a new reading challenge.'
     }
 };
 
@@ -8356,7 +8055,7 @@ const BONUS_CONTENT = {
         "What has one eye but cannot see? A needle.",
         "What has a neck but no head? A bottle.",
         "What has pages but is not a tree? A book.",
-        "What has one head, one foot, and four legs? A bed.",
+        "What can you catch but not throw? A cold.",
         "What has a face and two hands but no arms? A clock.",
         "What belongs to you but others use more? Your name.",
         "What has legs but cannot walk? A table.",
@@ -8438,7 +8137,7 @@ const BONUS_CONTENT_YOUNG = {
         "I have a face and two hands, but no arms or legs. What am I? A clock.",
         "What has many teeth but cannot bite? A comb.",
         "What goes up but never comes down? Your age.",
-        "What has one head, one foot, and four legs? A bed.",
+        "What can you catch but not throw? A cold.",
         "What has to be broken before you can use it? An egg.",
         "What has four wheels and flies? A garbage truck.",
         "What has one eye but cannot see? A needle.",
@@ -8541,9 +8240,6 @@ function shouldShowBonusContent() {
 }
 
 function showBonusContent() {
-    stopAllActiveAudioPlayers();
-    cancelPendingSpeech(true);
-
     const pool = getBonusContentPool();
     if (!pool) return;
 
@@ -8605,9 +8301,8 @@ function showBonusContent() {
     if (textEl) textEl.textContent = content;
     if (hearBtn) {
         hearBtn.disabled = !content;
-        hearBtn.onclick = async () => {
-            const played = await speakText(`${title} ${content}`, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
-            if (!played) showToast('Bonus audio unavailable (Azure clip not found).');
+        hearBtn.onclick = () => {
+            speakText(`${title} ${content}`, 'sentence');
         };
     }
 }
@@ -8795,34 +8490,35 @@ function initNewFeatures() {
     }
     
     // Phoneme card clicks - respect voice source selection
-    document.addEventListener('click', async (e) => {
+    document.addEventListener('click', (e) => {
         const card = e.target.closest('.phoneme-card');
         if (card) {
+            const sound = card.dataset.sound;
             const example = card.dataset.example;
-
-            const played = await speak(example, 'word', { allowSystemFallback: false, stopExistingAudio: true });
-            if (!played) showToast('Example audio unavailable (Azure clip not found).');
+            
+            // Check which voice source is selected
+            const voiceSource = document.querySelector('input[name="guide-voice-source"]:checked')?.value;
+            
+            if (voiceSource === 'system') {
+                // Force system voice - bypass any recordings
+                speakWithSystemVoice(example);
+            } else {
+                // Use recorded voice if available, fallback to system
+                speak(example, 'word');
+            }
         }
     });
 }
 
 // Force system voice (ignore recordings)
 async function speakWithSystemVoice(text) {
-    if (ENFORCE_PACKED_TTS_ONLY) {
-        showToast('System voice fallback is off for this activity.');
-        return false;
-    }
     if (!('speechSynthesis' in window)) return;
 
     const voices = await getVoicesForSpeech();
-    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
-        notifyMissingEnglishVoice();
-        return false;
-    }
+    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
     const speechType = countSpeechWords(text) >= 5 || /[.!?]/.test(String(text || '')) ? 'sentence' : 'word';
-    return speakEnglishText(text, speechType, preferred, preferred.lang);
+    speakEnglishText(text, speechType, preferred, fallbackLang);
 }
 
 const DEFAULT_DECODABLE_TEXTS = [
@@ -9729,7 +9425,6 @@ function bindDecodableAudioFollowAlong(token, audio) {
 }
 
 async function speakDecodableTextWithFollowAlong(text, title, speed = 1, existingToken = null) {
-    if (ENFORCE_PACKED_TTS_ONLY) return false;
     if (!('speechSynthesis' in window)) return false;
     const normalized = normalizeTextForTTS(text);
     if (!normalized) return false;
@@ -9882,8 +9577,7 @@ async function readDecodableText(title) {
         return;
     }
 
-    showToast('Passage audio unavailable (Azure clip not found).');
-    stopDecodableFollowAlong({ clearHighlights: false });
+    await speakDecodableTextWithFollowAlong(text.content, text.title, speed, token);
 }
 
 // Open progress modal
@@ -10966,24 +10660,18 @@ function initArticulationAudioControls() {
     ensurePronunciationCheckButton();
     
     if (hearLetterBtn) {
-        hearLetterBtn.onclick = async () => {
+        hearLetterBtn.onclick = () => {
             if (currentSelectedSound) {
                 const grapheme = currentSelectedSound.label || currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
-                const played = await speakSpelling(grapheme);
-                if (!played) showToast('Letter audio unavailable (Azure clip not found).');
+                speakSpelling(grapheme);
             }
         };
     }
     
     if (hearWordBtn) {
-        hearWordBtn.onclick = async () => {
+        hearWordBtn.onclick = () => {
             if (currentSelectedSound) {
-                const played = await speakText(
-                    currentSelectedSound.phoneme.example || '',
-                    'word',
-                    { allowSystemFallback: false, stopExistingAudio: true }
-                );
-                if (!played) showToast('Example audio unavailable (Azure clip not found).');
+                speakText(currentSelectedSound.phoneme.example || '');
             }
         };
     }
@@ -10994,23 +10682,17 @@ function initArticulationAudioControls() {
         const label = (btn.textContent || '').toLowerCase();
         if (label.includes('letter')) {
             btn.dataset.bound = 'true';
-            btn.onclick = async () => {
+            btn.onclick = () => {
                 if (currentSelectedSound) {
                     const grapheme = currentSelectedSound.label || currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
-                    const played = await speakSpelling(grapheme);
-                    if (!played) showToast('Letter audio unavailable (Azure clip not found).');
+                    speakSpelling(grapheme);
                 }
             };
         } else if (label.includes('example')) {
             btn.dataset.bound = 'true';
-            btn.onclick = async () => {
+            btn.onclick = () => {
                 if (currentSelectedSound) {
-                    const played = await speakText(
-                        currentSelectedSound.phoneme.example || '',
-                        'word',
-                        { allowSystemFallback: false, stopExistingAudio: true }
-                    );
-                    if (!played) showToast('Example audio unavailable (Azure clip not found).');
+                    speakText(currentSelectedSound.phoneme.example || '');
                 }
             };
         } else if (label.includes('pronunciation')) {
@@ -11438,21 +11120,15 @@ function getLikelySoundHint(target, spoken) {
 
 function playLetterSequence(letter, word, phoneme) {
     // Play: spelling → example word → sound cue
-    speakSpelling(letter).then((played) => {
-        if (!played) showToast('Letter audio unavailable (Azure clip not found).');
-    });
+    speakSpelling(letter);
 
     setTimeout(() => {
-        speakText(word, 'word', { allowSystemFallback: false, stopExistingAudio: true }).then((played) => {
-            if (!played) showToast('Word audio unavailable (Azure clip not found).');
-        });
+        speakText(word);
     }, 900);
 
     setTimeout(() => {
         const phonemeData = window.getPhonemeData ? window.getPhonemeData(phoneme) : null;
-        speakPhonemeSound(phonemeData, phoneme).then((played) => {
-            if (!played) showToast('Sound audio unavailable (Azure clip not found).');
-        });
+        speakPhonemeSound(phonemeData, phoneme);
     }, 1800);
 }
 
@@ -11465,12 +11141,8 @@ function normalizeTextForTTS(text) {
     return normalized;
 }
 
-async function speakText(text, rateType = 'word', options = {}) {
+async function speakText(text, rateType = 'word') {
     if (!text) return;
-    cancelPendingSpeech(true);
-    if (options.stopExistingAudio) {
-        stopAllActiveAudioPlayers();
-    }
     const normalizedRateType = String(rateType || 'word').toLowerCase();
     const type = normalizedRateType === 'definition' || normalizedRateType === 'def'
         ? 'def'
@@ -11481,44 +11153,22 @@ async function speakText(text, rateType = 'word', options = {}) {
         languageCode: 'en',
         type
     });
-    if (packedPlayed) return true;
-
-    if (type === 'word') {
-        const directWord = String(text || '').trim().toLowerCase();
-        if (/^[a-z][a-z'-]*$/.test(directWord)) {
-            const directPlayed = await tryPlayPackedClipByDirectPath({
-                word: directWord,
-                languageCode: 'en',
-                type: 'word'
-            });
-            if (directPlayed) return true;
-        }
-    }
-
-    if (!isSystemSpeechFallbackAllowed(options)) {
-        return false;
-    }
+    if (packedPlayed) return;
 
     const voices = await getVoicesForSpeech();
-    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
-        notifyMissingEnglishVoice();
-        return false;
-    }
-    const spoken = speakEnglishText(text, speechType, preferred, preferred.lang);
-    if (!spoken) {
-        notifyMissingEnglishVoice();
-        return false;
-    }
-    return true;
+    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
+    speakEnglishText(text, speechType, preferred, fallbackLang);
 }
 
 function speakSpelling(grapheme) {
-    if (!grapheme) return Promise.resolve(false);
-    const normalized = String(grapheme || '').trim().toLowerCase();
-    if (!normalized) return Promise.resolve(false);
-    return speakPhonemeSound({ grapheme: normalized }, normalized);
+    if (!grapheme) return;
+    const letters = grapheme
+        .toString()
+        .toUpperCase()
+        .split('')
+        .join(' ');
+    speakText(letters, 'phoneme');
 }
 
 function normalizePhonemeForTTS(sound) {
@@ -11644,28 +11294,16 @@ function getPhonemeTts(phoneme, soundKey = '') {
 
 async function speakPhonemeSound(phoneme, soundKey = '') {
     const tts = getPhonemeTts(phoneme, soundKey);
-    if (!tts) return false;
+    if (!tts) return;
     const key = soundKey || phoneme?.grapheme || '';
     if (key) {
         const played = await tryPlayRecordedPhoneme(key);
-        if (played) return true;
+        if (played) return;
         const packedPlayed = await tryPlayPackedPhoneme(key, 'en');
-        if (packedPlayed) return true;
+        if (packedPlayed) return;
     }
-    if (await tryPlayPackedPhoneme(soundKey || phoneme?.grapheme || '', 'en')) return true;
-
-    const fallbackWord = String(soundKey || phoneme?.grapheme || '')
-        .toLowerCase()
-        .replace(/[^a-z]/g, '');
-    if (fallbackWord) {
-        const directPlayed = await tryPlayPackedClipByDirectPath({
-            word: fallbackWord,
-            languageCode: 'en',
-            type: 'word'
-        });
-        if (directPlayed) return true;
-    }
-    return false;
+    if (await tryPlayPackedPhoneme(soundKey || phoneme?.grapheme || '', 'en')) return;
+    speakText(tts, 'phoneme');
 }
 
 function initPhonemeCards() {
@@ -11808,24 +11446,28 @@ let phonemeAudioChunks = [];
 let currentPhonemeForRecording = null;
 
 function initVoiceSourceControls() {
-    // Legacy selector cleanup: packed + teacher recordings are the only supported paths.
-    const voiceRadios = Array.from(document.getElementsByName('guide-voice-source') || []);
-    if (voiceRadios.length) {
-        voiceRadios.forEach((radio) => {
-            const option = radio.closest('.voice-option');
-            if (radio.value === 'system') {
-                radio.checked = false;
-                radio.disabled = true;
-                if (option) option.classList.add('hidden');
-                return;
+    // Toggle voice source
+    const voiceRadios = document.getElementsByName('guide-voice-source');
+    voiceRadios.forEach(radio => {
+        radio.closest('.voice-option').addEventListener('click', function() {
+            const radioInput = this.querySelector('input[type="radio"]');
+            radioInput.checked = true;
+            
+            // Update styling
+            document.querySelectorAll('.voice-option').forEach(opt => {
+                opt.style.borderColor = '#d0d0d0';
+                opt.style.background = 'white';
+            });
+            this.style.borderColor = 'var(--color-correct)';
+            this.style.background = '#f0f8f5';
+            
+            if (radioInput.value === 'system') {
+                showToast('Using system voice');
+            } else {
+                showToast('Using your recorded voice');
             }
-            if (option) {
-                option.style.borderColor = 'var(--color-correct)';
-                option.style.background = '#f0f8f5';
-            }
-            radio.checked = true;
         });
-    }
+    });
     
     // When clicking a phoneme card, set it as current for recording (Teacher Studio only)
     document.addEventListener('click', (e) => {
@@ -11846,9 +11488,10 @@ function initTutorial() {
     const welcomeModal = document.getElementById('welcome-modal');
     const startBtn = document.getElementById('start-playing-btn');
     const dontShowCheckbox = document.getElementById('dont-show-tutorial');
-
-    if (!tutorialShown) {
-        localStorage.setItem('tutorialShown', 'true');
+    
+    if (!tutorialShown && welcomeModal) {
+        if (modalOverlay) modalOverlay.classList.remove('hidden');
+        welcomeModal.classList.remove('hidden');
     }
     
     if (startBtn) {
@@ -12064,7 +11707,7 @@ function ensureMoreToolsMenu() {
             <a href="comprehension.html" class="more-tools-item" role="menuitem">Read & Think</a>
             <a href="fluency.html" class="more-tools-item" role="menuitem">Speed Sprint</a>
             <a href="madlibs.html" class="more-tools-item" role="menuitem">Silly Stories</a>
-            <a href="writing-studio.html" class="more-tools-item" role="menuitem">Writing Studio</a>
+            <a href="writing.html" class="more-tools-item" role="menuitem">Write & Build</a>
             <a href="plan-it.html" class="more-tools-item" role="menuitem">Plan-It</a>
             <a href="number-sense.html" class="more-tools-item" role="menuitem">Number Sense</a>
             <a href="operations.html" class="more-tools-item" role="menuitem">Operations</a>
@@ -12198,7 +11841,7 @@ function organizeHeaderActions() {
     }
 
     if (writingBtn) {
-        writingBtn.textContent = 'Writing Studio';
+        writingBtn.textContent = 'Write & Build';
         writingBtn.title = 'Writing';
     }
 

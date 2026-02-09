@@ -89,7 +89,7 @@
     },
     {
       id: 'writing',
-      href: 'writing-studio.html',
+      href: 'writing.html',
       navLabel: 'Writing Studio'
     },
     {
@@ -133,7 +133,7 @@
         { activityId: 'comprehension', label: 'Read & Think' },
         { activityId: 'fluency', label: 'Speed Sprint' },
         { activityId: 'madlibs', label: 'Silly Stories' },
-        { activityId: 'writing', label: 'Writing Studio' },
+        { activityId: 'writing', label: 'Write & Build' },
         { activityId: 'plan-it', label: 'Plan-It' }
       ]
     },
@@ -158,10 +158,6 @@
       label: 'Tools',
       items: [
         { id: 'guided-start', label: 'Guided Start', href: 'index.html#role-dashboard' },
-        { id: 'student-toolkit-nav', label: 'Student Toolkit', href: 'student-toolkit.html' },
-        { id: 'parent-toolkit-nav', label: 'Parent Toolkit', href: 'parent-toolkit.html' },
-        { id: 'school-toolkit-nav', label: 'School Team Toolkits', href: 'school-team-toolkit.html' },
-        { id: 'theme-panel', label: 'Theme', href: '#theme', action: 'open-theme' },
         { id: 'session-setup', label: 'Session Setup', href: 'word-quest.html?tool=session', action: 'session-setup', studentHidden: true },
         { id: 'recording-studio', label: 'Recording Studio', href: 'word-quest.html?tool=studio', action: 'recording-studio', studentHidden: true },
         { id: 'sound-lab', label: 'Sound Lab', href: 'word-quest.html?soundlab=1', action: 'sound-lab' }
@@ -211,7 +207,7 @@
     },
     writing: {
       title: 'Writing Studio Quick Start',
-      body: 'Choose a planner, draft one section at a time, then run the Step Up checklist and Revision Quest.'
+      body: 'Keep writing routines short: plan, draft, revise, then capture one growth note.'
     },
     'number-sense': {
       title: 'Number Sense Lab Quick Start',
@@ -248,7 +244,7 @@
   const STORY_TRACK_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it']);
   const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
   const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'assessments', 'teacher-report']);
-  const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(ACTIVITIES.map((activity) => activity.id));
+  const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
   const THEME_PRESETS = ['calm', 'playful', 'high-contrast', 'minimal-ink'];
 
   const ACCESSIBILITY_DEFAULTS = {
@@ -267,7 +263,6 @@
 
   function normalizeThemePreset(value) {
     const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'professional') return 'minimal-ink';
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
   }
 
@@ -417,28 +412,6 @@
     resolveBuildStamp().then((payload) => {
       badge.textContent = `Build: ${payload.sha} | ${payload.time}`;
     });
-  }
-
-  function registerVersionDebugCommand() {
-    const printVersion = async () => {
-      const stamp = await resolveBuildStamp();
-      const settings = readScopedSettings();
-      const info = {
-        sha: stamp.sha,
-        utc: stamp.time,
-        page: getCurrentPageFile(),
-        learnerId: getActiveLearnerId(),
-        theme: normalizeThemePreset(settings.themePreset)
-      };
-      console.info('[Cornerstone Debug Version]', info);
-      return info;
-    };
-
-    const debugApi = window.debug && typeof window.debug === 'object' ? window.debug : {};
-    debugApi.version = printVersion;
-    window.debug = debugApi;
-    window.debugVersion = printVersion;
-    window['debug:version'] = printVersion;
   }
 
   function normalizeLook(value) {
@@ -1077,9 +1050,8 @@
     body.classList.toggle('line-focus', !!normalized.lineFocus);
     body.classList.remove('font-atkinson', 'font-opendyslexic');
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
-    body.classList.remove('theme-calm', 'theme-playful', 'theme-professional', 'theme-high-contrast', 'theme-minimal-ink');
+    body.classList.remove('theme-calm', 'theme-playful', 'theme-high-contrast', 'theme-minimal-ink');
     body.classList.add(`theme-${normalized.themePreset}`);
-    body.dataset.themePreset = normalized.themePreset;
 
     const uiLook = normalizeLook(normalized.uiLook);
     UI_LOOK_CLASSES.forEach((cls) => body.classList.remove(cls));
@@ -1618,7 +1590,7 @@
       panel.id = 'global-accessibility-tools';
       panel.className = 'global-accessibility-tools';
       panel.innerHTML = `
-        <summary>Theme & Accessibility</summary>
+        <summary>Accessibility</summary>
         <div class="global-accessibility-body">
           <label class="global-accessibility-font-label">Theme
             <select data-setting="themePreset">
@@ -1628,12 +1600,6 @@
               <option value="minimal-ink">Minimal Ink</option>
             </select>
           </label>
-          <div class="global-theme-swatches" aria-label="Theme previews">
-            <button type="button" class="theme-swatch calm" data-theme-swatch="calm" aria-label="Use Calm theme"></button>
-            <button type="button" class="theme-swatch playful" data-theme-swatch="playful" aria-label="Use Playful theme"></button>
-            <button type="button" class="theme-swatch high-contrast" data-theme-swatch="high-contrast" aria-label="Use High Contrast theme"></button>
-            <button type="button" class="theme-swatch minimal-ink" data-theme-swatch="minimal-ink" aria-label="Use Minimal Ink theme"></button>
-          </div>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
           <label><input type="checkbox" data-setting="reducedStimulation" /> Reduced stimulation</label>
           <label><input type="checkbox" data-setting="calmMode" /> Calm mode</label>
@@ -1661,10 +1627,6 @@
         input.checked = !!settings[key];
       }
     });
-    panel.querySelectorAll('[data-theme-swatch]').forEach((swatch) => {
-      const value = normalizeThemePreset(swatch.getAttribute('data-theme-swatch') || '');
-      swatch.classList.toggle('active', value === normalizeThemePreset(settings.themePreset));
-    });
 
     if (panel.dataset.bound !== 'true') {
       panel.dataset.bound = 'true';
@@ -1683,21 +1645,6 @@
         }
         platform.setSettings({ [key]: value });
         applyFocusModeLayout();
-      });
-      panel.addEventListener('click', (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement)) return;
-        const swatch = target.closest('[data-theme-swatch]');
-        if (!(swatch instanceof HTMLButtonElement)) return;
-        const nextTheme = normalizeThemePreset(swatch.getAttribute('data-theme-swatch') || '');
-        const select = panel.querySelector('select[data-setting="themePreset"]');
-        if (select instanceof HTMLSelectElement) {
-          select.value = nextTheme;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-        } else {
-          platform.setSettings({ themePreset: nextTheme });
-          applyFocusModeLayout();
-        }
       });
 
       const resetBtn = panel.querySelector('.global-accessibility-reset');
@@ -1765,43 +1712,6 @@
     }
   }
 
-  function hasPlacementRecommendation() {
-    const placement = safeParse(localStorage.getItem(PLACEMENT_KEY) || '');
-    return !!(placement && typeof placement === 'object' && placement.recommendation);
-  }
-
-  function navLockReasonForItem(item = null) {
-    if (!item || typeof item !== 'object') return '';
-    const role = readHomeRolePathway() || normalizeHomeRolePathway(localStorage.getItem('cm_role') || '');
-    if (role !== 'student') return '';
-    if (item.studentHidden) {
-      return 'Adult tools are locked in Student Mode. Use Adult View to unlock this section.';
-    }
-    if (item.id !== 'home' && !hasPlacementRecommendation()) {
-      return 'Complete Quick Check on Home to unlock activities.';
-    }
-    return '';
-  }
-
-  function showNavLockNotice(message = '') {
-    const text = String(message || '').trim() || 'This section is locked right now.';
-    let note = document.getElementById('global-nav-lock-note');
-    if (!note) {
-      note = document.createElement('div');
-      note.id = 'global-nav-lock-note';
-      note.className = 'global-nav-lock-note';
-      note.setAttribute('role', 'status');
-      note.setAttribute('aria-live', 'polite');
-      document.body.appendChild(note);
-    }
-    note.textContent = text;
-    note.classList.add('show');
-    window.clearTimeout(showNavLockNotice.timer);
-    showNavLockNotice.timer = window.setTimeout(() => {
-      note.classList.remove('show');
-    }, 3000);
-  }
-
   function createNavGroupMenu(group, currentId = '', currentFile = getCurrentPageFile()) {
     const resolvedItems = (group?.items || [])
       .map(resolveNavItem)
@@ -1821,26 +1731,21 @@
     panel.className = 'header-activity-panel';
 
     let groupIsActive = false;
+    let hiddenCount = 0;
     resolvedItems.forEach((item) => {
       const isActive = item.id === currentId || navHrefMatchesCurrentPage(item.href, currentFile);
       if (isActive) groupIsActive = true;
-      const lockReason = navLockReasonForItem(item);
-      const isLocked = !!lockReason && !isActive;
+      if (item.studentHidden) hiddenCount += 1;
 
       const link = document.createElement('a');
-      link.href = isLocked ? '#' : item.href;
-      link.className = `header-activity-link${isLocked ? ' locked' : ''}`;
+      link.href = item.href;
+      link.className = 'header-activity-link';
       link.textContent = item.label;
       if (item.studentHidden) {
-        link.setAttribute('data-role-restricted', 'true');
+        link.setAttribute('data-student-hidden', 'true');
       }
       if (item.action) {
         link.dataset.navAction = item.action;
-      }
-      if (isLocked) {
-        link.dataset.navLocked = 'true';
-        link.dataset.navLockReason = lockReason;
-        link.title = lockReason;
       }
       if (isActive) {
         link.classList.add('active');
@@ -1848,6 +1753,10 @@
       }
       panel.appendChild(link);
     });
+
+    if (hiddenCount === resolvedItems.length) {
+      details.setAttribute('data-student-hidden', 'true');
+    }
     if (groupIsActive) {
       summary.classList.add('active');
       summary.setAttribute('aria-current', 'page');
@@ -1921,7 +1830,7 @@
           <h2 id="voice-quick-title">Voice & Language</h2>
           <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
         </header>
-        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately.</p>
+        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately. Downloaded Azure packs still play automatically when available.</p>
         <label class="voice-quick-field">
           <span>English preset</span>
           <select id="voice-quick-dialect">
@@ -2000,10 +1909,36 @@
       const pool = englishVoices.length ? englishVoices : voices;
       if (!pool.length) return [];
       const target = String(dialect || 'en-US').toLowerCase();
-      const exact = pool.filter((voice) => String(voice.lang || '').toLowerCase() === target);
-      if (exact.length) return exact;
-      const prefix = pool.filter((voice) => String(voice.lang || '').toLowerCase().startsWith(target.split('-')[0]));
-      return prefix.length ? prefix : pool;
+      const targetBase = target.split('-')[0];
+      const scored = pool
+        .slice()
+        .sort((a, b) => {
+          const scoreVoice = (voice) => {
+            const lang = String(voice.lang || '').toLowerCase();
+            let score = 0;
+            if (lang === target) score += 120;
+            else if (lang.startsWith(`${target}-`)) score += 105;
+            else if (lang.startsWith(targetBase)) score += 70;
+            if (voice.default) score += 8;
+            if (voice.localService) score += 3;
+            return score;
+          };
+          const scoreDelta = scoreVoice(b) - scoreVoice(a);
+          if (scoreDelta !== 0) return scoreDelta;
+          const nameA = String(a.name || '').toLowerCase();
+          const nameB = String(b.name || '').toLowerCase();
+          if (nameA !== nameB) return nameA.localeCompare(nameB);
+          return String(a.voiceURI || '').localeCompare(String(b.voiceURI || ''));
+        });
+      const deduped = [];
+      const seen = new Set();
+      scored.forEach((voice) => {
+        const id = voiceIdentifier(voice);
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        deduped.push(voice);
+      });
+      return deduped;
     };
     const populateVoiceChoices = ({ preferredVoiceUri = '' } = {}) => {
       if (!(voiceSelect instanceof HTMLSelectElement)) return;
@@ -2226,29 +2161,10 @@
       nav.addEventListener('click', (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
-        const lockedLink = target.closest('[data-nav-locked="true"]');
-        if (lockedLink instanceof HTMLAnchorElement) {
-          event.preventDefault();
-          menus.forEach((menu) => menu.removeAttribute('open'));
-          showNavLockNotice(lockedLink.dataset.navLockReason || 'This section is locked right now.');
-          return;
-        }
         const actionLink = target.closest('[data-nav-action]');
         if (!(actionLink instanceof HTMLAnchorElement)) return;
         const action = (actionLink.dataset.navAction || '').trim();
-        if (!action) return;
-        if (action === 'open-theme') {
-          event.preventDefault();
-          menus.forEach((menu) => menu.removeAttribute('open'));
-          const panel = document.getElementById('global-accessibility-tools');
-          if (panel instanceof HTMLDetailsElement) {
-            panel.open = true;
-            const themeSelect = panel.querySelector('[data-setting="themePreset"]');
-            if (themeSelect instanceof HTMLElement) themeSelect.focus();
-          }
-          return;
-        }
-        if (currentId !== 'word-quest') return;
+        if (!action || currentId !== 'word-quest') return;
         event.preventDefault();
         menus.forEach((menu) => menu.removeAttribute('open'));
         window.dispatchEvent(new CustomEvent('cornerstone:tool-request', { detail: { action } }));
@@ -2441,7 +2357,6 @@
 
   ensureFavicon();
   renderBuildStamp();
-  registerVersionDebugCommand();
   renderPrimaryNav();
   applyStudentModeState();
   renderLearnerSwitchers();
