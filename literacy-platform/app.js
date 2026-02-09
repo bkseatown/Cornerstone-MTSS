@@ -11991,7 +11991,7 @@ function ensureMoreToolsMenu() {
             <a href="comprehension.html" class="more-tools-item" role="menuitem">Read & Think</a>
             <a href="fluency.html" class="more-tools-item" role="menuitem">Speed Sprint</a>
             <a href="madlibs.html" class="more-tools-item" role="menuitem">Silly Stories</a>
-            <a href="writing.html" class="more-tools-item" role="menuitem">Writing Studio</a>
+            <a href="writing-studio.html" class="more-tools-item" role="menuitem">Writing Studio</a>
             <a href="plan-it.html" class="more-tools-item" role="menuitem">Plan-It</a>
             <a href="number-sense.html" class="more-tools-item" role="menuitem">Number Sense</a>
             <a href="operations.html" class="more-tools-item" role="menuitem">Operations</a>

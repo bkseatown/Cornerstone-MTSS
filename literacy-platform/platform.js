@@ -133,7 +133,7 @@
         { activityId: 'comprehension', label: 'Read & Think' },
         { activityId: 'fluency', label: 'Speed Sprint' },
         { activityId: 'madlibs', label: 'Silly Stories' },
-        { activityId: 'writing', label: 'Writing Studio (Coming Soon)' },
+        { activityId: 'writing', label: 'Writing Studio' },
         { activityId: 'plan-it', label: 'Plan-It' }
       ]
     },
@@ -158,9 +158,9 @@
       label: 'Tools',
       items: [
         { id: 'guided-start', label: 'Guided Start', href: 'index.html#role-dashboard' },
-        { id: 'student-toolkit-nav', label: 'Student Toolkit (Coming Soon)', href: 'student-toolkit.html' },
-        { id: 'parent-toolkit-nav', label: 'Parent Toolkit (Coming Soon)', href: 'parent-toolkit.html' },
-        { id: 'school-toolkit-nav', label: 'School Team Toolkits (Coming Soon)', href: 'school-team-toolkit.html' },
+        { id: 'student-toolkit-nav', label: 'Student Toolkit', href: 'student-toolkit.html' },
+        { id: 'parent-toolkit-nav', label: 'Parent Toolkit', href: 'parent-toolkit.html' },
+        { id: 'school-toolkit-nav', label: 'School Team Toolkits', href: 'school-team-toolkit.html' },
         { id: 'theme-panel', label: 'Theme', href: '#theme', action: 'open-theme' },
         { id: 'session-setup', label: 'Session Setup', href: 'word-quest.html?tool=session', action: 'session-setup', studentHidden: true },
         { id: 'recording-studio', label: 'Recording Studio', href: 'word-quest.html?tool=studio', action: 'recording-studio', studentHidden: true },
@@ -210,8 +210,8 @@
       body: 'Run a 1-minute read, record WPM + accuracy, then set one concrete goal for tomorrow.'
     },
     writing: {
-      title: 'Writing Studio Preview',
-      body: 'This module is in active build. Open the preview roadmap and start from Quick Check in Home.'
+      title: 'Writing Studio Quick Start',
+      body: 'Choose a planner, draft one section at a time, then run the Step Up checklist and Revision Quest.'
     },
     'number-sense': {
       title: 'Number Sense Lab Quick Start',

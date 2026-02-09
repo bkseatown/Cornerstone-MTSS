@@ -3,61 +3,145 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS - Preview Module</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>CORNERSTONE MTSS — Writing Studio</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260209f" defer></script>
-    <script src="coming-soon.js?v=20260209f" defer></script>
+    <script src="platform.js?v=20260208d" defer></script>
+    <script src="writing.js" defer></script>
   </head>
-  <body class="coming-soon-page force-light look-35" data-coming-soon-id="writing-studio">
-    <header>
-      <div class="header-top">
-        <h1>
-          <a href="index.html">CORNERSTONE MTSS</a>
-        </h1>
-        <nav class="header-actions" aria-label="Primary">
-          <a class="link-btn" href="index.html">Home</a>
-        </nav>
+
+  <body class="writing-page force-light look-35">
+    <div class="writing-header">
+      <div>
+        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
+        <div class="writing-subtitle">Writing Studio: a digital, faster, and data-rich version of Step Up to Writing principles.</div>
       </div>
-    </header>
+      <nav class="header-actions" aria-label="Primary">
+        <a class="link-btn" href="index.html">Home</a>
+        <a class="link-btn" href="teacher-report.html">Reports</a>
+      </nav>
+    </div>
 
-    <main class="coming-soon-main">
-      <section class="coming-soon-shell" aria-label="Preview module">
-        <div class="coming-soon-kicker">Preview module - more coming soon</div>
-        <h2 id="coming-soon-title">Preview Module</h2>
-        <p id="coming-soon-subtitle" class="coming-soon-subtitle"></p>
-        <p id="coming-soon-alignment" class="coming-soon-alignment hidden"></p>
-
-        <div id="coming-soon-extra-top"></div>
-
-        <div class="coming-soon-grid">
-          <section class="coming-soon-block">
-            <h3>What this will do</h3>
-            <ul id="coming-soon-what"></ul>
-          </section>
-
-          <section class="coming-soon-block">
-            <h3>Who it helps</h3>
-            <div id="coming-soon-audience" class="coming-soon-chip-row"></div>
-          </section>
-
-          <section class="coming-soon-block">
-            <h3>What&apos;s available now</h3>
-            <ul id="coming-soon-now"></ul>
-          </section>
-
-          <section class="coming-soon-block">
-            <h3>Roadmap preview</h3>
-            <ul id="coming-soon-roadmap" class="coming-soon-roadmap"></ul>
-          </section>
+    <main class="writing-main">
+      <section class="writing-panel writing-panel-main" aria-label="Writing Studio">
+        <div class="writing-panel-header">
+          <div>
+            <h2>Plan → Draft → Check → Revise → Publish</h2>
+            <div class="writing-help">Build writing with Step Up-aligned frames: topic/claim, details/evidence, organization/transitions, and conventions.</div>
+          </div>
+          <div class="writing-controls" aria-label="Filters">
+            <select id="writing-grade" aria-label="Grade band"></select>
+            <select id="writing-genre" aria-label="Genre"></select>
+            <select id="writing-planner" aria-label="Planner template"></select>
+            <select id="writing-prompt" aria-label="Prompt"></select>
+            <button id="writing-shuffle" type="button" class="secondary-btn">Shuffle Prompt</button>
+          </div>
         </div>
 
-        <div id="coming-soon-extra-body"></div>
-
-        <div class="coming-soon-actions">
-          <button id="coming-soon-notify-btn" class="home-cta ghost" type="button">Notify me</button>
+        <div class="writing-prompt-card" aria-label="Current prompt">
+          <div id="writing-prompt-title" class="writing-prompt-title"></div>
+          <div id="writing-prompt-text" class="writing-prompt-text"></div>
         </div>
-        <p id="coming-soon-notify-status" class="coming-soon-notify" aria-live="polite"></p>
+
+        <div class="writing-stepper" role="tablist" aria-label="Writing steps">
+          <button type="button" class="writing-step-tab" data-step-tab="plan">Plan</button>
+          <button type="button" class="writing-step-tab" data-step-tab="draft">Draft</button>
+          <button type="button" class="writing-step-tab" data-step-tab="check">Check</button>
+          <button type="button" class="writing-step-tab" data-step-tab="revise">Revise</button>
+          <button type="button" class="writing-step-tab" data-step-tab="publish">Publish</button>
+        </div>
+
+        <section class="writing-step-panel" data-step-panel="plan" aria-label="Plan">
+          <div class="writing-frame-head">
+            <div id="writing-frame-title" class="writing-preview-title"></div>
+            <div id="writing-frame-description" class="writing-help"></div>
+          </div>
+          <div id="writing-plan-fields" class="writing-plan-grid" aria-label="Step Up planner"></div>
+          <div class="writing-step-actions">
+            <button id="writing-plan-next" type="button" class="primary-btn">Continue to Draft</button>
+          </div>
+        </section>
+
+        <section class="writing-step-panel" data-step-panel="draft" aria-label="Draft" hidden>
+          <div id="writing-draft-fields" class="writing-frame" aria-label="Draft frame"></div>
+          <div class="writing-step-actions">
+            <button id="writing-draft-to-check" type="button" class="primary-btn">Run Step Up Check</button>
+            <button id="writing-build" type="button" class="secondary-btn">Update Publish Draft</button>
+          </div>
+        </section>
+
+        <section class="writing-step-panel" data-step-panel="check" aria-label="Check" hidden>
+          <div class="writing-preview">
+            <div class="writing-preview-title">Step Up Checklist</div>
+            <div class="writing-help">Aligned to Step Up to Writing structure.</div>
+            <div class="writing-status-legend" aria-label="Status legend">
+              <span class="writing-status-chip status-ready">✅ Ready</span>
+              <span class="writing-status-chip status-growing">🟡 Growing</span>
+              <span class="writing-status-chip status-not-yet">🟣 Not yet</span>
+            </div>
+          </div>
+          <div id="writing-checklist" class="writing-checklist" aria-live="polite"></div>
+          <div id="writing-check-next" class="writing-feedback"></div>
+          <div class="writing-step-actions">
+            <button id="writing-check-to-revise" type="button" class="primary-btn">Open Revision Quest</button>
+          </div>
+        </section>
+
+        <section class="writing-step-panel" data-step-panel="revise" aria-label="Revise" hidden>
+          <div class="writing-controls">
+            <label for="writing-mission-depth">Glow Up Slider</label>
+            <select id="writing-mission-depth" aria-label="Revision depth">
+              <option value="quick">Quick polish (2 min)</option>
+              <option value="level-up" selected>Level up (5 min)</option>
+              <option value="deep">Deep revise (10 min)</option>
+            </select>
+            <button id="writing-missions-refresh" type="button" class="secondary-btn">Refresh Missions</button>
+          </div>
+          <div id="writing-missions" class="writing-missions" aria-live="polite"></div>
+          <div id="writing-mission-status" class="writing-feedback"></div>
+          <div class="writing-step-actions">
+            <button id="writing-revise-to-publish" type="button" class="primary-btn">Continue to Publish</button>
+          </div>
+        </section>
+
+        <section class="writing-step-panel" data-step-panel="publish" aria-label="Publish" hidden>
+          <div class="writing-preview" aria-label="Published writing">
+            <div class="writing-preview-title">Published Draft</div>
+            <div id="writing-preview-text" class="writing-preview-text"></div>
+          </div>
+          <div id="writing-session-summary" class="writing-feedback"></div>
+          <div class="writing-actions">
+            <button id="writing-copy" type="button" class="secondary-btn">Copy</button>
+            <button id="writing-print" type="button" class="secondary-btn">Print</button>
+            <button id="writing-save-session" type="button" class="primary-btn">Save Session</button>
+            <button id="writing-clear" type="button" class="secondary-btn">Start New Piece</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="writing-panel writing-panel-side" aria-label="Step Up supports">
+        <div class="writing-panel-header">
+          <div>
+            <h2>Drafting Sidebar</h2>
+            <div class="writing-help">Supports stay optional so teachers can fade scaffolds over time.</div>
+          </div>
+        </div>
+
+        <label class="writing-toggle" for="writing-supports-toggle">
+          <input id="writing-supports-toggle" type="checkbox" />
+          <span>Step Up supports</span>
+        </label>
+        <div class="writing-support-note">Teacher control for this learner.</div>
+
+        <div id="writing-starters" class="writing-starters" aria-label="Sentence starters"></div>
+
+        <div id="writing-supports" class="writing-supports" aria-label="Step Up supports panel"></div>
+
+        <div class="writing-preview">
+          <div class="writing-preview-title">Color of your thinking</div>
+          <div class="writing-help">Use strong topic/claim ideas, details/evidence, transitions/power words, and a clear conclusion.</div>
+        </div>
+
+        <div id="writing-feedback" class="writing-feedback" aria-live="polite"></div>
       </section>
     </main>
   </body>

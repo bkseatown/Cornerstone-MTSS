@@ -19,7 +19,7 @@
       audience: DEFAULT_AUDIENCE,
       now: [
         { label: 'Start with Quick Check', href: 'index.html#home-onboarding-wizard' },
-        { label: 'Open current Write and Build', href: 'writing.html' },
+        { label: 'Open Writing Studio', href: 'writing-studio.html' },
         { label: 'Open Intervention Studio', href: 'plan-it.html' }
       ],
       roadmap: [

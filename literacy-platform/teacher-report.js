@@ -106,7 +106,7 @@
     comprehension: 'comprehension.html',
     fluency: 'fluency.html',
     madlibs: 'madlibs.html',
-    writing: 'writing.html',
+    writing: 'writing-studio.html',
     'plan-it': 'plan-it.html',
     'number-sense': 'number-sense.html',
     operations: 'operations.html',

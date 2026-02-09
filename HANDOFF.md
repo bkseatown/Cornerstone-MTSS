@@ -298,6 +298,42 @@ git push origin main
 3. Run focused visual regression (`home` + `word-quest`) and keep artifact outputs out of commits.
 4. Re-rate the four stabilization priorities after that sweep.
 
+## 2026-02-09 Writing Studio full-build slice
+### What changed
+- `literacy-platform/writing-studio.html`
+  - Replaced placeholder with full production Writing Studio shell (Plan -> Draft -> Check -> Revise -> Publish) and Step Up supports sidebar.
+  - Added planner selector UI (`#writing-planner`) so organizer templates are explicit in the workflow.
+- `literacy-platform/writing.js`
+  - Added planner framework with selectable templates: `Step Up Frame`, `Idea Web`, `Boxes + Bullets`, `Narrative Mountain`, `5-Paragraph Frame` (3-5), `CER/OREO` (6-12).
+  - Kept deterministic non-AI checks/missions and Step Up labels (`topic sentence`, `details/evidence`, `conclusion`, `transitions/power words`).
+  - Added planner persistence to localStorage state and planner-aware plan->draft syncing.
+- `literacy-platform/platform.js`, `literacy-platform/home.js`
+  - Removed writing/toolkit "Coming Soon" wording where feature is now live.
+  - Updated Writing quick-start guidance copy to reflect active workflow.
+- `literacy-platform/teacher-report.js`, `literacy-platform/plan-it.js`, `literacy-platform/app.js`, `literacy-platform/coming-soon.js`
+  - Updated Writing links to `writing-studio.html` for consistency.
+- `literacy-platform/writing.html`
+  - Added planner selector for parity with `writing-studio.html` (legacy entry path still works).
+
+### Validated
+- Syntax checks:
+  - `node --check writing.js`
+  - `node --check platform.js`
+  - `node --check home.js`
+  - `node --check teacher-report.js`
+  - `node --check plan-it.js`
+  - `node --check coming-soon.js`
+  - `node --check app.js`
+- Regression/behavior checks:
+  - `/tmp/wordquest_regression.js` passed (`docOverflow=0` for desktop + iPad test viewports; vowel key and voice controls present).
+  - Custom Playwright smoke:
+    - Home starts with only step 1 visible (`visiblePanels:[1]`, details hidden pre-check).
+    - Writing Studio loads with planner selector present and Step Up supports label visible.
+
+### Known issues / notes
+- Existing helper script `/tmp/home_flow_check.js` currently fails because it does not select a required student grade-band button before moving from Step 2; this is a script assumption mismatch, not a new runtime JS syntax failure.
+- Large in-progress TTS outputs under `literacy-platform/audio/tts/packs/ava-multi/*` remain uncommitted in this slice by design.
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.

@@ -2918,7 +2918,7 @@
         copy: 'Follow one short path at a time and keep your streak moving.',
         actions: [
           { label: 'Start Recommended Path', href: focusHref, kind: 'primary' },
-          { label: 'Student Toolkit (Coming Soon)', href: 'student-toolkit.html', kind: 'ghost' },
+          { label: 'Student Toolkit', href: 'student-toolkit.html', kind: 'ghost' },
           { label: 'Open Fluency Studio', href: 'fluency.html', kind: 'ghost' },
           { label: 'View Progress', href: 'teacher-report.html?role=student#report-outcomes', kind: 'ghost' }
         ]
@@ -2928,7 +2928,7 @@
         copy: 'Use one clear home action tonight, then share progress back to school.',
         actions: [
           { label: 'Tonight Plan', href: focusHref, kind: 'primary' },
-          { label: 'Parent Toolkit (Coming Soon)', href: 'parent-toolkit.html', kind: 'ghost' },
+          { label: 'Parent Toolkit', href: 'parent-toolkit.html', kind: 'ghost' },
           { label: 'Parent Report', href: 'teacher-report.html?role=parent#report-parent-communication', kind: 'ghost' },
           { label: 'Open Tools', href: 'plan-it.html', kind: 'ghost' }
         ]
@@ -2938,7 +2938,7 @@
         copy: 'Use quick evidence, form groups, then launch the next intervention block.',
         actions: [
           { label: 'Open Teacher Report', href: `teacher-report.html?role=${encodeURIComponent(roleId)}`, kind: 'primary' },
-          { label: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit (Coming Soon)`, href: roleToolkitHref(roleId), kind: 'ghost' },
+          { label: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit`, href: roleToolkitHref(roleId), kind: 'ghost' },
           { label: 'Launch Word Quest', href: defaultWordQuestHref, kind: 'ghost' },
           { label: 'Launch Number Sense', href: numeracyHref, kind: 'ghost' }
         ]
@@ -2987,20 +2987,20 @@
     const tiles = entryGroup === 'student'
       ? [
           { title: 'Start Recommended Path', body: 'Continue from your Quick Check result.', href: recommendedHref },
-          { title: 'Student Toolkit (Coming Soon)', body: 'Streaks, strategy badges, and guided practice flow.', href: 'student-toolkit.html' },
-          { title: 'Writing Studio (Coming Soon)', body: 'Plan, draft, revise, publish with clear scaffolds.', href: 'writing-studio.html' },
+          { title: 'Student Toolkit', body: 'Streaks, strategy badges, and guided practice flow.', href: 'student-toolkit.html' },
+          { title: 'Writing Studio', body: 'Plan, draft, revise, publish with clear scaffolds.', href: 'writing-studio.html' },
           { title: 'Explore Math & Numbers', body: 'Quick number sense and strategy routines.', href: 'number-sense.html' }
         ]
       : entryGroup === 'parent'
         ? [
-            { title: 'Parent Toolkit (Coming Soon)', body: 'How to help tonight with calm, clear routines.', href: 'parent-toolkit.html' },
+            { title: 'Parent Toolkit', body: 'How to help tonight with calm, clear routines.', href: 'parent-toolkit.html' },
             { title: 'Start Recommended Path', body: 'One clear activity to run tonight.', href: recommendedHref },
-            { title: 'Writing Studio (Coming Soon)', body: 'Step Up-aligned writing support in one place.', href: 'writing-studio.html' },
+            { title: 'Writing Studio', body: 'Step Up-aligned writing support in one place.', href: 'writing-studio.html' },
             { title: 'View Parent Report', body: 'Progress snapshot you can share with school.', href: 'teacher-report.html?role=parent#report-parent-communication' }
           ]
         : [
             { title: 'School Team Toolkit Hub', body: 'Role-specific toolkit pages and roadmap previews.', href: 'school-team-toolkit.html' },
-            { title: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit (Coming Soon)`, body: 'Role-aligned workflows and intervention supports.', href: schoolToolkitHref },
+            { title: `${HOME_ROLE_LABELS[roleId] || 'School Team'} Toolkit`, body: 'Role-aligned workflows and intervention supports.', href: schoolToolkitHref },
             { title: 'Start Recommended Path', body: 'Launch the top activity from Quick Check.', href: recommendedHref },
             { title: 'Open Impact Dashboard', body: 'View trends, groups, and report outputs.', href: `teacher-report.html?role=${encodeURIComponent(roleId)}` }
           ];

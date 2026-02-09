@@ -212,6 +212,7 @@ const STEP_ORDER = ['plan', 'draft', 'check', 'revise', 'publish'];
 
 const gradeSelect = document.getElementById('writing-grade');
 const genreSelect = document.getElementById('writing-genre');
+const plannerSelect = document.getElementById('writing-planner');
 const promptSelect = document.getElementById('writing-prompt');
 const shuffleBtn = document.getElementById('writing-shuffle');
 
@@ -256,6 +257,7 @@ const supportsEl = document.getElementById('writing-supports');
 const state = {
   grade: '3-5',
   genre: 'opinion',
+  planner: 'sutw-frame',
   promptId: '',
   step: 'plan',
   missionDepth: 'level-up',
@@ -310,6 +312,34 @@ function listGenres(grade) {
   return Object.keys(WRITING_PROMPTS[grade] || {});
 }
 
+function listPlannerOptions(grade, genre) {
+  const options = [
+    { id: 'sutw-frame', label: 'Step Up Frame' },
+    { id: 'idea-web', label: 'Idea Web' },
+    { id: 'boxes-bullets', label: 'Boxes + Bullets' }
+  ];
+
+  if (genre === 'narrative') {
+    options.push({ id: 'narrative-mountain', label: 'Narrative Mountain' });
+  }
+
+  if (grade === '3-5') {
+    options.push({ id: 'five-paragraph', label: '5-Paragraph Frame' });
+  }
+
+  if (isUpperGrade(grade)) {
+    options.push({ id: 'cer-oreo', label: 'CER / OREO Frame' });
+  }
+
+  return options;
+}
+
+function defaultPlannerFor(grade, genre) {
+  if (genre === 'narrative') return 'narrative-mountain';
+  if (isUpperGrade(grade) && (genre === 'argument' || genre === 'opinion' || genre === 'informational')) return 'cer-oreo';
+  return 'sutw-frame';
+}
+
 function genreLabel(genre) {
   if (genre === 'opinion') return 'Opinion';
   if (genre === 'argument') return 'Opinion / Argument';
@@ -353,6 +383,15 @@ function ensureValidState() {
   if (!hasPrompt) {
     state.promptId = pool[0].id;
   }
+
+  const plannerOptions = listPlannerOptions(state.grade, state.genre);
+  const plannerIds = plannerOptions.map((item) => item.id);
+  if (!plannerIds.includes(state.planner)) {
+    state.planner = defaultPlannerFor(state.grade, state.genre);
+    if (!plannerIds.includes(state.planner)) {
+      state.planner = plannerIds[0] || 'sutw-frame';
+    }
+  }
 }
 
 function buildSelectOptions() {
@@ -366,13 +405,18 @@ function buildSelectOptions() {
     .join('');
   genreSelect.value = state.genre;
 
+  plannerSelect.innerHTML = listPlannerOptions(state.grade, state.genre)
+    .map((planner) => `<option value="${planner.id}">${planner.label}</option>`)
+    .join('');
+  plannerSelect.value = state.planner;
+
   promptSelect.innerHTML = promptPool()
     .map((prompt) => `<option value="${prompt.id}">${prompt.title}</option>`)
     .join('');
   promptSelect.value = state.promptId;
 }
 
-function getFrameConfig(grade, genre) {
+function getBaseFrameConfig(grade, genre) {
   if (genre === 'narrative') {
     return {
       id: 'sutw-narrative',
@@ -459,6 +503,147 @@ function getFrameConfig(grade, genre) {
       { key: 'detail3', label: 'Detail 3', placeholder: 'Support your topic with detail three.' },
       { key: 'conclusion', label: 'Conclusion', placeholder: 'Write a strong conclusion.' }
     ]
+  };
+}
+
+function planField(key, label, placeholder) {
+  return { key, label, placeholder };
+}
+
+function buildPlannerConfig(baseFrame, plannerId) {
+  if (plannerId === 'idea-web') {
+    return {
+      id: 'idea-web',
+      title: 'Idea Web Planner',
+      description: 'Capture core ideas before drafting: who, where, what happened, and why it matters.',
+      planToDraftMap: {
+        mainIdea: baseFrame.kind === 'argument' ? 'thesis' : (baseFrame.kind === 'narrative' ? 'beginning' : 'topicSentence'),
+        whatHappened: baseFrame.kind === 'narrative' ? 'middle' : (baseFrame.kind === 'argument' ? 'reason1Evidence' : 'detail1'),
+        whyItMatters: baseFrame.kind === 'argument' ? 'conclusion' : (baseFrame.kind === 'narrative' ? 'end' : 'conclusion')
+      },
+      planFields: [
+        planField('mainIdea', 'Main idea / Topic', 'What is this piece mostly about?'),
+        planField('who', 'Who', 'Who is involved?'),
+        planField('where', 'Where', 'Where does this happen?'),
+        planField('whatHappened', 'What happened / key detail', 'Write one key detail or event.'),
+        planField('whyItMatters', 'Why it matters', 'Why should the reader care?'),
+        planField('detailsKnow', 'Details I know', 'List quick facts, evidence, or examples.')
+      ]
+    };
+  }
+
+  if (plannerId === 'boxes-bullets') {
+    return {
+      id: 'boxes-bullets',
+      title: 'Boxes + Bullets Planner',
+      description: 'Use one box for the main idea and bullets for support.',
+      planToDraftMap: {
+        mainIdea: baseFrame.kind === 'argument' ? 'thesis' : (baseFrame.kind === 'narrative' ? 'beginning' : 'topicSentence'),
+        bullet1: baseFrame.kind === 'argument' ? 'reason1Evidence' : (baseFrame.kind === 'narrative' ? 'middle' : 'detail1'),
+        bullet2: baseFrame.kind === 'argument' ? 'reason2Evidence' : (baseFrame.kind === 'narrative' ? 'middle' : 'detail2'),
+        bullet3: baseFrame.kind === 'argument' ? 'counterargument' : (baseFrame.kind === 'narrative' ? 'middle' : 'detail3'),
+        wrapUp: baseFrame.kind === 'narrative' ? 'end' : 'conclusion'
+      },
+      planFields: [
+        planField('mainIdea', 'Main idea box', 'Write your big idea or claim.'),
+        planField('bullet1', 'Bullet 1', 'Add your first supporting idea.'),
+        planField('bullet2', 'Bullet 2', 'Add your second supporting idea.'),
+        planField('bullet3', 'Bullet 3', 'Add another support or counterpoint.'),
+        planField('wrapUp', 'Wrap-up', 'How will you close strongly?')
+      ]
+    };
+  }
+
+  if (plannerId === 'narrative-mountain') {
+    return {
+      id: 'narrative-mountain',
+      title: 'Narrative Mountain Planner',
+      description: 'Plan beginning, problem, rising events, climax, and resolution before drafting.',
+      planToDraftMap: {
+        settingCharacters: 'beginning',
+        problem: 'middle',
+        event1: 'middle',
+        climax: 'middle',
+        resolution: 'end'
+      },
+      planFields: [
+        planField('settingCharacters', 'Beginning (Setting + Characters)', 'Where are we and who is involved?'),
+        planField('problem', 'Middle (Problem)', 'What problem begins the story?'),
+        planField('event1', 'Middle (Events)', 'What key events happen next?'),
+        planField('climax', 'Middle (Climax)', 'What is the turning point?'),
+        planField('resolution', 'End (Resolution)', 'How is the problem resolved?'),
+        planField('transitionsPower', 'Transitions / Power words', 'first, then, suddenly, finally...')
+      ]
+    };
+  }
+
+  if (plannerId === 'five-paragraph') {
+    return {
+      id: 'five-paragraph',
+      title: '5-Paragraph Organizer',
+      description: 'Use topic sentence, details, and conclusion in a clear paragraph frame.',
+      planToDraftMap: {
+        topicSentence: 'topicSentence',
+        detail1: 'detail1',
+        detail2: 'detail2',
+        detail3: 'detail3',
+        conclusion: 'conclusion'
+      },
+      planFields: [
+        planField('topicSentence', 'Topic sentence', 'State your topic clearly.'),
+        planField('detail1', 'Detail 1', 'Add one supporting detail.'),
+        planField('detail2', 'Detail 2', 'Add a second supporting detail.'),
+        planField('detail3', 'Detail 3', 'Add a third supporting detail.'),
+        planField('conclusion', 'Conclusion', 'Wrap up your thinking.')
+      ]
+    };
+  }
+
+  if (plannerId === 'cer-oreo') {
+    return {
+      id: 'cer-oreo',
+      title: 'CER / OREO Planner',
+      description: 'Claim/Thesis, reasons, evidence, optional counterpoint, and conclusion.',
+      planToDraftMap: {
+        claim: 'thesis',
+        reason1Evidence: 'reason1Evidence',
+        reason2Evidence: 'reason2Evidence',
+        counterpoint: 'counterargument',
+        conclusion: 'conclusion'
+      },
+      planFields: [
+        planField('claim', 'Thesis / Claim', 'State your clear position.'),
+        planField('reason1Evidence', 'Reason 1 + Evidence', 'Add your first reason and proof.'),
+        planField('reason2Evidence', 'Reason 2 + Evidence', 'Add your second reason and proof.'),
+        planField('counterpoint', 'Counterargument (optional)', 'What might someone disagree with?'),
+        planField('conclusion', 'Conclusion', 'Close by reinforcing your claim.')
+      ]
+    };
+  }
+
+  return {
+    id: 'sutw-frame',
+    title: baseFrame.title,
+    description: baseFrame.description,
+    planToDraftMap: baseFrame.planFields.reduce((acc, field) => {
+      if (baseFrame.draftFields.some((draftField) => draftField.key === field.key)) acc[field.key] = field.key;
+      return acc;
+    }, {}),
+    planFields: baseFrame.planFields
+  };
+}
+
+function getFrameConfig(grade, genre, plannerId = state.planner) {
+  const baseFrame = getBaseFrameConfig(grade, genre);
+  const planner = buildPlannerConfig(baseFrame, plannerId);
+  return {
+    ...baseFrame,
+    id: `${baseFrame.id}::${planner.id}`,
+    plannerId: planner.id,
+    title: planner.title,
+    description: planner.description,
+    planFields: planner.planFields,
+    planToDraftMap: planner.planToDraftMap || {}
   };
 }
 
@@ -874,13 +1059,38 @@ function setStep(stepId) {
 }
 
 function syncPlanToDraftIfEmpty(key, value) {
-  const frame = getFrameConfig(state.grade, state.genre);
-  const hasMatchingDraftField = frame.draftFields.some((field) => field.key === key);
-  if (!hasMatchingDraftField) return;
-  if (!nonEmpty(state.draftData[key])) {
-    state.draftData[key] = value;
-    const textarea = draftFieldsEl.querySelector(`[data-draft-key="${key}"]`);
-    if (textarea) textarea.value = value;
+  const frame = getFrameConfig(state.grade, state.genre, state.planner);
+  const mapped = frame.planToDraftMap?.[key];
+  const draftTargets = Array.isArray(mapped)
+    ? mapped
+    : mapped
+      ? [mapped]
+      : (frame.draftFields.some((field) => field.key === key) ? [key] : []);
+
+  draftTargets.forEach((draftKey) => {
+    const nextValue = String(value || '').trim();
+    if (!nextValue) return;
+    const currentValue = String(state.draftData[draftKey] || '').trim();
+    if (!currentValue) {
+      state.draftData[draftKey] = nextValue;
+    } else if (draftKey !== key && !currentValue.toLowerCase().includes(nextValue.toLowerCase())) {
+      state.draftData[draftKey] = `${currentValue} ${nextValue}`.trim();
+    }
+    const textarea = draftFieldsEl.querySelector(`[data-draft-key="${draftKey}"]`);
+    if (textarea) textarea.value = state.draftData[draftKey];
+  });
+}
+
+function resetPlannerData() {
+  state.planData = {};
+  state.missions = [];
+  state.checks = [];
+  state.nextStep = '';
+  state.dimensions = {
+    topicClaim: 'not-assessed',
+    detailsEvidence: 'not-assessed',
+    organizationTransitions: 'not-assessed',
+    conventions: 'not-assessed'
   }
 }
 
@@ -930,8 +1140,9 @@ function toSessionRecord(result) {
     learnerName: learner?.name || 'Learner',
     gradeBand: state.grade,
     genre: state.genre,
+    planner: state.planner,
     promptId: state.promptId,
-    frameId: getFrameConfig(state.grade, state.genre).id,
+    frameId: getFrameConfig(state.grade, state.genre, state.planner).id,
     text: result.text,
     wordCount: result.wordCount,
     dimensions: result.dimensions,
@@ -1008,6 +1219,7 @@ function saveState() {
   const payload = {
     grade: state.grade,
     genre: state.genre,
+    planner: state.planner,
     promptId: state.promptId,
     step: state.step,
     missionDepth: state.missionDepth,
@@ -1029,6 +1241,7 @@ function loadState() {
 
   state.grade = raw.grade || state.grade;
   state.genre = raw.genre || state.genre;
+  state.planner = raw.planner || state.planner;
   state.promptId = raw.promptId || state.promptId;
   state.step = STEP_ORDER.includes(raw.step) ? raw.step : state.step;
   state.missionDepth = raw.missionDepth || state.missionDepth;
@@ -1070,6 +1283,8 @@ function handleGradeChange() {
   }
   const pool = promptPool();
   state.promptId = pool[0]?.id || '';
+  state.planner = defaultPlannerFor(state.grade, state.genre);
+  resetPlannerData();
   state.step = 'plan';
   refreshAll();
   saveState();
@@ -1079,8 +1294,19 @@ function handleGenreChange() {
   state.genre = genreSelect.value;
   const pool = promptPool();
   state.promptId = pool[0]?.id || '';
+  state.planner = defaultPlannerFor(state.grade, state.genre);
+  resetPlannerData();
   state.step = 'plan';
   refreshAll();
+  saveState();
+}
+
+function handlePlannerChange() {
+  state.planner = plannerSelect.value;
+  resetPlannerData();
+  state.step = 'plan';
+  refreshAll();
+  feedbackEl.textContent = 'Planner updated. Draft frame stays Step Up aligned.';
   saveState();
 }
 
@@ -1153,6 +1379,7 @@ function wireFieldEvents() {
 function wireUiEvents() {
   gradeSelect.addEventListener('change', handleGradeChange);
   genreSelect.addEventListener('change', handleGenreChange);
+  plannerSelect.addEventListener('change', handlePlannerChange);
   promptSelect.addEventListener('change', handlePromptChange);
   shuffleBtn.addEventListener('click', shufflePrompt);
 
@@ -1213,6 +1440,7 @@ function init() {
 
   state.grade = getDefaultGradeBand();
   state.genre = listGenres(state.grade)[0] || 'opinion';
+  state.planner = defaultPlannerFor(state.grade, state.genre);
   state.promptId = promptPool()[0]?.id || '';
 
   loadState();
