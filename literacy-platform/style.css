@@ -1598,7 +1598,7 @@ body.assessments-page {
 }
 
 .home-report-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 .home-field-label {
@@ -2462,7 +2462,7 @@ body.report-page {
 
 #report-media-status.error,
 #report-media-modal-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 .report-media-overlay {
@@ -2588,7 +2588,7 @@ body.report-page {
 }
 
 #report-numeracy-import-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 #report-parent-message-status.success {
@@ -2596,7 +2596,7 @@ body.report-page {
 }
 
 #report-parent-message-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 #report-timeline-status.success {
@@ -2604,7 +2604,7 @@ body.report-page {
 }
 
 #report-timeline-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 #report-iesp-status.success {
@@ -2612,7 +2612,7 @@ body.report-page {
 }
 
 #report-iesp-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 #report-sprint-status.success {
@@ -2620,7 +2620,7 @@ body.report-page {
 }
 
 #report-sprint-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 #report-demo-status.success {
@@ -2628,7 +2628,7 @@ body.report-page {
 }
 
 #report-demo-status.error {
-    color: #991b1b;
+    color: #92400e;
 }
 
 .report-protocol-grid {
@@ -3001,9 +3001,9 @@ body.report-page {
 }
 
 .report-sprint-lane-red {
-    border-color: rgba(239, 68, 68, 0.45);
-    background: rgba(254, 242, 242, 0.92);
-    color: #991b1b;
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(255, 251, 235, 0.92);
+    color: #92400e;
 }
 
 .report-sprint-lane-yellow {
@@ -3040,6 +3040,120 @@ body.report-page {
     font-size: 0.83rem;
     font-weight: 650;
     line-height: 1.35;
+}
+
+.report-writing-progress-grid {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.report-writing-progress-card {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.84);
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
+}
+
+.report-writing-progress-card h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #334155;
+}
+
+.report-writing-progress-meta {
+    color: #1f2937;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    font-weight: 650;
+}
+
+.report-writing-progress-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    color: #334155;
+    font-size: 0.84rem;
+    font-weight: 650;
+}
+
+.report-writing-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(248, 250, 252, 0.9);
+    color: #334155;
+    font-size: 0.74rem;
+    font-weight: 850;
+    padding: 2px 8px;
+}
+
+.report-writing-status-ready {
+    border-color: rgba(34, 197, 94, 0.42);
+    background: rgba(220, 252, 231, 0.95);
+    color: #166534;
+}
+
+.report-writing-status-growing {
+    border-color: rgba(245, 158, 11, 0.44);
+    background: rgba(254, 243, 199, 0.95);
+    color: #92400e;
+}
+
+.report-writing-status-not-yet {
+    border-color: rgba(148, 163, 184, 0.5);
+    background: rgba(241, 245, 249, 0.95);
+    color: #475569;
+}
+
+.report-writing-status-not-assessed {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(248, 250, 252, 0.9);
+    color: #64748b;
+}
+
+.report-writing-trend-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.report-writing-trend-row {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    background: rgba(248, 250, 252, 0.9);
+    padding: 8px 10px;
+    display: grid;
+    gap: 6px;
+}
+
+.report-writing-trend-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #0f172a;
+    font-size: 0.83rem;
+    font-weight: 800;
+}
+
+.report-writing-trend-history {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.report-writing-trend-arrow {
+    color: #475569;
+    font-weight: 900;
+    font-size: 0.78rem;
 }
 
 .report-heatmap-wrap {
@@ -3096,8 +3210,8 @@ body.report-page {
 }
 
 .heat-cell.heat-low {
-    background: #fee2e2;
-    color: #991b1b;
+    background: #e2e8f0;
+    color: #334155;
 }
 
 .heat-cell.heat-empty {
@@ -10812,6 +10926,172 @@ body.writing-page {
     align-items: center;
 }
 
+.writing-stepper {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.writing-step-tab {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #334155;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 8px 10px;
+    min-height: 40px;
+    text-align: center;
+}
+
+.writing-step-tab.is-active {
+    border-color: rgba(99, 102, 241, 0.58);
+    background: rgba(224, 231, 255, 0.82);
+    color: #312e81;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.writing-step-tab.is-locked,
+.writing-step-tab:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    color: #64748b;
+}
+
+.writing-step-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.writing-step-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.writing-status-legend {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.writing-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    background: rgba(248, 250, 252, 0.9);
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 3px 9px;
+}
+
+.writing-status-chip.status-ready {
+    border-color: rgba(34, 197, 94, 0.42);
+    background: rgba(220, 252, 231, 0.92);
+    color: #166534;
+}
+
+.writing-status-chip.status-growing {
+    border-color: rgba(245, 158, 11, 0.46);
+    background: rgba(254, 243, 199, 0.95);
+    color: #92400e;
+}
+
+.writing-status-chip.status-not-yet {
+    border-color: rgba(148, 163, 184, 0.5);
+    background: rgba(241, 245, 249, 0.96);
+    color: #475569;
+}
+
+.writing-checklist {
+    display: grid;
+    gap: 8px;
+}
+
+.writing-check-item {
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.writing-check-item.status-ready {
+    border-color: rgba(34, 197, 94, 0.38);
+    background: rgba(240, 253, 244, 0.9);
+}
+
+.writing-check-item.status-growing {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(255, 251, 235, 0.9);
+}
+
+.writing-check-item.status-not-yet {
+    border-color: rgba(148, 163, 184, 0.45);
+    background: rgba(248, 250, 252, 0.92);
+}
+
+.writing-check-title {
+    font-size: 0.9rem;
+    font-weight: 850;
+    color: #0f172a;
+}
+
+.writing-missions {
+    display: grid;
+    gap: 8px;
+}
+
+.writing-mission {
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
+}
+
+.writing-mission.done {
+    border-color: rgba(34, 197, 94, 0.44);
+    background: rgba(240, 253, 244, 0.9);
+}
+
+.writing-mission label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-weight: 760;
+    color: #0f172a;
+}
+
+.writing-mission input[type="checkbox"] {
+    margin-top: 2px;
+}
+
+.writing-support-block {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 12px;
+    display: grid;
+    gap: 6px;
+}
+
+.writing-support-block strong {
+    color: #0f172a;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 .writing-prompt-card {
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.35);
@@ -10966,6 +11246,16 @@ body.writing-page {
     }
 
     .writing-plan-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .writing-stepper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .writing-stepper {
         grid-template-columns: 1fr;
     }
 }

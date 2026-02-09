@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="platform.js?v=20260208d" defer></script>
     <script src="class-blocks.js" defer></script>
-    <script src="teacher-report.js" defer></script>
+    <script src="teacher-report.js?v=20260209g" defer></script>
   </head>
 
   <body class="report-page force-light look-35">
@@ -640,6 +640,7 @@
           <button id="report-parent-save" class="secondary-btn" type="button">Save Message</button>
         </div>
         <div id="report-parent-message-output" class="report-protocol-output"></div>
+        <div id="report-parent-writing-trend" class="report-bench-note"></div>
         <div class="report-media-slot" data-media-slot="parent-pathway"></div>
         <div id="report-parent-message-status" class="muted"></div>
       </section>
@@ -722,6 +723,14 @@
           <p class="home-subtitle">Mastery is estimated from activity performance and completion evidence.</p>
           <p class="home-subtitle">Aligned to Step Up to Writing structure.</p>
         </div>
+        <div class="report-writing-progress-grid" aria-label="Writing progress snapshot and trends">
+          <article id="report-writing-snapshot" class="report-writing-progress-card"></article>
+          <article id="report-writing-trends" class="report-writing-progress-card"></article>
+        </div>
+        <div class="report-actions">
+          <button id="report-writing-copy" class="secondary-btn" type="button">Copy Writing Snapshot</button>
+        </div>
+        <div id="report-writing-status" class="muted"></div>
         <div class="report-heatmap-wrap">
           <table id="report-writing-heatmap" class="report-heatmap">
             <thead></thead>

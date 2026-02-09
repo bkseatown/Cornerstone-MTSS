@@ -209,6 +209,15 @@ const SESSIONS_KEY = 'cornerstone_writing_sessions_v2';
 const SUPPORT_PREF_PREFIX = 'cornerstone_stepup_supports_v1::';
 
 const STEP_ORDER = ['plan', 'draft', 'check', 'revise', 'publish'];
+const MIN_PLAN_FIELDS_REQUIRED = 2;
+const MIN_DRAFT_WORDS_REQUIRED = 8;
+
+const EMPTY_DIMENSIONS = Object.freeze({
+  topicClaim: 'not-assessed',
+  detailsEvidence: 'not-assessed',
+  organizationTransitions: 'not-assessed',
+  conventions: 'not-assessed'
+});
 
 const gradeSelect = document.getElementById('writing-grade');
 const genreSelect = document.getElementById('writing-genre');
@@ -254,6 +263,24 @@ const clearBtn = document.getElementById('writing-clear');
 const supportsToggleEl = document.getElementById('writing-supports-toggle');
 const supportsEl = document.getElementById('writing-supports');
 
+function cloneDimensions() {
+  return {
+    topicClaim: EMPTY_DIMENSIONS.topicClaim,
+    detailsEvidence: EMPTY_DIMENSIONS.detailsEvidence,
+    organizationTransitions: EMPTY_DIMENSIONS.organizationTransitions,
+    conventions: EMPTY_DIMENSIONS.conventions
+  };
+}
+
+function defaultWorkflowState() {
+  return {
+    checkRun: false,
+    reviseDone: false,
+    publishVisited: false,
+    lastCheckedText: ''
+  };
+}
+
 const state = {
   grade: '3-5',
   genre: 'opinion',
@@ -264,16 +291,12 @@ const state = {
   planData: {},
   draftData: {},
   checks: [],
-  dimensions: {
-    topicClaim: 'not-assessed',
-    detailsEvidence: 'not-assessed',
-    organizationTransitions: 'not-assessed',
-    conventions: 'not-assessed'
-  },
+  dimensions: cloneDimensions(),
   nextStep: '',
   missions: [],
   supportsEnabled: true,
-  publishText: ''
+  publishText: '',
+  workflow: defaultWorkflowState()
 };
 
 function applyLightTheme() {
@@ -364,6 +387,10 @@ function getDefaultGradeBand() {
 }
 
 function ensureValidState() {
+  if (!state.workflow || typeof state.workflow !== 'object') {
+    state.workflow = defaultWorkflowState();
+  }
+
   if (!WRITING_PROMPTS[state.grade]) {
     state.grade = getDefaultGradeBand();
   }
@@ -391,6 +418,10 @@ function ensureValidState() {
     if (!plannerIds.includes(state.planner)) {
       state.planner = plannerIds[0] || 'sutw-frame';
     }
+  }
+
+  if (!state.dimensions || typeof state.dimensions !== 'object') {
+    state.dimensions = cloneDimensions();
   }
 }
 
@@ -729,6 +760,87 @@ function clampStatus(statuses) {
   return 'not-assessed';
 }
 
+function countFilledPlanFields(frame) {
+  return frame.planFields.reduce((count, field) => count + (nonEmpty(state.planData[field.key]) ? 1 : 0), 0);
+}
+
+function stepHint(stepId, access) {
+  if (stepId === 'draft') {
+    return `Add at least ${access.stats.planRequired} Step Up plan field${access.stats.planRequired === 1 ? '' : 's'} before drafting.`;
+  }
+  if (stepId === 'check') {
+    return `Write at least ${MIN_DRAFT_WORDS_REQUIRED} words in Draft before running Step Up Check.`;
+  }
+  if (stepId === 'revise') {
+    return 'Run Step Up Check first so Revision Missions are generated.';
+  }
+  if (stepId === 'publish') {
+    return 'Complete at least one Revision Mission before publishing.';
+  }
+  return '';
+}
+
+function computeStepAccess() {
+  const frame = getFrameConfig(state.grade, state.genre, state.planner);
+  const planFilled = countFilledPlanFields(frame);
+  const planRequired = Math.max(1, Math.min(frame.planFields.length, MIN_PLAN_FIELDS_REQUIRED));
+  const draftWordTotal = wordCount(getDraftText(frame));
+
+  return {
+    plan: true,
+    draft: planFilled >= planRequired,
+    check: draftWordTotal >= MIN_DRAFT_WORDS_REQUIRED,
+    revise: !!state.workflow.checkRun && state.checks.length > 0,
+    publish: !!state.workflow.reviseDone,
+    stats: {
+      planFilled,
+      planRequired,
+      draftWordTotal,
+      draftRequired: MIN_DRAFT_WORDS_REQUIRED,
+      missionsCompleted: state.missions.filter((mission) => mission.done).length,
+      missionsAssigned: state.missions.length
+    }
+  };
+}
+
+function canAccessStep(stepId, access = computeStepAccess()) {
+  if (!STEP_ORDER.includes(stepId)) return false;
+  return !!access[stepId];
+}
+
+function highestUnlockedStep(access = computeStepAccess()) {
+  for (let index = STEP_ORDER.length - 1; index >= 0; index -= 1) {
+    const candidate = STEP_ORDER[index];
+    if (canAccessStep(candidate, access)) return candidate;
+  }
+  return 'plan';
+}
+
+function syncStepAvailability(access = computeStepAccess()) {
+  stepTabs.forEach((tab) => {
+    const stepId = tab.dataset.stepTab;
+    if (!stepId) return;
+    const unlocked = canAccessStep(stepId, access);
+    tab.disabled = !unlocked;
+    tab.classList.toggle('is-locked', !unlocked);
+    tab.setAttribute('aria-disabled', unlocked ? 'false' : 'true');
+    tab.title = unlocked ? '' : stepHint(stepId, access);
+  });
+}
+
+function clearStepUpCheckState() {
+  state.checks = [];
+  state.nextStep = '';
+  state.missions = [];
+  state.dimensions = cloneDimensions();
+  state.workflow.checkRun = false;
+  state.workflow.reviseDone = false;
+  state.workflow.publishVisited = false;
+  state.workflow.lastCheckedText = '';
+  renderChecklist({ checklist: [] });
+  renderMissions();
+}
+
 function statusPill(status) {
   const meta = STATUS_META[status] || STATUS_META['not-assessed'];
   return `<span class="writing-status-chip status-${status}">${meta.icon} ${meta.label}</span>`;
@@ -945,6 +1057,11 @@ function missionLimit(depth) {
 }
 
 function buildRevisionMissions() {
+  if (!state.workflow.checkRun || !state.checks.length) {
+    const ran = runStepUpCheck();
+    if (!ran) return;
+  }
+
   const result = evaluateWriting();
   state.checks = result.checklist;
   state.dimensions = result.dimensions;
@@ -957,6 +1074,7 @@ function buildRevisionMissions() {
     ...mission,
     done: existingDone.get(mission.id) || false
   }));
+  state.workflow.reviseDone = state.missions.some((mission) => mission.done);
 
   renderMissions();
   renderChecklist(result);
@@ -968,6 +1086,8 @@ function renderMissions() {
   if (!state.missions.length) {
     missionsEl.innerHTML = '<div class="writing-help">Run Step Up Check first to generate missions.</div>';
     missionStatusEl.textContent = '';
+    state.workflow.reviseDone = false;
+    syncStepAvailability();
     return;
   }
 
@@ -985,9 +1105,13 @@ function renderMissions() {
     .join('');
 
   const completed = state.missions.filter((mission) => mission.done).length;
+  state.workflow.reviseDone = completed > 0;
   missionStatusEl.textContent = completed === state.missions.length
     ? 'Revision Quest complete. Nice revision growth.'
-    : `${completed}/${state.missions.length} missions complete.`;
+    : completed > 0
+      ? `${completed}/${state.missions.length} missions complete.`
+      : 'Complete at least one mission before publishing.';
+  syncStepAvailability();
 }
 
 function renderSupports() {
@@ -1028,17 +1152,36 @@ function renderPublishPreview() {
   previewEl.textContent = text || 'Your publish-ready draft appears here after you write.';
 
   const result = evaluateWriting();
+  const access = computeStepAccess();
   const summary = [
     `Topic/Claim: ${STATUS_META[result.dimensions.topicClaim]?.label || 'Not assessed'}`,
     `Details/Evidence: ${STATUS_META[result.dimensions.detailsEvidence]?.label || 'Not assessed'}`,
     `Organization/Transitions: ${STATUS_META[result.dimensions.organizationTransitions]?.label || 'Not assessed'}`,
     `Conventions: ${STATUS_META[result.dimensions.conventions]?.label || 'Not assessed'}`
   ];
-  sessionSummaryEl.innerHTML = `<div class="writing-help">Step Up snapshot: ${summary.join(' · ')}</div>`;
+  const stage = [
+    `Plan ${access.draft ? 'ready' : `${access.stats.planFilled}/${access.stats.planRequired}`}`,
+    `Draft ${access.check ? 'ready' : `${access.stats.draftWordTotal}/${access.stats.draftRequired} words`}`,
+    `Check ${access.revise ? 'done' : 'not yet'}`,
+    `Revise ${access.publish ? 'done' : `${access.stats.missionsCompleted}/${access.stats.missionsAssigned || 0} missions`}`,
+    `Publish ${state.workflow.publishVisited ? 'visited' : 'not yet'}`
+  ];
+  sessionSummaryEl.innerHTML = `
+    <div class="writing-help">Step Up snapshot: ${summary.join(' · ')}</div>
+    <div class="writing-help">Workflow status: ${stage.join(' · ')}</div>
+  `;
+  syncStepAvailability(access);
 }
 
-function setStep(stepId) {
-  state.step = STEP_ORDER.includes(stepId) ? stepId : 'plan';
+function setStep(stepId, options = {}) {
+  const requested = STEP_ORDER.includes(stepId) ? stepId : 'plan';
+  const access = computeStepAccess();
+  const fallbackStep = STEP_ORDER.includes(options.fallbackStep) ? options.fallbackStep : highestUnlockedStep(access);
+  const nextStep = canAccessStep(requested, access)
+    ? requested
+    : (canAccessStep(fallbackStep, access) ? fallbackStep : highestUnlockedStep(access));
+
+  state.step = nextStep;
 
   stepTabs.forEach((tab) => {
     const active = tab.dataset.stepTab === state.step;
@@ -1052,9 +1195,11 @@ function setStep(stepId) {
   });
 
   if (state.step === 'publish') {
+    state.workflow.publishVisited = true;
     renderPublishPreview();
   }
 
+  syncStepAvailability(access);
   saveState();
 }
 
@@ -1086,19 +1231,26 @@ function resetPlannerData() {
   state.missions = [];
   state.checks = [];
   state.nextStep = '';
-  state.dimensions = {
-    topicClaim: 'not-assessed',
-    detailsEvidence: 'not-assessed',
-    organizationTransitions: 'not-assessed',
-    conventions: 'not-assessed'
-  }
+  state.dimensions = cloneDimensions();
+  state.workflow = defaultWorkflowState();
 }
 
 function runStepUpCheck() {
+  const access = computeStepAccess();
+  if (!access.check) {
+    feedbackEl.textContent = stepHint('check', access);
+    syncStepAvailability(access);
+    return null;
+  }
+
   const result = evaluateWriting();
   state.checks = result.checklist;
   state.dimensions = result.dimensions;
   state.nextStep = result.nextStep;
+  state.workflow.checkRun = true;
+  state.workflow.reviseDone = false;
+  state.workflow.publishVisited = false;
+  state.workflow.lastCheckedText = result.text;
   renderChecklist(result);
   renderPublishPreview();
 
@@ -1111,15 +1263,11 @@ function clearWorkspace() {
   state.planData = {};
   state.draftData = {};
   state.checks = [];
-  state.dimensions = {
-    topicClaim: 'not-assessed',
-    detailsEvidence: 'not-assessed',
-    organizationTransitions: 'not-assessed',
-    conventions: 'not-assessed'
-  };
+  state.dimensions = cloneDimensions();
   state.nextStep = '';
   state.missions = [];
   state.publishText = '';
+  state.workflow = defaultWorkflowState();
 
   renderFrame();
   renderChecklist({ checklist: [] });
@@ -1133,6 +1281,9 @@ function clearWorkspace() {
 function toSessionRecord(result) {
   const learner = getActiveLearner();
   const now = Date.now();
+  const access = computeStepAccess();
+  const readyCount = Object.values(result.dimensions || {}).filter((status) => status === 'ready').length;
+  const readinessPercent = Math.round((readyCount / 4) * 100);
   return {
     id: `writing_${now}_${Math.random().toString(36).slice(2, 8)}`,
     ts: now,
@@ -1150,11 +1301,31 @@ function toSessionRecord(result) {
     missionsCompleted: state.missions.filter((mission) => mission.done).length,
     missionsAssigned: state.missions.length,
     nextStep: result.nextStep,
-    strengths: result.strengths
+    strengths: result.strengths,
+    stageProgress: {
+      plan: access.draft,
+      draft: access.check,
+      check: access.revise,
+      revise: access.publish,
+      publish: state.step === 'publish' || state.workflow.publishVisited
+    },
+    readiness: {
+      readyCount,
+      total: 4,
+      percent: readinessPercent
+    },
+    stepUpDimensions: ['topicClaim', 'detailsEvidence', 'organizationTransitions', 'conventions']
   };
 }
 
 function saveWritingSession() {
+  const access = computeStepAccess();
+  if (!access.publish) {
+    feedbackEl.textContent = stepHint('publish', access);
+    syncStepAvailability(access);
+    return;
+  }
+
   const result = evaluateWriting();
   if (!result.wordCount) {
     feedbackEl.textContent = 'Write at least one sentence before saving your session.';
@@ -1167,7 +1338,7 @@ function saveWritingSession() {
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(rows.slice(0, 200)));
 
   renderPublishPreview();
-  feedbackEl.textContent = 'Session saved. Teacher reports now include Step Up-aligned writing data.';
+  feedbackEl.textContent = 'Session saved. Teacher and parent reporting now include Step Up writing snapshots and trends.';
   saveState();
 
   try {
@@ -1230,7 +1401,8 @@ function saveState() {
     nextStep: state.nextStep,
     missions: state.missions,
     supportsEnabled: state.supportsEnabled,
-    publishText: state.publishText
+    publishText: state.publishText,
+    workflow: state.workflow
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
@@ -1253,6 +1425,14 @@ function loadState() {
   state.missions = Array.isArray(raw.missions) ? raw.missions : [];
   state.supportsEnabled = typeof raw.supportsEnabled === 'boolean' ? raw.supportsEnabled : state.supportsEnabled;
   state.publishText = raw.publishText || '';
+  state.workflow = raw.workflow && typeof raw.workflow === 'object'
+    ? {
+        checkRun: !!raw.workflow.checkRun,
+        reviseDone: !!raw.workflow.reviseDone,
+        publishVisited: !!raw.workflow.publishVisited,
+        lastCheckedText: String(raw.workflow.lastCheckedText || '')
+      }
+    : defaultWorkflowState();
 }
 
 function refreshAll() {
@@ -1336,6 +1516,10 @@ function wireFieldEvents() {
     if (!key) return;
 
     state.planData[key] = target.value;
+    if (state.workflow.checkRun || state.workflow.reviseDone) {
+      clearStepUpCheckState();
+      feedbackEl.textContent = 'Plan updated. Re-run Step Up Check after updating your draft.';
+    }
     syncPlanToDraftIfEmpty(key, target.value);
     renderPublishPreview();
     saveState();
@@ -1348,6 +1532,10 @@ function wireFieldEvents() {
     if (!key) return;
 
     state.draftData[key] = target.value;
+    if (state.workflow.checkRun || state.workflow.reviseDone) {
+      clearStepUpCheckState();
+      feedbackEl.textContent = 'Draft updated. Run Step Up Check again before publishing.';
+    }
     renderPublishPreview();
     saveState();
   });
@@ -1387,29 +1575,61 @@ function wireUiEvents() {
     tab.addEventListener('click', () => {
       const nextStep = tab.dataset.stepTab;
       if (!nextStep) return;
-      if (nextStep === 'check') runStepUpCheck();
+      const access = computeStepAccess();
+      if (!canAccessStep(nextStep, access)) {
+        feedbackEl.textContent = stepHint(nextStep, access);
+        syncStepAvailability(access);
+        return;
+      }
+
+      if (nextStep === 'check') {
+        const result = runStepUpCheck();
+        if (!result) return;
+      }
       if (nextStep === 'revise') buildRevisionMissions();
       if (nextStep === 'publish') renderPublishPreview();
-      setStep(nextStep);
+      setStep(nextStep, { fallbackStep: state.step });
     });
   });
 
-  planNextBtn.addEventListener('click', () => setStep('draft'));
+  planNextBtn.addEventListener('click', () => {
+    const access = computeStepAccess();
+    if (!access.draft) {
+      feedbackEl.textContent = stepHint('draft', access);
+      syncStepAvailability(access);
+      return;
+    }
+    setStep('draft', { fallbackStep: state.step });
+  });
   draftToCheckBtn.addEventListener('click', () => {
-    runStepUpCheck();
-    setStep('check');
+    const result = runStepUpCheck();
+    if (!result) return;
+    setStep('check', { fallbackStep: state.step });
   });
   buildBtn.addEventListener('click', () => {
     renderPublishPreview();
     feedbackEl.textContent = 'Publish preview updated.';
   });
   checkToReviseBtn.addEventListener('click', () => {
+    const access = computeStepAccess();
+    if (!access.revise) {
+      feedbackEl.textContent = stepHint('revise', access);
+      syncStepAvailability(access);
+      return;
+    }
     buildRevisionMissions();
-    setStep('revise');
+    setStep('revise', { fallbackStep: state.step });
   });
   reviseToPublishBtn.addEventListener('click', () => {
+    const access = computeStepAccess();
+    if (!access.publish) {
+      feedbackEl.textContent = stepHint('publish', access);
+      syncStepAvailability(access);
+      return;
+    }
     renderPublishPreview();
-    setStep('publish');
+    setStep('publish', { fallbackStep: state.step });
+    feedbackEl.textContent = 'Revision captured. Publish draft is ready.';
   });
 
   missionDepthEl.addEventListener('change', () => {
