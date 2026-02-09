@@ -13205,8 +13205,11 @@ body.word-quest-page .key:not(.correct):not(.present):not(.absent) {
 
 body.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #d6e6ff 0%, #b6d2ff 100%);
-    border-color: rgba(29, 78, 216, 0.74);
-    color: #0f172a;
+    border-color: rgba(29, 78, 216, 0.88);
+    color: #0b2f74;
+    font-weight: 860;
+    outline: 2px solid rgba(59, 130, 246, 0.24);
+    outline-offset: -1px;
     box-shadow:
         0 4px 0 rgba(96, 165, 250, 0.9),
         0 0 0 2px rgba(59, 130, 246, 0.26),
@@ -13257,8 +13260,11 @@ body.force-light.word-quest-page .key:not(.correct):not(.present):not(.absent) {
 
 body.force-light.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent) {
     background: linear-gradient(180deg, #d6e6ff 0%, #b6d2ff 100%) !important;
-    border-color: rgba(29, 78, 216, 0.74) !important;
-    color: #0f172a !important;
+    border-color: rgba(29, 78, 216, 0.88) !important;
+    color: #0b2f74 !important;
+    font-weight: 860;
+    outline: 2px solid rgba(59, 130, 246, 0.24);
+    outline-offset: -1px;
     box-shadow:
         0 4px 0 rgba(96, 165, 250, 0.9),
         0 0 0 2px rgba(59, 130, 246, 0.26),
@@ -14397,8 +14403,9 @@ body:not(.has-story-track) #story-track {
 .header-activity-panel {
     position: absolute;
     top: calc(100% + 8px);
-    right: 0;
-    width: min(360px, calc(100vw - 28px));
+    left: 0;
+    right: auto;
+    width: min(320px, calc(100vw - 18px));
     padding: 12px;
     border-radius: 14px;
     border: 1px solid rgba(99, 102, 241, 0.24);
@@ -14406,6 +14413,9 @@ body:not(.has-story-track) #story-track {
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16);
     display: grid;
     gap: 10px;
+    max-height: min(68vh, 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     z-index: 2400;
 }
 

@@ -1752,8 +1752,10 @@
     const panel = menu.querySelector('.header-activity-panel');
     if (!(panel instanceof HTMLElement)) return;
     panel.style.transform = 'translateX(0)';
+    panel.style.maxHeight = '';
 
     const viewportWidth = Math.max(window.innerWidth || 0, document.documentElement?.clientWidth || 0);
+    const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0);
     if (!viewportWidth) return;
     const gutter = 8;
     const rect = panel.getBoundingClientRect();
@@ -1768,6 +1770,11 @@
 
     if (Math.abs(shift) > 0.5) {
       panel.style.transform = `translateX(${Math.round(shift)}px)`;
+    }
+
+    if (viewportHeight) {
+      const availableHeight = Math.max(200, Math.floor(viewportHeight - rect.top - gutter));
+      panel.style.maxHeight = `${availableHeight}px`;
     }
   }
 
@@ -1917,20 +1924,27 @@
     const existing = nav.querySelector('.header-voice-shortcut');
     if (existing) return;
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'link-btn header-voice-shortcut';
-    button.innerHTML = '<span aria-hidden="true">🔊</span> Voice';
-    button.title = 'Change listening voice and translation language';
-
-    button.addEventListener('click', () => {
+    const openQuickVoice = () => {
       const overlay = ensureVoiceQuickModal();
       if (overlay && typeof overlay.openQuickVoice === 'function') {
         overlay.openQuickVoice();
       } else {
         overlay?.classList?.remove('hidden');
       }
-    });
+    };
+    platform.openQuickVoice = openQuickVoice;
+    if (platform.voiceQuickEventBound !== true) {
+      window.addEventListener('cornerstone:open-voice-quick', openQuickVoice);
+      platform.voiceQuickEventBound = true;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'link-btn header-voice-shortcut';
+    button.innerHTML = '<span aria-hidden="true">🔊</span> Voice';
+    button.title = 'Change listening voice and translation language';
+
+    button.addEventListener('click', openQuickVoice);
     nav.appendChild(button);
   }
 

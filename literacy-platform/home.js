@@ -7,6 +7,9 @@
   const HOME_LANGUAGE_PREF_KEY = 'cornerstone_home_language_pref_v1';
   const HOME_VOICE_DIALECT_PREF_KEY = 'cornerstone_home_voice_dialect_pref_v1';
   const HOME_VOICE_PACK_PREF_KEY = 'cornerstone_home_voice_pack_pref_v1';
+  const TTS_BASE_PREF_KEY = 'decode_tts_base_path_v1';
+  const TTS_BASE_PLAIN = 'audio/tts';
+  const TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
   const QUICKCHECK_SUMMARY_KEY = 'cornerstone_quickcheck_summary_v1';
   const QUICKCHECK_SHUFFLE_KEY_PREFIX = 'cornerstone_quickcheck_queue_v2::';
   const HOME_STUDENT_NAME_KEY = 'cm_student_name';
@@ -239,7 +242,11 @@
 
   function normalizeStarterLanguage(value) {
     const normalized = String(value || '').trim().toLowerCase();
-    if (normalized === 'es' || normalized === 'zh' || normalized === 'tl' || normalized === 'ms' || normalized === 'vi' || normalized === 'hi') {
+    if (
+      normalized === 'es' || normalized === 'zh' || normalized === 'tl'
+      || normalized === 'ms' || normalized === 'vi' || normalized === 'hi'
+      || normalized === 'ar' || normalized === 'ko' || normalized === 'ja'
+    ) {
       return normalized;
     }
     return 'en';
@@ -255,6 +262,37 @@
     if (!normalized) return 'default';
     const cleaned = normalized.replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
     return cleaned || 'default';
+  }
+
+  function normalizeTtsBasePath(value) {
+    const normalized = String(value || '').trim().replace(/^\/+|\/+$/g, '');
+    if (normalized === TTS_BASE_PLAIN || normalized === TTS_BASE_SCOPED) {
+      return normalized;
+    }
+    return '';
+  }
+
+  function readPreferredTtsBasePath() {
+    try {
+      return normalizeTtsBasePath(localStorage.getItem(TTS_BASE_PREF_KEY) || '');
+    } catch {
+      return '';
+    }
+  }
+
+  function rememberPreferredTtsBasePath(value = '') {
+    const normalized = normalizeTtsBasePath(value);
+    if (!normalized) return;
+    try {
+      localStorage.setItem(TTS_BASE_PREF_KEY, normalized);
+    } catch {}
+  }
+
+  function getTtsBasePathCandidates() {
+    const preferred = readPreferredTtsBasePath();
+    const pathname = String(window.location?.pathname || '').toLowerCase();
+    const inferredPrimary = pathname.includes('/literacy-platform/') ? TTS_BASE_PLAIN : TTS_BASE_SCOPED;
+    return Array.from(new Set([preferred, inferredPrimary, TTS_BASE_PLAIN, TTS_BASE_SCOPED].filter(Boolean)));
   }
 
   function readDecodeSettings() {
@@ -283,7 +321,10 @@
       hi: 'Hindi',
       tl: 'Tagalog',
       ms: 'Malay',
-      vi: 'Vietnamese'
+      vi: 'Vietnamese',
+      ar: 'Arabic',
+      ko: 'Korean',
+      ja: 'Japanese'
     };
     const label = labelByLanguage[lang] || lang.toUpperCase();
     homeQuickLanguageNote.textContent = `${label} is ready as the default reveal translation in Word Quest.`;
@@ -303,16 +344,15 @@
   async function loadQuickVoicePackOptions(selectedPackId = 'default') {
     if (!homeQuickVoicePackSelect) return 'default';
 
-    const candidates = [
-      'audio/tts/packs/pack-registry.json',
-      'literacy-platform/audio/tts/packs/pack-registry.json'
-    ];
+    const candidates = getTtsBasePathCandidates().map((base) => `${base}/packs/pack-registry.json`);
     let packs = [];
     for (const path of candidates) {
       try {
         const response = await fetch(path, { cache: 'no-store' });
         if (!response.ok) continue;
         const parsed = await response.json();
+        const detectedBase = path.startsWith(`${TTS_BASE_PLAIN}/`) ? TTS_BASE_PLAIN : TTS_BASE_SCOPED;
+        rememberPreferredTtsBasePath(detectedBase);
         if (parsed && Array.isArray(parsed.packs)) {
           packs = parsed.packs
             .filter((pack) => pack && typeof pack === 'object')

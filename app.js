@@ -74,12 +74,57 @@ const PHONEME_VIDEO_LIBRARY_CANDIDATE_DIRS = [
     'public/assets/articulation/clips'
 ];
 let activeSoundVideoObjectUrl = '';
+const PACKED_TTS_BASE_PREF_KEY = 'decode_tts_base_path_v1';
+const PACKED_TTS_BASE_PLAIN = 'audio/tts';
+const PACKED_TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
+
+function normalizePackedTtsBasePath(value = '') {
+    const candidate = String(value || '').trim().replace(/^\/+|\/+$/g, '');
+    if (candidate === PACKED_TTS_BASE_PLAIN || candidate === PACKED_TTS_BASE_SCOPED) {
+        return candidate;
+    }
+    return '';
+}
+
+function readPackedTtsBasePathPreference() {
+    try {
+        return normalizePackedTtsBasePath(localStorage.getItem(PACKED_TTS_BASE_PREF_KEY) || '');
+    } catch (e) {
+        return '';
+    }
+}
+
+function rememberPackedTtsBasePathPreference(value = '') {
+    const normalized = normalizePackedTtsBasePath(value);
+    if (!normalized) return;
+    try {
+        localStorage.setItem(PACKED_TTS_BASE_PREF_KEY, normalized);
+    } catch (e) {}
+}
+
+function detectPackedTtsBasePathFromAssetPath(value = '') {
+    const candidate = String(value || '').trim().replace(/^\/+/, '');
+    if (candidate === PACKED_TTS_BASE_PLAIN || candidate.startsWith(`${PACKED_TTS_BASE_PLAIN}/`)) {
+        return PACKED_TTS_BASE_PLAIN;
+    }
+    if (candidate === PACKED_TTS_BASE_SCOPED || candidate.startsWith(`${PACKED_TTS_BASE_SCOPED}/`)) {
+        return PACKED_TTS_BASE_SCOPED;
+    }
+    return '';
+}
+
 function resolvePackedTtsBasePath() {
+    const runtimeOverride = normalizePackedTtsBasePath(window?.CORNERSTONE_TTS_BASE_PATH || '');
+    if (runtimeOverride) return runtimeOverride;
+
+    const preferredBase = readPackedTtsBasePathPreference();
+    if (preferredBase) return preferredBase;
+
     const pathname = String(window?.location?.pathname || '').toLowerCase();
     if (pathname.includes('/literacy-platform/')) {
-        return 'audio/tts';
+        return PACKED_TTS_BASE_PLAIN;
     }
-    return 'literacy-platform/audio/tts';
+    return PACKED_TTS_BASE_SCOPED;
 }
 const PACKED_TTS_BASE_PATH = resolvePackedTtsBasePath();
 const PACKED_TTS_DEFAULT_MANIFEST_PATH = `${PACKED_TTS_BASE_PATH}/tts-manifest.json`;
@@ -886,8 +931,8 @@ function normalizePackManifestPath(rawPath = '') {
         .replace(/^\.\/+/, '')
         .replace(/^\/+/, '');
     const base = PACKED_TTS_BASE_PATH.replace(/\/+$/, '');
-    const plainBase = 'audio/tts';
-    const scopedBase = 'literacy-platform/audio/tts';
+    const plainBase = PACKED_TTS_BASE_PLAIN;
+    const scopedBase = PACKED_TTS_BASE_SCOPED;
 
     if (normalized === base || normalized.startsWith(`${base}/`)) {
         return normalized;
@@ -907,6 +952,23 @@ function normalizePackManifestPath(rawPath = '') {
         return `${base}/${normalized}`;
     }
 
+    return normalized;
+}
+
+function remapPackedPathToBase(rawPath = '', targetBase = PACKED_TTS_BASE_PATH) {
+    const normalized = String(rawPath || '').trim();
+    const target = normalizePackedTtsBasePath(targetBase);
+    if (!normalized || !target || /^(https?:)?\/\//i.test(normalized)) return normalized;
+
+    if (normalized.startsWith(`${PACKED_TTS_BASE_PLAIN}/`)) {
+        return `${target}/${normalized.slice(PACKED_TTS_BASE_PLAIN.length + 1)}`;
+    }
+    if (normalized.startsWith(`${PACKED_TTS_BASE_SCOPED}/`)) {
+        return `${target}/${normalized.slice(PACKED_TTS_BASE_SCOPED.length + 1)}`;
+    }
+    if (normalized === PACKED_TTS_BASE_PLAIN || normalized === PACKED_TTS_BASE_SCOPED) {
+        return target;
+    }
     return normalized;
 }
 
@@ -969,6 +1031,8 @@ async function loadPackedTtsPackRegistry({ forceRefresh = false } = {}) {
                     const response = await fetch(candidate, { cache: 'no-store' });
                     if (!response.ok) continue;
                     const parsed = await response.json();
+                    const detectedBase = detectPackedTtsBasePathFromAssetPath(candidate);
+                    if (detectedBase) rememberPackedTtsBasePathPreference(detectedBase);
                     packedTtsPackRegistryCache = normalizeTtsPackRegistry(parsed);
                     return packedTtsPackRegistryCache;
                 } catch (e) {}
@@ -1018,6 +1082,8 @@ async function loadPackedTtsManifestFromPath(manifestPath = '') {
                     const response = await fetch(candidate, { cache: 'no-store' });
                     if (!response.ok) continue;
                     const parsed = await response.json();
+                    const detectedBase = detectPackedTtsBasePathFromAssetPath(candidate);
+                    if (detectedBase) rememberPackedTtsBasePathPreference(detectedBase);
                     if (!parsed || typeof parsed !== 'object' || typeof parsed.entries !== 'object') {
                         continue;
                     }
@@ -1062,17 +1128,22 @@ async function loadPackedTtsManifest() {
 function getPackedClipPathCandidates(rawPath = '') {
     const normalized = normalizePackManifestPath(rawPath);
     if (!normalized) return [];
-    const plainBase = 'audio/tts';
-    const scopedBase = 'literacy-platform/audio/tts';
-    const candidates = [normalized];
+    const preferredBase = normalizePackedTtsBasePath(resolvePackedTtsBasePath()) || PACKED_TTS_BASE_PATH;
+    const candidates = [
+        remapPackedPathToBase(normalized, preferredBase),
+        remapPackedPathToBase(normalized, PACKED_TTS_BASE_PLAIN),
+        remapPackedPathToBase(normalized, PACKED_TTS_BASE_SCOPED),
+        normalized
+    ];
 
-    if (normalized.startsWith(`${plainBase}/`)) {
-        candidates.push(`${scopedBase}/${normalized.slice(plainBase.length + 1)}`);
-    } else if (normalized.startsWith(`${scopedBase}/`)) {
-        candidates.push(`${plainBase}/${normalized.slice(scopedBase.length + 1)}`);
-    }
-
-    return Array.from(new Set(candidates.filter(Boolean)));
+    const deduped = Array.from(new Set(candidates.filter(Boolean)));
+    deduped.sort((a, b) => {
+        const aScore = a.startsWith(`${preferredBase}/`) || a === preferredBase ? 0 : 1;
+        const bScore = b.startsWith(`${preferredBase}/`) || b === preferredBase ? 0 : 1;
+        if (aScore !== bScore) return aScore - bScore;
+        return a.length - b.length;
+    });
+    return deduped;
 }
 
 async function playPackedClipWithFallbackPaths(rawPath = '', options = {}) {
@@ -3535,6 +3606,7 @@ function initControls() {
     // Simple audio buttons
     const hearWordBtn = document.getElementById("simple-hear-word");
     const hearSentenceBtn = document.getElementById("simple-hear-sentence");
+    const voiceSettingsBtn = document.getElementById("simple-voice-settings");
     
     if (hearWordBtn) {
         hearWordBtn.onclick = () => {
@@ -3621,6 +3693,13 @@ function initControls() {
                 }, 1500);
             }
             hearSentenceBtn.blur();
+        };
+    }
+
+    if (voiceSettingsBtn) {
+        voiceSettingsBtn.onclick = () => {
+            window.dispatchEvent(new CustomEvent('cornerstone:open-voice-quick'));
+            voiceSettingsBtn.blur();
         };
     }
 
@@ -7785,8 +7864,20 @@ function adaptRevealCopyForAudience(definitionText, sentenceText, word, options 
     const languageCode = normalizePackedTtsLanguage(options.languageCode || 'en');
     if (mode !== 'young-eal') {
         return {
-            definition: definitionText,
-            sentence: sentenceText,
+            definition: sanitizeRevealText(definitionText, {
+                word,
+                field: 'definition',
+                languageCode,
+                allowFallback: true,
+                maxWords: 24
+            }),
+            sentence: sanitizeRevealText(sentenceText, {
+                word,
+                field: 'sentence',
+                languageCode,
+                allowFallback: true,
+                maxWords: 30
+            }),
             mode
         };
     }
