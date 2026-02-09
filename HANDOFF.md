@@ -2,6 +2,37 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 bonus riddle prompt + azure-only popup audio stabilization slice
+- Scope files:
+  - `literacy-platform/app.js`
+  - `literacy-platform/word-quest.html`
+- Riddle popup fix:
+  - Added `splitRiddlePromptAndAnswer()` so `Riddle Time!` shows only the prompt/question in the modal.
+  - Answer text remains parsed internally but is not shown in the popup body.
+- Voice/audio consistency fix:
+  - `bonus-hear` no longer routes to system `speechSynthesis` fallback.
+  - Bonus read-aloud now attempts Azure packed literal clips first; if unavailable, it does not switch to system voices.
+  - Added Azure-pack preview fallback + clear toast messaging when a literal bonus clip is not available.
+  - Disabled `scheduleEnhancedVoicePrefetch()`/`prefetchEnhancedVoice()` warmup path so hidden system-voice warmup cannot interrupt/override Azure-only behavior.
+- Settings sync fix:
+  - `syncSettingsFromPlatform()` now applies `ttsPackId` changes from `decode:settings-changed`, so Voice modal selection immediately updates active pack behavior.
+- Cache busting:
+  - Updated Word Quest app script query to `app.js?v=20260209k` in `literacy-platform/word-quest.html`.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/app.js` ✅
+- Regression scripts:
+  - `node /tmp/wordquest_regression.js` ✅ (no overflow/scroll fallback regressions; no vowel dots)
+  - `node /tmp/translation_runtime_check.js` ✅
+- Focused Playwright smoke (inline) ✅:
+  - Riddle parser result for sample line:
+    - prompt: `I have a face and two hands, but no arms or legs. What am I?`
+    - answer parsed separately: `A clock.`
+  - Bonus modal displays prompt only (answer hidden).
+  - Bonus Hear This does not trigger system speech fallback (`before=0`, `calls=0` in check harness).
+  - Voice pack event sync updates stored pack (`ttsPackId` changed to `sonia-en-gb` in event test).
+
 ## 2026-02-09 home setup gate + azure voice lock + class-safe guess filter slice
 - Scope files:
   - `literacy-platform/platform.js`

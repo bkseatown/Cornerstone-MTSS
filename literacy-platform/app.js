@@ -1366,6 +1366,85 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
     });
 }
 
+async function resolvePackedTtsClipByManifestKey(manifestKey = '', languageCode = 'en') {
+    const key = String(manifestKey || '').trim();
+    if (!key) return '';
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+
+    const manifest = await loadPackedTtsManifest();
+    const primaryClip = manifest?.entries?.[key];
+    if (primaryClip) return primaryClip;
+
+    const activePackId = normalizeTtsPackId(manifest?.__packId || 'default');
+    if (activePackId !== 'default') {
+        const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
+        const fallbackClip = fallbackManifest?.entries?.[key];
+        if (fallbackClip) return fallbackClip;
+    }
+
+    return await findPackedTtsClipAcrossPacks(key, normalizedLang);
+}
+
+function normalizeLiteralPackedTtsLookupText(text = '') {
+    return String(text || '')
+        .replace(/\u200B/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .trim()
+        .toLowerCase();
+}
+
+async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', type = 'sentence' } = {}) {
+    if (!shouldAttemptPackedTtsLookup()) return false;
+    const normalizedText = normalizeLiteralPackedTtsLookupText(text);
+    if (!normalizedText) return false;
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+
+    const keyTypes = Array.from(new Set([
+        normalizePackedTtsType(type),
+        'sentence',
+        'def',
+        'word'
+    ]));
+    for (const entryType of keyTypes) {
+        const key = getPackedTtsManifestKey(normalizedText, normalizedLang, entryType);
+        const clipPath = await resolvePackedTtsClipByManifestKey(key, normalizedLang);
+        if (!clipPath) continue;
+        const played = await playPackedClipWithFallbackPaths(clipPath);
+        if (played) return true;
+    }
+    return false;
+}
+
+async function tryPlayPreferredPackPreviewClip(languageCode = 'en') {
+    if (!shouldAttemptPackedTtsLookup()) return false;
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+    const manifest = await loadPackedTtsManifest();
+    const entries = manifest?.entries;
+    if (!entries || typeof entries !== 'object') return false;
+
+    let sentenceClip = '';
+    let definitionClip = '';
+    let wordClip = '';
+    let anyClip = '';
+
+    Object.entries(entries).some(([key, clipPath]) => {
+        if (!clipPath) return false;
+        if (!anyClip) anyClip = clipPath;
+        const parsed = parsePackedTtsManifestKey(key);
+        if (!parsed || parsed.languageCode !== normalizedLang) return false;
+        if (parsed.type === 'sentence' && !sentenceClip) sentenceClip = clipPath;
+        if (parsed.type === 'def' && !definitionClip) definitionClip = clipPath;
+        if (parsed.type === 'word' && !wordClip) wordClip = clipPath;
+        return !!(sentenceClip && definitionClip && wordClip);
+    });
+
+    const preferredClip = sentenceClip || definitionClip || wordClip || anyClip;
+    if (!preferredClip) return false;
+    return playPackedClipWithFallbackPaths(preferredClip);
+}
+
 async function hasPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word' } = {}) {
     const normalizedWord = String(word || '').trim().toLowerCase();
     if (!normalizedWord) return false;
@@ -2012,6 +2091,15 @@ function syncSettingsFromPlatform(nextSettings = {}) {
         }
     }
 
+    if (Object.prototype.hasOwnProperty.call(nextSettings, 'ttsPackId')) {
+        const nextPackIdRaw = normalizeTtsPackId(nextSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        const nextPackId = nextPackIdRaw === 'default' ? DEFAULT_SETTINGS.ttsPackId : nextPackIdRaw;
+        if (nextPackId !== appSettings.ttsPackId) {
+            appSettings.ttsPackId = nextPackId;
+            changed = true;
+        }
+    }
+
     if (!changed) return;
     saveSettings();
     applySettings();
@@ -2019,10 +2107,20 @@ function syncSettingsFromPlatform(nextSettings = {}) {
     updateEnhancedVoicePrompt();
 }
 
-function previewSelectedVoice(sampleText = '') {
+async function previewSelectedVoice(sampleText = '') {
     const text = String(sampleText || 'This is your selected English listening voice.').trim();
     if (!text) return;
-    speak(text, 'sentence');
+    stopAllActiveAudioPlayers();
+    cancelPendingSpeech(true);
+    const literalClipPlayed = await tryPlayPackedTtsForLiteralText({
+        text,
+        languageCode: 'en',
+        type: 'sentence'
+    });
+    if (literalClipPlayed) return;
+    const previewClipPlayed = await tryPlayPreferredPackPreviewClip('en');
+    if (previewClipPlayed) return;
+    showToast('No Azure voice preview clip is available yet.');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -4329,31 +4427,13 @@ async function updateEnhancedVoicePrompt() {
 }
 
 function scheduleEnhancedVoicePrefetch() {
-    if (enhancedVoicePrefetched) return;
-    const handler = () => {
-        prefetchEnhancedVoice();
-        window.removeEventListener('pointerdown', handler);
-        window.removeEventListener('keydown', handler);
-    };
-    window.addEventListener('pointerdown', handler, { once: true });
-    window.addEventListener('keydown', handler, { once: true });
+    // Keep Word Quest on Azure-pack playback only.
+    // System-voice warmup can produce unexpected voice output during gameplay.
+    return;
 }
 
 async function prefetchEnhancedVoice() {
-    if (enhancedVoicePrefetched) return;
-    if (!('speechSynthesis' in window)) return;
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) return;
-    const voices = await getVoicesForSpeech();
-    const preferred = pickBestEnglishVoice(voices);
-    if (!preferred) return;
-    enhancedVoicePrefetched = true;
-    const utterance = new SpeechSynthesisUtterance(' ');
-    utterance.voice = preferred;
-    utterance.lang = preferred.lang;
-    utterance.rate = getSpeechRate('word');
-    utterance.pitch = 1.0;
-    utterance.volume = 0;
-    window.speechSynthesis.speak(utterance);
+    return;
 }
 
 function ensureBonusControls() {
@@ -8272,6 +8352,18 @@ function normalizeBonusLine(text = '') {
     return cleanAudienceText(text).replace(/\s+([,.;!?])/g, '$1');
 }
 
+function splitRiddlePromptAndAnswer(line = '') {
+    const normalized = normalizeBonusLine(line);
+    if (!normalized) return { prompt: '', answer: '' };
+    const questionIndex = normalized.lastIndexOf('?');
+    if (questionIndex < 0) return { prompt: normalized, answer: '' };
+
+    const prompt = normalized.slice(0, questionIndex + 1).trim();
+    let answer = normalized.slice(questionIndex + 1).trim();
+    answer = answer.replace(/^answer[:\s-]*/i, '').trim();
+    return { prompt: prompt || normalized, answer };
+}
+
 function isSafeBonusLine(text = '') {
     if (!text) return false;
     if (isYoungAudienceUnsafeText(text)) return false;
@@ -8326,8 +8418,13 @@ function showBonusContent() {
 
     const type = pickedEntry.type;
     const content = pickedEntry.text;
+    const parsedRiddle = type === 'riddles'
+        ? splitRiddlePromptAndAnswer(content)
+        : { prompt: content, answer: '' };
+    const visibleContent = parsedRiddle.prompt || content;
+    const narrationText = visibleContent;
     try {
-        localStorage.setItem('last_bonus_key', `${type}:${content}`);
+        localStorage.setItem('last_bonus_key', `${type}:${visibleContent}`);
     } catch (e) {}
     
     const emoji = type === 'jokes'
@@ -8357,11 +8454,25 @@ function showBonusContent() {
     const hearBtn = document.getElementById('bonus-hear');
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;
-    if (textEl) textEl.textContent = content;
+    if (textEl) textEl.textContent = visibleContent;
     if (hearBtn) {
-        hearBtn.disabled = !content;
-        hearBtn.onclick = () => {
-            speakText(`${title} ${content}`, 'sentence');
+        hearBtn.disabled = !narrationText;
+        hearBtn.onclick = async () => {
+            stopAllActiveAudioPlayers();
+            cancelPendingSpeech(true);
+            const playedLiteral = await tryPlayPackedTtsForLiteralText({
+                text: narrationText,
+                languageCode: 'en',
+                type: 'sentence'
+            });
+            if (playedLiteral) return;
+
+            const playedPreview = await tryPlayPreferredPackPreviewClip('en');
+            if (playedPreview) {
+                showToast('Previewing your selected Azure voice. This bonus line has no recorded clip yet.');
+                return;
+            }
+            showToast('No Azure voice clip is available for this line yet.');
         };
     }
 }
