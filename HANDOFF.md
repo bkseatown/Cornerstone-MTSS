@@ -2,6 +2,46 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 Home V2 flag mount + one-screen wizard slice
+- Scope files:
+  - `literacy-platform/index.html`
+  - `literacy-platform/home-v2.js`
+  - `literacy-platform/home-v2.css`
+- Why:
+  - Home V2 code existed but was not mounted, so users always saw legacy Home regardless of `cs_home_v2`.
+- What changed:
+  - Mounted Home V2 behind feature flag only:
+    - Added `#homeV2Root` container in `literacy-platform/index.html`.
+    - Added Home V2 assets with cache busting:
+      - `home-v2.css?v=57f3bca5`
+      - `home-v2.js?v=57f3bca5`
+  - Implemented strict one-screen wizard rendering in `home-v2.js`:
+    - `showStep(stepIndex)` + `attachListeners()` drive swap flow:
+      - Welcome -> Role -> (School details if School Team) -> Focus -> Quick Check kickoff.
+    - No default role/subrole and no onboarding edit chips.
+  - Enforced full Home V2 namespacing:
+    - CSS classes use `cs-hv2-*`.
+    - Home V2 state key prefix uses `cs_hv2_*` (`cs_hv2_state_v1::...`).
+  - Added visible build stamp in Home V2 UI:
+    - `HV2 Build: 57f3bca5` (derived from `home-v2.js?v=...`).
+  - Legacy Home remains intact and unchanged when `cs_home_v2` flag is absent.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/home-v2.js` ✅
+  - `node --check literacy-platform/home.js` ✅
+- Home V2 smoke (Playwright inline) ✅:
+  - `cs_home_v2` unset:
+    - Home V2 not mounted (`homeV2Root` hidden, empty)
+    - Legacy Home remains visible
+  - `cs_home_v2=true`:
+    - Legacy Home hidden, Home V2 shown
+    - Exactly one wizard card rendered at a time on each step
+    - Flow verified: Welcome -> Role -> School details -> Focus -> Quick Check kickoff
+    - No role preselected (`selectedRoles: 0`)
+    - No onboarding edit text detected
+    - Build stamp visible: `HV2 Build: 57f3bca5`
+
 ## 2026-02-09 single-runtime redirect + Azure-only voice modal enforcement slice
 - Scope files:
   - `platform.js` (root synced to canonical `/literacy-platform` runtime)
