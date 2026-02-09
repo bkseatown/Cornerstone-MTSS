@@ -1,33 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T06:15:15.523Z",
+  "updatedAt": "2026-02-09T07:22:30.440Z",
   "packs": [
-    {
-      "id": "ava-multi",
-      "name": "Ava Multilingual",
-      "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-09T04:46:45.801Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "def",
-        "sentence"
-      ],
-      "voices": {
-        "en": "en-US-AvaMultilingualNeural",
-        "es": "en-US-AvaMultilingualNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural",
-        "ms": "ms-MY-YasminNeural",
-        "vi": "vi-VN-HoaiMyNeural",
-        "ar": "ar-SA-ZariyahNeural",
-        "ko": "ko-KR-SunHiNeural",
-        "ja": "ja-JP-NanamiNeural"
-      }
-    },
     {
       "id": "emma-en",
       "name": "Emma English",
@@ -122,6 +96,41 @@
       "voices": {
         "en": "en-GB-RyanNeural",
         "es": "es-ES-ElviraNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "ava-multi",
+      "name": "Ava Multilingual",
+      "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Ava Multilingual).",
+      "generatedAt": "2026-02-09T07:22:30.440Z",
+      "languages": [
+        "en",
+        "es",
+        "zh",
+        "tl",
+        "hi",
+        "ms",
+        "vi",
+        "ar",
+        "ko",
+        "ja"
+      ],
+      "fields": [
+        "def",
+        "sentence"
+      ],
+      "voices": {
+        "en": "en-US-AvaMultilingualNeural",
+        "es": "en-US-AvaMultilingualNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
         "hi": "hi-IN-SwaraNeural",

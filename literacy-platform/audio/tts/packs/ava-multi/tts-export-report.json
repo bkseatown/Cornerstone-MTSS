@@ -1,10 +1,19 @@
 {
-  "generatedAt": "2026-02-09T04:46:45.801Z",
+  "generatedAt": "2026-02-09T07:22:30.440Z",
   "region": "eastus",
   "packId": "ava-multi",
   "packName": "Ava Multilingual",
   "languages": [
-    "en"
+    "en",
+    "es",
+    "zh",
+    "tl",
+    "hi",
+    "ms",
+    "vi",
+    "ar",
+    "ko",
+    "ja"
   ],
   "fields": [
     "def",
@@ -24,15 +33,18 @@
   },
   "retries": 1,
   "words": 500,
-  "attempted": 1000,
-  "generated": 1000,
-  "reused": 0,
+  "attempted": 10000,
+  "generated": 3998,
+  "reused": 6002,
   "failed": 0,
   "generatedByField": {
-    "def": 500,
-    "sentence": 500
+    "def": 1999,
+    "sentence": 1999
   },
-  "reusedByField": {},
+  "reusedByField": {
+    "def": 3001,
+    "sentence": 3001
+  },
   "failedByField": {},
   "phonemeCatalogSize": 0,
   "phonemeTasks": 0,
