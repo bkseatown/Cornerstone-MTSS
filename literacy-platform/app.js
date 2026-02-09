@@ -130,6 +130,7 @@ function resolvePackedTtsBasePath() {
 const PACKED_TTS_BASE_PATH = resolvePackedTtsBasePath();
 const PACKED_TTS_DEFAULT_MANIFEST_PATH = `${PACKED_TTS_BASE_PATH}/tts-manifest.json`;
 const PACKED_TTS_PACK_REGISTRY_PATH = `${PACKED_TTS_BASE_PATH}/packs/pack-registry.json`;
+const ENFORCE_NATURAL_ONLY_VOICE = true;
 const packedTtsManifestCacheByPath = new Map();
 const packedTtsManifestPromiseByPath = new Map();
 let packedTtsPackRegistryCache = null;
@@ -165,7 +166,7 @@ const DEFAULT_SETTINGS = {
     decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
     narrationStyle: 'expressive', // expressive | neutral
-    speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
+    speechQualityMode: 'natural-only', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'default',
     audienceMode: 'auto', // auto | general | young-eal
     autoHear: false,
@@ -277,6 +278,7 @@ function normalizeNarrationStyle(value) {
 }
 
 function normalizeSpeechQualityMode(value) {
+    if (ENFORCE_NATURAL_ONLY_VOICE) return 'natural-only';
     const raw = String(value || '').toLowerCase().trim();
     if (raw === 'natural-only' || raw === 'strict' || raw === 'high-only') return 'natural-only';
     if (raw === 'fallback-any' || raw === 'allow-basic' || raw === 'compatibility') return 'fallback-any';
@@ -1833,6 +1835,10 @@ function applySettings() {
     const speechQualitySelect = document.getElementById('speech-quality-select');
     if (speechQualitySelect) {
         speechQualitySelect.value = getSpeechQualityMode();
+        if (ENFORCE_NATURAL_ONLY_VOICE) {
+            speechQualitySelect.disabled = true;
+            speechQualitySelect.title = 'Robotic voice fallback is disabled. Natural-only mode is enforced.';
+        }
     }
 
     const ttsPackSelect = document.getElementById('tts-pack-select');
@@ -2842,7 +2848,17 @@ function speakSentenceWithProsody(text, voice, lang, baseRate) {
     }, 35);
 }
 
+function isVoiceAllowedForSpeechPolicy(voice, qualityMode = getSpeechQualityMode()) {
+    if (!voice) return false;
+    if (qualityMode === 'fallback-any') return true;
+    if (qualityMode === 'natural-only') return isHighQualityVoice(voice);
+    return !isLowQualityVoice(voice);
+}
+
 function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') {
+    if (!isVoiceAllowedForSpeechPolicy(voice)) {
+        return false;
+    }
     const normalized = normalizeTextForTTS(text);
     const normalizedType = type === 'sentence' ? 'sentence' : (type === 'phoneme' ? 'phoneme' : 'word');
     const isSentence = normalizedType === 'sentence';
@@ -2852,7 +2868,7 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
 
     if (isSentence && expressive && countSpeechWords(normalized) >= 4 && /[.,!?;:]/.test(normalized)) {
         speakSentenceWithProsody(normalized, voice, fallbackLang, rate);
-        return;
+        return true;
     }
 
     const msg = new SpeechSynthesisUtterance(normalized);
@@ -2867,6 +2883,7 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
         ? clampSpeechPitch(expressive ? 1.03 : 1.0)
         : (normalizedType === 'phoneme' ? 1.02 : 1.0);
     speakUtterance(msg);
+    return true;
 }
 
 async function speak(text, type = "word", options = {}) {
@@ -2918,9 +2935,17 @@ async function speak(text, type = "word", options = {}) {
 
     // 2. Fallback to System Voice
     const voices = await getVoicesForSpeech();
+    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-    speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, fallbackLang);
+    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
+        notifyMissingEnglishVoice();
+        return false;
+    }
+    const spoken = speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, preferred.lang);
+    if (!spoken) {
+        notifyMissingEnglishVoice();
+        return false;
+    }
     return true;
 }
 
@@ -3355,17 +3380,25 @@ async function playTextInLanguage(text, languageCode, type = 'sentence', options
     const msg = new SpeechSynthesisUtterance(text);
     const voices = await getVoicesForSpeech();
     const targetLang = getTranslationVoiceTarget(languageCode);
+    const qualityMode = getSpeechQualityMode();
     
     const preferredVoice = getBestTranslationVoice(voices, targetLang);
     const usingHighQualityVoice = !!(preferredVoice && isHighQualityVoice(preferredVoice));
     
-    if (preferredVoice && voiceMatchesLanguage(preferredVoice, targetLang)) {
+    if (
+        preferredVoice
+        && voiceMatchesLanguage(preferredVoice, targetLang)
+        && isVoiceAllowedForSpeechPolicy(preferredVoice, qualityMode)
+    ) {
         msg.voice = preferredVoice;
         msg.lang = preferredVoice.lang;
         if (usingHighQualityVoice) {
             setTranslationAudioNote('');
-        } else {
+        } else if (qualityMode === 'fallback-any') {
             setTranslationAudioNote('Using an available device voice for this language.');
+        } else {
+            setTranslationAudioNote('Audio unavailable for this language.', true);
+            return false;
         }
     } else {
         setTranslationAudioNote('Audio unavailable for this language.', true);
@@ -4924,8 +4957,8 @@ function ensureVoicePreferencesControls() {
         </select>
         <label for="speech-quality-select"><strong>Voice quality</strong></label>
         <select id="speech-quality-select" aria-label="Voice quality mode">
-            <option value="natural-preferred">Natural preferred (recommended)</option>
-            <option value="natural-only">Natural only</option>
+            <option value="natural-only">Natural only (enforced)</option>
+            <option value="natural-preferred">Natural preferred</option>
             <option value="fallback-any">Allow basic fallback</option>
         </select>
         <label for="tts-pack-select"><strong>Audio voice pack</strong></label>
@@ -8737,10 +8770,14 @@ async function speakWithSystemVoice(text) {
     if (!('speechSynthesis' in window)) return;
 
     const voices = await getVoicesForSpeech();
+    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
+    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
+        notifyMissingEnglishVoice();
+        return false;
+    }
     const speechType = countSpeechWords(text) >= 5 || /[.!?]/.test(String(text || '')) ? 'sentence' : 'word';
-    speakEnglishText(text, speechType, preferred, fallbackLang);
+    return speakEnglishText(text, speechType, preferred, preferred.lang);
 }
 
 const DEFAULT_DECODABLE_TEXTS = [
@@ -11386,9 +11423,17 @@ async function speakText(text, rateType = 'word', options = {}) {
     }
 
     const voices = await getVoicesForSpeech();
+    const qualityMode = getSpeechQualityMode();
     const preferred = pickBestEnglishVoice(voices);
-    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-    speakEnglishText(text, speechType, preferred, fallbackLang);
+    if (!isVoiceAllowedForSpeechPolicy(preferred, qualityMode)) {
+        notifyMissingEnglishVoice();
+        return false;
+    }
+    const spoken = speakEnglishText(text, speechType, preferred, preferred.lang);
+    if (!spoken) {
+        notifyMissingEnglishVoice();
+        return false;
+    }
     return true;
 }
 
