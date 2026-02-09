@@ -1,30 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T04:46:45.801Z",
+  "updatedAt": "2026-02-09T04:58:27.121Z",
   "packs": [
-    {
-      "id": "emma-en",
-      "name": "Emma English",
-      "manifestPath": "audio/tts/packs/emma-en/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Emma English).",
-      "generatedAt": "2026-02-08T12:54:51.895Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "word",
-        "def",
-        "sentence",
-        "passage"
-      ],
-      "voices": {
-        "en": "en-US-EmmaNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural"
-      }
-    },
     {
       "id": "guy-en-us",
       "name": "Guy English US",
@@ -110,6 +87,32 @@
       "voices": {
         "en": "en-US-AvaMultilingualNeural",
         "es": "en-US-AvaMultilingualNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "emma-en",
+      "name": "Emma English",
+      "manifestPath": "audio/tts/packs/emma-en/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Emma English).",
+      "generatedAt": "2026-02-09T04:58:27.121Z",
+      "languages": [
+        "en"
+      ],
+      "fields": [
+        "def",
+        "sentence"
+      ],
+      "voices": {
+        "en": "en-US-EmmaNeural",
+        "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
         "hi": "hi-IN-SwaraNeural",
