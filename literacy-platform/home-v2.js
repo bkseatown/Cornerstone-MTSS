@@ -21,14 +21,14 @@
   ];
 
   const HUB_BY_SCHOOL_ROLE = {
-    teacher: 'teacher-toolkit.html',
-    'learning-support': 'learning-support-toolkit.html',
-    eal: 'eal-toolkit.html',
-    slp: 'slp-toolkit.html',
-    counselor: 'counselor-toolkit.html',
-    psychologist: 'psychologist-toolkit.html',
-    admin: 'administrator-toolkit.html',
-    dean: 'dean-toolkit.html'
+    teacher: 'teacher-hub.html',
+    'learning-support': 'learning-support-hub.html',
+    eal: 'eal-hub.html',
+    slp: 'slp-hub.html',
+    counselor: 'counselor-hub.html',
+    psychologist: 'psychologist-hub.html',
+    admin: 'admin-hub.html',
+    dean: 'admin-hub.html'
   };
 
   let cs_hv2_quickcheck_poll = null;
@@ -195,12 +195,12 @@
   }
 
   function resolveHubPath(state) {
-    if (state.role === 'student') return 'student-toolkit.html';
-    if (state.role === 'parent') return 'parent-toolkit.html';
+    if (state.role === 'student') return 'student-hub.html';
+    if (state.role === 'parent') return 'parent-hub.html';
     if (state.role === 'school') {
-      return HUB_BY_SCHOOL_ROLE[state.schoolRole || 'teacher'] || 'teacher-toolkit.html';
+      return HUB_BY_SCHOOL_ROLE[state.schoolRole || 'teacher'] || 'teacher-hub.html';
     }
-    return 'student-toolkit.html';
+    return 'student-hub.html';
   }
 
   function hasRecommendation() {

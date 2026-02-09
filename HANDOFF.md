@@ -2,6 +2,73 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 Home V2 Step 2 routing + hub stubs slice
+- Scope files:
+  - `literacy-platform/home-v2.js`
+  - `literacy-platform/platform.js`
+  - `literacy-platform/hub-page.css`
+  - `literacy-platform/hub-page.js`
+  - `literacy-platform/teacher-hub.html`
+  - `literacy-platform/learning-support-hub.html`
+  - `literacy-platform/eal-hub.html`
+  - `literacy-platform/slp-hub.html`
+  - `literacy-platform/counselor-hub.html`
+  - `literacy-platform/psychologist-hub.html`
+  - `literacy-platform/admin-hub.html`
+  - `literacy-platform/parent-hub.html`
+  - `literacy-platform/student-hub.html`
+  - root redirect wrappers:
+    - `teacher-hub.html`, `learning-support-hub.html`, `eal-hub.html`, `slp-hub.html`, `counselor-hub.html`, `psychologist-hub.html`, `admin-hub.html`, `parent-hub.html`, `student-hub.html`, `writing-studio.html`
+  - cache query bump (`platform.js?v=6393551e`) across deployed `literacy-platform/*.html` pages that load platform nav
+- Why:
+  - Step 2 required role-specific routing from Home V2 into dedicated hub pages and visible non-404 root hub URLs.
+- What changed:
+  - Home V2 Quick Check routing now targets role-specific hub pages:
+    - student -> `student-hub.html`
+    - parent -> `parent-hub.html`
+    - school role mapping:
+      - teacher -> `teacher-hub.html`
+      - learning-support -> `learning-support-hub.html`
+      - eal -> `eal-hub.html`
+      - slp -> `slp-hub.html`
+      - counselor -> `counselor-hub.html`
+      - psychologist -> `psychologist-hub.html`
+      - admin/dean -> `admin-hub.html`
+  - Skip behavior:
+    - `Skip for now` routes to the same role hub with `quickcheck=skipped`.
+  - Added polished shared hub shell (`hub-page.css` + `hub-page.js`) with:
+    - title `[ROLE] HUB`
+    - cards:
+      - `Quick Check Results`
+      - `Recommended Path`
+      - `Workspace Tools`
+    - role-specific `Coming Soon` module cards.
+  - Added visible hub stamp:
+    - `Hub Build: 6393551e` on each hub page.
+  - Added global nav `Hubs` menu section with clear `(Coming soon)` labels.
+  - Added root redirect wrappers so required root URLs resolve without 404 and point to canonical `/literacy-platform` hub pages.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/home-v2.js` ✅
+  - `node --check literacy-platform/hub-page.js` ✅
+  - `node --check literacy-platform/platform.js` ✅
+- Role routing smoke (Playwright, automated for all role/subrole cases) ✅:
+  - Start Quick Check route mapping:
+    - student, parent, teacher, learning-support, eal, slp, counselor, psychologist, admin, dean all routed to expected hubs.
+  - Skip route mapping:
+    - same role/subrole mapping all routed to expected hubs.
+  - Skip banner text verified on each hub:
+    - `Quick Check skipped — start anytime from Home.`
+- Hub load + nav smoke (Playwright) ✅:
+  - all 9 hub pages load
+  - each renders 3 required cards
+  - each has `Hub Build: 6393551e`
+  - no console errors or page errors in check run
+  - nav menus include `Hubs`
+- Root URL wrapper existence smoke (Playwright) ✅:
+  - required root files (`*-hub.html` + `writing-studio.html`) load and resolve to canonical pages
+
 ## 2026-02-09 Home V2 flag mount + one-screen wizard slice
 - Scope files:
   - `literacy-platform/index.html`

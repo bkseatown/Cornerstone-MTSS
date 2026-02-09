@@ -162,6 +162,21 @@
         { id: 'recording-studio', label: 'Recording Studio', href: 'word-quest.html?tool=studio', action: 'recording-studio', studentHidden: true },
         { id: 'sound-lab', label: 'Sound Lab', href: 'word-quest.html?soundlab=1', action: 'sound-lab' }
       ]
+    },
+    {
+      id: 'hubs',
+      label: 'Hubs',
+      items: [
+        { id: 'hub-student', label: 'Student Hub (Coming soon)', href: 'student-hub.html' },
+        { id: 'hub-parent', label: 'Parent Hub (Coming soon)', href: 'parent-hub.html' },
+        { id: 'hub-teacher', label: 'Teacher Hub (Coming soon)', href: 'teacher-hub.html', studentHidden: true },
+        { id: 'hub-learning-support', label: 'Learning Support Hub (Coming soon)', href: 'learning-support-hub.html', studentHidden: true },
+        { id: 'hub-eal', label: 'EAL Hub (Coming soon)', href: 'eal-hub.html', studentHidden: true },
+        { id: 'hub-slp', label: 'SLP Hub (Coming soon)', href: 'slp-hub.html', studentHidden: true },
+        { id: 'hub-counselor', label: 'Counselor Hub (Coming soon)', href: 'counselor-hub.html', studentHidden: true },
+        { id: 'hub-psychologist', label: 'Psychologist Hub (Coming soon)', href: 'psychologist-hub.html', studentHidden: true },
+        { id: 'hub-admin', label: 'Admin Hub (Coming soon)', href: 'admin-hub.html', studentHidden: true }
+      ]
     }
   ];
 
