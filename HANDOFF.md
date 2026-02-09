@@ -7,7 +7,7 @@ Last updated: 2026-02-09
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
 - Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Latest pushed commit: `7c69d53f` (`origin/main`)
+- Latest pushed commit: `0f1bc445` (`origin/main`)
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
 ## 2026-02-08 latest shipped pass
@@ -39,6 +39,22 @@ Last updated: 2026-02-09
   - Forced compact quick-start overlay detection on `word-quest.html` path.
   - Increased visual prominence of vowel keys (stronger highlight + indicator dot).
   - Renamed student-mode exit affordance text to `Adult View` for clarity.
+
+## 2026-02-09 follow-up stabilization pass (pushed)
+- Commit: `0f1bc445`
+- Home onboarding now runs as a strict sequential flow:
+  - Step 1 role -> Step 2 who you are -> Step 3 focus -> Step 4 quick check.
+  - Only one step panel is visible at a time.
+  - Completed steps collapse into compact summary chips with Edit actions.
+- Pre-check gating is enforced:
+  - Large dashboard/workspace sections are hidden until Quick Check has a saved recommendation.
+  - A new post-check card shows the recommended starting path + short teacher-facing bullets.
+- Accessibility themes now include four presets in the panel:
+  - `Calm`, `Playful`, `High Contrast`, `Minimal Ink` (saved in settings + applied via body theme classes).
+- Word Quest tutorial now uses a smaller overlay card with a Wordle-style color legend (green/gold/gray) and `Got it` / `Don't show again`.
+- Full-grade reveal-copy safety sweep was broadened:
+  - Added additional school-safe overrides for high-risk entries (`dog`, `stress`, `gross`, `trunk`, `snort`, `fetch`, `eat`, `butterfly`, `snowman`, `fearless`, `knight`, `it's`, `fall`, `some`, `eye`, `sock`, `room`, `dad`, `sneeze`, `snore`, `pink`, `stapler`, `reflection`).
+  - Expanded phrase blocklist so problematic legacy lines auto-fallback to safe text.
 
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
