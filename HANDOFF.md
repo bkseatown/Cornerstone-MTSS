@@ -103,6 +103,63 @@ Last updated: 2026-02-09
 - Runtime note:
   - `translation_runtime_check` now reports `hiMissingReturnsNull=false` (expected after completion).
 
+## 2026-02-09 role-first onboarding + coming-soon framework slice (latest)
+- Scope:
+  - Refactored Home onboarding wizard (`literacy-platform/index.html`, `literacy-platform/home.js`, `literacy-platform/style.css`) to keep one visible step panel at a time with explicit 1->4 labels:
+    - `1. Role`
+    - `2. Who you are`
+    - `3. Focus`
+    - `4. Quick Check`
+  - Step updates:
+    - Step 1 now includes School Team role selector (Teacher, LS, EAL, SLP, Counselor, Psychologist, Administrator, Dean).
+    - Step 2 now uses role-specific fields:
+      - Student: first name, grade band, optional English learner + vibe.
+      - Parent: first name, child grade band, optional focus dropdown.
+      - School Team: optional name, division/grade band, optional primary concern.
+  - Post-check behavior:
+    - Kept single “Your Best Next Step” card visible after Quick Check completion.
+    - Added “Explore Activities” secondary action.
+  - Added reusable coming-soon framework:
+    - New shared script: `literacy-platform/coming-soon.js`
+    - New pages:
+      - `literacy-platform/writing-studio.html`
+      - `literacy-platform/student-toolkit.html`
+      - `literacy-platform/parent-toolkit.html`
+      - `literacy-platform/school-team-toolkit.html`
+      - `literacy-platform/teacher-toolkit.html`
+      - `literacy-platform/learning-support-toolkit.html`
+      - `literacy-platform/eal-toolkit.html`
+      - `literacy-platform/slp-toolkit.html`
+      - `literacy-platform/counselor-toolkit.html`
+      - `literacy-platform/psychologist-toolkit.html`
+      - `literacy-platform/administrator-toolkit.html`
+      - `literacy-platform/dean-toolkit.html`
+  - Nav + theme polish:
+    - Writing nav route now points to `writing-studio.html`.
+    - Added toolkit links in Tools menu.
+    - Added a top-nav Theme action that opens the Theme & Accessibility panel.
+    - Added theme swatch previews (Calm, Playful, High Contrast, Minimal Ink) in accessibility panel.
+    - No red styling introduced in new UI states.
+
+### Validation run for this slice
+- `node --check literacy-platform/home.js` ✅
+- `node --check literacy-platform/platform.js` ✅
+- `node --check literacy-platform/coming-soon.js` ✅
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_flow_check.js` ✅
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_detail_visible.js` ✅
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js` ✅
+
+### Manual checks to run on live Pages after push
+- Home:
+  - Verify only one wizard panel is visible at a time.
+  - Verify progress header labels show `1. Role • 2. Who you are • 3. Focus • 4. Quick Check`.
+  - Verify “Your Best Next Step” appears only after Quick Check completion.
+- Theme:
+  - Open top-nav Tools -> Theme and confirm theme change is obvious + persists on refresh.
+- Coming-soon pages:
+  - Open `writing-studio.html`, `student-toolkit.html`, and `school-team-toolkit.html`.
+  - Confirm “Notify me” stores locally and shows saved status.
+
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
 2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)

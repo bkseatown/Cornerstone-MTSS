@@ -89,7 +89,7 @@
     },
     {
       id: 'writing',
-      href: 'writing.html',
+      href: 'writing-studio.html',
       navLabel: 'Writing Studio'
     },
     {
@@ -133,7 +133,7 @@
         { activityId: 'comprehension', label: 'Read & Think' },
         { activityId: 'fluency', label: 'Speed Sprint' },
         { activityId: 'madlibs', label: 'Silly Stories' },
-        { activityId: 'writing', label: 'Writing Studio' },
+        { activityId: 'writing', label: 'Writing Studio (Coming Soon)' },
         { activityId: 'plan-it', label: 'Plan-It' }
       ]
     },
@@ -158,6 +158,10 @@
       label: 'Tools',
       items: [
         { id: 'guided-start', label: 'Guided Start', href: 'index.html#role-dashboard' },
+        { id: 'student-toolkit-nav', label: 'Student Toolkit (Coming Soon)', href: 'student-toolkit.html' },
+        { id: 'parent-toolkit-nav', label: 'Parent Toolkit (Coming Soon)', href: 'parent-toolkit.html' },
+        { id: 'school-toolkit-nav', label: 'School Team Toolkits (Coming Soon)', href: 'school-team-toolkit.html' },
+        { id: 'theme-panel', label: 'Theme', href: '#theme', action: 'open-theme' },
         { id: 'session-setup', label: 'Session Setup', href: 'word-quest.html?tool=session', action: 'session-setup', studentHidden: true },
         { id: 'recording-studio', label: 'Recording Studio', href: 'word-quest.html?tool=studio', action: 'recording-studio', studentHidden: true },
         { id: 'sound-lab', label: 'Sound Lab', href: 'word-quest.html?soundlab=1', action: 'sound-lab' }
@@ -206,8 +210,8 @@
       body: 'Run a 1-minute read, record WPM + accuracy, then set one concrete goal for tomorrow.'
     },
     writing: {
-      title: 'Writing Studio Quick Start',
-      body: 'Use a Step Up-aligned routine: plan, draft, check, revise, publish, then capture one growth note.'
+      title: 'Writing Studio Preview',
+      body: 'This module is in active build. Open the preview roadmap and start from Quick Check in Home.'
     },
     'number-sense': {
       title: 'Number Sense Lab Quick Start',
@@ -1624,6 +1628,12 @@
               <option value="minimal-ink">Minimal Ink</option>
             </select>
           </label>
+          <div class="global-theme-swatches" aria-label="Theme previews">
+            <button type="button" class="theme-swatch calm" data-theme-swatch="calm" aria-label="Use Calm theme"></button>
+            <button type="button" class="theme-swatch playful" data-theme-swatch="playful" aria-label="Use Playful theme"></button>
+            <button type="button" class="theme-swatch high-contrast" data-theme-swatch="high-contrast" aria-label="Use High Contrast theme"></button>
+            <button type="button" class="theme-swatch minimal-ink" data-theme-swatch="minimal-ink" aria-label="Use Minimal Ink theme"></button>
+          </div>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
           <label><input type="checkbox" data-setting="reducedStimulation" /> Reduced stimulation</label>
           <label><input type="checkbox" data-setting="calmMode" /> Calm mode</label>
@@ -1651,6 +1661,10 @@
         input.checked = !!settings[key];
       }
     });
+    panel.querySelectorAll('[data-theme-swatch]').forEach((swatch) => {
+      const value = normalizeThemePreset(swatch.getAttribute('data-theme-swatch') || '');
+      swatch.classList.toggle('active', value === normalizeThemePreset(settings.themePreset));
+    });
 
     if (panel.dataset.bound !== 'true') {
       panel.dataset.bound = 'true';
@@ -1669,6 +1683,21 @@
         }
         platform.setSettings({ [key]: value });
         applyFocusModeLayout();
+      });
+      panel.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const swatch = target.closest('[data-theme-swatch]');
+        if (!(swatch instanceof HTMLButtonElement)) return;
+        const nextTheme = normalizeThemePreset(swatch.getAttribute('data-theme-swatch') || '');
+        const select = panel.querySelector('select[data-setting="themePreset"]');
+        if (select instanceof HTMLSelectElement) {
+          select.value = nextTheme;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          platform.setSettings({ themePreset: nextTheme });
+          applyFocusModeLayout();
+        }
       });
 
       const resetBtn = panel.querySelector('.global-accessibility-reset');
@@ -2207,7 +2236,19 @@
         const actionLink = target.closest('[data-nav-action]');
         if (!(actionLink instanceof HTMLAnchorElement)) return;
         const action = (actionLink.dataset.navAction || '').trim();
-        if (!action || currentId !== 'word-quest') return;
+        if (!action) return;
+        if (action === 'open-theme') {
+          event.preventDefault();
+          menus.forEach((menu) => menu.removeAttribute('open'));
+          const panel = document.getElementById('global-accessibility-tools');
+          if (panel instanceof HTMLDetailsElement) {
+            panel.open = true;
+            const themeSelect = panel.querySelector('[data-setting="themePreset"]');
+            if (themeSelect instanceof HTMLElement) themeSelect.focus();
+          }
+          return;
+        }
+        if (currentId !== 'word-quest') return;
         event.preventDefault();
         menus.forEach((menu) => menu.removeAttribute('open'));
         window.dispatchEvent(new CustomEvent('cornerstone:tool-request', { detail: { action } }));
