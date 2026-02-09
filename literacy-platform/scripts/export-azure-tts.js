@@ -609,10 +609,8 @@ async function main() {
 
     const region = (args.region || process.env.AZURE_SPEECH_REGION || '').trim();
     const key = (args.key || process.env.AZURE_SPEECH_KEY || '').trim();
-    if ((!region || !key) && !dryRun) {
-        throw new Error('Missing Azure credentials. Provide --region/--key or AZURE_SPEECH_REGION/AZURE_SPEECH_KEY.');
-    }
-    if (dryRun && (!region || !key)) {
+    const hasCredentials = !!(region && key);
+    if (dryRun && !hasCredentials) {
         console.log('[TTS] Dry run mode: Azure credentials not required.');
     }
 
@@ -824,6 +822,10 @@ async function main() {
 
     const phonemeTaskCount = finalTasks.reduce((count, task) => count + (task.field === 'phoneme' ? 1 : 0), 0);
     const passageTaskCount = finalTasks.reduce((count, task) => count + (task.field === 'passage' ? 1 : 0), 0);
+    const tasksNeedingSynthesis = finalTasks.filter((task) => overwrite || !fs.existsSync(task.absolutePath));
+    if (!dryRun && tasksNeedingSynthesis.length > 0 && !hasCredentials) {
+        throw new Error('Missing Azure credentials. Provide --region/--key or AZURE_SPEECH_REGION/AZURE_SPEECH_KEY.');
+    }
     console.log(`[TTS] words=${wordList.length} passages=${passageCatalog.length} tasks=${finalTasks.length} missing=${skippedMissing.length} noVoice=${skippedNoVoice.length} phonemes=${phonemeTaskCount}`);
     if (includePassages) {
         console.log(`[TTS] passageTasks=${passageTaskCount}`);
@@ -834,8 +836,12 @@ async function main() {
         return;
     }
 
-    let token = await fetchAzureToken(region, key);
-    let tokenIssuedAt = Date.now();
+    let token = null;
+    let tokenIssuedAt = 0;
+    if (tasksNeedingSynthesis.length > 0) {
+        token = await fetchAzureToken(region, key);
+        tokenIssuedAt = Date.now();
+    }
 
     let generated = 0;
     let reused = 0;
@@ -860,7 +866,7 @@ async function main() {
             continue;
         }
 
-        if ((Date.now() - tokenIssuedAt) > (8 * 60 * 1000)) {
+        if (token && (Date.now() - tokenIssuedAt) > (8 * 60 * 1000)) {
             token = await fetchAzureToken(region, key);
             tokenIssuedAt = Date.now();
         }

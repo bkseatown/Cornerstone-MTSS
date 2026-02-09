@@ -468,6 +468,29 @@ npm run tts:azure -- \
 - Passage manifest keys are still absent in `ava-multi` (`@passage:*` count is `0`), though passage mp3 files exist on disk.
 - If passage audio indexing must be complete in-manifest, run a follow-up export with `--include-passages=true` for the target pack(s).
 
+## 2026-02-09 passage-manifest indexing completion (pushed next)
+### What changed
+- `literacy-platform/scripts/export-azure-tts.js`
+  - Credential handling now requires Azure key/region only when synthesis is actually needed.
+  - This enables safe manifest reindex passes (reuse-only) without re-generating audio.
+- Reindexed `ava-multi` passage entries (reuse-only pass, no synthesis):
+  - `literacy-platform/audio/tts/packs/ava-multi/tts-manifest.json`
+  - `literacy-platform/audio/tts/packs/ava-multi/tts-export-report.json`
+  - `literacy-platform/audio/tts/packs/pack-registry.json`
+
+### Verified result
+- `ava-multi` manifest now includes `@passage:*` keys:
+  - Total entries: `10729`
+  - Type counts: `def=5000`, `sentence=5000`, `word=500`, `phoneme=79`, `passage=150`
+  - Passage keys: `150`
+  - Region metadata: `eastus`
+- Export report for indexing pass:
+  - `attempted=150`, `generated=0`, `reused=150`, `failed=0`
+  - `reusedByField.passage=150`
+
+### Remaining audio gap after this step
+- Non-English `word` clips in `ava-multi` are still not populated from `words.js` schema (`skippedMissing` for non-English `word` fields); current manifest has `word` entries for `en` only.
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
