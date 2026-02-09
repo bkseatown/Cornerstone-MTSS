@@ -6,7 +6,7 @@
     <title>CORNERSTONE MTSS — Learning Hub</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
+    <script src="platform.js?v=20260209a" defer></script>
     <script src="class-blocks.js" defer></script>
     <script src="home.js" defer></script>
   </head>
@@ -28,24 +28,24 @@
       <section class="home-card home-hero home-hero-lite" aria-label="Welcome">
         <div>
           <div class="home-kicker">CORNERSTONE MTSS</div>
-          <h2>Who is using Cornerstone right now?</h2>
+          <h2>Step-by-step start for today</h2>
           <p class="home-lede">
-            Start in under a minute: pick a role, run Quick Check, and get one clear next step.
+            One path at a time. Choose your role, set focus, run Quick Check, then unlock one clear next step.
           </p>
 
           <div id="home-onboarding-wizard" class="home-wizard" aria-label="Getting started wizard">
             <div class="home-stepper" role="list" aria-label="Getting started steps">
-              <div class="home-step" data-step-index="1" role="listitem">1. Role</div>
-              <div class="home-step" data-step-index="2" role="listitem">2. Who you are</div>
-              <div class="home-step" data-step-index="3" role="listitem">3. Focus</div>
-              <div class="home-step" data-step-index="4" role="listitem">4. Quick Check</div>
+              <button type="button" class="home-step" data-step-index="1" role="listitem" aria-current="step">A. Role</button>
+              <button type="button" class="home-step" data-step-index="2" role="listitem">B. Who you are</button>
+              <button type="button" class="home-step" data-step-index="3" role="listitem">C. Focus</button>
+              <button type="button" class="home-step" data-step-index="4" role="listitem">D. Quick Check</button>
             </div>
 
             <div id="home-step-summaries" class="home-step-summaries hidden" aria-live="polite"></div>
 
             <section class="home-step-panel" data-home-step-panel="1" aria-label="Step 1 choose role">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 1 · Choose role</div>
+                <div class="home-field-label">Step A · Choose role</div>
                 <div class="home-entry-segments" aria-label="Choose your pathway group">
                   <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
                   <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
@@ -59,7 +59,7 @@
 
             <section class="home-step-panel hidden" data-home-step-panel="2" aria-label="Step 2 who you are">
               <div id="home-student-setup" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · Student details</div>
+                <div class="home-field-label">Step B · Student details</div>
                 <label class="home-field-label" for="home-student-name">Student name (nickname is okay)</label>
                 <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter student name" />
                 <div class="home-field-label">Grade band (optional)</div>
@@ -67,14 +67,36 @@
                   <button type="button" class="home-grade-band-btn" data-grade-band="K-2">K–2</button>
                   <button type="button" class="home-grade-band-btn" data-grade-band="3-5">3–5</button>
                   <button type="button" class="home-grade-band-btn" data-grade-band="6-8">6–8</button>
+                  <button type="button" class="home-grade-band-btn" data-grade-band="9-12">9–12</button>
                 </div>
+                <label class="home-check-row compact">
+                  <input id="home-student-eal" type="checkbox" />
+                  <span>I am learning English</span>
+                </label>
               </div>
               <div id="home-parent-setup" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · Parent / Caregiver setup</div>
-                <p class="home-mini-hint">You will get clear at-home supports, short walkthroughs, and a simple next step after Quick Check.</p>
+                <div class="home-field-label">Step B · Parent / Caregiver details</div>
+                <label class="home-field-label" for="home-parent-name">Your name</label>
+                <input id="home-parent-name" class="home-input" type="text" autocomplete="off" placeholder="Enter your name" />
+                <label class="home-field-label" for="home-parent-grade">Student grade band</label>
+                <select id="home-parent-grade" class="home-select" aria-label="Student grade band">
+                  <option value="">Choose…</option>
+                  <option value="K-2">K–2</option>
+                  <option value="3-5">3–5</option>
+                  <option value="6-8">6–8</option>
+                  <option value="9-12">9–12</option>
+                </select>
+                <div class="home-field-label">Goals for tonight</div>
+                <div class="home-focus-options home-parent-goals" aria-label="Parent goals">
+                  <button type="button" class="home-focus-btn home-goal-btn" data-parent-goal="homework-help">Homework help</button>
+                  <button type="button" class="home-focus-btn home-goal-btn" data-parent-goal="reading-support">Reading support</button>
+                  <button type="button" class="home-focus-btn home-goal-btn" data-parent-goal="math-support">Math support</button>
+                  <button type="button" class="home-focus-btn home-goal-btn" data-parent-goal="sel">SEL support</button>
+                </div>
+                <p class="home-mini-hint">You will get one clear tonight plan after onboarding.</p>
               </div>
               <div id="home-team-role-wrap" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · School Team details</div>
+                <div class="home-field-label">Step B · School Team details</div>
                 <label class="home-field-label" for="home-team-role-select">School Team role</label>
                 <select id="home-team-role-select" class="home-select" aria-label="School team role">
                   <option value="teacher">Teacher</option>
@@ -83,8 +105,7 @@
                   <option value="slp">SLP</option>
                   <option value="counselor">Counselor</option>
                   <option value="psychologist">Psychologist</option>
-                  <option value="admin">Administrator</option>
-                  <option value="dean">Dean</option>
+                  <option value="admin">Admin / Dean</option>
                 </select>
               </div>
               <div class="home-cta-row">
@@ -95,7 +116,7 @@
 
             <section class="home-step-panel hidden" data-home-step-panel="3" aria-label="Step 3 focus">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 3 · What are we working on today?</div>
+                <div class="home-field-label">Step C · What are we working on today?</div>
                 <div class="home-focus-options" aria-label="Choose focus">
                   <button type="button" class="home-focus-btn" data-focus-value="literacy">Reading &amp; Words</button>
                   <button type="button" class="home-focus-btn" data-focus-value="numeracy">Math &amp; Numbers</button>
@@ -110,12 +131,13 @@
 
             <section class="home-step-panel hidden" data-home-step-panel="4" aria-label="Step 4 quick check">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 4 · Quick Check (required)</div>
-                <p class="home-mini-hint">A short adaptive check (about 5–8 minutes) gives one clear starting point before activities open.</p>
+                <div id="home-step-quickcheck-label" class="home-field-label">Step D · Quick Check</div>
+                <p class="home-mini-hint">Warm-up mission (about 5–8 minutes). Students must complete this to unlock activities.</p>
               </div>
               <div class="home-cta-row">
                 <button id="home-step-quickcheck-back" class="home-cta ghost" type="button">Back</button>
                 <button id="home-role-launch" class="home-cta primary" type="button">Start Quick Check</button>
+                <button id="home-skip-quickcheck" class="home-cta ghost hidden" type="button">Skip for now</button>
               </div>
             </section>
           </div>
@@ -132,8 +154,14 @@
             <div class="home-cta-row">
               <a id="home-post-check-launch" class="home-cta primary" href="word-quest.html">Start Recommended Path</a>
               <button id="home-post-check-rerun" class="home-cta ghost" type="button">Run Quick Check Again</button>
-              <button id="home-toggle-workspace" class="home-cta ghost" type="button" data-precheck-hidden>Show Workspace Tools</button>
+              <button id="home-toggle-workspace" class="home-cta ghost" type="button" data-precheck-hidden>Show Advanced Tools</button>
             </div>
+          </section>
+          <section id="home-next-best" class="home-next-best hidden" data-precheck-hidden aria-label="Next best actions">
+            <div class="home-mini-title">Next best actions</div>
+            <div id="home-next-best-title" class="home-next-best-title">Role pathway</div>
+            <div id="home-next-best-copy" class="home-mini-hint"></div>
+            <div id="home-next-best-actions" class="home-cta-row"></div>
           </section>
         </div>
 
@@ -148,7 +176,7 @@
         </aside>
       </section>
 
-      <section id="home-workspace-start" class="home-card" data-home-detail aria-label="Placement">
+      <section id="home-workspace-start" class="home-card" data-home-detail data-home-advanced aria-label="Placement">
         <div class="home-card-header">
           <h2>Workspace Tools</h2>
           <p class="home-subtitle">
@@ -203,7 +231,7 @@
         </div>
       </section>
 
-      <section id="learners" class="home-card" data-home-detail aria-label="Learners" data-student-hidden="true">
+      <section id="learners" class="home-card" data-home-detail data-home-advanced aria-label="Learners" data-student-hidden="true">
         <div class="home-card-header">
           <h2>Learners</h2>
           <p class="home-subtitle">Switch learners to isolate progress, placement, and activity data.</p>
@@ -242,7 +270,7 @@
         </div>
       </section>
 
-      <section class="home-card" data-home-detail aria-label="Progress">
+      <section class="home-card" data-home-detail data-home-advanced aria-label="Progress">
         <div class="home-card-header">
           <h2>Progress (Preview)</h2>
           <p class="home-subtitle">Data is saved on this device/browser only unless you transfer or import it on another device.</p>
@@ -288,7 +316,7 @@
         </div>
       </section>
 
-      <section id="role-dashboard" class="home-card" data-home-detail aria-label="Role dashboard">
+      <section id="role-dashboard" class="home-card" data-home-detail data-home-advanced aria-label="Role dashboard">
         <div class="home-card-header">
           <h2>Role Dashboard</h2>
           <p class="home-subtitle">Choose your role to get a tailored daily workflow, evidence lens, and one-click launch actions.</p>
@@ -353,7 +381,7 @@
         </div>
       </section>
 
-      <section class="home-card" data-home-detail aria-label="Skill path">
+      <section class="home-card" data-home-detail data-home-advanced aria-label="Skill path">
         <div class="home-card-header">
           <h2>Skill Path (Preview)</h2>
           <p class="home-subtitle">
@@ -385,10 +413,10 @@
         </div>
       </section>
 
-      <section id="activities-grid" class="home-card" data-home-detail aria-label="Activities">
+      <section id="activities-grid" class="home-card hidden" data-precheck-hidden aria-label="Explore activities">
         <div class="home-card-header">
-          <h2>Activities</h2>
-          <p class="home-subtitle">Pick a module. Each stays focused and predictable for students.</p>
+          <h2>Explore Activities</h2>
+          <p class="home-subtitle">Unlocked after onboarding. Pick one focused module at a time.</p>
         </div>
 
         <div class="home-activity-grid">
