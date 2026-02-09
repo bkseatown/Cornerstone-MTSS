@@ -41,14 +41,40 @@
               <div class="home-step" data-step-index="4" role="listitem">4. Quick Check</div>
             </div>
 
-            <div class="home-wizard-block">
-              <div class="home-field-label">Step 1 · Choose role</div>
-              <div class="home-entry-segments" aria-label="Choose your pathway group">
-                <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
-                <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
-                <button type="button" class="home-entry-segment" data-entry-group="school">School Team</button>
+            <div id="home-step-summaries" class="home-step-summaries hidden" aria-live="polite"></div>
+
+            <section class="home-step-panel" data-home-step-panel="1" aria-label="Step 1 choose role">
+              <div class="home-wizard-block">
+                <div class="home-field-label">Step 1 · Choose role</div>
+                <div class="home-entry-segments" aria-label="Choose your pathway group">
+                  <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
+                  <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
+                  <button type="button" class="home-entry-segment" data-entry-group="school">School Team</button>
+                </div>
               </div>
-              <div id="home-team-role-wrap" class="home-team-role-wrap hidden">
+              <div class="home-cta-row">
+                <button id="home-step-role-next" class="home-cta primary" type="button">Next: Who you are</button>
+              </div>
+            </section>
+
+            <section class="home-step-panel hidden" data-home-step-panel="2" aria-label="Step 2 who you are">
+              <div id="home-student-setup" class="home-wizard-block hidden">
+                <div class="home-field-label">Step 2 · Student details</div>
+                <label class="home-field-label" for="home-student-name">Student name (nickname is okay)</label>
+                <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter student name" />
+                <div class="home-field-label">Grade band (optional)</div>
+                <div class="home-grade-band-row" aria-label="Choose grade band">
+                  <button type="button" class="home-grade-band-btn" data-grade-band="K-2">K–2</button>
+                  <button type="button" class="home-grade-band-btn" data-grade-band="3-5">3–5</button>
+                  <button type="button" class="home-grade-band-btn" data-grade-band="6-8">6–8</button>
+                </div>
+              </div>
+              <div id="home-parent-setup" class="home-wizard-block hidden">
+                <div class="home-field-label">Step 2 · Parent / Caregiver setup</div>
+                <p class="home-mini-hint">You will get clear at-home supports, short walkthroughs, and a simple next step after Quick Check.</p>
+              </div>
+              <div id="home-team-role-wrap" class="home-wizard-block hidden">
+                <div class="home-field-label">Step 2 · School Team details</div>
                 <label class="home-field-label" for="home-team-role-select">School Team role</label>
                 <select id="home-team-role-select" class="home-select" aria-label="School team role">
                   <option value="teacher">Teacher</option>
@@ -61,55 +87,64 @@
                   <option value="dean">Dean</option>
                 </select>
               </div>
-            </div>
-
-            <div id="home-student-setup" class="home-wizard-block">
-              <div class="home-field-label">Step 2 · Student details</div>
-              <label class="home-field-label" for="home-student-name">Student name (nickname is okay)</label>
-              <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter student name" />
-              <div class="home-field-label">Grade band (optional)</div>
-              <div class="home-grade-band-row" aria-label="Choose grade band">
-                <button type="button" class="home-grade-band-btn" data-grade-band="K-2">K–2</button>
-                <button type="button" class="home-grade-band-btn" data-grade-band="3-5">3–5</button>
-                <button type="button" class="home-grade-band-btn" data-grade-band="6-8">6–8</button>
+              <div class="home-cta-row">
+                <button id="home-step-details-back" class="home-cta ghost" type="button">Back</button>
+                <button id="home-step-details-next" class="home-cta primary" type="button">Next: Focus</button>
               </div>
-            </div>
+            </section>
 
-            <div class="home-wizard-block">
-              <div class="home-field-label">Step 3 · What are we working on today?</div>
-              <div class="home-focus-options" aria-label="Choose focus">
-                <button type="button" class="home-focus-btn" data-focus-value="literacy">Reading &amp; Words</button>
-                <button type="button" class="home-focus-btn" data-focus-value="numeracy">Math &amp; Numbers</button>
-                <button type="button" class="home-focus-btn" data-focus-value="both">Both</button>
+            <section class="home-step-panel hidden" data-home-step-panel="3" aria-label="Step 3 focus">
+              <div class="home-wizard-block">
+                <div class="home-field-label">Step 3 · What are we working on today?</div>
+                <div class="home-focus-options" aria-label="Choose focus">
+                  <button type="button" class="home-focus-btn" data-focus-value="literacy">Reading &amp; Words</button>
+                  <button type="button" class="home-focus-btn" data-focus-value="numeracy">Math &amp; Numbers</button>
+                  <button type="button" class="home-focus-btn" data-focus-value="both">Both</button>
+                </div>
               </div>
-            </div>
+              <div class="home-cta-row">
+                <button id="home-step-focus-back" class="home-cta ghost" type="button">Back</button>
+                <button id="home-step-focus-next" class="home-cta primary" type="button">Next: Quick Check</button>
+              </div>
+            </section>
 
-            <div class="home-cta-row" aria-label="Quick start">
-              <button id="home-role-launch" class="home-cta primary" type="button">Start Quick Check</button>
-              <a id="home-explore-activities" class="home-cta ghost" href="#activities-grid">Explore Activities</a>
-              <button id="home-toggle-workspace" class="home-cta ghost" type="button">Show Workspace Tools</button>
-            </div>
+            <section class="home-step-panel hidden" data-home-step-panel="4" aria-label="Step 4 quick check">
+              <div class="home-wizard-block">
+                <div class="home-field-label">Step 4 · Quick Check (required)</div>
+                <p class="home-mini-hint">A short adaptive check (about 5–8 minutes) gives one clear starting point before activities open.</p>
+              </div>
+              <div class="home-cta-row">
+                <button id="home-step-quickcheck-back" class="home-cta ghost" type="button">Back</button>
+                <button id="home-role-launch" class="home-cta primary" type="button">Start Quick Check</button>
+              </div>
+            </section>
           </div>
           <p id="home-role-preview" class="home-role-preview muted" aria-live="polite">
-            Step 4 will recommend your best starting activity.
+            Complete Quick Check to unlock your personalized next step.
           </p>
+          <div class="home-why-strip">
+            We use one short check first so students get matched to the right challenge level right away.
+          </div>
+          <section id="home-post-check" class="home-post-check hidden" aria-label="Post quick check next step">
+            <div class="home-mini-title">Your best next step</div>
+            <h3 id="home-post-check-title">Run Quick Check to get a recommendation.</h3>
+            <ul id="home-post-check-bullets" class="home-progress-list"></ul>
+            <div class="home-cta-row">
+              <a id="home-post-check-launch" class="home-cta primary" href="word-quest.html">Start Recommended Path</a>
+              <button id="home-post-check-rerun" class="home-cta ghost" type="button">Run Quick Check Again</button>
+              <button id="home-toggle-workspace" class="home-cta ghost" type="button" data-precheck-hidden>Show Workspace Tools</button>
+            </div>
+          </section>
         </div>
 
         <aside class="home-hero-panel home-hero-panel-lite" aria-label="Guided first steps">
-          <div class="home-mini-title">Simple, then powerful</div>
+          <div class="home-mini-title">What happens next</div>
           <div class="home-next-steps" aria-label="Guided steps">
-            <div class="home-next-step"><span>1</span>Pick role</div>
-            <div class="home-next-step"><span>2</span>Run Quick Check</div>
+            <div class="home-next-step"><span>1</span>Choose role</div>
+            <div class="home-next-step"><span>2</span>Finish Quick Check</div>
             <div class="home-next-step"><span>3</span>Start recommended path</div>
           </div>
-          <div class="home-story-visual" aria-label="Cornerstone values">
-            <div class="home-story-row">
-              <div class="home-story-pill">Tiered support, one shared system</div>
-              <div class="home-story-pill">Fast gap detection and clear intervention moves</div>
-              <div class="home-story-pill">Aligned teacher, specialist, and family communication</div>
-            </div>
-          </div>
-          <p class="home-mini-hint">Open Workspace Tools for placement, language/audio defaults, and reports.</p>
+          <p class="home-mini-hint">No long setup. One short check unlocks the right starting point.</p>
         </aside>
       </section>
 

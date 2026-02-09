@@ -16,6 +16,7 @@
   const HOME_GRADE_BAND_KEY = 'cm_grade_band';
   const HOME_FOCUS_TODAY_KEY = 'cm_focus_today';
   const HOME_ROLE_WIZARD_KEY = 'cm_role';
+  const HOME_WIZARD_STEP_KEY = 'cm_home_step';
 
   const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('placement-modal');
@@ -44,12 +45,26 @@
   const homeEntryGroupButtons = Array.from(document.querySelectorAll('.home-entry-segment[data-entry-group]'));
   const homeWizard = document.getElementById('home-onboarding-wizard');
   const homeWizardSteps = Array.from(document.querySelectorAll('.home-step[data-step-index]'));
+  const homeStepPanels = Array.from(document.querySelectorAll('.home-step-panel[data-home-step-panel]'));
+  const homeStepSummaries = document.getElementById('home-step-summaries');
+  const homeRoleStepNextBtn = document.getElementById('home-step-role-next');
+  const homeDetailsStepBackBtn = document.getElementById('home-step-details-back');
+  const homeDetailsStepNextBtn = document.getElementById('home-step-details-next');
+  const homeFocusStepBackBtn = document.getElementById('home-step-focus-back');
+  const homeFocusStepNextBtn = document.getElementById('home-step-focus-next');
+  const homeQuickCheckStepBackBtn = document.getElementById('home-step-quickcheck-back');
   const homeTeamRoleWrap = document.getElementById('home-team-role-wrap');
   const homeTeamRoleSelect = document.getElementById('home-team-role-select');
+  const homeParentSetup = document.getElementById('home-parent-setup');
   const homeStudentSetup = document.getElementById('home-student-setup');
   const homeStudentNameInput = document.getElementById('home-student-name');
   const homeGradeBandButtons = Array.from(document.querySelectorAll('.home-grade-band-btn[data-grade-band]'));
   const homeFocusButtons = Array.from(document.querySelectorAll('.home-focus-btn[data-focus-value]'));
+  const homePostCheckCard = document.getElementById('home-post-check');
+  const homePostCheckTitle = document.getElementById('home-post-check-title');
+  const homePostCheckBullets = document.getElementById('home-post-check-bullets');
+  const homePostCheckLaunch = document.getElementById('home-post-check-launch');
+  const homePostCheckRerun = document.getElementById('home-post-check-rerun');
   const placementSubtitle = document.getElementById('placement-subtitle');
   const quickCheckStage = document.getElementById('quickcheck-stage');
 
@@ -108,21 +123,115 @@
     return normalizeGradeBand(localStorage.getItem(HOME_GRADE_BAND_KEY) || '');
   }
 
-  function applyWizardStepState(activeStep = 1) {
+  function normalizeWizardStep(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 1;
+    return Math.max(1, Math.min(4, Math.round(numeric)));
+  }
+
+  function readWizardStep() {
+    return normalizeWizardStep(localStorage.getItem(HOME_WIZARD_STEP_KEY) || 1);
+  }
+
+  function summarizeRoleSelection() {
+    const group = readHomeEntryGroup();
+    if (group === 'school') {
+      const role = normalizeRoleId(homeTeamRoleSelect?.value || homeRoleSelect?.value || '');
+      return HOME_ROLE_LABELS?.[role] || 'School Team';
+    }
+    if (group === 'parent') return 'Parent / Caregiver';
+    return 'Student';
+  }
+
+  function summarizeWhoYouAre() {
+    const group = readHomeEntryGroup();
+    if (group === 'student') {
+      const name = readStudentName();
+      const band = readStudentGradeBand();
+      if (name && band) return `${name} (${band})`;
+      if (name) return name;
+      return 'Student details pending';
+    }
+    if (group === 'school') return HOME_ROLE_LABELS?.[normalizeRoleId(homeTeamRoleSelect?.value || homeRoleSelect?.value || '')] || 'School Team';
+    return 'Home support pathway';
+  }
+
+  function summarizeFocusSelection() {
+    const focus = readFocusToday();
+    if (focus === 'numeracy') return 'Math & Numbers';
+    if (focus === 'both') return 'Reading & Words + Math & Numbers';
+    return 'Reading & Words';
+  }
+
+  function renderWizardStepSummaries(activeStep = 1) {
+    if (!homeStepSummaries) return;
+    const summaries = [];
+    if (activeStep > 1) {
+      summaries.push({ step: 1, label: 'Role', value: summarizeRoleSelection() });
+    }
+    if (activeStep > 2) {
+      summaries.push({ step: 2, label: 'Who you are', value: summarizeWhoYouAre() });
+    }
+    if (activeStep > 3) {
+      summaries.push({ step: 3, label: 'Focus', value: summarizeFocusSelection() });
+    }
+    if (!summaries.length) {
+      homeStepSummaries.classList.add('hidden');
+      homeStepSummaries.innerHTML = '';
+      return;
+    }
+    homeStepSummaries.classList.remove('hidden');
+    homeStepSummaries.innerHTML = summaries.map((row) => `
+      <div class="home-step-summary-chip">
+        <span class="home-step-summary-label">${escapeHtml(row.label)}:</span>
+        <span class="home-step-summary-value">${escapeHtml(row.value)}</span>
+        <button type="button" class="home-step-summary-edit" data-edit-step="${row.step}">Edit</button>
+      </div>
+    `).join('');
+  }
+
+  function applyWizardPanels(activeStep = 1) {
+    const safeStep = normalizeWizardStep(activeStep);
+    homeStepPanels.forEach((panel) => {
+      const step = Number(panel.dataset.homeStepPanel || panel.dataset.homeStep || 0);
+      const isActive = step === safeStep;
+      panel.classList.toggle('hidden', !isActive);
+      panel.classList.toggle('active', isActive);
+    });
+    renderWizardStepSummaries(safeStep);
+  }
+
+  function applyWizardStepState(activeStep = 1, options = {}) {
+    const safeStep = normalizeWizardStep(activeStep);
     homeWizardSteps.forEach((stepEl) => {
       const idx = Number(stepEl.dataset.stepIndex || 0);
-      stepEl.classList.toggle('active', idx === activeStep);
-      stepEl.classList.toggle('complete', idx > 0 && idx < activeStep);
+      stepEl.classList.toggle('active', idx === safeStep);
+      stepEl.classList.toggle('complete', idx > 0 && idx < safeStep);
     });
+    applyWizardPanels(safeStep);
+    if (homeRolePreviewEl) {
+      const summary = safeStep === 1
+        ? 'Step 1 of 4: Choose who is using Cornerstone.'
+        : safeStep === 2
+          ? 'Step 2 of 4: Add quick details for this role.'
+          : safeStep === 3
+            ? 'Step 3 of 4: Pick today’s focus.'
+            : 'Step 4 of 4: Run Quick Check to unlock the next step.';
+      homeRolePreviewEl.textContent = summary;
+    }
+    if (options.persist) {
+      localStorage.setItem(HOME_WIZARD_STEP_KEY, String(safeStep));
+    }
+    return safeStep;
   }
 
   function activeWizardStepForGroup(group) {
     const normalizedGroup = normalizeHomeEntryGroup(group);
-    if (normalizedGroup !== 'student') return 1;
-    const hasName = !!readStudentName();
-    const focus = readFocusToday();
-    if (!hasName) return 2;
-    if (!focus) return 3;
+    const storedStep = readWizardStep();
+    if (storedStep <= 1) return 1;
+    if (storedStep <= 2) return 2;
+    if (normalizedGroup === 'student' && !readStudentName()) return 2;
+    if (storedStep <= 3) return 3;
     return 4;
   }
 
@@ -167,6 +276,9 @@
     if (homeTeamRoleWrap) {
       homeTeamRoleWrap.classList.toggle('hidden', normalizedGroup !== 'school');
     }
+    if (homeParentSetup) {
+      homeParentSetup.classList.toggle('hidden', normalizedGroup !== 'parent');
+    }
     if (homeStudentSetup) {
       homeStudentSetup.classList.toggle('hidden', normalizedGroup !== 'student');
     }
@@ -177,7 +289,8 @@
       }
     }
 
-    applyWizardStepState(activeWizardStepForGroup(normalizedGroup));
+    const requestedStep = normalizeWizardStep(options.step || activeWizardStepForGroup(normalizedGroup));
+    applyWizardStepState(requestedStep, { persist: shouldPersist });
 
     if (shouldPersist) {
       localStorage.setItem(HOME_ENTRY_GROUP_KEY, normalizedGroup);
@@ -215,7 +328,8 @@
   }
 
   function applyHomeDetailsMode(mode, options = {}) {
-    const normalized = normalizeHomeDetailsMode(mode);
+    const precheckLocked = document.body.classList.contains('home-precheck');
+    const normalized = precheckLocked ? 'collapsed' : normalizeHomeDetailsMode(mode);
     const expanded = normalized === 'expanded';
     document.body.classList.toggle('home-details-expanded', expanded);
     document.body.classList.toggle('home-details-collapsed', !expanded);
@@ -2205,6 +2319,51 @@
     return parsed;
   }
 
+  function hasQuickCheckRecommendation(payload = load()) {
+    return !!(payload && typeof payload === 'object' && payload.recommendation);
+  }
+
+  function renderHomePostCheckCard(payload = null) {
+    if (!homePostCheckCard || !homePostCheckTitle || !homePostCheckBullets || !homePostCheckLaunch) return;
+    const recommendation = payload?.recommendation || null;
+    if (!recommendation) {
+      homePostCheckCard.classList.add('hidden');
+      homePostCheckTitle.textContent = 'Run Quick Check to get a recommendation.';
+      homePostCheckBullets.innerHTML = '';
+      homePostCheckLaunch.href = 'word-quest.html';
+      return;
+    }
+    const literacySummary = payload?.domains?.literacy;
+    const numeracySummary = payload?.domains?.numeracy;
+    const bullets = [];
+    if (recommendation.headline) bullets.push(recommendation.headline);
+    if (literacySummary) bullets.push(`Literacy: ${literacySummary.levelLabel} (${literacySummary.correct}/${literacySummary.total} correct)`);
+    if (numeracySummary) bullets.push(`Numeracy: ${numeracySummary.levelLabel} (${numeracySummary.correct}/${numeracySummary.total} correct)`);
+    if (recommendation.notes) bullets.push(recommendation.notes);
+
+    homePostCheckCard.classList.remove('hidden');
+    homePostCheckTitle.textContent = recommendation.activityLabel || 'Start recommended path';
+    homePostCheckBullets.innerHTML = bullets.slice(0, 4).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+    homePostCheckLaunch.href = String(recommendation.activityHref || wordQuestHref(recommendation.focus, recommendation.length));
+  }
+
+  function syncHomePrecheckState(payload = load()) {
+    const completed = hasQuickCheckRecommendation(payload);
+    document.body.classList.toggle('home-precheck', !completed);
+    document.body.classList.toggle('home-quickcheck-complete', completed);
+    if (completed && readWizardStep() < 4) {
+      localStorage.setItem(HOME_WIZARD_STEP_KEY, '4');
+    }
+    document.querySelectorAll('[data-precheck-hidden]').forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      node.classList.toggle('hidden', !completed);
+    });
+    if (!completed) {
+      applyHomeDetailsMode('collapsed', { persist: false });
+    }
+    renderHomePostCheckCard(payload);
+  }
+
   function showResult(payload) {
     const rec = payload?.recommendation || null;
     if (!rec) {
@@ -2238,6 +2397,7 @@
     goWordQuest.href = href;
     goWordQuest.textContent = rec.ctaLabel || 'Start Recommended Path';
     goWordQuest.classList.remove('hidden');
+    syncHomePrecheckState(payload);
   }
 
   function renderSummary(data) {
@@ -2249,6 +2409,7 @@
         <div class="muted">Not set yet. Run Quick Check to get a starting path.</div>
       `;
       if (openWordQuest) openWordQuest.href = 'word-quest.html';
+      renderHomePostCheckCard(null);
       return;
     }
 
@@ -2274,6 +2435,7 @@
     const href = String(rec.activityHref || wordQuestHref(rec.focus, rec.length));
     goWordQuest.href = href;
     if (openWordQuest) openWordQuest.href = href;
+    renderHomePostCheckCard(data);
   }
 
   function renderQuickCheckIntro() {
@@ -2510,6 +2672,38 @@
     }
   }
 
+  function goWizardStep(step) {
+    applyWizardStepState(step, { persist: true });
+  }
+
+  function canAdvanceDetailsStep() {
+    const group = readHomeEntryGroup();
+    if (group !== 'student') return true;
+    const studentName = String(homeStudentNameInput?.value || '').trim();
+    if (!studentName) {
+      if (homeRolePreviewEl) {
+        homeRolePreviewEl.textContent = 'Enter student name to continue.';
+      }
+      homeStudentNameInput?.focus();
+      return false;
+    }
+    localStorage.setItem(HOME_STUDENT_NAME_KEY, studentName);
+    return true;
+  }
+
+  function bindWizardSummaryEdits() {
+    if (!homeStepSummaries || homeStepSummaries.dataset.bound === 'true') return;
+    homeStepSummaries.dataset.bound = 'true';
+    homeStepSummaries.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const editBtn = target.closest('[data-edit-step]');
+      if (!(editBtn instanceof HTMLButtonElement)) return;
+      const step = normalizeWizardStep(editBtn.getAttribute('data-edit-step') || 1);
+      goWizardStep(step);
+    });
+  }
+
   function openQuickCheckFromWizard() {
     const roleId = activeWizardRole();
     const group = getEntryGroupForRole(roleId);
@@ -2520,7 +2714,7 @@
           homeRolePreviewEl.textContent = 'Step 2: enter a student name before running Quick Check.';
         }
         homeStudentNameInput?.focus();
-        applyWizardStepState(2);
+        applyWizardStepState(2, { persist: true });
         return;
       }
       if (studentName) {
@@ -2533,6 +2727,7 @@
     }
     const gradeBand = readStudentGradeBand();
     if (gradeBand) syncProfileAndLook(gradeBand);
+    applyWizardStepState(4, { persist: true });
     openModal();
     renderQuickCheckIntro();
   }
@@ -2543,6 +2738,36 @@
 
   homeRoleLaunchBtn?.addEventListener('click', () => {
     openQuickCheckFromWizard();
+  });
+
+  homeRoleStepNextBtn?.addEventListener('click', () => {
+    goWizardStep(2);
+  });
+
+  homeDetailsStepBackBtn?.addEventListener('click', () => {
+    goWizardStep(1);
+  });
+
+  homeDetailsStepNextBtn?.addEventListener('click', () => {
+    if (!canAdvanceDetailsStep()) return;
+    goWizardStep(3);
+  });
+
+  homeFocusStepBackBtn?.addEventListener('click', () => {
+    goWizardStep(2);
+  });
+
+  homeFocusStepNextBtn?.addEventListener('click', () => {
+    goWizardStep(4);
+  });
+
+  homeQuickCheckStepBackBtn?.addEventListener('click', () => {
+    goWizardStep(3);
+  });
+
+  homePostCheckRerun?.addEventListener('click', () => {
+    openModal();
+    renderQuickCheckIntro();
   });
 
   closeBtn?.addEventListener('click', closeModal);
@@ -2584,14 +2809,20 @@
     result.classList.add('hidden');
     goWordQuest.classList.add('hidden');
     quickCheckSession = null;
+    localStorage.setItem(HOME_WIZARD_STEP_KEY, '1');
+    goWizardStep(1);
     renderQuickCheckIntro();
     renderSummary(null);
+    syncHomePrecheckState(null);
   });
 
   // Initial render
+  bindWizardSummaryEdits();
   syncWizardFromStorage();
   renderQuickCheckIntro();
-  renderSummary(load());
+  const initialSummary = load();
+  renderSummary(initialSummary);
+  syncHomePrecheckState(initialSummary);
 
   function renderProgress() {
     if (wordQuestStat && wordQuestDetail) {
@@ -2636,7 +2867,7 @@
     renderRoleDashboard();
   }
 
-  applyHomeEntryGroup(readHomeEntryGroup(), { persist: false, preserveCurrentRole: false });
+  applyHomeEntryGroup(readHomeEntryGroup(), { persist: false, preserveCurrentRole: true, step: readWizardStep() });
   renderProgress();
   renderLearners();
 
@@ -2680,14 +2911,14 @@
     if (homeTeamRoleSelect && getEntryGroupForRole(nextRole) === 'school') {
       homeTeamRoleSelect.value = nextRole;
     }
-    applyHomeEntryGroup(getEntryGroupForRole(nextRole), { persist: true, preserveCurrentRole: true });
+    applyHomeEntryGroup(getEntryGroupForRole(nextRole), { persist: true, preserveCurrentRole: true, step: 1 });
     renderRoleDashboard();
     renderQuickCheckIntro();
   });
   homeEntryGroupButtons.forEach((button) => {
     button.addEventListener('click', () => {
       const nextGroup = normalizeHomeEntryGroup(button.dataset.entryGroup || '');
-      applyHomeEntryGroup(nextGroup, { persist: true, preserveCurrentRole: false });
+      applyHomeEntryGroup(nextGroup, { persist: true, preserveCurrentRole: false, step: 1 });
       const roleId = normalizeRoleId(homeRoleSelect?.value || HOME_ENTRY_GROUP_DEFAULT_ROLE[nextGroup] || 'student');
       if (roleId) localStorage.setItem(HOME_ROLE_WIZARD_KEY, roleId);
       renderRoleDashboard();
@@ -2700,7 +2931,7 @@
       homeRoleSelect.value = roleId;
     }
     localStorage.setItem(HOME_ROLE_WIZARD_KEY, roleId);
-    applyHomeEntryGroup('school', { persist: true, preserveCurrentRole: true });
+    applyHomeEntryGroup('school', { persist: true, preserveCurrentRole: true, step: 2 });
     renderRoleDashboard();
     renderQuickCheckIntro();
   });
@@ -2708,7 +2939,7 @@
     button.addEventListener('click', () => {
       const roleId = normalizeRoleId(button.dataset.roleTarget || '');
       if (!roleId) return;
-      applyHomeEntryGroup(getEntryGroupForRole(roleId), { persist: true, preserveCurrentRole: true });
+      applyHomeEntryGroup(getEntryGroupForRole(roleId), { persist: true, preserveCurrentRole: true, step: 1 });
       if (homeRoleSelect) {
         homeRoleSelect.value = roleId;
       }

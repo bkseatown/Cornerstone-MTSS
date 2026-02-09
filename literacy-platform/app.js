@@ -7180,7 +7180,11 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(distance\s+to\s+the\s+bathroom|warm\s+in\s+bed)\b/i,
     /\b(afraid\s+of\s+the\s+stapler|brain\s+store)\b/i,
     /\b(looks\s+like\s+a\s+crocodile\s+mouth|poop\s+on\s+my\s+hat)\b/i,
-    /\b(tried\s+it\s+\(it\s+hurt\)|it\s+hurt)\b/i
+    /\b(tried\s+it\s+\(it\s+hurt\)|it\s+hurt)\b/i,
+    /\b(underwear\s+for\s+your\s+foot|squishy\s+balls)\b/i,
+    /\b(smells\s+like\s+milk|tiny\s+human|baby\s+elephant)\b/i,
+    /\b(guy\s+who\s+tells\s+bad\s+jokes|falls\s+asleep\s+watching\s+movies)\b/i,
+    /\b(gravity\s+pulling\s+you\s+down|surprise\s+hug\s+with\s+the\s+floor)\b/i
 ];
 const SCHOOL_SAFE_REPLACEMENTS = [
     [/\bhate\b/gi, 'do not like'],
@@ -7449,6 +7453,98 @@ const SCHOOL_SAFE_REVEAL_OVERRIDES = {
     force: {
         definition: 'Strength used to push or pull something.',
         sentence: 'We used gentle force to open the heavy library door.'
+    },
+    dog: {
+        definition: 'A loyal animal that can be trained to help, play, and keep people company.',
+        sentence: 'The dog waited by the door and wagged its tail when we came home.'
+    },
+    stress: {
+        definition: 'A heavy feeling that can show up when work feels hard.',
+        sentence: 'When I felt stress, I took a breath and finished one step at a time.'
+    },
+    gross: {
+        definition: 'A word for something that feels or smells unpleasant.',
+        sentence: 'The old food smelled gross, so we cleaned the lunchbox right away.'
+    },
+    trunk: {
+        definition: 'An elephant’s long nose used for grabbing, spraying, and smelling.',
+        sentence: 'The elephant used its trunk to lift a stick and splash water.'
+    },
+    snort: {
+        definition: 'A short burst of air from your nose, often during a big laugh.',
+        sentence: 'The class started to laugh, and one kid let out a tiny snort.'
+    },
+    fetch: {
+        definition: 'To go get something and bring it back.',
+        sentence: 'Please fetch the marker from the table so we can keep writing.'
+    },
+    eat: {
+        definition: 'To put food in your mouth and chew it.',
+        sentence: 'We sit down to eat lunch before we go outside.'
+    },
+    butterfly: {
+        definition: 'A colorful insect with wings that starts life as a caterpillar.',
+        sentence: 'A butterfly landed on the flower and opened its wings in the sun.'
+    },
+    snowman: {
+        definition: 'A figure made from rolled snow.',
+        sentence: 'We built a snowman and gave it a scarf and button eyes.'
+    },
+    fearless: {
+        definition: 'Feeling brave when trying something hard.',
+        sentence: 'Nia felt fearless as she read her poem to the class.'
+    },
+    knight: {
+        definition: 'A historical soldier who wore armor.',
+        sentence: 'In the story, the knight rode to the castle gate.'
+    },
+    "it's": {
+        definition: 'A short form of "it is" or "it has".',
+        sentence: '"It\'s time to line up," the teacher said with a smile.'
+    },
+    fall: {
+        definition: 'To move downward from a higher place.',
+        sentence: 'The leaf began to fall when the wind picked up.'
+    },
+    some: {
+        definition: 'An amount that is not all, but more than a little.',
+        sentence: 'I saved some crackers for later in the day.'
+    },
+    eye: {
+        definition: 'The part of your face used for seeing.',
+        sentence: 'My eye blinked fast when bright light came in the window.'
+    },
+    sock: {
+        definition: 'A soft piece of clothing worn on your foot.',
+        sentence: 'I put on dry socks after recess in the rain.'
+    },
+    room: {
+        definition: 'A space inside a building with a specific use.',
+        sentence: 'We cleaned the room before starting our project.'
+    },
+    dad: {
+        definition: 'A father in a family.',
+        sentence: 'My dad read the story with me before bed.'
+    },
+    sneeze: {
+        definition: 'A sudden burst of air from your nose and mouth.',
+        sentence: 'I covered my mouth when I had to sneeze.'
+    },
+    snore: {
+        definition: 'A breathing sound some people make while sleeping.',
+        sentence: 'My brother can snore loudly after a long day.'
+    },
+    pink: {
+        definition: 'A color between red and white.',
+        sentence: 'She used a pink marker for the title on her poster.'
+    },
+    stapler: {
+        definition: 'A tool that joins papers with a small metal staple.',
+        sentence: 'We used the stapler to keep the packet pages together.'
+    },
+    reflection: {
+        definition: 'The image you see in a mirror or shiny surface.',
+        sentence: 'I could see my reflection in the classroom window.'
     }
 };
 

@@ -40,6 +40,14 @@
     --btn-primary-shadow: rgba(79, 70, 229, 0.32);
     --btn-secondary-hover: rgba(99, 102, 241, 0.12);
     --page-max: 1240px;
+    --theme-bg:
+        radial-gradient(circle at 12% 10%, rgba(56, 189, 248, 0.16), transparent 46%),
+        radial-gradient(circle at 88% 8%, rgba(251, 146, 60, 0.16), transparent 44%),
+        radial-gradient(circle at 50% 82%, rgba(99, 102, 241, 0.12), transparent 50%),
+        linear-gradient(180deg, #fbfdff 0%, #eef4ff 55%, #e6eefb 100%);
+    --theme-grid-dot: rgba(99, 102, 241, 0.12);
+    --theme-grid-size: 28px;
+    --theme-grid-opacity: 0.22;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,11 +55,7 @@
 /* CALM, CENTERED LAYOUT - Following UX Brief */
 body {
     font-family: var(--font-body);
-    background:
-        radial-gradient(circle at 12% 10%, rgba(56, 189, 248, 0.16), transparent 46%),
-        radial-gradient(circle at 88% 8%, rgba(251, 146, 60, 0.16), transparent 44%),
-        radial-gradient(circle at 50% 82%, rgba(99, 102, 241, 0.12), transparent 50%),
-        linear-gradient(180deg, #fbfdff 0%, #eef4ff 55%, #e6eefb 100%);
+    background: var(--theme-bg);
     color: var(--color-text);
     display: flex; 
     flex-direction: column; 
@@ -72,12 +76,60 @@ body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.12) 1px, transparent 0);
-    background-size: 28px 28px;
+    background-image: radial-gradient(circle at 1px 1px, var(--theme-grid-dot) 1px, transparent 0);
+    background-size: var(--theme-grid-size) var(--theme-grid-size);
     /* Keep the pattern subtle for projector legibility. */
-    opacity: 0.22;
+    opacity: var(--theme-grid-opacity);
     pointer-events: none;
     z-index: 0;
+}
+
+body.theme-calm {
+    --theme-bg:
+        radial-gradient(circle at 14% 12%, rgba(56, 189, 248, 0.12), transparent 50%),
+        radial-gradient(circle at 86% 10%, rgba(251, 146, 60, 0.1), transparent 48%),
+        linear-gradient(180deg, #fbfcff 0%, #edf3ff 52%, #e7eefb 100%);
+    --theme-grid-dot: rgba(99, 102, 241, 0.1);
+    --theme-grid-size: 30px;
+    --theme-grid-opacity: 0.16;
+}
+
+body.theme-playful {
+    --theme-bg:
+        radial-gradient(circle at 10% 8%, rgba(20, 184, 166, 0.18), transparent 45%),
+        radial-gradient(circle at 86% 14%, rgba(251, 113, 133, 0.2), transparent 45%),
+        radial-gradient(circle at 52% 82%, rgba(59, 130, 246, 0.16), transparent 52%),
+        linear-gradient(180deg, #fff9f6 0%, #eef6ff 55%, #e8f1ff 100%);
+    --theme-grid-dot: rgba(99, 102, 241, 0.14);
+    --theme-grid-size: 26px;
+    --theme-grid-opacity: 0.24;
+}
+
+body.theme-high-contrast {
+    --theme-bg:
+        linear-gradient(180deg, #f8fbff 0%, #ebf2ff 48%, #e2ebff 100%);
+    --theme-grid-dot: rgba(15, 23, 42, 0.2);
+    --theme-grid-size: 30px;
+    --theme-grid-opacity: 0.2;
+}
+
+body.theme-high-contrast .home-card,
+body.theme-high-contrast .modal-content,
+body.theme-high-contrast .header-activity-panel {
+    border-color: rgba(15, 23, 42, 0.45);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+}
+
+body.theme-minimal-ink {
+    --theme-bg: linear-gradient(180deg, #f9fafb 0%, #eef2f7 100%);
+    --theme-grid-dot: rgba(15, 23, 42, 0.08);
+    --theme-grid-size: 34px;
+    --theme-grid-opacity: 0.14;
+}
+
+body.theme-minimal-ink .home-card::before,
+body.theme-minimal-ink .modal-content::before {
+    opacity: 0.18;
 }
 
 header,
@@ -157,6 +209,14 @@ body.home-page.home-details-collapsed [data-home-detail] {
     display: none;
 }
 
+body.home-page.home-precheck [data-home-detail] {
+    display: none !important;
+}
+
+body.home-page.home-precheck [data-precheck-hidden] {
+    display: none !important;
+}
+
 body.home-page.home-details-collapsed {
     padding-bottom: 8px;
 }
@@ -181,7 +241,7 @@ body.student-mode a[href*="teacher-report.html"] {
 
 body.home-page.home-details-collapsed .home-main {
     padding-bottom: 4px;
-    gap: 0;
+    gap: 12px;
 }
 
 .home-card {
@@ -218,7 +278,7 @@ body.home-page.home-details-collapsed .home-main {
 }
 
 body.home-page.home-details-collapsed .home-hero {
-    min-height: calc(100dvh - 150px);
+    min-height: 0;
 }
 
 .home-hero h2 {
@@ -246,18 +306,59 @@ body.home-page.home-details-collapsed .home-hero {
 .home-wizard {
     margin-top: 14px;
     display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.home-wizard > .home-stepper,
-.home-wizard > .home-wizard-block:first-of-type,
-.home-wizard > .home-cta-row {
-    grid-column: 1 / -1;
+    gap: 12px;
+    grid-template-columns: 1fr;
 }
 
 .home-wizard .home-cta-row {
     margin-top: 0;
+}
+
+.home-step-summaries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.home-step-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(255, 255, 255, 0.88);
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    color: #1e293b;
+}
+
+.home-step-summary-label {
+    font-weight: 800;
+    color: #334155;
+}
+
+.home-step-summary-value {
+    font-weight: 700;
+}
+
+.home-step-summary-edit {
+    border: none;
+    background: transparent;
+    color: #4338ca;
+    text-decoration: underline;
+    font-size: 0.76rem;
+    font-weight: 780;
+    cursor: pointer;
+    padding: 0;
+}
+
+.home-step-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.home-step-panel.hidden {
+    display: none !important;
 }
 
 .home-stepper {
@@ -295,13 +396,14 @@ body.home-page.home-details-collapsed .home-hero {
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.3);
     background: rgba(255, 255, 255, 0.74);
-    padding: 8px 10px;
+    padding: 10px 11px;
     display: grid;
-    gap: 6px;
+    gap: 8px;
 }
 
 .home-team-role-wrap.hidden,
-#home-student-setup.hidden {
+#home-student-setup.hidden,
+#home-parent-setup.hidden {
     display: none;
 }
 
@@ -476,6 +578,39 @@ body.home-page.home-details-collapsed .home-journey-grid {
     color: #475569;
     font-size: 0.9rem;
     font-weight: 640;
+}
+
+.home-why-strip {
+    margin-top: 10px;
+    border: 1px solid rgba(99, 102, 241, 0.26);
+    border-radius: 12px;
+    background: rgba(238, 242, 255, 0.72);
+    color: #334155;
+    font-size: 0.86rem;
+    font-weight: 680;
+    line-height: 1.4;
+    padding: 9px 11px;
+}
+
+.home-post-check {
+    margin-top: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+    padding: 12px 13px;
+    display: grid;
+    gap: 9px;
+}
+
+.home-post-check h3 {
+    font-size: 1.12rem;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.home-post-check.hidden {
+    display: none !important;
 }
 
 body.home-page .header-actions {
@@ -3378,12 +3513,62 @@ h3,
     top: clamp(74px, 10vh, 108px);
     right: clamp(10px, 2.2vw, 24px);
     left: auto;
-    width: min(320px, calc(100vw - 20px));
+    width: min(360px, calc(100vw - 20px));
     margin: 0;
     padding: 10px 12px;
     gap: 8px;
     z-index: 2500;
     box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+}
+
+.page-guide-wordle-demo {
+    display: grid;
+    gap: 7px;
+}
+
+.page-guide-wordle-row {
+    display: grid;
+    grid-template-columns: repeat(5, 24px) minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+}
+
+.page-guide-tile {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    font-size: 0.73rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-guide-tile.correct {
+    background: #22c55e;
+    border-color: #16a34a;
+    color: #f8fafc;
+}
+
+.page-guide-tile.present {
+    background: #f59e0b;
+    border-color: #d97706;
+    color: #1f2937;
+}
+
+.page-guide-tile.absent {
+    background: #64748b;
+    border-color: #475569;
+    color: #f8fafc;
+}
+
+.page-guide-wordle-copy {
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 700;
 }
 
 .page-guide-tip-head {
@@ -3442,8 +3627,9 @@ h3,
 }
 
 .page-guide-tip.compact-overlay .secondary-btn {
-    width: 100%;
+    width: auto;
     justify-content: center;
+    min-width: 140px;
 }
 
 .link-btn:hover {
@@ -14625,7 +14811,7 @@ body:not(.has-story-track) #story-track {
 /* Home: keep first screen simple and low-scroll. */
 body.home-page.home-details-collapsed .home-hero {
     grid-template-columns: 1fr;
-    min-height: clamp(360px, 56dvh, 520px);
+    min-height: 0;
 }
 
 body.home-page.home-details-collapsed .home-hero-panel {

@@ -245,6 +245,7 @@
   const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
   const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'assessments', 'teacher-report']);
   const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
+  const THEME_PRESETS = ['calm', 'playful', 'high-contrast', 'minimal-ink'];
 
   const ACCESSIBILITY_DEFAULTS = {
     calmMode: false,
@@ -256,8 +257,14 @@
     uiLook: '35',
     focusMode: false,
     reducedStimulation: false,
-    fontProfile: 'atkinson'
+    fontProfile: 'atkinson',
+    themePreset: 'calm'
   };
+
+  function normalizeThemePreset(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    return THEME_PRESETS.includes(raw) ? raw : 'calm';
+  }
 
   const DEFAULT_QUICK_RESPONSES = [
     { icon: '🙋', text: 'I need help.' },
@@ -1031,6 +1038,7 @@
       ...ACCESSIBILITY_DEFAULTS,
       ...(settings || {})
     };
+    normalized.themePreset = normalizeThemePreset(normalized.themePreset);
 
     body.classList.toggle('calm-mode', !!normalized.calmMode);
     body.classList.toggle('large-text', !!normalized.largeText);
@@ -1042,6 +1050,8 @@
     body.classList.toggle('line-focus', !!normalized.lineFocus);
     body.classList.remove('font-atkinson', 'font-opendyslexic');
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
+    body.classList.remove('theme-calm', 'theme-playful', 'theme-high-contrast', 'theme-minimal-ink');
+    body.classList.add(`theme-${normalized.themePreset}`);
 
     const uiLook = normalizeLook(normalized.uiLook);
     UI_LOOK_CLASSES.forEach((cls) => body.classList.remove(cls));
@@ -1582,6 +1592,14 @@
       panel.innerHTML = `
         <summary>Accessibility</summary>
         <div class="global-accessibility-body">
+          <label class="global-accessibility-font-label">Theme
+            <select data-setting="themePreset">
+              <option value="calm">Calm</option>
+              <option value="playful">Playful</option>
+              <option value="high-contrast">High Contrast</option>
+              <option value="minimal-ink">Minimal Ink</option>
+            </select>
+          </label>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
           <label><input type="checkbox" data-setting="reducedStimulation" /> Reduced stimulation</label>
           <label><input type="checkbox" data-setting="calmMode" /> Calm mode</label>
@@ -1632,6 +1650,7 @@
       const resetBtn = panel.querySelector('.global-accessibility-reset');
       resetBtn?.addEventListener('click', () => {
         platform.setSettings({
+          themePreset: ACCESSIBILITY_DEFAULTS.themePreset,
           calmMode: ACCESSIBILITY_DEFAULTS.calmMode,
           largeText: ACCESSIBILITY_DEFAULTS.largeText,
           focusMode: ACCESSIBILITY_DEFAULTS.focusMode,
@@ -2069,8 +2088,35 @@
           <button type="button" class="page-guide-tip-close" data-tip-action="hide" aria-label="Hide quick start">✕</button>
         </div>
         <div class="page-guide-tip-body">${tip.body}</div>
+        <div class="page-guide-wordle-demo" aria-label="How tile colors work">
+          <div class="page-guide-wordle-row">
+            <span class="page-guide-tile correct">G</span>
+            <span class="page-guide-tile neutral">R</span>
+            <span class="page-guide-tile neutral">E</span>
+            <span class="page-guide-tile neutral">E</span>
+            <span class="page-guide-tile neutral">N</span>
+            <span class="page-guide-wordle-copy">Green: right letter, right spot.</span>
+          </div>
+          <div class="page-guide-wordle-row">
+            <span class="page-guide-tile neutral">G</span>
+            <span class="page-guide-tile present">O</span>
+            <span class="page-guide-tile neutral">L</span>
+            <span class="page-guide-tile neutral">D</span>
+            <span class="page-guide-tile neutral">S</span>
+            <span class="page-guide-wordle-copy">Gold: in the word, wrong spot.</span>
+          </div>
+          <div class="page-guide-wordle-row">
+            <span class="page-guide-tile neutral">G</span>
+            <span class="page-guide-tile absent">R</span>
+            <span class="page-guide-tile neutral">A</span>
+            <span class="page-guide-tile neutral">Y</span>
+            <span class="page-guide-tile neutral">S</span>
+            <span class="page-guide-wordle-copy">Gray: not in this word.</span>
+          </div>
+        </div>
         <div class="page-guide-tip-actions">
-          <button type="button" class="secondary-btn" data-tip-action="dismiss">Got it (don't show again)</button>
+          <button type="button" class="secondary-btn" data-tip-action="hide">Got it</button>
+          <button type="button" class="secondary-btn" data-tip-action="dismiss">Don't show again</button>
         </div>
       `;
     } else {
