@@ -2,6 +2,41 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 Writing Studio teacher+parent snapshot trend slice
+- Scope files:
+  - `literacy-platform/writing-studio.html`
+  - `literacy-platform/writing.html`
+  - `literacy-platform/writing.js`
+  - `literacy-platform/style.css`
+- Writing Studio UX updates:
+  - Kept full Plan -> Draft -> Check -> Revise -> Publish workflow intact and reinforced Step Up wording in the right-side supports panel (`Step Up Support Sidebar`, `Step Up color of your thinking`).
+  - Added in-page Writing Progress Snapshot block inside Writing Studio so reporting is visible without leaving the writing flow.
+- Teacher + parent reporting expansion in Writing Studio:
+  - Added live `Teacher Snapshot (Step Up)` and `Parent Snapshot` cards fed from saved Writing Studio sessions (`cornerstone_writing_sessions_v2`).
+  - Added dimension-level trend rows (Topic/Claim, Details/Evidence, Organization/Transitions, Conventions) with history arrows across recent saved sessions.
+  - Added one-click copy actions for teacher snapshot and parent snapshot text.
+  - Added deep link to `teacher-report.html#report-writing-snapshot` directly from Writing Studio.
+- Cache busting:
+  - Updated Writing Studio script/style queries:
+    - `writing.js?v=20260209h`
+    - `style.css?v=20260209l`
+  - Applied in both entry files:
+    - `literacy-platform/writing-studio.html`
+    - `literacy-platform/writing.html`
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/writing.js` ✅
+  - `node --check literacy-platform/home.js` ✅
+  - `node --check literacy-platform/platform.js` ✅
+- Regression scripts:
+  - `node /tmp/home_detail_visible.js` ✅ (`[]` pre-check details hidden)
+  - `node /tmp/wordquest_regression.js` ✅ (no overflow/scroll fallback regressions; no vowel dots; voice shortcut present)
+  - `node /tmp/translation_runtime_check.js` ✅
+- Focused Playwright smokes:
+  - Writing Studio snapshot panel populates teacher + parent trend content after saved-session seed; trend rows render (`trendRows:4`) ✅
+  - Voice quick modal still constrained to Azure roster with Ava default (`count:5`, `selected:ava-multi`) ✅
+
 ## 2026-02-09 bonus riddle prompt + azure-only popup audio stabilization slice
 - Scope files:
   - `literacy-platform/app.js`

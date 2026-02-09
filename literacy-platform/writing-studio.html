@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CORNERSTONE MTSS — Writing Studio</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=20260209l" />
     <script src="platform.js?v=20260209j" defer></script>
-    <script src="writing.js?v=20260209g" defer></script>
+    <script src="writing.js?v=20260209h" defer></script>
   </head>
 
   <body class="writing-page force-light look-35">
@@ -121,7 +121,7 @@
       <section class="writing-panel writing-panel-side" aria-label="Step Up supports">
         <div class="writing-panel-header">
           <div>
-            <h2>Drafting Sidebar</h2>
+            <h2>Step Up Support Sidebar</h2>
             <div class="writing-help">Supports stay optional so teachers can fade scaffolds over time.</div>
           </div>
         </div>
@@ -137,11 +137,28 @@
         <div id="writing-supports" class="writing-supports" aria-label="Step Up supports panel"></div>
 
         <div class="writing-preview">
-          <div class="writing-preview-title">Color of your thinking</div>
+          <div class="writing-preview-title">Step Up color of your thinking</div>
           <div class="writing-help">Use strong topic/claim ideas, details/evidence, transitions/power words, and a clear conclusion.</div>
         </div>
 
         <div id="writing-feedback" class="writing-feedback" aria-live="polite"></div>
+
+        <section class="writing-preview writing-progress-snapshot" aria-label="Writing progress snapshots">
+          <div class="writing-preview-title">Teacher Snapshot (Step Up)</div>
+          <div id="writing-teacher-snapshot" class="writing-help">Save a Writing Studio session to generate teacher trend snapshots.</div>
+
+          <div class="writing-preview-title">Parent Snapshot</div>
+          <div id="writing-parent-snapshot" class="writing-help">Parent-friendly writing trend language appears after the first saved session.</div>
+
+          <div id="writing-trend-window" class="writing-trend-window" aria-live="polite"></div>
+
+          <div class="writing-actions">
+            <button id="writing-copy-teacher" type="button" class="secondary-btn">Copy Teacher Snapshot</button>
+            <button id="writing-copy-parent" type="button" class="secondary-btn">Copy Parent Snapshot</button>
+            <a class="secondary-btn" href="teacher-report.html#report-writing-snapshot">Open Full Report</a>
+          </div>
+          <div id="writing-report-status" class="writing-feedback"></div>
+        </section>
       </section>
     </main>
   </body>

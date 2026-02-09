@@ -211,6 +211,7 @@ const SUPPORT_PREF_PREFIX = 'cornerstone_stepup_supports_v1::';
 const STEP_ORDER = ['plan', 'draft', 'check', 'revise', 'publish'];
 const MIN_PLAN_FIELDS_REQUIRED = 2;
 const MIN_DRAFT_WORDS_REQUIRED = 8;
+const RECENT_TREND_WINDOW = 6;
 
 const EMPTY_DIMENSIONS = Object.freeze({
   topicClaim: 'not-assessed',
@@ -218,6 +219,13 @@ const EMPTY_DIMENSIONS = Object.freeze({
   organizationTransitions: 'not-assessed',
   conventions: 'not-assessed'
 });
+
+const WRITING_DIMENSION_ORDER = Object.freeze([
+  { key: 'topicClaim', label: 'Topic/Claim' },
+  { key: 'detailsEvidence', label: 'Details/Evidence' },
+  { key: 'organizationTransitions', label: 'Organization/Transitions' },
+  { key: 'conventions', label: 'Conventions' }
+]);
 
 const gradeSelect = document.getElementById('writing-grade');
 const genreSelect = document.getElementById('writing-genre');
@@ -254,14 +262,23 @@ const missionStatusEl = document.getElementById('writing-mission-status');
 const previewEl = document.getElementById('writing-preview-text');
 const sessionSummaryEl = document.getElementById('writing-session-summary');
 const feedbackEl = document.getElementById('writing-feedback');
+const teacherSnapshotEl = document.getElementById('writing-teacher-snapshot');
+const parentSnapshotEl = document.getElementById('writing-parent-snapshot');
+const trendWindowEl = document.getElementById('writing-trend-window');
+const reportStatusEl = document.getElementById('writing-report-status');
 
 const copyBtn = document.getElementById('writing-copy');
 const printBtn = document.getElementById('writing-print');
 const saveSessionBtn = document.getElementById('writing-save-session');
 const clearBtn = document.getElementById('writing-clear');
+const copyTeacherSnapshotBtn = document.getElementById('writing-copy-teacher');
+const copyParentSnapshotBtn = document.getElementById('writing-copy-parent');
 
 const supportsToggleEl = document.getElementById('writing-supports-toggle');
 const supportsEl = document.getElementById('writing-supports');
+
+let latestTeacherSnapshotText = '';
+let latestParentSnapshotText = '';
 
 function cloneDimensions() {
   return {
@@ -758,6 +775,265 @@ function clampStatus(statuses) {
   if (statuses.includes('growing')) return 'growing';
   if (statuses.includes('ready')) return 'ready';
   return 'not-assessed';
+}
+
+function normalizeWritingStatus(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (raw === 'ready') return 'ready';
+  if (raw === 'growing') return 'growing';
+  if (raw === 'not-yet' || raw === 'notyet' || raw === 'not_yet') return 'not-yet';
+  return 'not-assessed';
+}
+
+function writingStatusScore(status) {
+  const normalized = normalizeWritingStatus(status);
+  if (normalized === 'ready') return 2;
+  if (normalized === 'growing') return 1;
+  if (normalized === 'not-yet') return 0;
+  return -1;
+}
+
+function writingStatusLabel(status) {
+  const normalized = normalizeWritingStatus(status);
+  if (normalized === 'ready') return 'Ready';
+  if (normalized === 'growing') return 'Growing';
+  if (normalized === 'not-yet') return 'Not yet';
+  return 'Not assessed';
+}
+
+function writingTrendArrow(delta) {
+  const numeric = Number(delta);
+  if (numeric > 0) return '↗';
+  if (numeric < 0) return '↘';
+  return '→';
+}
+
+function formatSignedCount(value, suffix = '') {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  const numeric = Number(value);
+  if (numeric === 0) return `0${suffix}`;
+  return `${numeric > 0 ? '+' : ''}${numeric}${suffix}`;
+}
+
+function humanizeGenre(genreId) {
+  const genre = String(genreId || '').toLowerCase();
+  if (genre === 'opinion') return 'Opinion';
+  if (genre === 'argument') return 'Argument';
+  if (genre === 'informational') return 'Informational';
+  if (genre === 'narrative') return 'Narrative';
+  if (genre === 'reflection') return 'Reflection';
+  return genre || 'Writing';
+}
+
+function getSessionsForActiveLearner() {
+  const raw = safeParse(localStorage.getItem(SESSIONS_KEY), []);
+  const rows = Array.isArray(raw) ? raw : [];
+  const learner = getActiveLearner();
+  if (!learner) return rows.slice();
+
+  const learnerId = String(learner.id || '').trim().toLowerCase();
+  const learnerName = String(learner.name || '').trim().toLowerCase();
+  return rows.filter((session) => {
+    const sessionLearnerId = String(session?.learnerId || '').trim().toLowerCase();
+    const sessionLearnerName = String(session?.learnerName || '').trim().toLowerCase();
+    if (learnerId && sessionLearnerId) return sessionLearnerId === learnerId;
+    if (learnerName && sessionLearnerName) return sessionLearnerName === learnerName;
+    return true;
+  });
+}
+
+function buildWritingProgressSnapshotModel() {
+  const sessions = getSessionsForActiveLearner()
+    .slice()
+    .sort((a, b) => Number(b?.ts || 0) - Number(a?.ts || 0))
+    .slice(0, 12);
+  const learner = getActiveLearner();
+  const learnerLabel = learner?.name || sessions[0]?.learnerName || 'Learner';
+
+  if (!sessions.length) {
+    const teacherText = [
+      'Writing Progress Snapshot',
+      `Learner: ${learnerLabel}`,
+      'No saved Writing Studio sessions yet.',
+      'Save one full Plan → Draft → Check → Revise → Publish session to begin Step Up trend reporting.'
+    ].join('\n');
+    const parentText = `${learnerLabel} writing trend snapshot will appear after the first saved Step Up writing session.`;
+    return {
+      sessions,
+      learnerLabel,
+      latest: null,
+      previous: null,
+      dimensions: [],
+      trends: [],
+      summaryLine: 'No saved Writing Studio sessions yet.',
+      parentSummary: parentText,
+      teacherText,
+      parentText
+    };
+  }
+
+  const latest = sessions[0] || null;
+  const previous = sessions[1] || null;
+  const latestDimensions = latest?.dimensions || {};
+  const previousDimensions = previous?.dimensions || {};
+
+  const dimensions = WRITING_DIMENSION_ORDER.map((row) => {
+    const latestStatus = normalizeWritingStatus(latestDimensions[row.key]);
+    const previousStatus = normalizeWritingStatus(previousDimensions[row.key]);
+    return {
+      ...row,
+      latestStatus,
+      previousStatus,
+      delta: writingStatusScore(latestStatus) - writingStatusScore(previousStatus)
+    };
+  });
+
+  const latestReady = dimensions.filter((row) => row.latestStatus === 'ready').length;
+  const previousReady = dimensions.filter((row) => row.previousStatus === 'ready').length;
+  const readinessPercent = Math.round((latestReady / WRITING_DIMENSION_ORDER.length) * 100);
+  const readinessDelta = previous ? readinessPercent - Math.round((previousReady / WRITING_DIMENSION_ORDER.length) * 100) : null;
+
+  const latestWordCount = Number(latest?.wordCount || 0);
+  const previousWordCount = Number(previous?.wordCount || 0);
+  const wordDelta = previous ? latestWordCount - previousWordCount : null;
+
+  const missionsCompleted = Number(latest?.missionsCompleted || 0);
+  const missionsAssigned = Number(latest?.missionsAssigned || 0);
+
+  const trendSessions = sessions.slice(0, RECENT_TREND_WINDOW).reverse();
+  const trends = WRITING_DIMENSION_ORDER.map((row) => {
+    const history = trendSessions.map((session) => normalizeWritingStatus(session?.dimensions?.[row.key]));
+    const first = history[0] || 'not-assessed';
+    const last = history[history.length - 1] || 'not-assessed';
+    return {
+      ...row,
+      history,
+      first,
+      last,
+      delta: writingStatusScore(last) - writingStatusScore(first)
+    };
+  });
+
+  const trendHighlights = trends
+    .map((row) => `${row.label} ${writingTrendArrow(row.delta)} ${writingStatusLabel(row.last)}`)
+    .join(' · ');
+
+  const stageProgress = latest?.stageProgress && typeof latest.stageProgress === 'object'
+    ? latest.stageProgress
+    : null;
+  const completedStages = stageProgress
+    ? ['plan', 'draft', 'check', 'revise', 'publish'].filter((stage) => !!stageProgress[stage]).length
+    : null;
+
+  const summaryLine = `${learnerLabel}: ${readinessPercent}% Step Up readiness (${latestReady}/4 ready) · ${latestWordCount} words · missions ${missionsCompleted}/${missionsAssigned || 0}${readinessDelta === null ? '' : ` · readiness ${formatSignedCount(readinessDelta, '%')}`}${wordDelta === null ? '' : ` · words ${formatSignedCount(wordDelta)}`}.`;
+  const parentSummary = `${learnerLabel} writing trend: ${latestReady}/4 Step Up dimensions ready (${readinessPercent}%). ${trendHighlights || 'Trend window building.'} Home move: ask for one clear topic sentence, one detail, and one conclusion sentence.`;
+
+  const teacherLines = [
+    'Writing Progress Snapshot',
+    `Learner: ${learnerLabel}`,
+    `Latest session: ${new Date(Number(latest?.ts || Date.now())).toLocaleDateString()} · ${String(latest?.gradeBand || '—')} · ${humanizeGenre(latest?.genre)}`,
+    `Step Up readiness: ${latestReady}/4 (${readinessPercent}%)${readinessDelta === null ? '' : ` (${formatSignedCount(readinessDelta)} vs previous)`}`,
+    `Word count: ${latestWordCount}${wordDelta === null ? '' : ` (${formatSignedCount(wordDelta)} vs previous)`}`,
+    `Revision missions: ${missionsCompleted}/${missionsAssigned || 0}`,
+    `Workflow completion: ${completedStages === null ? 'Not captured' : `${completedStages}/5 stages saved`}`,
+    `Trend highlights: ${trendHighlights || 'Trend window building.'}`
+  ];
+
+  return {
+    sessions,
+    learnerLabel,
+    latest,
+    previous,
+    dimensions,
+    trends,
+    summaryLine,
+    parentSummary,
+    teacherText: teacherLines.join('\n'),
+    parentText: parentSummary
+  };
+}
+
+function setReportStatus(message) {
+  if (!reportStatusEl) return;
+  reportStatusEl.textContent = message || '';
+}
+
+function renderWritingProgressSnapshots() {
+  if (!teacherSnapshotEl || !parentSnapshotEl || !trendWindowEl) return;
+  const model = buildWritingProgressSnapshotModel();
+  latestTeacherSnapshotText = model.teacherText || '';
+  latestParentSnapshotText = model.parentText || '';
+
+  if (!model.sessions.length) {
+    teacherSnapshotEl.textContent = model.summaryLine;
+    parentSnapshotEl.textContent = model.parentSummary;
+    trendWindowEl.innerHTML = '<div class="writing-help">Trend window starts after your first saved Step Up session.</div>';
+    setReportStatus('');
+    return;
+  }
+
+  const dimensionRows = model.dimensions.map((row) => `
+    <li>
+      <strong>${escapeHtml(row.label)}:</strong>
+      ${statusPill(row.latestStatus)}
+      <span class="writing-trend-arrow">${writingTrendArrow(row.delta)}</span>
+      ${statusPill(row.previousStatus)}
+    </li>
+  `).join('');
+
+  teacherSnapshotEl.innerHTML = `
+    <div>${escapeHtml(model.summaryLine)}</div>
+    <ul class="writing-feedback-list">${dimensionRows}</ul>
+  `;
+
+  parentSnapshotEl.textContent = model.parentSummary;
+
+  const trendRows = model.trends.map((row) => {
+    const history = row.history
+      .map((status) => `<span>${escapeHtml(writingStatusLabel(status))}</span>`)
+      .join(' <span class="writing-trend-arrow">→</span> ');
+    return `
+      <article class="writing-trend-row">
+        <div class="writing-trend-head">
+          <strong>${escapeHtml(row.label)}</strong>
+          <span class="writing-trend-arrow">${writingTrendArrow(row.delta)}</span>
+          <span>${escapeHtml(writingStatusLabel(row.last))}</span>
+        </div>
+        <div class="writing-trend-history">${history}</div>
+      </article>
+    `;
+  }).join('');
+
+  trendWindowEl.innerHTML = `
+    <div class="writing-help">Latest ${Math.min(RECENT_TREND_WINDOW, model.sessions.length)} saved sessions (oldest → newest):</div>
+    <div class="writing-trend-grid">${trendRows}</div>
+  `;
+  setReportStatus('');
+}
+
+async function copySnapshotText(kind) {
+  const selectedKind = kind === 'parent' ? 'parent' : 'teacher';
+  const text = selectedKind === 'parent'
+    ? latestParentSnapshotText
+    : latestTeacherSnapshotText;
+
+  if (!text) {
+    setReportStatus('Save a Writing Studio session first to generate snapshot text.');
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      setReportStatus(selectedKind === 'parent'
+        ? 'Parent snapshot copied.'
+        : 'Teacher snapshot copied.');
+      return;
+    }
+    throw new Error('clipboard-unavailable');
+  } catch {
+    setReportStatus('Clipboard unavailable. Copy directly from the snapshot cards.');
+  }
 }
 
 function countFilledPlanFields(frame) {
@@ -1273,6 +1549,7 @@ function clearWorkspace() {
   renderChecklist({ checklist: [] });
   renderMissions();
   renderPublishPreview();
+  renderWritingProgressSnapshots();
   setStep('plan');
   feedbackEl.textContent = 'Workspace cleared. Start a fresh piece.';
   saveState();
@@ -1338,6 +1615,7 @@ function saveWritingSession() {
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(rows.slice(0, 200)));
 
   renderPublishPreview();
+  renderWritingProgressSnapshots();
   feedbackEl.textContent = 'Session saved. Teacher and parent reporting now include Step Up writing snapshots and trends.';
   saveState();
 
@@ -1442,6 +1720,7 @@ function refreshAll() {
   renderFrame();
   renderSupports();
   renderPublishPreview();
+  renderWritingProgressSnapshots();
 
   if (state.checks.length) {
     renderChecklist({ checklist: state.checks, nextStep: state.nextStep });
@@ -1640,6 +1919,12 @@ function wireUiEvents() {
 
   copyBtn.addEventListener('click', () => {
     copyPublishedText();
+  });
+  copyTeacherSnapshotBtn?.addEventListener('click', () => {
+    copySnapshotText('teacher');
+  });
+  copyParentSnapshotBtn?.addEventListener('click', () => {
+    copySnapshotText('parent');
   });
   printBtn.addEventListener('click', () => window.print());
   saveSessionBtn.addEventListener('click', saveWritingSession);

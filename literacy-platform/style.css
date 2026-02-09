@@ -11336,6 +11336,50 @@ body.writing-page {
     gap: 6px;
 }
 
+.writing-progress-snapshot {
+    margin-top: 4px;
+}
+
+.writing-trend-window {
+    display: grid;
+    gap: 8px;
+}
+
+.writing-trend-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.writing-trend-row {
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 9px 11px;
+    display: grid;
+    gap: 6px;
+}
+
+.writing-trend-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.86rem;
+    color: #0f172a;
+}
+
+.writing-trend-history {
+    color: #475569;
+    font-weight: 700;
+    line-height: 1.4;
+    font-size: 0.82rem;
+}
+
+.writing-trend-arrow {
+    color: #334155;
+    font-weight: 800;
+}
+
 @media (max-width: 1100px) {
     .writing-main {
         grid-template-columns: 1fr;
