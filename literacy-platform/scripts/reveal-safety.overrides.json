@@ -310,5 +310,29 @@
       "def": "Strength used to push or pull something.",
       "sentence": "We used gentle force to open the heavy library door."
     }
+  },
+  "pause": {
+    "en": {
+      "def": "To stop for a short moment, then continue.",
+      "sentence": "We used a short pause at each comma so the sentence sounded clear."
+    }
+  },
+  "sea": {
+    "en": {
+      "def": "A large area of salt water connected to an ocean.",
+      "sentence": "The sea looked calm in the morning, and boats moved slowly near the shore."
+    }
+  },
+  "who": {
+    "en": {
+      "def": "A question word used when asking about a person.",
+      "sentence": "Who is reading the first line today?"
+    }
+  },
+  "silly": {
+    "en": {
+      "def": "Playful in a light and funny way.",
+      "sentence": "Our class shared a silly joke before we started reading."
+    }
   }
 }

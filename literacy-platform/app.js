@@ -3347,6 +3347,10 @@ function getTranslationData(word, langCode, options = {}) {
     const normalizedLang = normalizePackedTtsLanguage(langCode);
     const audienceMode = normalizeAudienceMode(options.audienceMode || getResolvedAudienceMode());
     const englishCopy = getWordCopyForAudience(lower, 'en', audienceMode);
+    const englishUnsafeSignals = {
+        definition: isYoungAudienceUnsafeText(cleanAudienceText(englishCopy.definition || '')),
+        sentence: isYoungAudienceUnsafeText(cleanAudienceText(englishCopy.sentence || ''))
+    };
 
     const sanitizeAgainstEnglish = ({ wordText = '', definition = '', sentence = '' } = {}) => {
         const englishDefinition = normalizeTextForCompare(englishCopy.definition || '');
@@ -3362,27 +3366,27 @@ function getTranslationData(word, langCode, options = {}) {
             sentence: cleanSentence && cleanSentence !== englishSentence ? sentence : ''
         };
     };
-    const sanitizeTranslationCopy = ({ wordText = '', definition = '', sentence = '' } = {}) => ({
+    const sanitizeTranslationCopy = ({ wordText = '', definition = '', sentence = '' } = {}) => {
+        const definitionSource = englishUnsafeSignals.definition ? '' : definition;
+        const sentenceSource = englishUnsafeSignals.sentence ? '' : sentence;
+        return {
         word: cleanAudienceText(wordText),
-        definition: definition
-            ? sanitizeRevealText(definition, {
+        definition: sanitizeRevealText(definitionSource, {
                 word: lower,
                 field: 'definition',
                 languageCode: normalizedLang,
                 allowFallback: true,
                 maxWords: 20
-            })
-            : '',
-        sentence: sentence
-            ? sanitizeRevealText(sentence, {
+            }),
+        sentence: sanitizeRevealText(sentenceSource, {
                 word: lower,
                 field: 'sentence',
                 languageCode: normalizedLang,
                 allowFallback: true,
                 maxWords: 24
             })
-            : ''
-    });
+        };
+    };
 
     const audienceCopy = getWordCopyForAudience(lower, normalizedLang, audienceMode);
     if (audienceCopy.definition || audienceCopy.sentence) {
@@ -3405,6 +3409,14 @@ function getTranslationData(word, langCode, options = {}) {
             if (!sanitized.definition && !sanitized.sentence) return null;
             return sanitized;
         }
+    }
+    if (normalizedLang !== 'en') {
+        return {
+            word: '',
+            definition: getKidSafeFallbackText(lower, 'definition', normalizedLang),
+            sentence: getKidSafeFallbackText(lower, 'sentence', normalizedLang),
+            generated: true
+        };
     }
     return null;
 }
@@ -6480,6 +6492,7 @@ function showEndModal(win) {
             audienceMode: resolvedAudienceMode
         });
         if (translation && (translation.definition || translation.sentence || translation.word)) {
+            const generatedFallback = !!translation.generated;
             const safeWord = cleanAudienceText(translation.word || '');
             const safeDefinition = translation.definition || '';
             const safeSentence = translation.sentence || '';
@@ -6518,7 +6531,12 @@ function showEndModal(win) {
 
             const hasAnyText = canPlayWord || canPlayDefinition || canPlaySentence;
             const hasAnyPlayable = packedWordReady || packedDefReady || packedSentenceReady || hasVoice;
-            if (!hasAnyPlayable && hasAnyText) {
+            if (generatedFallback) {
+                const placeholderNote = hasAnyPlayable
+                    ? 'Using a classroom-safe placeholder translation while full translation is prepared.'
+                    : 'Using a classroom-safe placeholder translation. Audio is unavailable for this language.';
+                setTranslationAudioNote(placeholderNote, !hasAnyPlayable && hasAnyText);
+            } else if (!hasAnyPlayable && hasAnyText) {
                 setTranslationAudioNote('Audio unavailable for this language.', true);
             } else {
                 setTranslationAudioNote('');
@@ -7184,7 +7202,12 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(underwear\s+for\s+your\s+foot|squishy\s+balls)\b/i,
     /\b(smells\s+like\s+milk|tiny\s+human|baby\s+elephant)\b/i,
     /\b(guy\s+who\s+tells\s+bad\s+jokes|falls\s+asleep\s+watching\s+movies)\b/i,
-    /\b(gravity\s+pulling\s+you\s+down|surprise\s+hug\s+with\s+the\s+floor)\b/i
+    /\b(gravity\s+pulling\s+you\s+down|surprise\s+hug\s+with\s+the\s+floor)\b/i,
+    /\b(fight\s+scene|food\s+fight)\b/i,
+    /\b(hide\s+it\s+under\s+your\s+napkin|fish\s+go\s+to\s+the\s+bathroom)\b/i,
+    /\b(knocks?\s+on\s+the\s+bathroom\s+door|underwear\s+on\s+your\s+head)\b/i,
+    /\b(fast\s+way\s+to\s+point\s+out\s+something\s+gross)\b/i,
+    /\b(spaghetti\s+growing\s+on\s+your\s+head)\b/i
 ];
 const SCHOOL_SAFE_REPLACEMENTS = [
     [/\bhate\b/gi, 'do not like'],
@@ -7545,6 +7568,22 @@ const SCHOOL_SAFE_REVEAL_OVERRIDES = {
     reflection: {
         definition: 'The image you see in a mirror or shiny surface.',
         sentence: 'I could see my reflection in the classroom window.'
+    },
+    pause: {
+        definition: 'To stop for a short moment, then continue.',
+        sentence: 'We used a short pause at each comma so the sentence sounded clear.'
+    },
+    sea: {
+        definition: 'A large area of salt water connected to an ocean.',
+        sentence: 'The sea looked calm in the morning, and boats moved slowly near the shore.'
+    },
+    who: {
+        definition: 'A question word used when asking about a person.',
+        sentence: 'Who is reading the first line today?'
+    },
+    silly: {
+        definition: 'Playful in a light and funny way.',
+        sentence: 'Our class shared a silly joke before we started reading.'
     }
 };
 
@@ -8054,7 +8093,7 @@ const BONUS_CONTENT = {
         "What has one eye but cannot see? A needle.",
         "What has a neck but no head? A bottle.",
         "What has pages but is not a tree? A book.",
-        "What can you catch but not throw? A cold.",
+        "What has one head, one foot, and four legs? A bed.",
         "What has a face and two hands but no arms? A clock.",
         "What belongs to you but others use more? Your name.",
         "What has legs but cannot walk? A table.",
@@ -8136,7 +8175,7 @@ const BONUS_CONTENT_YOUNG = {
         "I have a face and two hands, but no arms or legs. What am I? A clock.",
         "What has many teeth but cannot bite? A comb.",
         "What goes up but never comes down? Your age.",
-        "What can you catch but not throw? A cold.",
+        "What has one head, one foot, and four legs? A bed.",
         "What has to be broken before you can use it? An egg.",
         "What has four wheels and flies? A garbage truck.",
         "What has one eye but cannot see? A needle.",
