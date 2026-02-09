@@ -47,7 +47,7 @@
     comprehension: 'Read & Think',
     fluency: 'Speed Sprint',
     madlibs: 'Silly Stories',
-    writing: 'Write & Build',
+    writing: 'Writing Studio',
     'plan-it': 'Plan-It',
     'number-sense': 'Number Sense Sprint',
     operations: 'Operation Builder',

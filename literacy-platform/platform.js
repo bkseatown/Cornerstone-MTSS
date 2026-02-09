@@ -133,7 +133,7 @@
         { activityId: 'comprehension', label: 'Read & Think' },
         { activityId: 'fluency', label: 'Speed Sprint' },
         { activityId: 'madlibs', label: 'Silly Stories' },
-        { activityId: 'writing', label: 'Write & Build' },
+        { activityId: 'writing', label: 'Writing Studio' },
         { activityId: 'plan-it', label: 'Plan-It' }
       ]
     },
@@ -207,7 +207,7 @@
     },
     writing: {
       title: 'Writing Studio Quick Start',
-      body: 'Keep writing routines short: plan, draft, revise, then capture one growth note.'
+      body: 'Use a Step Up-aligned routine: plan, draft, check, revise, publish, then capture one growth note.'
     },
     'number-sense': {
       title: 'Number Sense Lab Quick Start',

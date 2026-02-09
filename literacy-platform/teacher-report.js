@@ -6,7 +6,7 @@
     comprehension: 'Read & Think',
     fluency: 'Speed Sprint',
     madlibs: 'Silly Stories',
-    writing: 'Write & Build',
+    writing: 'Writing Studio',
     'plan-it': 'Plan-It',
     'number-sense': 'Number Sense Sprint',
     operations: 'Operation Builder',
@@ -67,7 +67,7 @@
       notes: 'Target parts of speech and sentence-level revisions.'
     },
     'L.3.3': {
-      focus: 'Silly Stories + Write & Build',
+      focus: 'Silly Stories + Writing Studio',
       notes: 'Practice stronger word choices and sentence variety.'
     },
     'L.3.4': {
@@ -83,11 +83,11 @@
       notes: 'Highlight keywords and cite text evidence.'
     },
     'W.3.2': {
-      focus: 'Write & Build',
+      focus: 'Writing Studio',
       notes: 'Use plan-to-draft frames with explicit detail sentences.'
     },
     'W.3.4': {
-      focus: 'Write & Build revisions',
+      focus: 'Writing Studio revisions',
       notes: 'Revise for sentence clarity and organization.'
     },
     'W.3.8': {
@@ -1006,6 +1006,7 @@
   };
 
   const PARENT_MESSAGE_STORE_KEY = 'decode_parent_messages_v1';
+  const WRITING_SESSION_STORE_KEY = 'cornerstone_writing_sessions_v2';
 
   const REPORT_MEDIA_PROMPT_MAP = {
     'literacy-pulse': {
@@ -1067,6 +1068,7 @@
   const builderCopyBtn = document.getElementById('report-builder-copy');
   const builderOutputEl = document.getElementById('report-builder-output');
   const builderStatusEl = document.getElementById('report-builder-status');
+  const writingHeatmapEl = document.getElementById('report-writing-heatmap');
   const heatmapEl = document.getElementById('report-heatmap');
   const emptyEl = document.getElementById('report-empty');
   const refreshBtn = document.getElementById('report-refresh');
@@ -3770,7 +3772,7 @@
     const recommendedActivities = (pulse?.recommendedActivities || [])
       .map((item) => item.label)
       .slice(0, 3)
-      .join(', ') || 'Word Quest, Read & Think, Write & Build';
+      .join(', ') || 'Word Quest, Read & Think, Writing Studio';
 
     const nearGoal = `Near-term goal (4-6 weeks): ${learnerName} will improve ${domainName.toLowerCase()} from ${baselineText} to ${nearTargetText} on platform mastery indicators, using ${tier === '1' ? 'core differentiation' : tier === '2' ? 'targeted small-group intervention' : 'intensive individualized intervention'}.`;
     const longGoal = `Long-term goal (12-16 weeks): ${learnerName} will sustain ${longTargetText} or higher in ${domainName.toLowerCase()} with transfer across at least two activity types and consistent progress-monitoring evidence.`;
@@ -5676,6 +5678,7 @@
         <div><strong>Current parent-ready message (${escapeHtml(parentIntentLabel(parentIntentEl?.value || 'balanced'))} · ${escapeHtml(parentLanguageLabel(parentLanguageEl?.value || 'en'))} · ${escapeHtml(parentReadingLevelLabel(parentReadingLevelEl?.value || 'standard'))}):</strong></div>
         <div>${escapeHtml(draft).replace(/\n/g, '<br />')}</div>
       </div>
+      <div class="report-bench-note"><strong>Step Up alignment note:</strong> This approach follows the same structure used in school (Step Up to Writing), just in a digital, interactive way.</div>
       <div class="report-bench-note"><strong>Tip:</strong> Pair this text with a short recording clip in the Parent Partnership section.</div>
       <div class="report-builder-summary">
         <div><strong>Saved messages for this learner:</strong></div>
@@ -7241,6 +7244,118 @@
     }
   }
 
+  function normalizeWritingStatus(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'ready') return 'ready';
+    if (raw === 'growing') return 'growing';
+    if (raw === 'not-yet' || raw === 'notyet' || raw === 'not_yet') return 'not-yet';
+    return 'not-assessed';
+  }
+
+  function writingStatusLabel(status) {
+    if (status === 'ready') return 'Ready';
+    if (status === 'growing') return 'Growing';
+    if (status === 'not-yet') return 'Not yet';
+    return 'Not assessed';
+  }
+
+  function writingStatusClass(status) {
+    if (status === 'ready') return 'report-writing-status-ready';
+    if (status === 'growing') return 'report-writing-status-growing';
+    if (status === 'not-yet') return 'report-writing-status-not-yet';
+    return 'report-writing-status-not-assessed';
+  }
+
+  function readWritingSessions(learner) {
+    const allSessions = readJson(WRITING_SESSION_STORE_KEY, []);
+    const sessions = Array.isArray(allSessions) ? allSessions : [];
+    if (!learner) return sessions;
+
+    const learnerId = String(learner.id || '').trim().toLowerCase();
+    const learnerName = String(learner.name || '').trim().toLowerCase();
+
+    return sessions.filter((session) => {
+      const sessionLearnerId = String(session?.learnerId || '').trim().toLowerCase();
+      const sessionLearnerName = String(session?.learnerName || '').trim().toLowerCase();
+      if (learnerId && sessionLearnerId) return sessionLearnerId === learnerId;
+      if (learnerName && sessionLearnerName) return sessionLearnerName === learnerName;
+      return true;
+    });
+  }
+
+  function humanizeWritingGenre(genreId) {
+    const genre = String(genreId || '').toLowerCase();
+    if (genre === 'opinion') return 'Opinion';
+    if (genre === 'argument') return 'Argument';
+    if (genre === 'informational') return 'Informational';
+    if (genre === 'narrative') return 'Narrative';
+    if (genre === 'reflection') return 'Reflection';
+    return genre || 'Writing';
+  }
+
+  function renderWritingStepUpHeatmap(learner) {
+    if (!writingHeatmapEl) return [];
+    const sessions = readWritingSessions(learner)
+      .slice()
+      .sort((a, b) => Number(b?.ts || 0) - Number(a?.ts || 0))
+      .slice(0, 8);
+
+    const thead = writingHeatmapEl.querySelector('thead');
+    const tbody = writingHeatmapEl.querySelector('tbody');
+    if (!thead || !tbody) return sessions;
+
+    thead.innerHTML = `
+      <tr>
+        <th>Writing Session</th>
+        <th>Topic/Claim</th>
+        <th>Details/Evidence</th>
+        <th>Organization/Transitions</th>
+        <th>Conventions</th>
+      </tr>
+    `;
+
+    if (!sessions.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td><strong>Writing Studio</strong><div class="report-standard-note">No saved writing sessions yet.</div></td>
+          <td><span class="report-writing-status report-writing-status-not-assessed">Not assessed</span></td>
+          <td><span class="report-writing-status report-writing-status-not-assessed">Not assessed</span></td>
+          <td><span class="report-writing-status report-writing-status-not-assessed">Not assessed</span></td>
+          <td><span class="report-writing-status report-writing-status-not-assessed">Not assessed</span></td>
+        </tr>
+      `;
+      return sessions;
+    }
+
+    tbody.innerHTML = sessions.map((session) => {
+      const dimensions = session?.dimensions || {};
+      const topicClaim = normalizeWritingStatus(dimensions.topicClaim);
+      const detailsEvidence = normalizeWritingStatus(dimensions.detailsEvidence);
+      const organizationTransitions = normalizeWritingStatus(dimensions.organizationTransitions);
+      const conventions = normalizeWritingStatus(dimensions.conventions);
+      const ts = Number(session?.ts || Date.now());
+      const dateLabel = new Date(ts).toLocaleDateString();
+      const gradeBand = escapeHtml(String(session?.gradeBand || '—'));
+      const genre = escapeHtml(humanizeWritingGenre(session?.genre));
+      const wordCount = Number(session?.wordCount || 0);
+
+      return `
+        <tr>
+          <td>
+            <strong>${dateLabel} · ${gradeBand} · ${genre}</strong>
+            <div class="report-standard-note">${wordCount ? `${wordCount} words` : 'Draft saved'}</div>
+          </td>
+          <td><span class="report-writing-status ${writingStatusClass(topicClaim)}">${writingStatusLabel(topicClaim)}</span></td>
+          <td><span class="report-writing-status ${writingStatusClass(detailsEvidence)}">${writingStatusLabel(detailsEvidence)}</span></td>
+          <td><span class="report-writing-status ${writingStatusClass(organizationTransitions)}">${writingStatusLabel(organizationTransitions)}</span></td>
+          <td><span class="report-writing-status ${writingStatusClass(conventions)}">${writingStatusLabel(conventions)}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    return sessions;
+  }
+
   function masteryClass(score) {
     if (score === null || score === undefined) return 'heat-empty';
     if (score >= 0.85) return 'heat-high';
@@ -7357,6 +7472,7 @@
       `Top 3 gaps: ${gaps}`,
       `${focusLine}`,
       `Recommended next activities: ${activities}`,
+      'Writing alignment: Aligned to Step Up to Writing structure (Topic/Claim, Details/Evidence, Organization/Transitions, Conventions).',
       `Intervention priority: ${pulse.topPriority}`,
       `Engine confidence: ${evidence.confidenceLabel || 'Early signal'} (${formatPercent(evidence.confidenceScore || 0)}).`,
       `Suggested support intensity: ${tierRecommendation.tierLabel || 'Tier 2'} (${tierRecommendation.rationale || 'Needs additional data confirmation.'})`
@@ -7787,14 +7903,14 @@
       { activity: 'word-quest', label: 'Word Quest', event: '4/5', ts: now - (0.7 * day), detail: { correct: 4, total: 5 } },
       { activity: 'fluency', label: 'Speed Sprint', event: 'Goal met', ts: now - (0.6 * day), detail: { orf: 82, goal: 95 } },
       { activity: 'comprehension', label: 'Read & Think', event: '3/5', ts: now - (0.5 * day), detail: { correct: 3, total: 5 } },
-      { activity: 'writing', label: 'Write & Build', event: 'Built paragraph', ts: now - (0.45 * day), detail: { wordCount: 52 } },
+      { activity: 'writing', label: 'Writing Studio', event: 'Built paragraph', ts: now - (0.45 * day), detail: { wordCount: 52 } },
       { activity: 'plan-it', label: 'Plan-It', event: 'Checked (2 issues)', ts: now - (0.4 * day), detail: { issues: 2 } },
       { activity: 'cloze', label: 'Story Fill', event: '2/4', ts: now - (0.35 * day), detail: { correct: 2, total: 4 } },
       { activity: 'word-quest', label: 'Word Quest', event: '3/5', ts: now - (0.3 * day), detail: { correct: 3, total: 5 } },
       { activity: 'fluency', label: 'Speed Sprint', event: 'Checked', ts: now - (0.24 * day), detail: { orf: 76, goal: 95 } },
       { activity: 'comprehension', label: 'Read & Think', event: '4/5', ts: now - (0.18 * day), detail: { correct: 4, total: 5 } },
       { activity: 'madlibs', label: 'Silly Stories', event: 'Completed', ts: now - (0.14 * day), detail: { wordCount: 45 } },
-      { activity: 'writing', label: 'Write & Build', event: 'Checked', ts: now - (0.1 * day), detail: { wordCount: 58 } },
+      { activity: 'writing', label: 'Writing Studio', event: 'Checked', ts: now - (0.1 * day), detail: { wordCount: 58 } },
       { activity: 'plan-it', label: 'Plan-It', event: 'Checked (no overlaps)', ts: now - (0.05 * day), detail: { issues: 0 } }
     ];
     const numeracySampleLog = [
@@ -7831,6 +7947,7 @@
 
     const logs = getLogs();
     const metrics = renderMetrics(logs);
+    renderWritingStepUpHeatmap(learner);
     const rows = renderHeatmap(logs);
     const placementRec = getPlacementRecommendation();
     const weakest = getWeakestStandardRow(rows);

@@ -124,7 +124,7 @@ const QUICK_ACTIVITY_META = {
   comprehension: { label: 'Read & Think', href: 'comprehension.html' },
   fluency: { label: 'Speed Sprint', href: 'fluency.html' },
   madlibs: { label: 'Silly Stories', href: 'madlibs.html' },
-  writing: { label: 'Write & Build', href: 'writing.html' },
+  writing: { label: 'Writing Studio', href: 'writing.html' },
   'plan-it': { label: 'Plan-It', href: 'plan-it.html' }
 };
 
