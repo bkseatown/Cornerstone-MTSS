@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-08T16:14:26.055Z",
+  "updatedAt": "2026-02-09T02:02:30.672Z",
   "packs": [
     {
       "id": "emma-en",
@@ -99,12 +99,18 @@
       "name": "Ava Multilingual",
       "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
       "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-08T16:14:26.055Z",
+      "generatedAt": "2026-02-09T02:02:30.672Z",
       "languages": [
         "en",
         "es",
         "zh",
-        "tl"
+        "tl",
+        "hi",
+        "ms",
+        "vi",
+        "ar",
+        "ko",
+        "ja"
       ],
       "fields": [
         "word",
@@ -114,9 +120,14 @@
       "voices": {
         "en": "en-US-AvaMultilingualNeural",
         "es": "en-US-AvaMultilingualNeural",
-        "zh": "en-US-AvaMultilingualNeural",
-        "tl": "en-US-AvaMultilingualNeural",
-        "hi": "hi-IN-SwaraNeural"
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
       }
     }
   ]
