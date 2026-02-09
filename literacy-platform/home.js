@@ -426,7 +426,7 @@
     if (!homeQuickLanguageNote) return;
     const lang = normalizeStarterLanguage(langCode);
     if (lang === 'en') {
-      homeQuickLanguageNote.textContent = 'English-only mode selected. Translation can still be turned on later.';
+      homeQuickLanguageNote.textContent = 'English-only mode selected. Full translation and audio can be enabled any time.';
       return;
     }
     const labelByLanguage = {
@@ -441,7 +441,15 @@
       ja: 'Japanese'
     };
     const label = labelByLanguage[lang] || lang.toUpperCase();
-    homeQuickLanguageNote.textContent = `${label} is ready as the default reveal translation in Word Quest.`;
+    if (lang === 'es' || lang === 'zh' || lang === 'tl') {
+      homeQuickLanguageNote.textContent = `${label} is ready with full reveal translation and packed audio support.`;
+      return;
+    }
+    if (lang === 'hi' || lang === 'ms' || lang === 'vi') {
+      homeQuickLanguageNote.textContent = `${label} is ready with translation plus classroom-safe fallback and browser audio if a full clip is missing.`;
+      return;
+    }
+    homeQuickLanguageNote.textContent = `${label} is enabled with classroom-safe fallback translation while full pack coverage is completed.`;
   }
 
   function updateQuickVoiceNote(dialect, packName = '') {

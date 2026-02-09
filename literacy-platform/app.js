@@ -3326,8 +3326,8 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
             setTranslationAudioNote('Using an available device voice for this language.');
         }
     } else {
-        notifyMissingTranslationVoice();
-        return;
+        msg.lang = targetLang;
+        setTranslationAudioNote('Using browser fallback speech for this language.');
     }
     
     const packedType = normalizePackedTtsType(type);
@@ -3342,7 +3342,12 @@ function getTranslationData(word, langCode, options = {}) {
     if (!word || !langCode || langCode === 'en') return null;
     const lower = word.toLowerCase();
     if (!window.WORD_ENTRIES?.[lower]) {
-        return null;
+        return {
+            word: '',
+            definition: getKidSafeFallbackText(lower, 'definition', normalizePackedTtsLanguage(langCode)),
+            sentence: getKidSafeFallbackText(lower, 'sentence', normalizePackedTtsLanguage(langCode)),
+            generated: true
+        };
     }
     const normalizedLang = normalizePackedTtsLanguage(langCode);
     const audienceMode = normalizeAudienceMode(options.audienceMode || getResolvedAudienceMode());
