@@ -34,22 +34,45 @@
           </p>
 
           <div id="home-onboarding-wizard" class="home-wizard" aria-label="Getting started wizard">
-            <div class="home-stepper" role="list" aria-label="Getting started steps">
-              <div class="home-step" data-step-index="1" role="listitem">1. Role</div>
-              <div class="home-step" data-step-index="2" role="listitem">2. Who you are</div>
-              <div class="home-step" data-step-index="3" role="listitem">3. Focus</div>
-              <div class="home-step" data-step-index="4" role="listitem">4. Quick Check</div>
+            <div class="home-stepper" role="tablist" aria-label="Getting started steps">
+              <button type="button" class="home-step" data-step-index="1" role="tab" aria-controls="home-step-panel-1">1. Role</button>
+              <button type="button" class="home-step" data-step-index="2" role="tab" aria-controls="home-step-panel-2">2. Who you are</button>
+              <button type="button" class="home-step" data-step-index="3" role="tab" aria-controls="home-step-panel-3">3. Focus</button>
+              <button type="button" class="home-step" data-step-index="4" role="tab" aria-controls="home-step-panel-4">4. Quick Check</button>
             </div>
 
-            <div id="home-step-summaries" class="home-step-summaries hidden" aria-live="polite"></div>
+            <div class="home-review-row">
+              <div id="home-step-summaries" class="home-step-summaries hidden" aria-live="polite"></div>
+              <button id="home-wizard-reset" class="home-cta ghost home-cta-inline" type="button">Start new</button>
+            </div>
 
-            <section class="home-step-panel" data-home-step-panel="1" aria-label="Step 1 choose role">
+            <section id="home-step-panel-1" class="home-step-panel" data-home-step-panel="1" aria-label="Step 1 choose role">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 1 · Choose role</div>
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">1</div>
+                  <div>
+                    <div class="home-field-label">Step 1 of 4 · Choose role</div>
+                    <p class="home-mini-hint">Pick who is using Cornerstone right now.</p>
+                  </div>
+                </div>
                 <div class="home-entry-segments" aria-label="Choose your pathway group">
-                  <button type="button" class="home-entry-segment active" data-entry-group="student">Student</button>
+                  <button type="button" class="home-entry-segment" data-entry-group="student">Student</button>
                   <button type="button" class="home-entry-segment" data-entry-group="parent">Parent / Caregiver</button>
                   <button type="button" class="home-entry-segment" data-entry-group="school">School Team</button>
+                </div>
+                <div id="home-team-role-wrap" class="home-team-role-wrap hidden">
+                  <label class="home-field-label" for="home-team-role-select">School Team role</label>
+                  <select id="home-team-role-select" class="home-select" aria-label="School team role">
+                    <option value="">Choose role…</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="learning-support">Learning Support</option>
+                    <option value="eal">EAL</option>
+                    <option value="slp">SLP</option>
+                    <option value="counselor">Counselor</option>
+                    <option value="psychologist">Psychologist</option>
+                    <option value="admin">Administrator</option>
+                    <option value="dean">Dean</option>
+                  </select>
                 </div>
               </div>
               <div class="home-cta-row">
@@ -57,34 +80,76 @@
               </div>
             </section>
 
-            <section class="home-step-panel hidden" data-home-step-panel="2" aria-label="Step 2 who you are">
+            <section id="home-step-panel-2" class="home-step-panel hidden" data-home-step-panel="2" aria-label="Step 2 who you are">
               <div id="home-student-setup" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · Student details</div>
-                <label class="home-field-label" for="home-student-name">Student name (nickname is okay)</label>
-                <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter student name" />
-                <div class="home-field-label">Grade band (optional)</div>
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">2</div>
+                  <div>
+                    <div class="home-field-label">Step 2 of 4 · Student details</div>
+                    <p class="home-mini-hint">Tell us who is learning today.</p>
+                  </div>
+                </div>
+                <label class="home-field-label" for="home-student-name">Name or nickname</label>
+                <input id="home-student-name" class="home-input" type="text" autocomplete="off" placeholder="Enter name" />
+                <div class="home-field-label">Grade band</div>
                 <div class="home-grade-band-row" aria-label="Choose grade band">
                   <button type="button" class="home-grade-band-btn" data-grade-band="K-2">K–2</button>
                   <button type="button" class="home-grade-band-btn" data-grade-band="3-5">3–5</button>
                   <button type="button" class="home-grade-band-btn" data-grade-band="6-8">6–8</button>
+                  <button type="button" class="home-grade-band-btn" data-grade-band="9-12">9–12</button>
                 </div>
               </div>
               <div id="home-parent-setup" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · Parent / Caregiver setup</div>
-                <p class="home-mini-hint">You will get clear at-home supports, short walkthroughs, and a simple next step after Quick Check.</p>
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">2</div>
+                  <div>
+                    <div class="home-field-label">Step 2 of 4 · Parent / Caregiver details</div>
+                    <p class="home-mini-hint">Set your home support profile in one minute.</p>
+                  </div>
+                </div>
+                <label class="home-field-label" for="home-parent-name">First name</label>
+                <input id="home-parent-name" class="home-input" type="text" autocomplete="off" placeholder="Enter your first name" />
+                <label class="home-field-label" for="home-parent-grade-band">Child grade band</label>
+                <select id="home-parent-grade-band" class="home-select">
+                  <option value="">Choose…</option>
+                  <option value="K-2">K–2</option>
+                  <option value="3-5">3–5</option>
+                  <option value="6-8">6–8</option>
+                  <option value="9-12">9–12</option>
+                </select>
+                <label class="home-field-label" for="home-parent-goal">What are you here for? (optional)</label>
+                <select id="home-parent-goal" class="home-select">
+                  <option value="">Choose…</option>
+                  <option value="reading">Reading support</option>
+                  <option value="math">Math support</option>
+                  <option value="both">Both</option>
+                  <option value="parenting">Parenting supports</option>
+                </select>
               </div>
-              <div id="home-team-role-wrap" class="home-wizard-block hidden">
-                <div class="home-field-label">Step 2 · School Team details</div>
-                <label class="home-field-label" for="home-team-role-select">School Team role</label>
-                <select id="home-team-role-select" class="home-select" aria-label="School team role">
-                  <option value="teacher">Teacher</option>
-                  <option value="learning-support">Learning Support</option>
-                  <option value="eal">EAL</option>
-                  <option value="slp">SLP</option>
-                  <option value="counselor">Counselor</option>
-                  <option value="psychologist">Psychologist</option>
-                  <option value="admin">Administrator</option>
-                  <option value="dean">Dean</option>
+              <div id="home-school-setup" class="home-wizard-block hidden">
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">2</div>
+                  <div>
+                    <div class="home-field-label">Step 2 of 4 · School Team details</div>
+                    <p class="home-mini-hint">Add your context so recommendations stay relevant.</p>
+                  </div>
+                </div>
+                <label class="home-field-label" for="home-school-name">Name (optional)</label>
+                <input id="home-school-name" class="home-input" type="text" autocomplete="off" placeholder="Enter your name" />
+                <label class="home-field-label" for="home-school-division">Division focus</label>
+                <select id="home-school-division" class="home-select">
+                  <option value="">Choose…</option>
+                  <option value="ES">Elementary (ES)</option>
+                  <option value="MS">Middle (MS)</option>
+                  <option value="HS">High (HS)</option>
+                </select>
+                <label class="home-field-label" for="home-school-area">Primary area (optional)</label>
+                <select id="home-school-area" class="home-select">
+                  <option value="">Choose…</option>
+                  <option value="literacy">Literacy</option>
+                  <option value="numeracy">Numeracy</option>
+                  <option value="sel">SEL</option>
+                  <option value="ef">Behavior / EF</option>
                 </select>
               </div>
               <div class="home-cta-row">
@@ -93,13 +158,28 @@
               </div>
             </section>
 
-            <section class="home-step-panel hidden" data-home-step-panel="3" aria-label="Step 3 focus">
+            <section id="home-step-panel-3" class="home-step-panel hidden" data-home-step-panel="3" aria-label="Step 3 focus">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 3 · What are we working on today?</div>
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">3</div>
+                  <div>
+                    <div class="home-field-label">Step 3 of 4 · What are we here for today?</div>
+                    <p class="home-mini-hint">Pick one focus to keep the plan simple.</p>
+                  </div>
+                </div>
                 <div class="home-focus-options" aria-label="Choose focus">
-                  <button type="button" class="home-focus-btn" data-focus-value="literacy">Reading &amp; Words</button>
-                  <button type="button" class="home-focus-btn" data-focus-value="numeracy">Math &amp; Numbers</button>
-                  <button type="button" class="home-focus-btn" data-focus-value="both">Both</button>
+                  <button type="button" class="home-focus-btn" data-focus-value="literacy">
+                    <span class="home-focus-title">Reading &amp; Words</span>
+                    <span class="home-focus-help">letters, sounds, words, reading</span>
+                  </button>
+                  <button type="button" class="home-focus-btn" data-focus-value="numeracy">
+                    <span class="home-focus-title">Math &amp; Numbers</span>
+                    <span class="home-focus-help">counting, number sense, strategies</span>
+                  </button>
+                  <button type="button" class="home-focus-btn" data-focus-value="both">
+                    <span class="home-focus-title">Both</span>
+                    <span class="home-focus-help">a mix</span>
+                  </button>
                 </div>
               </div>
               <div class="home-cta-row">
@@ -108,10 +188,15 @@
               </div>
             </section>
 
-            <section class="home-step-panel hidden" data-home-step-panel="4" aria-label="Step 4 quick check">
+            <section id="home-step-panel-4" class="home-step-panel hidden" data-home-step-panel="4" aria-label="Step 4 quick check">
               <div class="home-wizard-block">
-                <div class="home-field-label">Step 4 · Quick Check (required)</div>
-                <p class="home-mini-hint">A short adaptive check (about 5–8 minutes) gives one clear starting point before activities open.</p>
+                <div class="home-step-head">
+                  <div class="home-step-icon" aria-hidden="true">4</div>
+                  <div>
+                    <div class="home-field-label">Step 4 of 4 · Quick Check</div>
+                    <p class="home-mini-hint">A short adaptive check (about 5–8 minutes) gives one clear starting point before activities open.</p>
+                  </div>
+                </div>
               </div>
               <div class="home-cta-row">
                 <button id="home-step-quickcheck-back" class="home-cta ghost" type="button">Back</button>
@@ -126,13 +211,14 @@
             We use one short check first so students get matched to the right challenge level right away.
           </div>
           <section id="home-post-check" class="home-post-check hidden" aria-label="Post quick check next step">
-            <div class="home-mini-title">Your best next step</div>
-            <h3 id="home-post-check-title">Run Quick Check to get a recommendation.</h3>
+            <div class="home-mini-title">Your next step</div>
+            <h3 id="home-post-check-title">Next best step</h3>
+            <div id="home-post-check-confidence" class="home-confidence-badge">Good start</div>
             <ul id="home-post-check-bullets" class="home-progress-list"></ul>
             <div class="home-cta-row">
-              <a id="home-post-check-launch" class="home-cta primary" href="word-quest.html">Start Recommended Path</a>
+              <a id="home-post-check-launch" class="home-cta primary" href="#activities-grid">Continue Recommended Path</a>
+              <a id="home-post-check-explore" class="home-cta ghost" href="#activities-grid">Explore Activities</a>
               <button id="home-post-check-rerun" class="home-cta ghost" type="button">Run Quick Check Again</button>
-              <button id="home-toggle-workspace" class="home-cta ghost" type="button" data-precheck-hidden>Show Workspace Tools</button>
             </div>
           </section>
         </div>

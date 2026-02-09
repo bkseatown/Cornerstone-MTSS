@@ -166,6 +166,7 @@ const DEFAULT_SETTINGS = {
     narrationStyle: 'expressive', // expressive | neutral
     speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'default',
+    voiceUri: '',
     audienceMode: 'auto', // auto | general | young-eal
     autoHear: true,
     showRevealRecordingTools: false,
@@ -2330,14 +2331,14 @@ function applyWordQuestDesktopScale() {
     if (viewportHeight < 840) tileSize = Math.min(tileSize, 46);
     if (viewportHeight < 790) tileSize = Math.min(tileSize, 42);
 
-    let keySize = tileSize * (coarsePointer ? 1.02 : 0.97);
-    keySize = Math.max(coarsePointer ? 34 : 32, Math.min(52, keySize));
+    let keySize = tileSize * (coarsePointer ? 1.07 : 1.03);
+    keySize = Math.max(coarsePointer ? 36 : 34, Math.min(56, keySize));
 
     let wideKeySize = keySize * 1.72;
-    wideKeySize = Math.max(62, Math.min(94, wideKeySize));
+    wideKeySize = Math.max(70, Math.min(102, wideKeySize));
 
-    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 92 : 84));
-    let canvasMax = Math.round(Math.max(660, Math.min(950, keyboardMax + 224)));
+    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 104 : 96));
+    let canvasMax = Math.round(Math.max(680, Math.min(980, keyboardMax + 236)));
     let bottomGap = coarsePointer ? 14 : 10;
     if (viewportHeight < 930) bottomGap = Math.max(8, bottomGap - 3);
     if (viewportHeight < 860) bottomGap = Math.max(8, bottomGap - 2);
@@ -2383,10 +2384,10 @@ function applyWordQuestDesktopScale() {
             const combinedDemand = Math.max(requiredCanvasHeight, availableCanvasHeight + layoutOverflow);
             const fitRatio = Math.max(0.74, Math.min(0.95, availableCanvasHeight / Math.max(1, combinedDemand)));
             tileSize = Math.max(30, Math.min(58, tileSize * fitRatio));
-            keySize = Math.max(coarsePointer ? 32 : 30, Math.min(50, keySize * fitRatio));
-            wideKeySize = Math.max(56, Math.min(90, wideKeySize * fitRatio));
-            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 82 : 74));
-            canvasMax = Math.round(Math.max(620, Math.min(920, keyboardMax + 198)));
+            keySize = Math.max(coarsePointer ? 33 : 31, Math.min(54, keySize * fitRatio));
+            wideKeySize = Math.max(62, Math.min(98, wideKeySize * fitRatio));
+            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 90 : 82));
+            canvasMax = Math.round(Math.max(640, Math.min(950, keyboardMax + 214)));
             bottomGap = Math.max(4, Math.min(14, bottomGap - 1));
             applyDesktopScaleVars();
             requiredCanvasHeight = Math.ceil(canvas.scrollHeight || 0);

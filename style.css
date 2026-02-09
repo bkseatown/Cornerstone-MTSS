@@ -4362,15 +4362,15 @@ main {
 }
 
 .key { 
-    height: min(54px, 9vw, 7.6vh);
+    height: min(58px, 9.6vw, 8.2vh);
     flex: 1; 
-    max-width: 58px;
+    max-width: 64px;
     border-radius: 12px; 
     border: 1px solid rgba(100, 116, 139, 0.45);
     background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
     cursor: pointer; 
     font-weight: 800; 
-    font-size: min(1.15rem, 3.4vw, 3.4vh);
+    font-size: min(1.22rem, 3.7vw, 3.8vh);
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -4443,8 +4443,8 @@ main {
 
 .key.wide { 
     flex: 1.7;
-    min-width: 78px;
-    max-width: 120px;
+    min-width: 86px;
+    max-width: 132px;
     padding: 0 10px;
     font-size: 0.82rem;
     letter-spacing: 0.08em;
@@ -13617,9 +13617,9 @@ body.word-quest-page.fit-screen #keyboard {
 }
 
 body.word-quest-page.fit-screen .key {
-    height: min(50px, 8.6vw, 6.4vh);
-    font-size: min(1.05rem, 3.2vw, 2.9vh);
-    max-width: 56px;
+    height: min(54px, 9vw, 6.9vh);
+    font-size: min(1.12rem, 3.35vw, 3.1vh);
+    max-width: 60px;
 }
 
 body.word-quest-page.fit-screen-tight #game-canvas {
@@ -13654,9 +13654,9 @@ body.word-quest-page.fit-screen-tight #keyboard {
 }
 
 body.word-quest-page.fit-screen-tight .key {
-    height: min(46px, 7.8vw, 5.8vh);
-    font-size: min(0.98rem, 3vw, 2.6vh);
-    max-width: 52px;
+    height: min(50px, 8.3vw, 6.2vh);
+    font-size: min(1.03rem, 3.15vw, 2.85vh);
+    max-width: 56px;
 }
 
 /* ==========================================================================
@@ -14873,6 +14873,23 @@ body:not(.has-story-track) #story-track {
     color: #ffffff;
 }
 
+.voice-quick-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
+.voice-quick-status {
+    margin: 0;
+    min-height: 1.2em;
+    color: #475569;
+    font-size: 0.86rem;
+    font-weight: 680;
+}
+
+.voice-quick-status.active {
+    color: #1e40af;
+}
+
 @media (max-width: 760px) {
     .header-voice-shortcut {
         min-height: 34px;
@@ -14908,6 +14925,15 @@ body.home-page.home-details-collapsed .home-hero {
 
 body.home-page.home-details-collapsed .home-hero-panel {
     display: none;
+}
+
+/* Word Quest: keep vowel highlighting without extra marker dots. */
+body.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::before,
+body.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::after,
+body.force-light.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::before,
+body.force-light.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::after {
+    content: none !important;
+    display: none !important;
 }
 
 body.home-page.home-details-collapsed .home-card.home-hero {

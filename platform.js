@@ -1830,12 +1830,16 @@
           <h2 id="voice-quick-title">Voice & Language</h2>
           <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
         </header>
-        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately.</p>
+        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately. Downloaded Azure packs still play automatically when available.</p>
         <label class="voice-quick-field">
-          <span>English voice</span>
+          <span>English preset</span>
           <select id="voice-quick-dialect">
             ${QUICK_VOICE_DIALECTS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
           </select>
+        </label>
+        <label class="voice-quick-field">
+          <span>Voice choice</span>
+          <select id="voice-quick-voice"></select>
         </label>
         <label class="voice-quick-field">
           <span>Reveal translation default</span>
@@ -1847,6 +1851,7 @@
           <input type="checkbox" id="voice-quick-pin-language" />
           Lock reveal language on this learner
         </label>
+        <p id="voice-quick-status" class="voice-quick-status"></p>
         <div class="voice-quick-actions">
           <button type="button" class="voice-quick-preview">Preview Voice</button>
           <button type="button" class="voice-quick-done">Done</button>
@@ -1855,13 +1860,139 @@
     `;
     document.body.appendChild(overlay);
 
-    const closeOverlay = () => overlay.classList.add('hidden');
+    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
+    const voiceSelect = overlay.querySelector('#voice-quick-voice');
+    const languageSelect = overlay.querySelector('#voice-quick-language');
+    const pinToggle = overlay.querySelector('#voice-quick-pin-language');
+    const previewBtn = overlay.querySelector('.voice-quick-preview');
+    const statusEl = overlay.querySelector('#voice-quick-status');
+
+    const voiceIdentifier = (voice) => String(voice?.voiceURI || voice?.name || '').trim();
+    const allSpeechVoices = () => {
+      if (!('speechSynthesis' in window)) return [];
+      try {
+        const voices = window.speechSynthesis.getVoices();
+        return Array.isArray(voices) ? voices : [];
+      } catch {
+        return [];
+      }
+    };
+    const resolveSelectedVoice = () => {
+      if (!(voiceSelect instanceof HTMLSelectElement)) return null;
+      const selectedId = String(voiceSelect.value || '').trim();
+      if (!selectedId) return null;
+      return allSpeechVoices().find((voice) => voiceIdentifier(voice) === selectedId) || null;
+    };
+    const setStatus = (message = '') => {
+      if (!(statusEl instanceof HTMLElement)) return;
+      statusEl.textContent = String(message || '').trim();
+      statusEl.classList.toggle('active', !!statusEl.textContent);
+    };
+    const updatePreviewAvailability = () => {
+      if (!(previewBtn instanceof HTMLButtonElement)) return;
+      if (!('speechSynthesis' in window)) {
+        previewBtn.disabled = true;
+        setStatus('Voice preview is unavailable in this browser.');
+        return;
+      }
+      const selectedVoice = resolveSelectedVoice();
+      if (!selectedVoice) {
+        previewBtn.disabled = true;
+        setStatus('No compatible voices are loaded yet.');
+        return;
+      }
+      previewBtn.disabled = false;
+      setStatus(`Preview ready: ${selectedVoice.name} (${selectedVoice.lang || 'en'}).`);
+    };
+    const filteredVoicesForDialect = (voices, dialect) => {
+      const englishVoices = voices.filter((voice) => String(voice.lang || '').toLowerCase().startsWith('en'));
+      const pool = englishVoices.length ? englishVoices : voices;
+      if (!pool.length) return [];
+      const target = String(dialect || 'en-US').toLowerCase();
+      const targetBase = target.split('-')[0];
+      const scored = pool
+        .slice()
+        .sort((a, b) => {
+          const scoreVoice = (voice) => {
+            const lang = String(voice.lang || '').toLowerCase();
+            let score = 0;
+            if (lang === target) score += 120;
+            else if (lang.startsWith(`${target}-`)) score += 105;
+            else if (lang.startsWith(targetBase)) score += 70;
+            if (voice.default) score += 8;
+            if (voice.localService) score += 3;
+            return score;
+          };
+          const scoreDelta = scoreVoice(b) - scoreVoice(a);
+          if (scoreDelta !== 0) return scoreDelta;
+          const nameA = String(a.name || '').toLowerCase();
+          const nameB = String(b.name || '').toLowerCase();
+          if (nameA !== nameB) return nameA.localeCompare(nameB);
+          return String(a.voiceURI || '').localeCompare(String(b.voiceURI || ''));
+        });
+      const deduped = [];
+      const seen = new Set();
+      scored.forEach((voice) => {
+        const id = voiceIdentifier(voice);
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        deduped.push(voice);
+      });
+      return deduped;
+    };
+    const populateVoiceChoices = ({ preferredVoiceUri = '' } = {}) => {
+      if (!(voiceSelect instanceof HTMLSelectElement)) return;
+      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
+      const voices = filteredVoicesForDialect(allSpeechVoices(), selectedDialect);
+      voiceSelect.innerHTML = '';
+      if (!voices.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No voices available';
+        voiceSelect.appendChild(option);
+        voiceSelect.disabled = true;
+        updatePreviewAvailability();
+        return;
+      }
+      voices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.value = voiceIdentifier(voice);
+        option.textContent = `${voice.name} (${voice.lang || 'en'})${voice.default ? ' · default' : ''}`;
+        voiceSelect.appendChild(option);
+      });
+      voiceSelect.disabled = false;
+      const fallbackVoice = voices[0];
+      const nextVoiceId = voices.some((voice) => voiceIdentifier(voice) === preferredVoiceUri)
+        ? preferredVoiceUri
+        : voiceIdentifier(fallbackVoice);
+      voiceSelect.value = nextVoiceId;
+      updatePreviewAvailability();
+    };
+
+    const saveFromControls = () => {
+      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
+      const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
+      const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
+      const selectedVoice = resolveSelectedVoice();
+
+      applyVoiceQuickSettings({
+        voiceDialect: selectedDialect,
+        voiceUri: selectedVoice ? voiceIdentifier(selectedVoice) : '',
+        translation: {
+          pinned: shouldPin,
+          lang: selectedLanguage
+        }
+      });
+    };
+
+    const closeOverlay = () => {
+      overlay.classList.add('hidden');
+      if ('speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch {}
+      }
+    };
     const openOverlay = () => {
       const settings = readScopedSettings();
-      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
-      const languageSelect = overlay.querySelector('#voice-quick-language');
-      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
-
       if (dialectSelect instanceof HTMLSelectElement) {
         const nextDialect = String(settings.voiceDialect || QUICK_VOICE_DIALECTS[0].value || 'en-US');
         dialectSelect.value = QUICK_VOICE_DIALECTS.some((item) => item.value === nextDialect)
@@ -1875,53 +2006,71 @@
       if (pinToggle instanceof HTMLInputElement) {
         pinToggle.checked = !!settings.translation?.pinned;
       }
+      populateVoiceChoices({ preferredVoiceUri: String(settings.voiceUri || '').trim() });
 
       overlay.classList.remove('hidden');
       requestAnimationFrame(() => {
-        (dialectSelect instanceof HTMLSelectElement ? dialectSelect : overlay.querySelector('.voice-quick-done'))?.focus();
-      });
-    };
-
-    const saveFromControls = () => {
-      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
-      const languageSelect = overlay.querySelector('#voice-quick-language');
-      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
-
-      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
-      const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
-      const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
-
-      applyVoiceQuickSettings({
-        voiceDialect: selectedDialect,
-        translation: {
-          pinned: shouldPin,
-          lang: selectedLanguage
-        }
+        (voiceSelect instanceof HTMLSelectElement ? voiceSelect : overlay.querySelector('.voice-quick-done'))?.focus();
       });
     };
 
     overlay.querySelector('.voice-quick-close')?.addEventListener('click', closeOverlay);
     overlay.querySelector('.voice-quick-done')?.addEventListener('click', closeOverlay);
-    overlay.querySelector('.voice-quick-preview')?.addEventListener('click', () => {
+    previewBtn?.addEventListener('click', () => {
+      if (!('speechSynthesis' in window)) {
+        setStatus('Voice preview is unavailable in this browser.');
+        return;
+      }
+      const selectedVoice = resolveSelectedVoice();
+      if (!selectedVoice) {
+        setStatus('No compatible voices are loaded yet.');
+        return;
+      }
       saveFromControls();
-      window.dispatchEvent(new CustomEvent('cornerstone:voice-preview', {
-        detail: {
-          text: 'This is your selected English listening voice.'
-        }
-      }));
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance('This is your selected English listening voice.');
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang || 'en-US';
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        utterance.onerror = () => setStatus('Preview failed. Try another voice.');
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        setStatus('Preview failed. Try another voice.');
+      }
     });
 
-    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
     if (dialectSelect instanceof HTMLSelectElement) {
-      dialectSelect.addEventListener('change', saveFromControls);
+      dialectSelect.addEventListener('change', () => {
+        populateVoiceChoices({ preferredVoiceUri: '' });
+        saveFromControls();
+      });
     }
-    const languageSelect = overlay.querySelector('#voice-quick-language');
+    if (voiceSelect instanceof HTMLSelectElement) {
+      voiceSelect.addEventListener('change', () => {
+        updatePreviewAvailability();
+        saveFromControls();
+      });
+    }
     if (languageSelect instanceof HTMLSelectElement) {
       languageSelect.addEventListener('change', saveFromControls);
     }
-    const pinToggle = overlay.querySelector('#voice-quick-pin-language');
     if (pinToggle instanceof HTMLInputElement) {
       pinToggle.addEventListener('change', saveFromControls);
+    }
+
+    if ('speechSynthesis' in window && overlay.dataset.voiceChangedBound !== 'true') {
+      overlay.dataset.voiceChangedBound = 'true';
+      const handleVoicesChanged = () => {
+        if (overlay.classList.contains('hidden')) return;
+        populateVoiceChoices({ preferredVoiceUri: (voiceSelect instanceof HTMLSelectElement ? voiceSelect.value : '') });
+      };
+      if (window.speechSynthesis.addEventListener) {
+        window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+      } else {
+        window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
+      }
     }
 
     overlay.addEventListener('click', (event) => {

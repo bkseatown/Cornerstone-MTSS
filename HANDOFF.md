@@ -10,6 +10,44 @@ Last updated: 2026-02-09
 - Latest pushed commit: check with `git -C "/Users/robertwilliamknaus/Desktop/New project" log -1 --oneline`
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
+## 2026-02-09 root Home/Voice/WordQuest stabilization slice
+- Scope files:
+  - `index.html`
+  - `home.js`
+  - `platform.js`
+  - `app.js`
+  - `style.css`
+- Home wizard fixes:
+  - Home stepper is real gated navigation (clickable for unlocked steps only).
+  - Home state storage moved to `cornerstone_home_state_v3::<learner>` to reset legacy role defaults.
+  - First load now starts with no role selected (no auto EAL/subrole default).
+  - Step 1 Next now enforces role selection before advancing.
+  - Step 3 Next now enforces focus selection before advancing.
+  - `Start new` now fully resets wizard + quick-check state and returns to Step 1.
+  - Pre-check now hides all `data-home-detail` sections; only wizard is visible before completion.
+  - Post-check card no longer appears from stale summary-only state; it requires `quickCheckComplete=true`.
+- Voice modal fixes:
+  - Modal now keeps dialect presets but shows full available English voice list sorted by selected dialect.
+  - Added clear copy that Azure downloaded packs play in activities (they do not appear as browser `speechSynthesis` voices).
+  - Added status text styling + disabled-state styling for preview actions.
+- Word Quest keyboard/vowel polish:
+  - Increased keyboard key sizing (base + fit-screen + fit-screen-tight).
+  - Increased desktop fit algorithm keyboard target sizes for readability.
+  - Hard-disabled vowel marker pseudo-dots (`::before/::after`) on Word Quest keys.
+
+### Validation commands run
+- `node --check /Users/robertwilliamknaus/Desktop/New project/home.js`
+- `node --check /Users/robertwilliamknaus/Desktop/New project/platform.js`
+- `node --check /Users/robertwilliamknaus/Desktop/New project/app.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_flow_check.js`
+  - Output confirms fresh load: only panel `1` visible, no role active, step `4` locked.
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/home_detail_visible.js`
+  - Output `[]` confirms no workspace detail cards visible pre-check.
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/voice_quick_check.js`
+  - Voice modal shows `voiceCount: 41` on this machine and saves selection.
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
+  - Confirms no overflow, no scroll fallback, and `vowelDotContent: "none"`.
+
 ## 2026-02-08 latest shipped pass
 - Nav dropdown clipping fix:
   - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).
