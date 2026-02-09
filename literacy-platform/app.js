@@ -168,7 +168,7 @@ const DEFAULT_SETTINGS = {
     speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'default',
     audienceMode: 'auto', // auto | general | young-eal
-    autoHear: true,
+    autoHear: false,
     showRevealRecordingTools: false,
     funHud: {
         enabled: true,
@@ -1682,6 +1682,7 @@ function loadSettings() {
         appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        appSettings.autoHear = false;
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 
@@ -1706,6 +1707,7 @@ function saveSettings() {
     appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    appSettings.autoHear = false;
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
@@ -1821,7 +1823,8 @@ function applySettings() {
 
     const autoHearToggle = document.getElementById('toggle-auto-hear');
     if (autoHearToggle) {
-        autoHearToggle.checked = appSettings.autoHear !== false;
+        autoHearToggle.checked = false;
+        autoHearToggle.disabled = true;
     }
 
     applySoundWallSectionVisibility();
@@ -2839,9 +2842,12 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
     speakUtterance(msg);
 }
 
-async function speak(text, type = "word") {
+async function speak(text, type = "word", options = {}) {
     if (!text) return;
     cancelPendingSpeech(true);
+    if (options.stopExistingAudio) {
+        stopAllActiveAudioPlayers();
+    }
 
     // 1. Check Studio Recording
     let dbKey = "";
@@ -2872,7 +2878,7 @@ async function speak(text, type = "word") {
         const audio = new Audio(url);
         audio.play();
         audio.onended = () => URL.revokeObjectURL(url);
-        return; 
+        return true; 
     }
 
     const packedType = type === 'sentence' ? 'sentence' : 'word';
@@ -2881,13 +2887,17 @@ async function speak(text, type = "word") {
         languageCode: 'en',
         type: packedType
     });
-    if (packedPlayed) return;
+    if (packedPlayed) return true;
+
+    const allowSystemFallback = options.allowSystemFallback !== false;
+    if (!allowSystemFallback) return false;
 
     // 2. Fallback to System Voice
     const voices = await getVoicesForSpeech();
     const preferred = pickBestEnglishVoice(voices);
     const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
     speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, fallbackLang);
+    return true;
 }
 
 function getPreferredEnglishDialect() {
@@ -3297,9 +3307,12 @@ function getBestTranslationVoice(voices, targetLang) {
 }
 
 /* Play text in a specific language for translations */
-async function playTextInLanguage(text, languageCode, type = 'sentence') {
+async function playTextInLanguage(text, languageCode, type = 'sentence', options = {}) {
     if (!text) return;
     cancelPendingSpeech(true);
+    if (options.stopExistingAudio) {
+        stopAllActiveAudioPlayers();
+    }
 
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
@@ -3308,7 +3321,11 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
     });
     if (packedPlayed) {
         setTranslationAudioNote('');
-        return;
+        return true;
+    }
+    if (options.allowSystemFallback === false) {
+        setTranslationAudioNote('Audio unavailable for this language.', true);
+        return false;
     }
     
     const msg = new SpeechSynthesisUtterance(text);
@@ -3328,7 +3345,7 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
         }
     } else {
         setTranslationAudioNote('Audio unavailable for this language.', true);
-        return;
+        return false;
     }
     
     const packedType = normalizePackedTtsType(type);
@@ -3337,6 +3354,7 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
     msg.pitch = 1.0;
     
     speakUtterance(msg);
+    return true;
 }
 
 function getTranslationData(word, langCode, options = {}) {
@@ -3905,8 +3923,8 @@ function initTeacherTools() {
                 </select>
 
                 <label class="toggle-row inline">
-                    <input type="checkbox" id="toggle-auto-hear-session" />
-                    Auto-read reveal card
+                    <input type="checkbox" id="toggle-auto-hear-session" disabled />
+                    Reveal audio is manual only
                 </label>
                 <label class="toggle-row inline">
                     <input type="checkbox" id="toggle-fun-mode-session" />
@@ -3970,11 +3988,9 @@ function initTeacherTools() {
 
     const autoHearToggle = document.getElementById('toggle-auto-hear-session');
     if (autoHearToggle) {
-        autoHearToggle.checked = appSettings.autoHear !== false;
-        autoHearToggle.onchange = () => {
-            appSettings.autoHear = autoHearToggle.checked;
-            saveSettings();
-        };
+        autoHearToggle.checked = false;
+        autoHearToggle.disabled = true;
+        autoHearToggle.onchange = null;
     }
     const funModeToggle = document.getElementById('toggle-fun-mode-session');
     if (funModeToggle) {
@@ -4027,7 +4043,7 @@ function ensureTeacherLaunchpad() {
                 <option value="often">Often</option>
                 <option value="always">Always</option>
             </select>
-            <label class="toggle-row inline"><input type="checkbox" id="toggle-auto-hear-session" /> Auto-read reveal card</label>
+            <label class="toggle-row inline"><input type="checkbox" id="toggle-auto-hear-session" disabled /> Reveal audio is manual only</label>
             <label class="toggle-row inline"><input type="checkbox" id="toggle-fun-mode-session" /> Fun mode (coins/hearts)</label>
         </div>
     `;
@@ -4406,8 +4422,8 @@ function ensureAutoHearToggle() {
     const row = document.createElement('label');
     row.className = 'toggle-row';
     row.innerHTML = `
-        <input type="checkbox" id="toggle-auto-hear" />
-        Auto-play word, definition, and sentence
+        <input type="checkbox" id="toggle-auto-hear" disabled />
+        Reveal audio is manual only
     `;
     grid.appendChild(row);
 }
@@ -5709,14 +5725,20 @@ function updateAdaptiveActions() {
     // Always show "Hear word"
     hearWord.style.display = 'inline-block';
     hearWord.classList.add('hint-primary');
-    hearWord.onclick = () => speak(word, 'word');
+    hearWord.onclick = async () => {
+        const played = await speak(word, 'word', { allowSystemFallback: false, stopExistingAudio: true });
+        if (!played) showToast('Packed audio unavailable for this word.');
+    };
     
     // Show "Hear sentence" only if sentence exists
     const sentenceText = audienceCopy.sentence || entry?.sentence || entry?.en?.sentence || '';
     if (sentenceText && sentenceText.length > 5) {
         hearSentence.style.display = 'inline-block';
         hearSentence.classList.add('hint-primary');
-        hearSentence.onclick = () => speak(sentenceText, 'sentence');
+        hearSentence.onclick = async () => {
+            const played = await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
+            if (!played) showToast('Packed audio unavailable for this sentence.');
+        };
     } else {
         hearSentence.style.display = 'none';
     }
@@ -5728,7 +5750,9 @@ function updateAdaptiveActions() {
         hearSound.onclick = () => {
             // Play sound then word
             speakPhoneme(firstSound);
-            setTimeout(() => speak(word, 'word'), 600);
+            setTimeout(() => {
+                speak(word, 'word', { allowSystemFallback: false, stopExistingAudio: true });
+            }, 600);
         };
     } else {
         hearSound.style.display = 'none';
@@ -6074,24 +6098,11 @@ function estimateSpeechDuration(text, rate = 1) {
 }
 
 function autoPlayReveal(definitionText, sentenceText) {
-    if (appSettings.autoHear === false) return;
-    if (isCurrentWordAudioBlocked()) return;
-    const wordText = currentWord || '';
-    const speechRateWord = getSpeechRate('word');
-    const speechRateSentence = getSpeechRate('sentence');
-
-    let delay = 150;
-    if (wordText) {
-        setTimeout(() => speak(wordText, 'word'), delay);
-        delay += estimateSpeechDuration(wordText, speechRateWord);
+    if (definitionText || sentenceText) {
+        appSettings.autoHear = false;
     }
-    if (definitionText) {
-        setTimeout(() => speakText(definitionText, 'definition'), delay);
-        delay += estimateSpeechDuration(definitionText, speechRateSentence);
-    }
-    if (sentenceText) {
-        setTimeout(() => speak(sentenceText, 'sentence'), delay);
-    }
+    // Reveal audio is now fully user-initiated via Hear buttons.
+    return;
 }
 
 function prepareTranslationSection() {
@@ -6247,26 +6258,10 @@ function setupModalAudioControls(definitionText, sentenceText) {
         actionRow.id = 'modal-action-row';
         actionRow.className = 'modal-action-row';
     }
-
-    let autoReadRow = document.getElementById('auto-read-toggle');
-    if (!autoReadRow) {
-        autoReadRow = document.createElement('div');
-        autoReadRow.id = 'auto-read-toggle';
-        autoReadRow.className = 'auto-read-toggle';
-        autoReadRow.innerHTML = `
-            <label class="auto-read-label">
-                <input type="checkbox" id="auto-read-checkbox" />
-                Auto-read word, definition, and sentence
-            </label>
-        `;
-    }
-    const autoReadCheckbox = autoReadRow.querySelector('#auto-read-checkbox');
-    if (autoReadCheckbox) {
-        autoReadCheckbox.checked = appSettings.autoHear !== false;
-        autoReadCheckbox.onchange = () => {
-            appSettings.autoHear = autoReadCheckbox.checked;
-            saveSettings();
-        };
+    appSettings.autoHear = false;
+    const autoReadRow = document.getElementById('auto-read-toggle');
+    if (autoReadRow) {
+        autoReadRow.remove();
     }
 
     let speakBtn = document.getElementById('speak-btn');
@@ -6277,8 +6272,11 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     speakBtn.textContent = 'Hear Word';
     speakBtn.classList.add('modal-audio-btn');
-    speakBtn.onclick = () => {
-        if (currentWord) speak(currentWord, 'word');
+    speakBtn.onclick = async () => {
+        const played = currentWord
+            ? await speak(currentWord, 'word', { allowSystemFallback: false, stopExistingAudio: true })
+            : false;
+        if (!played) showToast('Word audio unavailable (packed clip not found).');
     };
     if (!audioControls.contains(speakBtn)) audioControls.appendChild(speakBtn);
 
@@ -6291,8 +6289,11 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     defBtn.textContent = 'Hear Definition';
     defBtn.disabled = !definitionText;
-    defBtn.onclick = () => {
-        if (definitionText) speakText(definitionText, 'definition');
+    defBtn.onclick = async () => {
+        const played = definitionText
+            ? await speakText(definitionText, 'definition', { allowSystemFallback: false, stopExistingAudio: true })
+            : false;
+        if (!played && definitionText) showToast('Definition audio unavailable (packed clip not found).');
     };
     if (!audioControls.contains(defBtn)) audioControls.appendChild(defBtn);
 
@@ -6305,8 +6306,11 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     sentenceBtn.textContent = 'Hear Sentence';
     sentenceBtn.disabled = !sentenceText;
-    sentenceBtn.onclick = () => {
-        if (sentenceText) speak(sentenceText, 'sentence');
+    sentenceBtn.onclick = async () => {
+        const played = sentenceText
+            ? await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true })
+            : false;
+        if (!played && sentenceText) showToast('Sentence audio unavailable (packed clip not found).');
     };
     if (!audioControls.contains(sentenceBtn)) audioControls.appendChild(sentenceBtn);
 
@@ -6342,16 +6346,13 @@ function setupModalAudioControls(definitionText, sentenceText) {
     if (translationSelector && translationParent === modalContent) {
         safeInsertBefore(modalContent, audioControls, translationSelector);
         safeInsertBefore(modalContent, actionRow, translationSelector);
-        safeInsertBefore(modalContent, autoReadRow, translationSelector);
     } else if (sentenceEl && sentenceEl.parentElement) {
         const parent = sentenceEl.parentElement;
         safeInsertAfter(parent, audioControls, sentenceEl);
         safeInsertAfter(parent, actionRow, audioControls);
-        safeInsertAfter(parent, autoReadRow, actionRow);
     } else {
         safeInsertBefore(modalContent, audioControls, null);
         safeInsertAfter(modalContent, actionRow, audioControls);
-        safeInsertAfter(modalContent, autoReadRow, actionRow);
     }
 
     // Teacher tools (local-only recordings)
@@ -6405,7 +6406,7 @@ function setupModalAudioControls(definitionText, sentenceText) {
         controls.appendChild(recorderGroup);
     }
 
-    const anchor = (translationSelector && translationSelector.parentElement === modalContent) ? translationSelector : autoReadRow;
+    const anchor = (translationSelector && translationSelector.parentElement === modalContent) ? translationSelector : actionRow;
     safeInsertAfter(modalContent, teacherTools, anchor);
 }
 
@@ -6554,26 +6555,31 @@ function showEndModal(win) {
             translatedSentence.textContent = safeSentence ? `"${safeSentence}"` : '';
 
             if (playTranslatedWord) {
-                playTranslatedWord.onclick = safeWord ? () => playTextInLanguage(safeWord, selectedLang, 'word') : null;
+                playTranslatedWord.onclick = safeWord
+                    ? () => playTextInLanguage(safeWord, selectedLang, 'word', { allowSystemFallback: false, stopExistingAudio: true })
+                    : null;
             }
             if (playTranslatedDef) {
-                playTranslatedDef.onclick = safeDefinition ? () => playTextInLanguage(safeDefinition, selectedLang, 'def') : null;
+                playTranslatedDef.onclick = safeDefinition
+                    ? () => playTextInLanguage(safeDefinition, selectedLang, 'def', { allowSystemFallback: false, stopExistingAudio: true })
+                    : null;
             }
             if (playTranslatedSentence) {
-                playTranslatedSentence.onclick = safeSentence ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence') : null;
+                playTranslatedSentence.onclick = safeSentence
+                    ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence', { allowSystemFallback: false, stopExistingAudio: true })
+                    : null;
             }
 
             translationDisplay.classList.remove("hidden");
-            const [hasVoice, packedWordReady, packedDefReady, packedSentenceReady] = await Promise.all([
-                hasVoiceForLanguage(selectedLang),
+            const [packedWordReady, packedDefReady, packedSentenceReady] = await Promise.all([
                 safeWord ? hasPackedTtsClipForCurrentWord({ text: safeWord, languageCode: selectedLang, type: 'word' }) : Promise.resolve(false),
                 safeDefinition ? hasPackedTtsClipForCurrentWord({ text: safeDefinition, languageCode: selectedLang, type: 'def' }) : Promise.resolve(false),
                 safeSentence ? hasPackedTtsClipForCurrentWord({ text: safeSentence, languageCode: selectedLang, type: 'sentence' }) : Promise.resolve(false)
             ]);
 
-            const canPlayWord = !!safeWord && (packedWordReady || hasVoice);
-            const canPlayDefinition = !!safeDefinition && (packedDefReady || hasVoice);
-            const canPlaySentence = !!safeSentence && (packedSentenceReady || hasVoice);
+            const canPlayWord = !!safeWord && packedWordReady;
+            const canPlayDefinition = !!safeDefinition && packedDefReady;
+            const canPlaySentence = !!safeSentence && packedSentenceReady;
 
             if (playTranslatedWord) playTranslatedWord.disabled = !canPlayWord;
             if (playTranslatedDef) playTranslatedDef.disabled = !canPlayDefinition;
@@ -8494,8 +8500,9 @@ function showBonusContent() {
     if (textEl) textEl.textContent = content;
     if (hearBtn) {
         hearBtn.disabled = !content;
-        hearBtn.onclick = () => {
-            speakText(`${title} ${content}`, 'sentence');
+        hearBtn.onclick = async () => {
+            const played = await speakText(`${title} ${content}`, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
+            if (!played) showToast('Bonus audio unavailable (packed clip not found).');
         };
     }
 }
@@ -11334,8 +11341,12 @@ function normalizeTextForTTS(text) {
     return normalized;
 }
 
-async function speakText(text, rateType = 'word') {
+async function speakText(text, rateType = 'word', options = {}) {
     if (!text) return;
+    cancelPendingSpeech(true);
+    if (options.stopExistingAudio) {
+        stopAllActiveAudioPlayers();
+    }
     const normalizedRateType = String(rateType || 'word').toLowerCase();
     const type = normalizedRateType === 'definition' || normalizedRateType === 'def'
         ? 'def'
@@ -11346,12 +11357,17 @@ async function speakText(text, rateType = 'word') {
         languageCode: 'en',
         type
     });
-    if (packedPlayed) return;
+    if (packedPlayed) return true;
+
+    if (options.allowSystemFallback === false) {
+        return false;
+    }
 
     const voices = await getVoicesForSpeech();
     const preferred = pickBestEnglishVoice(voices);
     const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
     speakEnglishText(text, speechType, preferred, fallbackLang);
+    return true;
 }
 
 function speakSpelling(grapheme) {
