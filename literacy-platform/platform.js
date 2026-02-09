@@ -244,8 +244,8 @@
   const STORY_TRACK_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it']);
   const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
   const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'assessments', 'teacher-report']);
-  const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
-  const THEME_PRESETS = ['calm', 'playful', 'professional'];
+  const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(ACTIVITIES.map((activity) => activity.id));
+  const THEME_PRESETS = ['calm', 'playful', 'high-contrast', 'minimal-ink'];
 
   const ACCESSIBILITY_DEFAULTS = {
     calmMode: false,
@@ -263,7 +263,7 @@
 
   function normalizeThemePreset(value) {
     const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'high-contrast' || raw === 'minimal-ink') return 'professional';
+    if (raw === 'professional') return 'minimal-ink';
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
   }
 
@@ -413,6 +413,28 @@
     resolveBuildStamp().then((payload) => {
       badge.textContent = `Build: ${payload.sha} | ${payload.time}`;
     });
+  }
+
+  function registerVersionDebugCommand() {
+    const printVersion = async () => {
+      const stamp = await resolveBuildStamp();
+      const settings = readScopedSettings();
+      const info = {
+        sha: stamp.sha,
+        utc: stamp.time,
+        page: getCurrentPageFile(),
+        learnerId: getActiveLearnerId(),
+        theme: normalizeThemePreset(settings.themePreset)
+      };
+      console.info('[Cornerstone Debug Version]', info);
+      return info;
+    };
+
+    const debugApi = window.debug && typeof window.debug === 'object' ? window.debug : {};
+    debugApi.version = printVersion;
+    window.debug = debugApi;
+    window.debugVersion = printVersion;
+    window['debug:version'] = printVersion;
   }
 
   function normalizeLook(value) {
@@ -1053,6 +1075,7 @@
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
     body.classList.remove('theme-calm', 'theme-playful', 'theme-professional', 'theme-high-contrast', 'theme-minimal-ink');
     body.classList.add(`theme-${normalized.themePreset}`);
+    body.dataset.themePreset = normalized.themePreset;
 
     const uiLook = normalizeLook(normalized.uiLook);
     UI_LOOK_CLASSES.forEach((cls) => body.classList.remove(cls));
@@ -1591,13 +1614,14 @@
       panel.id = 'global-accessibility-tools';
       panel.className = 'global-accessibility-tools';
       panel.innerHTML = `
-        <summary>Accessibility</summary>
+        <summary>Theme & Accessibility</summary>
         <div class="global-accessibility-body">
           <label class="global-accessibility-font-label">Theme
             <select data-setting="themePreset">
               <option value="calm">Calm</option>
               <option value="playful">Playful</option>
-              <option value="professional">Professional</option>
+              <option value="high-contrast">High Contrast</option>
+              <option value="minimal-ink">Minimal Ink</option>
             </select>
           </label>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
@@ -1712,6 +1736,43 @@
     }
   }
 
+  function hasPlacementRecommendation() {
+    const placement = safeParse(localStorage.getItem(PLACEMENT_KEY) || '');
+    return !!(placement && typeof placement === 'object' && placement.recommendation);
+  }
+
+  function navLockReasonForItem(item = null) {
+    if (!item || typeof item !== 'object') return '';
+    const role = readHomeRolePathway() || normalizeHomeRolePathway(localStorage.getItem('cm_role') || '');
+    if (role !== 'student') return '';
+    if (item.studentHidden) {
+      return 'Adult tools are locked in Student Mode. Use Adult View to unlock this section.';
+    }
+    if (item.id !== 'home' && !hasPlacementRecommendation()) {
+      return 'Complete Quick Check on Home to unlock activities.';
+    }
+    return '';
+  }
+
+  function showNavLockNotice(message = '') {
+    const text = String(message || '').trim() || 'This section is locked right now.';
+    let note = document.getElementById('global-nav-lock-note');
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'global-nav-lock-note';
+      note.className = 'global-nav-lock-note';
+      note.setAttribute('role', 'status');
+      note.setAttribute('aria-live', 'polite');
+      document.body.appendChild(note);
+    }
+    note.textContent = text;
+    note.classList.add('show');
+    window.clearTimeout(showNavLockNotice.timer);
+    showNavLockNotice.timer = window.setTimeout(() => {
+      note.classList.remove('show');
+    }, 3000);
+  }
+
   function createNavGroupMenu(group, currentId = '', currentFile = getCurrentPageFile()) {
     const resolvedItems = (group?.items || [])
       .map(resolveNavItem)
@@ -1731,21 +1792,26 @@
     panel.className = 'header-activity-panel';
 
     let groupIsActive = false;
-    let hiddenCount = 0;
     resolvedItems.forEach((item) => {
       const isActive = item.id === currentId || navHrefMatchesCurrentPage(item.href, currentFile);
       if (isActive) groupIsActive = true;
-      if (item.studentHidden) hiddenCount += 1;
+      const lockReason = navLockReasonForItem(item);
+      const isLocked = !!lockReason && !isActive;
 
       const link = document.createElement('a');
-      link.href = item.href;
-      link.className = 'header-activity-link';
+      link.href = isLocked ? '#' : item.href;
+      link.className = `header-activity-link${isLocked ? ' locked' : ''}`;
       link.textContent = item.label;
       if (item.studentHidden) {
-        link.setAttribute('data-student-hidden', 'true');
+        link.setAttribute('data-role-restricted', 'true');
       }
       if (item.action) {
         link.dataset.navAction = item.action;
+      }
+      if (isLocked) {
+        link.dataset.navLocked = 'true';
+        link.dataset.navLockReason = lockReason;
+        link.title = lockReason;
       }
       if (isActive) {
         link.classList.add('active');
@@ -1753,10 +1819,6 @@
       }
       panel.appendChild(link);
     });
-
-    if (hiddenCount === resolvedItems.length) {
-      details.setAttribute('data-student-hidden', 'true');
-    }
     if (groupIsActive) {
       summary.classList.add('active');
       summary.setAttribute('aria-current', 'page');
@@ -1832,10 +1894,14 @@
         </header>
         <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately.</p>
         <label class="voice-quick-field">
-          <span>English voice</span>
+          <span>English preset</span>
           <select id="voice-quick-dialect">
             ${QUICK_VOICE_DIALECTS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
           </select>
+        </label>
+        <label class="voice-quick-field">
+          <span>Voice choice</span>
+          <select id="voice-quick-voice"></select>
         </label>
         <label class="voice-quick-field">
           <span>Reveal translation default</span>
@@ -1847,6 +1913,7 @@
           <input type="checkbox" id="voice-quick-pin-language" />
           Lock reveal language on this learner
         </label>
+        <p id="voice-quick-status" class="voice-quick-status"></p>
         <div class="voice-quick-actions">
           <button type="button" class="voice-quick-preview">Preview Voice</button>
           <button type="button" class="voice-quick-done">Done</button>
@@ -1855,13 +1922,113 @@
     `;
     document.body.appendChild(overlay);
 
-    const closeOverlay = () => overlay.classList.add('hidden');
+    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
+    const voiceSelect = overlay.querySelector('#voice-quick-voice');
+    const languageSelect = overlay.querySelector('#voice-quick-language');
+    const pinToggle = overlay.querySelector('#voice-quick-pin-language');
+    const previewBtn = overlay.querySelector('.voice-quick-preview');
+    const statusEl = overlay.querySelector('#voice-quick-status');
+
+    const voiceIdentifier = (voice) => String(voice?.voiceURI || voice?.name || '').trim();
+    const allSpeechVoices = () => {
+      if (!('speechSynthesis' in window)) return [];
+      try {
+        const voices = window.speechSynthesis.getVoices();
+        return Array.isArray(voices) ? voices : [];
+      } catch {
+        return [];
+      }
+    };
+    const resolveSelectedVoice = () => {
+      if (!(voiceSelect instanceof HTMLSelectElement)) return null;
+      const selectedId = String(voiceSelect.value || '').trim();
+      if (!selectedId) return null;
+      return allSpeechVoices().find((voice) => voiceIdentifier(voice) === selectedId) || null;
+    };
+    const setStatus = (message = '') => {
+      if (!(statusEl instanceof HTMLElement)) return;
+      statusEl.textContent = String(message || '').trim();
+      statusEl.classList.toggle('active', !!statusEl.textContent);
+    };
+    const updatePreviewAvailability = () => {
+      if (!(previewBtn instanceof HTMLButtonElement)) return;
+      if (!('speechSynthesis' in window)) {
+        previewBtn.disabled = true;
+        setStatus('Voice preview is unavailable in this browser.');
+        return;
+      }
+      const selectedVoice = resolveSelectedVoice();
+      if (!selectedVoice) {
+        previewBtn.disabled = true;
+        setStatus('No compatible voices are loaded yet.');
+        return;
+      }
+      previewBtn.disabled = false;
+      setStatus(`Preview ready: ${selectedVoice.name} (${selectedVoice.lang || 'en'}).`);
+    };
+    const filteredVoicesForDialect = (voices, dialect) => {
+      const englishVoices = voices.filter((voice) => String(voice.lang || '').toLowerCase().startsWith('en'));
+      const pool = englishVoices.length ? englishVoices : voices;
+      if (!pool.length) return [];
+      const target = String(dialect || 'en-US').toLowerCase();
+      const exact = pool.filter((voice) => String(voice.lang || '').toLowerCase() === target);
+      if (exact.length) return exact;
+      const prefix = pool.filter((voice) => String(voice.lang || '').toLowerCase().startsWith(target.split('-')[0]));
+      return prefix.length ? prefix : pool;
+    };
+    const populateVoiceChoices = ({ preferredVoiceUri = '' } = {}) => {
+      if (!(voiceSelect instanceof HTMLSelectElement)) return;
+      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
+      const voices = filteredVoicesForDialect(allSpeechVoices(), selectedDialect);
+      voiceSelect.innerHTML = '';
+      if (!voices.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No voices available';
+        voiceSelect.appendChild(option);
+        voiceSelect.disabled = true;
+        updatePreviewAvailability();
+        return;
+      }
+      voices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.value = voiceIdentifier(voice);
+        option.textContent = `${voice.name} (${voice.lang || 'en'})${voice.default ? ' · default' : ''}`;
+        voiceSelect.appendChild(option);
+      });
+      voiceSelect.disabled = false;
+      const fallbackVoice = voices[0];
+      const nextVoiceId = voices.some((voice) => voiceIdentifier(voice) === preferredVoiceUri)
+        ? preferredVoiceUri
+        : voiceIdentifier(fallbackVoice);
+      voiceSelect.value = nextVoiceId;
+      updatePreviewAvailability();
+    };
+
+    const saveFromControls = () => {
+      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
+      const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
+      const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
+      const selectedVoice = resolveSelectedVoice();
+
+      applyVoiceQuickSettings({
+        voiceDialect: selectedDialect,
+        voiceUri: selectedVoice ? voiceIdentifier(selectedVoice) : '',
+        translation: {
+          pinned: shouldPin,
+          lang: selectedLanguage
+        }
+      });
+    };
+
+    const closeOverlay = () => {
+      overlay.classList.add('hidden');
+      if ('speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch {}
+      }
+    };
     const openOverlay = () => {
       const settings = readScopedSettings();
-      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
-      const languageSelect = overlay.querySelector('#voice-quick-language');
-      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
-
       if (dialectSelect instanceof HTMLSelectElement) {
         const nextDialect = String(settings.voiceDialect || QUICK_VOICE_DIALECTS[0].value || 'en-US');
         dialectSelect.value = QUICK_VOICE_DIALECTS.some((item) => item.value === nextDialect)
@@ -1875,53 +2042,71 @@
       if (pinToggle instanceof HTMLInputElement) {
         pinToggle.checked = !!settings.translation?.pinned;
       }
+      populateVoiceChoices({ preferredVoiceUri: String(settings.voiceUri || '').trim() });
 
       overlay.classList.remove('hidden');
       requestAnimationFrame(() => {
-        (dialectSelect instanceof HTMLSelectElement ? dialectSelect : overlay.querySelector('.voice-quick-done'))?.focus();
-      });
-    };
-
-    const saveFromControls = () => {
-      const dialectSelect = overlay.querySelector('#voice-quick-dialect');
-      const languageSelect = overlay.querySelector('#voice-quick-language');
-      const pinToggle = overlay.querySelector('#voice-quick-pin-language');
-
-      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
-      const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
-      const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
-
-      applyVoiceQuickSettings({
-        voiceDialect: selectedDialect,
-        translation: {
-          pinned: shouldPin,
-          lang: selectedLanguage
-        }
+        (voiceSelect instanceof HTMLSelectElement ? voiceSelect : overlay.querySelector('.voice-quick-done'))?.focus();
       });
     };
 
     overlay.querySelector('.voice-quick-close')?.addEventListener('click', closeOverlay);
     overlay.querySelector('.voice-quick-done')?.addEventListener('click', closeOverlay);
-    overlay.querySelector('.voice-quick-preview')?.addEventListener('click', () => {
+    previewBtn?.addEventListener('click', () => {
+      if (!('speechSynthesis' in window)) {
+        setStatus('Voice preview is unavailable in this browser.');
+        return;
+      }
+      const selectedVoice = resolveSelectedVoice();
+      if (!selectedVoice) {
+        setStatus('No compatible voices are loaded yet.');
+        return;
+      }
       saveFromControls();
-      window.dispatchEvent(new CustomEvent('cornerstone:voice-preview', {
-        detail: {
-          text: 'This is your selected English listening voice.'
-        }
-      }));
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance('This is your selected English listening voice.');
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang || 'en-US';
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        utterance.onerror = () => setStatus('Preview failed. Try another voice.');
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        setStatus('Preview failed. Try another voice.');
+      }
     });
 
-    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
     if (dialectSelect instanceof HTMLSelectElement) {
-      dialectSelect.addEventListener('change', saveFromControls);
+      dialectSelect.addEventListener('change', () => {
+        populateVoiceChoices({ preferredVoiceUri: '' });
+        saveFromControls();
+      });
     }
-    const languageSelect = overlay.querySelector('#voice-quick-language');
+    if (voiceSelect instanceof HTMLSelectElement) {
+      voiceSelect.addEventListener('change', () => {
+        updatePreviewAvailability();
+        saveFromControls();
+      });
+    }
     if (languageSelect instanceof HTMLSelectElement) {
       languageSelect.addEventListener('change', saveFromControls);
     }
-    const pinToggle = overlay.querySelector('#voice-quick-pin-language');
     if (pinToggle instanceof HTMLInputElement) {
       pinToggle.addEventListener('change', saveFromControls);
+    }
+
+    if ('speechSynthesis' in window && overlay.dataset.voiceChangedBound !== 'true') {
+      overlay.dataset.voiceChangedBound = 'true';
+      const handleVoicesChanged = () => {
+        if (overlay.classList.contains('hidden')) return;
+        populateVoiceChoices({ preferredVoiceUri: (voiceSelect instanceof HTMLSelectElement ? voiceSelect.value : '') });
+      };
+      if (window.speechSynthesis.addEventListener) {
+        window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+      } else {
+        window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
+      }
     }
 
     overlay.addEventListener('click', (event) => {
@@ -2012,6 +2197,13 @@
       nav.addEventListener('click', (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
+        const lockedLink = target.closest('[data-nav-locked="true"]');
+        if (lockedLink instanceof HTMLAnchorElement) {
+          event.preventDefault();
+          menus.forEach((menu) => menu.removeAttribute('open'));
+          showNavLockNotice(lockedLink.dataset.navLockReason || 'This section is locked right now.');
+          return;
+        }
         const actionLink = target.closest('[data-nav-action]');
         if (!(actionLink instanceof HTMLAnchorElement)) return;
         const action = (actionLink.dataset.navAction || '').trim();
@@ -2208,6 +2400,7 @@
 
   ensureFavicon();
   renderBuildStamp();
+  registerVersionDebugCommand();
   renderPrimaryNav();
   applyStudentModeState();
   renderLearnerSwitchers();

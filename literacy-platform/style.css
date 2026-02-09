@@ -14945,6 +14945,59 @@ body:not(.has-story-track) #story-track {
     color: #fff;
 }
 
+.header-activity-link.locked {
+    border-style: dashed;
+    border-color: rgba(14, 116, 144, 0.5);
+    background: rgba(240, 249, 255, 0.92);
+    color: #0f172a;
+    opacity: 0.88;
+    position: relative;
+}
+
+.header-activity-link.locked::after {
+    content: 'Locked';
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #0e7490;
+    font-weight: 820;
+}
+
+.header-activity-link.locked:hover,
+.header-activity-link.locked:focus-visible {
+    border-color: rgba(14, 116, 144, 0.72);
+    background: rgba(224, 242, 254, 0.96);
+}
+
+.global-nav-lock-note {
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%, 12px);
+    bottom: 18px;
+    z-index: 3300;
+    max-width: min(90vw, 560px);
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    border: 1px solid rgba(14, 165, 233, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.26);
+    font-size: 0.82rem;
+    font-weight: 720;
+    line-height: 1.3;
+    padding: 8px 11px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.global-nav-lock-note.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
 .header-voice-shortcut {
     display: inline-flex;
     align-items: center;
@@ -15057,6 +15110,18 @@ body:not(.has-story-track) #story-track {
     font-weight: 700;
 }
 
+.voice-quick-status {
+    min-height: 1.2em;
+    margin: 0;
+    font-size: 0.78rem;
+    color: #0f766e;
+    font-weight: 720;
+}
+
+.voice-quick-status.active {
+    opacity: 1;
+}
+
 .voice-quick-actions {
     display: flex;
     gap: 8px;
@@ -15073,6 +15138,11 @@ body:not(.has-story-track) #story-track {
     padding: 7px 12px;
     font-weight: 780;
     cursor: pointer;
+}
+
+.voice-quick-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
 .voice-quick-actions .voice-quick-done {

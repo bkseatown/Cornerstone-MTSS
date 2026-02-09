@@ -165,6 +165,7 @@ const DEFAULT_SETTINGS = {
     speechRate: 0.85,
     decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
+    voiceUri: '',
     narrationStyle: 'expressive', // expressive | neutral
     speechQualityMode: 'natural-only', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'default',
@@ -1711,6 +1712,10 @@ function loadSettings() {
         appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        appSettings.voiceUri = String(appSettings.voiceUri || '').trim();
+        if (appSettings.voiceUri) {
+            setStoredEnglishVoiceUriForDialect(appSettings.voiceDialect || DEFAULT_SETTINGS.voiceDialect, appSettings.voiceUri);
+        }
         appSettings.autoHear = false;
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
@@ -1736,6 +1741,7 @@ function saveSettings() {
     appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    appSettings.voiceUri = String(appSettings.voiceUri || '').trim();
     appSettings.autoHear = false;
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
@@ -1986,6 +1992,13 @@ function syncSettingsFromPlatform(nextSettings = {}) {
         sessionEnglishVoice = { dialect: '', voiceUri: '' };
         changed = true;
     }
+    const nextVoiceUri = String(nextSettings.voiceUri || '').trim();
+    if (nextVoiceUri && nextVoiceUri !== appSettings.voiceUri) {
+        appSettings.voiceUri = nextVoiceUri;
+        setStoredEnglishVoiceUriForDialect(appSettings.voiceDialect || DEFAULT_SETTINGS.voiceDialect, nextVoiceUri);
+        sessionEnglishVoice = { dialect: '', voiceUri: '' };
+        changed = true;
+    }
 
     if (nextSettings.translation && typeof nextSettings.translation === 'object') {
         const nextTranslationLang = String(nextSettings.translation.lang || appSettings.translation?.lang || 'en').trim() || 'en';
@@ -2013,7 +2026,7 @@ function syncSettingsFromPlatform(nextSettings = {}) {
 function previewSelectedVoice(sampleText = '') {
     const text = String(sampleText || 'This is your selected English listening voice.').trim();
     if (!text) return;
-    speak(text, 'sentence');
+    speak(text, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2651,6 +2664,7 @@ function initVoiceLoader() {
         voiceSelect.dataset.bound = 'true';
         voiceSelect.onchange = () => {
             appSettings.voiceDialect = voiceSelect.value || DEFAULT_SETTINGS.voiceDialect;
+            appSettings.voiceUri = '';
             sessionEnglishVoice = { dialect: '', voiceUri: '' };
             saveSettings();
             if (cachedVoices.length) {
@@ -7225,8 +7239,6 @@ async function downloadPracticeAudioBundle() {
 
 function checkFirstTimeVisitor() {
     if (!localStorage.getItem("decode_v5_visited")) {
-        modalOverlay.classList.remove("hidden");
-        welcomeModal.classList.remove("hidden");
         localStorage.setItem("decode_v5_visited", "true");
     }
 }
@@ -11764,10 +11776,9 @@ function initTutorial() {
     const welcomeModal = document.getElementById('welcome-modal');
     const startBtn = document.getElementById('start-playing-btn');
     const dontShowCheckbox = document.getElementById('dont-show-tutorial');
-    
-    if (!tutorialShown && welcomeModal) {
-        if (modalOverlay) modalOverlay.classList.remove('hidden');
-        welcomeModal.classList.remove('hidden');
+
+    if (!tutorialShown) {
+        localStorage.setItem('tutorialShown', 'true');
     }
     
     if (startBtn) {
