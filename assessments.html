@@ -3,140 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Assessments Hub</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
-    <script src="assessments.js" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/assessments.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/assessments.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="assessments-page force-light look-35">
-    <header>
-      <div class="header-top">
-        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
-        <nav class="header-actions" aria-label="Primary"></nav>
-      </div>
-    </header>
-
-    <main class="assessments-main">
-      <section class="assessments-card assessments-hero" aria-label="Assessments hub intro">
-        <div>
-          <div class="home-kicker">Assessments Hub</div>
-          <h2>One place for assessment pathways by role and domain.</h2>
-          <p class="home-subtitle">
-            Literacy, numeracy, SEL/FBA-CBT, SLP communication, and executive-functioning tools are organized here
-            so Teacher settings stay lightweight.
-          </p>
-        </div>
-        <div class="assessments-role-controls">
-          <label class="home-field-label" for="assessments-role-select">Who is assessing today?</label>
-          <select id="assessments-role-select" class="home-select">
-            <option value="teacher">Teacher</option>
-            <option value="learning-support">Learning Support Teacher</option>
-            <option value="eal">EAL Specialist</option>
-            <option value="slp">Speech and Language Pathologist</option>
-            <option value="counselor">School Counselor</option>
-            <option value="psychologist">School Psychologist</option>
-            <option value="admin">Administrator</option>
-            <option value="dean">Dean</option>
-            <option value="parent">Parent / Caregiver</option>
-            <option value="student">Student</option>
-          </select>
-          <label class="toggle-row inline assessments-recommended-toggle">
-            <input id="assessments-recommended-only" type="checkbox" />
-            Show recommended lanes only
-          </label>
-          <div id="assessments-role-note" class="muted" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <section class="assessments-grid" aria-label="Assessment lanes">
-        <article class="assessments-card assessment-lane" data-lane="literacy">
-          <div class="assessment-lane-head">
-            <h3>Literacy Assessment Lane</h3>
-            <span class="assessment-lane-chip">SoR / MTSS</span>
-          </div>
-          <p>Quick screeners + progress checks for decoding, fluency, vocabulary, and comprehension.</p>
-          <ul>
-            <li>DIBELS-style indicators: LNF, PSF, NWF, WRF, ORF</li>
-            <li>Word Quest error pattern trends + intervention clues</li>
-            <li>Fluency rate and accuracy checkpoints</li>
-          </ul>
-          <div class="assessment-actions">
-            <a class="secondary-btn" href="word-quest.html">Open Decode Quest</a>
-            <a class="secondary-btn" href="fluency.html">Open Fluency Sprint</a>
-            <a class="secondary-btn" href="teacher-report.html#report-pulse">Open Literacy Pulse</a>
-          </div>
-        </article>
-
-        <article class="assessments-card assessment-lane" data-lane="numeracy">
-          <div class="assessment-lane-head">
-            <h3>Numeracy Assessment Lane</h3>
-            <span class="assessment-lane-chip">Conceptual Math</span>
-          </div>
-          <p>Tiered math checks aligned to IM/Bridges-style evidence and strategy development.</p>
-          <ul>
-            <li>IM cooldown + unit checks for regrouping and reteach groups</li>
-            <li>GLoSS/IKAN-informed strategy stage tagging</li>
-            <li>MAP/Aimsweb import support in Teacher Report</li>
-          </ul>
-          <div class="assessment-actions">
-            <a class="secondary-btn" href="number-sense.html">Open Number Sense Lab</a>
-            <a class="secondary-btn" href="operations.html">Open Strategy Studio</a>
-            <a class="secondary-btn" href="teacher-report.html#report-numeracy-pulse">Open Numeracy Pulse</a>
-          </div>
-        </article>
-
-        <article class="assessments-card assessment-lane" data-lane="sel">
-          <div class="assessment-lane-head">
-            <h3>SEL / FBA / CBT Lane</h3>
-            <span class="assessment-lane-chip">Counseling</span>
-          </div>
-          <p>Structured social-emotional and behavior review workflows for counselors and psychologists.</p>
-          <ul>
-            <li>ABC/FBA observation prompts with timeline notes</li>
-            <li>CBT triangle reflection cues (thoughts, feelings, actions)</li>
-            <li>Tiered support handoff summaries for team planning</li>
-          </ul>
-          <div class="assessment-actions">
-            <a class="secondary-btn" href="plan-it.html">Open Intervention Studio</a>
-            <a class="secondary-btn" href="teacher-report.html#report-role-pathway">Open Role Pathway View</a>
-          </div>
-        </article>
-
-        <article class="assessments-card assessment-lane" data-lane="slp">
-          <div class="assessment-lane-head">
-            <h3>SLP Communication Lane</h3>
-            <span class="assessment-lane-chip">Speech + Language</span>
-          </div>
-          <p>Track articulation, language clarity, and communication transfer in classroom tasks.</p>
-          <ul>
-            <li>Phoneme-level articulation supports + teacher/student recordings</li>
-            <li>Receptive/expressive language practice tie-ins</li>
-            <li>Social communication check-ins for carryover</li>
-          </ul>
-          <div class="assessment-actions">
-            <a class="secondary-btn" href="word-quest.html#sound-wall">Open Sound Wall</a>
-            <a class="secondary-btn" href="teacher-report.html#report-role-pathway">Open SLP Workflow View</a>
-          </div>
-        </article>
-
-        <article class="assessments-card assessment-lane" data-lane="executive">
-          <div class="assessment-lane-head">
-            <h3>Executive Function Lane</h3>
-            <span class="assessment-lane-chip">Habits + Planning</span>
-          </div>
-          <p>Monitor planning, organization, follow-through, and self-regulation with actionable next steps.</p>
-          <ul>
-            <li>Routine completion checks and friction-point notes</li>
-            <li>Task-initiation + sustained-attention snapshots</li>
-            <li>Weekly SMART micro-goal tracking</li>
-          </ul>
-          <div class="assessment-actions">
-            <a class="secondary-btn" href="plan-it.html">Open Intervention Studio</a>
-            <a class="secondary-btn" href="teacher-report.html#report-intervention-timeline">Open Intervention Timeline</a>
-          </div>
-        </article>
-      </section>
-    </main>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/assessments.html">Continue</a>
+    </div>
   </body>
 </html>

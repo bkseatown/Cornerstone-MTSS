@@ -165,14 +165,22 @@
     }
   ];
 
-  const QUICK_VOICE_DIALECTS = [
-    { value: 'en-US', label: 'American English' },
-    { value: 'en-GB', label: 'British English' }
-  ];
+  const QUICK_DEFAULT_TTS_PACK_ID = 'ava-multi';
 
   const QUICK_TTS_BASE_PREF_KEY = 'decode_tts_base_path_v1';
   const QUICK_TTS_BASE_PLAIN = 'audio/tts';
   const QUICK_TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
+  const QUICK_FALLBACK_PACKS = Object.freeze([
+    { id: 'ava-multi', name: 'Ava Multilingual', dialect: 'en-US', voiceLabel: 'Ava (en-US)', manifestPath: 'audio/tts/packs/ava-multi/tts-manifest.json' },
+    { id: 'emma-en', name: 'Emma English', dialect: 'en-US', voiceLabel: 'Emma (en-US)', manifestPath: 'audio/tts/packs/emma-en/tts-manifest.json' },
+    { id: 'guy-en-us', name: 'Guy English US', dialect: 'en-US', voiceLabel: 'Guy (en-US)', manifestPath: 'audio/tts/packs/guy-en-us/tts-manifest.json' },
+    { id: 'sonia-en-gb', name: 'Sonia British English', dialect: 'en-GB', voiceLabel: 'Sonia (en-GB)', manifestPath: 'audio/tts/packs/sonia-en-gb/tts-manifest.json' },
+    { id: 'ryan-en-gb', name: 'Ryan British English', dialect: 'en-GB', voiceLabel: 'Ryan (en-GB)', manifestPath: 'audio/tts/packs/ryan-en-gb/tts-manifest.json' }
+  ]);
+  const QUICK_ALLOWED_PACK_IDS = new Set(QUICK_FALLBACK_PACKS.map((pack) => pack.id));
+  let quickVoicePackCatalog = null;
+  const quickVoiceManifestCache = new Map();
+  let quickVoicePreviewAudio = null;
 
   const QUICK_TRANSLATION_LANGS = [
     { value: 'en', label: 'English' },
@@ -225,55 +233,172 @@
     return Array.from(new Set([preferred, inferredPrimary, QUICK_TTS_BASE_PLAIN, QUICK_TTS_BASE_SCOPED].filter(Boolean)));
   }
 
-  async function loadQuickVoicePackOptions(selectEl, selectedPackId = 'default') {
-    if (!(selectEl instanceof HTMLSelectElement)) return 'default';
+  function detectQuickVoiceBasePathFromAsset(value = '') {
+    const candidate = String(value || '').trim().replace(/^\/+/, '');
+    if (candidate === QUICK_TTS_BASE_PLAIN || candidate.startsWith(`${QUICK_TTS_BASE_PLAIN}/`)) {
+      return QUICK_TTS_BASE_PLAIN;
+    }
+    if (candidate === QUICK_TTS_BASE_SCOPED || candidate.startsWith(`${QUICK_TTS_BASE_SCOPED}/`)) {
+      return QUICK_TTS_BASE_SCOPED;
+    }
+    return '';
+  }
+
+  function normalizeQuickVoiceAssetPath(value = '') {
+    return String(value || '')
+      .trim()
+      .replace(/^\.\/+/, '')
+      .replace(/^\/+/, '');
+  }
+
+  function remapQuickVoiceAssetPathToBase(rawPath = '', targetBase = '') {
+    const normalized = normalizeQuickVoiceAssetPath(rawPath);
+    const target = normalizeTtsBasePath(targetBase);
+    if (!normalized || !target || /^(https?:)?\/\//i.test(normalized)) return normalized;
+    if (normalized.startsWith(`${QUICK_TTS_BASE_PLAIN}/`)) {
+      return `${target}/${normalized.slice(QUICK_TTS_BASE_PLAIN.length + 1)}`;
+    }
+    if (normalized.startsWith(`${QUICK_TTS_BASE_SCOPED}/`)) {
+      return `${target}/${normalized.slice(QUICK_TTS_BASE_SCOPED.length + 1)}`;
+    }
+    if (normalized.startsWith('packs/') || normalized.startsWith('tts-manifest')) {
+      return `${target}/${normalized}`;
+    }
+    if (normalized === QUICK_TTS_BASE_PLAIN || normalized === QUICK_TTS_BASE_SCOPED) {
+      return target;
+    }
+    return normalized;
+  }
+
+  function getQuickVoiceAssetPathCandidates(rawPath = '', preferredBase = '') {
+    const normalized = normalizeQuickVoiceAssetPath(rawPath);
+    if (!normalized) return [];
+    const preferred = normalizeTtsBasePath(preferredBase) || readPreferredTtsBasePath() || getQuickVoicePackCandidates()[0] || QUICK_TTS_BASE_PLAIN;
+    const candidates = [
+      remapQuickVoiceAssetPathToBase(normalized, preferred),
+      remapQuickVoiceAssetPathToBase(normalized, QUICK_TTS_BASE_PLAIN),
+      remapQuickVoiceAssetPathToBase(normalized, QUICK_TTS_BASE_SCOPED),
+      normalized
+    ];
+    return Array.from(new Set(candidates.filter(Boolean)));
+  }
+
+  function detectQuickVoiceDialect(pack = null) {
+    const declared = String(pack?.dialect || '').trim().toLowerCase();
+    if (declared.startsWith('en-gb')) return 'en-GB';
+    if (declared.startsWith('en-us')) return 'en-US';
+    const voiceCode = String(pack?.voices?.en || '').trim().toLowerCase();
+    if (voiceCode.startsWith('en-gb-')) return 'en-GB';
+    return 'en-US';
+  }
+
+  function extractQuickVoiceName(pack = null) {
+    const voiceCode = String(pack?.voices?.en || '').trim();
+    const fallback = String(pack?.name || pack?.id || 'Voice Pack').trim() || 'Voice Pack';
+    if (!voiceCode) return fallback;
+    const parts = voiceCode.split('-');
+    const rawVoice = parts.length >= 3 ? parts.slice(2).join('-') : voiceCode;
+    const cleaned = rawVoice
+      .replace(/multilingual/ig, '')
+      .replace(/neural/ig, '')
+      .replace(/_/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return cleaned || fallback;
+  }
+
+  function formatQuickVoiceLabel(pack = null) {
+    const preset = String(pack?.voiceLabel || '').trim();
+    if (preset) return preset;
+    const voiceName = extractQuickVoiceName(pack);
+    const dialect = detectQuickVoiceDialect(pack);
+    return `${voiceName} (${dialect})`;
+  }
+
+  function normalizeQuickVoicePackRecord(pack = null) {
+    const id = normalizeVoicePackId(pack?.id);
+    if (!id || id === 'default' || !QUICK_ALLOWED_PACK_IDS.has(id)) return null;
+    const fallback = QUICK_FALLBACK_PACKS.find((item) => item.id === id) || {};
+    const manifestPath = normalizeQuickVoiceAssetPath(
+      pack?.manifestPath
+        || fallback.manifestPath
+        || `audio/tts/packs/${id}/tts-manifest.json`
+    );
+    return {
+      id,
+      name: String(pack?.name || fallback.name || id).trim() || id,
+      dialect: detectQuickVoiceDialect(pack || fallback),
+      voiceLabel: formatQuickVoiceLabel({ ...fallback, ...pack }),
+      manifestPath
+    };
+  }
+
+  async function loadQuickVoicePackCatalog({ forceRefresh = false } = {}) {
+    if (quickVoicePackCatalog && !forceRefresh) return quickVoicePackCatalog.slice();
     const candidates = getQuickVoicePackCandidates().map((base) => `${base}/packs/pack-registry.json`);
-    let packs = [];
+    let fetchedPacks = [];
+
     for (const path of candidates) {
       try {
         const response = await fetch(path, { cache: 'no-store' });
         if (!response.ok) continue;
         const parsed = await response.json();
+        if (!parsed || !Array.isArray(parsed.packs)) continue;
         const detectedBase = path.startsWith(`${QUICK_TTS_BASE_PLAIN}/`) ? QUICK_TTS_BASE_PLAIN : QUICK_TTS_BASE_SCOPED;
         rememberPreferredTtsBasePath(detectedBase);
-        if (parsed && Array.isArray(parsed.packs)) {
-          packs = parsed.packs
-            .filter((pack) => pack && typeof pack === 'object')
-            .map((pack) => ({
-              id: normalizeVoicePackId(pack.id),
-              name: String(pack.name || pack.id || '').trim() || 'Voice Pack'
-            }))
-            .filter((pack) => pack.id && pack.id !== 'default');
-          break;
-        }
+        fetchedPacks = parsed.packs
+          .map((pack) => normalizeQuickVoicePackRecord(pack))
+          .filter(Boolean);
+        if (fetchedPacks.length) break;
       } catch {}
     }
 
-    selectEl.innerHTML = '';
-    const defaultOption = document.createElement('option');
-    defaultOption.value = 'default';
-    defaultOption.textContent = 'Default voice pack';
-    selectEl.appendChild(defaultOption);
+    const byId = new Map();
+    fetchedPacks.forEach((pack) => {
+      byId.set(pack.id, pack);
+    });
+    QUICK_FALLBACK_PACKS.forEach((pack) => {
+      const normalized = normalizeQuickVoicePackRecord(pack);
+      if (!normalized) return;
+      if (!byId.has(normalized.id)) byId.set(normalized.id, normalized);
+    });
 
+    quickVoicePackCatalog = QUICK_FALLBACK_PACKS
+      .map((fallback) => byId.get(fallback.id))
+      .filter(Boolean);
+
+    return quickVoicePackCatalog.slice();
+  }
+
+  async function loadQuickVoicePackOptions(selectEl, selectedPackId = QUICK_DEFAULT_TTS_PACK_ID, options = {}) {
+    if (!(selectEl instanceof HTMLSelectElement)) return QUICK_DEFAULT_TTS_PACK_ID;
+    const packs = await loadQuickVoicePackCatalog({ forceRefresh: !!options.forceRefresh });
+    selectEl.innerHTML = '';
     packs.forEach((pack) => {
       const option = document.createElement('option');
       option.value = pack.id;
-      option.textContent = pack.name;
+      option.textContent = pack.voiceLabel;
+      option.dataset.packName = pack.name;
+      option.dataset.voiceLabel = pack.voiceLabel;
+      option.dataset.dialect = pack.dialect;
+      option.dataset.manifestPath = pack.manifestPath;
       selectEl.appendChild(option);
     });
-
+    if (!packs.length) {
+      selectEl.disabled = true;
+      return '';
+    }
+    selectEl.disabled = false;
     const normalizedSelected = normalizeVoicePackId(selectedPackId);
-    const hasSelected = Array.from(selectEl.options).some((option) => option.value === normalizedSelected);
-    selectEl.value = hasSelected ? normalizedSelected : 'default';
+    const hasSelected = packs.some((pack) => pack.id === normalizedSelected);
+    selectEl.value = hasSelected ? normalizedSelected : (packs.some((pack) => pack.id === QUICK_DEFAULT_TTS_PACK_ID)
+      ? QUICK_DEFAULT_TTS_PACK_ID
+      : packs[0].id);
     return selectEl.value;
   }
 
-  const GUIDE_TIP_DISMISS_PREFIX = 'cornerstone_guide_tip_dismissed_v1::';
   const GUIDE_TIPS = {
-    home: {
-      title: 'Welcome to CORNERSTONE MTSS',
-      body: 'Start by choosing Student, Parent, or School Team. We guide the next best step from there.'
-    },
     'word-quest': {
       title: 'Decode Quest Quick Start',
       body: 'Set focus + length, press New Round, then tap Hear Word.'
@@ -330,7 +455,7 @@
   const QUICK_RESPONSE_ACTIVITIES = new Set(['cloze', 'comprehension', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations']);
   const BREADCRUMB_ACTIVITIES = new Set(['cloze', 'comprehension', 'fluency', 'madlibs', 'writing', 'plan-it', 'number-sense', 'operations', 'assessments', 'teacher-report']);
   const ACCESSIBILITY_PANEL_ACTIVITIES = new Set(['home']);
-  const THEME_PRESETS = ['calm', 'playful', 'high-contrast', 'minimal-ink'];
+  const THEME_PRESETS = ['calm', 'playful', 'classic', 'high-contrast'];
 
   const ACCESSIBILITY_DEFAULTS = {
     calmMode: false,
@@ -348,6 +473,7 @@
 
   function normalizeThemePreset(value) {
     const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'minimal-ink') return 'classic';
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
   }
 
@@ -1135,7 +1261,7 @@
     body.classList.toggle('line-focus', !!normalized.lineFocus);
     body.classList.remove('font-atkinson', 'font-opendyslexic');
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
-    body.classList.remove('theme-calm', 'theme-playful', 'theme-high-contrast', 'theme-minimal-ink');
+    body.classList.remove('theme-calm', 'theme-playful', 'theme-classic', 'theme-high-contrast', 'theme-minimal-ink');
     body.classList.add(`theme-${normalized.themePreset}`);
 
     const uiLook = normalizeLook(normalized.uiLook);
@@ -1681,8 +1807,8 @@
             <select data-setting="themePreset">
               <option value="calm">Calm</option>
               <option value="playful">Playful</option>
+              <option value="classic">Classic</option>
               <option value="high-contrast">High Contrast</option>
-              <option value="minimal-ink">Minimal Ink</option>
             </select>
           </label>
           <label><input type="checkbox" data-setting="focusMode" /> Focus mode</label>
@@ -1915,22 +2041,10 @@
           <h2 id="voice-quick-title">Voice & Language</h2>
           <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
         </header>
-        <p class="voice-quick-copy">Quick access for listening activities. Changes apply immediately. System voices appear under Voice choice, and downloaded Azure packs appear under Audio pack.</p>
+        <p class="voice-quick-copy">Choose one Azure voice for listening activities. Changes apply immediately.</p>
         <label class="voice-quick-field">
-          <span>English preset</span>
-          <select id="voice-quick-dialect">
-            ${QUICK_VOICE_DIALECTS.map((item) => `<option value="${item.value}">${item.label}</option>`).join('')}
-          </select>
-        </label>
-        <label class="voice-quick-field">
-          <span>Voice choice</span>
+          <span>Voice (Azure)</span>
           <select id="voice-quick-voice"></select>
-        </label>
-        <label class="voice-quick-field">
-          <span>Audio pack</span>
-          <select id="voice-quick-pack">
-            <option value="default">Default voice pack</option>
-          </select>
         </label>
         <label class="voice-quick-field">
           <span>Reveal translation default</span>
@@ -1951,148 +2065,189 @@
     `;
     document.body.appendChild(overlay);
 
-    const dialectSelect = overlay.querySelector('#voice-quick-dialect');
     const voiceSelect = overlay.querySelector('#voice-quick-voice');
-    const packSelect = overlay.querySelector('#voice-quick-pack');
     const languageSelect = overlay.querySelector('#voice-quick-language');
     const pinToggle = overlay.querySelector('#voice-quick-pin-language');
     const previewBtn = overlay.querySelector('.voice-quick-preview');
     const statusEl = overlay.querySelector('#voice-quick-status');
-
-    const voiceIdentifier = (voice) => String(voice?.voiceURI || voice?.name || '').trim();
-    const allSpeechVoices = () => {
-      if (!('speechSynthesis' in window)) return [];
-      try {
-        const voices = window.speechSynthesis.getVoices();
-        return Array.isArray(voices) ? voices : [];
-      } catch {
-        return [];
-      }
+    const resolveSelectedPackId = () => {
+      const value = normalizeVoicePackId(voiceSelect instanceof HTMLSelectElement ? voiceSelect.value : QUICK_DEFAULT_TTS_PACK_ID);
+      return value && value !== 'default' ? value : QUICK_DEFAULT_TTS_PACK_ID;
     };
-    const resolveSelectedVoice = () => {
-      if (!(voiceSelect instanceof HTMLSelectElement)) return null;
-      const selectedId = String(voiceSelect.value || '').trim();
-      if (!selectedId) return null;
-      return allSpeechVoices().find((voice) => voiceIdentifier(voice) === selectedId) || null;
+    const resolveSelectedOption = () => (
+      voiceSelect instanceof HTMLSelectElement
+        ? (voiceSelect.selectedOptions?.[0] || null)
+        : null
+    );
+    const resolveSelectedDialect = () => {
+      const option = resolveSelectedOption();
+      const raw = String(option?.dataset?.dialect || '').trim();
+      if (raw === 'en-GB') return 'en-GB';
+      return 'en-US';
+    };
+    const resolveSelectedPackLabel = () => {
+      const option = resolveSelectedOption();
+      const label = String(option?.dataset?.voiceLabel || option?.textContent || '').trim();
+      return label || 'Azure voice';
+    };
+    const stopPreviewAudio = () => {
+      if (quickVoicePreviewAudio) {
+        try {
+          quickVoicePreviewAudio.pause();
+          quickVoicePreviewAudio.currentTime = 0;
+        } catch {}
+        quickVoicePreviewAudio = null;
+      }
     };
     const setStatus = (message = '') => {
       if (!(statusEl instanceof HTMLElement)) return;
       statusEl.textContent = String(message || '').trim();
       statusEl.classList.toggle('active', !!statusEl.textContent);
     };
-    const updatePreviewAvailability = () => {
-      if (!(previewBtn instanceof HTMLButtonElement)) return;
-      if (!('speechSynthesis' in window)) {
-        previewBtn.disabled = true;
-        setStatus('Voice preview is unavailable in this browser.');
-        return;
+    const updatePreviewAvailability = (showStatus = false) => {
+      const ready = !!(voiceSelect instanceof HTMLSelectElement && voiceSelect.options.length);
+      if (previewBtn instanceof HTMLButtonElement) previewBtn.disabled = !ready;
+      if (showStatus) {
+        setStatus(ready
+          ? `Selected: ${resolveSelectedPackLabel()}.`
+          : 'No Azure voices are available yet.');
       }
-      const selectedVoice = resolveSelectedVoice();
-      if (!selectedVoice) {
-        previewBtn.disabled = true;
-        setStatus('No compatible voices are loaded yet.');
-        return;
-      }
-      previewBtn.disabled = false;
-      setStatus(`Preview ready: ${selectedVoice.name} (${selectedVoice.lang || 'en'}).`);
     };
-    const filteredVoicesForDialect = (voices, dialect) => {
-      const englishVoices = voices.filter((voice) => String(voice.lang || '').toLowerCase().startsWith('en'));
-      const pool = englishVoices.length ? englishVoices : voices;
-      if (!pool.length) return [];
-      const target = String(dialect || 'en-US').toLowerCase();
-      const targetBase = target.split('-')[0];
-      const scored = pool
-        .slice()
-        .sort((a, b) => {
-          const scoreVoice = (voice) => {
-            const lang = String(voice.lang || '').toLowerCase();
-            let score = 0;
-            if (lang === target) score += 120;
-            else if (lang.startsWith(`${target}-`)) score += 105;
-            else if (lang.startsWith(targetBase)) score += 70;
-            if (voice.default) score += 8;
-            if (voice.localService) score += 3;
-            return score;
-          };
-          const scoreDelta = scoreVoice(b) - scoreVoice(a);
-          if (scoreDelta !== 0) return scoreDelta;
-          const nameA = String(a.name || '').toLowerCase();
-          const nameB = String(b.name || '').toLowerCase();
-          if (nameA !== nameB) return nameA.localeCompare(nameB);
-          return String(a.voiceURI || '').localeCompare(String(b.voiceURI || ''));
-        });
-      const deduped = [];
-      const seen = new Set();
-      scored.forEach((voice) => {
-        const id = voiceIdentifier(voice);
-        if (!id || seen.has(id)) return;
-        seen.add(id);
-        deduped.push(voice);
-      });
-      return deduped;
+    const populateVoiceChoices = async ({ preferredPackId = QUICK_DEFAULT_TTS_PACK_ID } = {}) => {
+      if (!(voiceSelect instanceof HTMLSelectElement)) return '';
+      const normalizedPreferredPack = normalizeVoicePackId(preferredPackId || QUICK_DEFAULT_TTS_PACK_ID);
+      const selected = await loadQuickVoicePackOptions(voiceSelect, normalizedPreferredPack);
+      voiceSelect.disabled = !voiceSelect.options.length;
+      updatePreviewAvailability(true);
+      return selected;
     };
-    const populateVoiceChoices = ({ preferredVoiceUri = '' } = {}) => {
-      if (!(voiceSelect instanceof HTMLSelectElement)) return;
-      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
-      const voices = filteredVoicesForDialect(allSpeechVoices(), selectedDialect);
-      voiceSelect.innerHTML = '';
-      if (!voices.length) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No voices available';
-        voiceSelect.appendChild(option);
-        voiceSelect.disabled = true;
-        updatePreviewAvailability();
+    const loadManifestForPack = async (packId = '') => {
+      const normalizedPackId = normalizeVoicePackId(packId);
+      if (!normalizedPackId || normalizedPackId === 'default') return null;
+      if (quickVoiceManifestCache.has(normalizedPackId)) return quickVoiceManifestCache.get(normalizedPackId);
+      const option = resolveSelectedOption();
+      const rawManifestPath = String(option?.dataset?.manifestPath || `audio/tts/packs/${normalizedPackId}/tts-manifest.json`).trim();
+      const pathCandidates = getQuickVoiceAssetPathCandidates(rawManifestPath);
+      for (const path of pathCandidates) {
+        try {
+          const response = await fetch(path, { cache: 'no-store' });
+          if (!response.ok) continue;
+          const manifest = await response.json();
+          const entries = manifest?.entries;
+          if (!entries || typeof entries !== 'object') continue;
+          const basePath = detectQuickVoiceBasePathFromAsset(path) || detectQuickVoiceBasePathFromAsset(rawManifestPath) || QUICK_TTS_BASE_PLAIN;
+          rememberPreferredTtsBasePath(basePath);
+          const record = { manifest, basePath };
+          quickVoiceManifestCache.set(normalizedPackId, record);
+          return record;
+        } catch {}
+      }
+      return null;
+    };
+    const pickPreviewClipPath = (manifest = null) => {
+      const entries = manifest && typeof manifest.entries === 'object' ? manifest.entries : null;
+      if (!entries) return '';
+      const rows = Object.entries(entries);
+      const pickMatch = (lang, type) => rows.find(([key]) => {
+        const parts = String(key || '').split('|');
+        return parts.length >= 3 && parts[1] === lang && parts[2] === type;
+      });
+      const preferred = pickMatch('en', 'sentence')
+        || pickMatch('en', 'def')
+        || pickMatch('en', 'word')
+        || rows[0];
+      return String(preferred?.[1] || '').trim();
+    };
+    const tryPlayPreviewCandidate = (path) => new Promise((resolve) => {
+      const src = String(path || '').trim();
+      if (!src) {
+        resolve(false);
         return;
       }
-      voices.forEach((voice) => {
-        const option = document.createElement('option');
-        option.value = voiceIdentifier(voice);
-        option.textContent = `${voice.name} (${voice.lang || 'en'})${voice.default ? ' · default' : ''}`;
-        voiceSelect.appendChild(option);
-      });
-      voiceSelect.disabled = false;
-      const fallbackVoice = voices[0];
-      const nextVoiceId = voices.some((voice) => voiceIdentifier(voice) === preferredVoiceUri)
-        ? preferredVoiceUri
-        : voiceIdentifier(fallbackVoice);
-      voiceSelect.value = nextVoiceId;
-      updatePreviewAvailability();
+      stopPreviewAudio();
+      const audio = new Audio(src);
+      quickVoicePreviewAudio = audio;
+      let settled = false;
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (!ok && quickVoicePreviewAudio === audio) quickVoicePreviewAudio = null;
+        resolve(ok);
+      };
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        audio.removeEventListener('error', onError);
+        audio.removeEventListener('playing', onPlay);
+        audio.removeEventListener('canplay', onPlay);
+      };
+      const onError = () => finish(false);
+      const onPlay = () => finish(true);
+      const timeoutId = setTimeout(() => finish(false), 2600);
+      audio.addEventListener('error', onError, { once: true });
+      audio.addEventListener('playing', onPlay, { once: true });
+      audio.addEventListener('canplay', onPlay, { once: true });
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.then(() => finish(true)).catch(() => finish(false));
+      }
+    });
+    const previewSelectedVoice = async () => {
+      const selectedPackId = resolveSelectedPackId();
+      const selectedLabel = resolveSelectedPackLabel();
+      if (!selectedPackId) {
+        setStatus('Select a voice first.');
+        return;
+      }
+      const manifestRecord = await loadManifestForPack(selectedPackId);
+      const rawPathCandidates = [];
+      if (manifestRecord?.manifest) {
+        const manifestPath = pickPreviewClipPath(manifestRecord.manifest);
+        if (manifestPath) rawPathCandidates.push(manifestPath);
+      }
+      rawPathCandidates.push(
+        `audio/tts/packs/${selectedPackId}/en/sentence/cat.mp3`,
+        `audio/tts/packs/${selectedPackId}/en/def/cat.mp3`,
+        `audio/tts/packs/${selectedPackId}/en/word/cat.mp3`
+      );
+
+      for (const rawPath of rawPathCandidates) {
+        const clipCandidates = getQuickVoiceAssetPathCandidates(rawPath, manifestRecord?.basePath || '');
+        for (const candidate of clipCandidates) {
+          const played = await tryPlayPreviewCandidate(candidate);
+          if (played) {
+            setStatus(`Previewing ${selectedLabel}.`);
+            return;
+          }
+        }
+      }
+      setStatus(`No playable preview clip found for ${selectedLabel}.`);
     };
 
     const saveFromControls = () => {
-      const selectedDialect = (dialectSelect instanceof HTMLSelectElement ? dialectSelect.value : 'en-US') || 'en-US';
       const selectedLanguage = (languageSelect instanceof HTMLSelectElement ? languageSelect.value : 'en') || 'en';
-      const selectedPackId = normalizeVoicePackId(packSelect instanceof HTMLSelectElement ? packSelect.value : 'default');
+      const selectedPackId = resolveSelectedPackId();
       const shouldPin = !!(pinToggle instanceof HTMLInputElement && pinToggle.checked && selectedLanguage !== 'en');
-      const selectedVoice = resolveSelectedVoice();
+      const selectedVoiceLabel = resolveSelectedPackLabel();
 
       applyVoiceQuickSettings({
-        voiceDialect: selectedDialect,
-        voiceUri: selectedVoice ? voiceIdentifier(selectedVoice) : '',
+        voiceDialect: resolveSelectedDialect(),
+        voiceUri: '',
         ttsPackId: selectedPackId,
         translation: {
           pinned: shouldPin,
           lang: selectedLanguage
         }
       });
+      setStatus(`Saved: ${selectedVoiceLabel}.`);
     };
 
     const closeOverlay = () => {
+      stopPreviewAudio();
       overlay.classList.add('hidden');
-      if ('speechSynthesis' in window) {
-        try { window.speechSynthesis.cancel(); } catch {}
-      }
     };
     const openOverlay = async () => {
       const settings = readScopedSettings();
-      if (dialectSelect instanceof HTMLSelectElement) {
-        const nextDialect = String(settings.voiceDialect || QUICK_VOICE_DIALECTS[0].value || 'en-US');
-        dialectSelect.value = QUICK_VOICE_DIALECTS.some((item) => item.value === nextDialect)
-          ? nextDialect
-          : QUICK_VOICE_DIALECTS[0].value;
-      }
       if (languageSelect instanceof HTMLSelectElement) {
         const lang = String(settings.translation?.lang || 'en');
         languageSelect.value = QUICK_TRANSLATION_LANGS.some((item) => item.value === lang) ? lang : 'en';
@@ -2100,10 +2255,13 @@
       if (pinToggle instanceof HTMLInputElement) {
         pinToggle.checked = !!settings.translation?.pinned;
       }
-      populateVoiceChoices({ preferredVoiceUri: String(settings.voiceUri || '').trim() });
-      if (packSelect instanceof HTMLSelectElement) {
-        await loadQuickVoicePackOptions(packSelect, String(settings.ttsPackId || 'default'));
+      const preferredPackIdRaw = normalizeVoicePackId(String(settings.ttsPackId || QUICK_DEFAULT_TTS_PACK_ID));
+      const preferredPackId = preferredPackIdRaw === 'default' ? QUICK_DEFAULT_TTS_PACK_ID : preferredPackIdRaw;
+      const resolvedPackId = await populateVoiceChoices({ preferredPackId });
+      if (resolvedPackId && resolvedPackId !== preferredPackId) {
+        saveFromControls();
       }
+      setStatus(`Selected: ${resolveSelectedPackLabel()}.`);
 
       overlay.classList.remove('hidden');
       requestAnimationFrame(() => {
@@ -2113,64 +2271,22 @@
 
     overlay.querySelector('.voice-quick-close')?.addEventListener('click', closeOverlay);
     overlay.querySelector('.voice-quick-done')?.addEventListener('click', closeOverlay);
-    previewBtn?.addEventListener('click', () => {
-      if (!('speechSynthesis' in window)) {
-        setStatus('Voice preview is unavailable in this browser.');
-        return;
-      }
-      const selectedVoice = resolveSelectedVoice();
-      if (!selectedVoice) {
-        setStatus('No compatible voices are loaded yet.');
-        return;
-      }
+    previewBtn?.addEventListener('click', async () => {
       saveFromControls();
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance('This is your selected English listening voice.');
-        utterance.voice = selectedVoice;
-        utterance.lang = selectedVoice.lang || 'en-US';
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
-        utterance.onerror = () => setStatus('Preview failed. Try another voice.');
-        window.speechSynthesis.speak(utterance);
-      } catch {
-        setStatus('Preview failed. Try another voice.');
-      }
+      await previewSelectedVoice();
     });
 
-    if (dialectSelect instanceof HTMLSelectElement) {
-      dialectSelect.addEventListener('change', () => {
-        populateVoiceChoices({ preferredVoiceUri: '' });
-        saveFromControls();
-      });
-    }
     if (voiceSelect instanceof HTMLSelectElement) {
       voiceSelect.addEventListener('change', () => {
-        updatePreviewAvailability();
+        updatePreviewAvailability(false);
         saveFromControls();
       });
-    }
-    if (packSelect instanceof HTMLSelectElement) {
-      packSelect.addEventListener('change', saveFromControls);
     }
     if (languageSelect instanceof HTMLSelectElement) {
       languageSelect.addEventListener('change', saveFromControls);
     }
     if (pinToggle instanceof HTMLInputElement) {
       pinToggle.addEventListener('change', saveFromControls);
-    }
-
-    if ('speechSynthesis' in window && overlay.dataset.voiceChangedBound !== 'true') {
-      overlay.dataset.voiceChangedBound = 'true';
-      const handleVoicesChanged = () => {
-        if (overlay.classList.contains('hidden')) return;
-        populateVoiceChoices({ preferredVoiceUri: (voiceSelect instanceof HTMLSelectElement ? voiceSelect.value : '') });
-      };
-      if (window.speechSynthesis.addEventListener) {
-        window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-      } else {
-        window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
-      }
     }
 
     overlay.addEventListener('click', (event) => {
@@ -2316,12 +2432,6 @@
       return;
     }
 
-    const dismissKey = `${GUIDE_TIP_DISMISS_PREFIX}${activityId}`;
-    if (localStorage.getItem(dismissKey) === 'true') {
-      if (existing) existing.remove();
-      return;
-    }
-
     const main = document.querySelector('main');
     if (!main) return;
     const guide = existing || document.createElement('aside');
@@ -2365,7 +2475,6 @@
         </div>
         <div class="page-guide-tip-actions">
           <button type="button" class="secondary-btn" data-tip-action="hide">Got it</button>
-          <button type="button" class="secondary-btn" data-tip-action="dismiss">Don't show again</button>
         </div>
       `;
     } else {
@@ -2374,7 +2483,6 @@
         <div class="page-guide-tip-body">${tip.body}</div>
         <div class="page-guide-tip-actions">
           <button type="button" class="secondary-btn" data-tip-action="hide">Hide</button>
-          <button type="button" class="secondary-btn" data-tip-action="dismiss">Don't show again</button>
         </div>
       `;
     }
@@ -2390,9 +2498,6 @@
         if (!(target instanceof HTMLElement)) return;
         const action = target.getAttribute('data-tip-action');
         if (!action) return;
-        if (action === 'dismiss') {
-          localStorage.setItem(dismissKey, 'true');
-        }
         guide.remove();
       });
     }

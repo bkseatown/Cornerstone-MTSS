@@ -2,6 +2,41 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 single-runtime redirect + Azure-only voice modal enforcement slice
+- Scope files:
+  - `platform.js` (root synced to canonical `/literacy-platform` runtime)
+  - all root HTML entry pages (`*.html`) converted to redirect wrappers pointing to `/literacy-platform/<same-page>.html`
+  - all deployed HTML pages in both roots had `platform.js` query bumped to:
+    - `platform.js?v=20260209n`
+- Why:
+  - Root pages and `/literacy-platform` pages were still running different runtime stacks, causing stale Voice modal UI (`English preset`, `Audio pack`, huge system voice list) to reappear on some entry URLs.
+- What changed:
+  - Enforced a single runtime path:
+    - opening any root page now redirects to the canonical `/literacy-platform` page.
+  - Voice modal behavior is now canonical everywhere:
+    - only `Voice (Azure)` dropdown (5 allowed voices),
+    - no `English preset`,
+    - no `Audio pack`,
+    - preview uses packed Azure clips (no system/browser TTS phrase preview).
+- Result:
+  - The old robotic preview line (`This is your selected English listening voice.`) is removed from the active experience.
+
+### Validation run
+- Syntax:
+  - `node --check platform.js` ✅
+  - `node --check literacy-platform/platform.js` ✅
+- Regression:
+  - `node /tmp/wordquest_regression.js` ✅
+- Focused browser smoke (Playwright inline) ✅:
+  - Opening root `word-quest.html` resolves to `/literacy-platform/word-quest.html`
+  - Voice modal labels: `Voice (Azure)` + `Reveal translation default`
+  - No `#voice-quick-dialect`, no `#voice-quick-pack`
+  - Voice options: `Ava/Emma/Guy/Sonia/Ryan`
+  - Preview status: `Previewing Ava (en-US).`
+  - `speechSynthesis.speak` calls during preview: `0`
+- Note:
+  - `/tmp/voice_quick_check.js` now fails because it still expects removed selector `#voice-quick-dialect` (test script drift after modal simplification).
+
 ## 2026-02-09 single-home-source redirect + snapshot fallback slice
 - Scope files:
   - `index.html`

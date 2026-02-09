@@ -3,157 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Speed Sprint</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
-    <script src="fluency.js" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/fluency.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/fluency.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="fluency-page force-light look-35">
-    <div class="fluency-header">
-      <div>
-        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
-        <div class="fluency-subtitle">Speed Sprint: timed reading practice with simple tracking.</div>
-      </div>
-      <nav class="header-actions" aria-label="Primary">
-        <a class="link-btn" href="index.html">Home</a>
-      </nav>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/fluency.html">Continue</a>
     </div>
-
-    <main class="fluency-main">
-      <section class="fluency-panel" aria-label="Passage">
-        <div class="fluency-panel-header">
-          <div>
-            <h2 id="fluency-title">Speed Sprint</h2>
-            <div id="fluency-meta" class="muted"></div>
-          </div>
-          <div class="fluency-controls" aria-label="Filters">
-            <select id="fluency-grade" aria-label="Grade band"></select>
-            <select id="fluency-lexile" aria-label="Lexile band"></select>
-            <select id="fluency-select" aria-label="Passage"></select>
-          </div>
-        </div>
-
-        <div id="fluency-passage" class="fluency-passage" aria-label="Passage text"></div>
-
-        <div id="fluency-read-coach" class="fluency-read-coach" aria-label="Live read coach">
-          <div class="fluency-read-coach-head">
-            <h3>Live Read Coach</h3>
-            <div class="muted">Beta: compares heard words to passage and shows mismatch cues.</div>
-          </div>
-          <div class="fluency-read-coach-controls">
-            <label class="fluency-coach-field">
-              Target
-              <select id="fluency-coach-target" aria-label="Coach target text">
-                <option value="sentence">First sentence</option>
-                <option value="passage">Whole passage</option>
-              </select>
-            </label>
-            <button id="fluency-coach-start" type="button" class="primary-btn">Start listening</button>
-            <button id="fluency-coach-stop" type="button" class="secondary-btn">Stop</button>
-            <button id="fluency-coach-clear" type="button" class="secondary-btn">Clear coach</button>
-          </div>
-          <canvas id="fluency-wave-canvas" class="fluency-wave-canvas" width="640" height="150" aria-label="Voice wave and inflection guide"></canvas>
-          <div class="fluency-coach-cards">
-            <article class="fluency-coach-card">
-              <h4>Heard Transcript</h4>
-              <div id="fluency-coach-heard" class="fluency-coach-text muted">Start listening, then read aloud.</div>
-            </article>
-            <article class="fluency-coach-card">
-              <h4>Mismatch Focus</h4>
-              <div id="fluency-coach-mismatch" class="fluency-coach-text muted">Mismatches will appear here with targeted letter cues.</div>
-            </article>
-          </div>
-          <div id="fluency-coach-status" class="fluency-coach-status muted" aria-live="polite"></div>
-        </div>
-
-        <div id="fluency-sound-clips" class="fluency-sound-clips" aria-label="Teacher sound clips">
-          <div class="fluency-sound-clips-head">
-            <h3>Teacher Sound Clips</h3>
-            <div class="muted">Record clips in Section Media Studio, then filter by sound tag (example: <code>sh</code>).</div>
-          </div>
-          <div class="fluency-sound-clips-controls">
-            <label class="fluency-coach-field">
-              Sound tag
-              <input id="fluency-sound-filter" type="text" placeholder="e.g., sh, th, short-a" />
-            </label>
-            <button id="fluency-sound-refresh" type="button" class="secondary-btn">Refresh clips</button>
-            <a class="secondary-btn fluency-sound-open" href="teacher-report.html#report-media-library">Open recorder studio</a>
-          </div>
-          <div id="fluency-sound-clips-list" class="fluency-sound-clips-list"></div>
-        </div>
-      </section>
-
-      <section class="fluency-panel" aria-label="Timer and scoring">
-        <div class="fluency-hud" aria-label="Scoreboard">
-          <span>🪙 <span id="fluency-coins">0</span></span>
-          <span>🔥 <span id="fluency-streak">0</span></span>
-        </div>
-
-        <div class="fluency-timer-display" id="fluency-timer-display" aria-label="Timer">1:00</div>
-        <div class="fluency-timer-controls" aria-label="Timer controls">
-          <button id="fluency-start" type="button" class="primary-btn">Start</button>
-          <button id="fluency-pause" type="button" class="secondary-btn">Pause</button>
-          <button id="fluency-reset" type="button" class="secondary-btn">Reset</button>
-        </div>
-
-        <div class="fluency-score" aria-label="Scoring inputs">
-          <label for="fluency-minutes">Minutes</label>
-          <select id="fluency-minutes" aria-label="Duration">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-
-          <label for="fluency-goal">Goal WCPM</label>
-          <input id="fluency-goal" type="number" min="1" step="1" value="60" />
-
-          <label for="fluency-words">Words read</label>
-          <input id="fluency-words" type="number" min="0" step="1" value="0" />
-
-          <label for="fluency-errors">Errors</label>
-          <input id="fluency-errors" type="number" min="0" step="1" value="0" />
-
-          <button id="fluency-check" type="button" class="primary-btn">Score</button>
-          <div class="fluency-score-output">Result: <span id="fluency-score">—</span></div>
-          <div class="fluency-score-output">Accuracy: <span id="fluency-accuracy">—</span></div>
-          <div class="fluency-score-output">Benchmark check: <span id="fluency-benchmark-result">—</span></div>
-        </div>
-
-        <section class="fluency-benchmark" aria-label="DIBELS benchmark reference">
-          <div class="fluency-benchmark-head">
-            <h3>DIBELS/mCLASS Benchmark Assist</h3>
-            <span class="muted">Reference only (editable local school norms should override).</span>
-          </div>
-          <div class="fluency-benchmark-controls">
-            <label class="fluency-coach-field">
-              Grade
-              <select id="fluency-benchmark-grade" aria-label="Benchmark grade"></select>
-            </label>
-            <label class="fluency-coach-field">
-              Window
-              <select id="fluency-benchmark-window" aria-label="Benchmark window">
-                <option value="BOY">BOY</option>
-                <option value="MOY">MOY</option>
-                <option value="EOY">EOY</option>
-              </select>
-            </label>
-            <button id="fluency-use-benchmark-goal" type="button" class="secondary-btn">Use ORF goal</button>
-          </div>
-          <div id="fluency-benchmark-summary" class="fluency-benchmark-summary"></div>
-          <div class="fluency-benchmark-grid">
-            <div><strong>LNF</strong><span id="bench-lnf">—</span></div>
-            <div><strong>PSF</strong><span id="bench-psf">—</span></div>
-            <div><strong>NWF sounds</strong><span id="bench-nwf-sounds">—</span></div>
-            <div><strong>NWF words</strong><span id="bench-nwf-words">—</span></div>
-            <div><strong>WRF</strong><span id="bench-wrf">—</span></div>
-            <div><strong>ORF WCPM</strong><span id="bench-orf">—</span></div>
-            <div><strong>ORF Accuracy</strong><span id="bench-accuracy">—</span></div>
-          </div>
-        </section>
-
-        <div id="fluency-feedback" class="fluency-feedback" aria-live="polite"></div>
-      </section>
-    </main>
   </body>
 </html>

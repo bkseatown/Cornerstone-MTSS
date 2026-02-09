@@ -6,18 +6,16 @@
     <title>CORNERSTONE MTSS</title>
     <meta name="robots" content="noindex" />
     <script>
-      (function redirectToCanonicalHome() {
-        var basePath = './literacy-platform/index.html';
+      (function redirectToCanonicalPage() {
         var source = window.location;
-        var target = basePath + '?v=20260209m';
-        if (source.hash) {
-          target += source.hash;
-        }
-        window.location.replace(target);
+        var target = new URL('./literacy-platform/index.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
       })();
     </script>
     <noscript>
-      <meta http-equiv="refresh" content="0; url=./literacy-platform/index.html?v=20260209m" />
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/index.html" />
     </noscript>
     <style>
       body {
@@ -46,9 +44,9 @@
   </head>
   <body>
     <div class="redirect-card" role="status" aria-live="polite">
-      Redirecting to the live Home experience.
+      Redirecting to the live Cornerstone page.
       <br />
-      <a href="./literacy-platform/index.html?v=20260209m">Continue to Cornerstone Home</a>
+      <a href="./literacy-platform/index.html">Continue</a>
     </div>
   </body>
 </html>

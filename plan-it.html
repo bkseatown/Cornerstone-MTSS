@@ -3,153 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Plan-It</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
-    <script src="plan-it.js" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/plan-it.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/plan-it.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="planit-page force-light look-35">
-    <div class="planit-header">
-      <div>
-        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
-        <div class="planit-subtitle">Plan-It: practice planning steps and choosing start times.</div>
-      </div>
-      <nav class="header-actions" aria-label="Primary">
-        <a class="link-btn" href="index.html">Home</a>
-      </nav>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/plan-it.html">Continue</a>
     </div>
-
-    <main class="planit-main">
-      <section class="planit-panel" aria-label="Scenario and tasks">
-        <div class="planit-panel-header">
-          <div>
-            <h2>Scenario</h2>
-            <div class="planit-help">Choose a scenario, then pick start times for each task.</div>
-          </div>
-          <div class="planit-controls">
-            <select id="planit-scenario" aria-label="Scenario"></select>
-          </div>
-        </div>
-
-        <div class="planit-card">
-          <div id="planit-scenario-title" class="planit-card-title"></div>
-          <div id="planit-scenario-text" class="planit-card-text"></div>
-          <div id="planit-scenario-tip" class="planit-card-tip"></div>
-        </div>
-
-        <section class="planit-mission-board" aria-label="Challenge board">
-          <div class="planit-mission-head">
-            <div>
-              <div class="planit-mission-title">Plan-It Challenge Board</div>
-              <div class="planit-mission-subtitle">Small wins build executive function stamina.</div>
-            </div>
-            <button id="planit-mission-reroll" type="button" class="secondary-btn">New challenge</button>
-          </div>
-          <div class="planit-mission-stats">
-            <div class="planit-mission-stat">
-              <div class="planit-mission-stat-label">XP</div>
-              <div id="planit-xp" class="planit-mission-stat-value">0</div>
-            </div>
-            <div class="planit-mission-stat">
-              <div class="planit-mission-stat-label">Streak</div>
-              <div id="planit-streak" class="planit-mission-stat-value">0</div>
-            </div>
-            <div class="planit-mission-stat">
-              <div class="planit-mission-stat-label">Level</div>
-              <div id="planit-level" class="planit-mission-stat-value">1</div>
-            </div>
-            <div class="planit-mission-progress">
-              <div class="planit-mission-progress-label">
-                <span id="planit-level-progress-text">0 / 100 XP to next level</span>
-              </div>
-              <div class="planit-mission-progress-track">
-                <div id="planit-level-progress-fill" class="planit-mission-progress-fill"></div>
-              </div>
-            </div>
-          </div>
-          <div id="planit-mission-list" class="planit-mission-list"></div>
-          <div id="planit-mission-banner" class="planit-mission-banner muted" aria-live="polite"></div>
-        </section>
-
-        <div class="planit-quick-builder" aria-label="One-click lesson builder">
-          <div class="planit-quick-title">One-Click 10/20/30 Lesson Builder</div>
-          <div class="planit-quick-subtitle">Choose target skill + grade band, then generate a fast I do · We do · You do sequence.</div>
-          <div class="planit-quick-controls">
-            <label class="planit-quick-field">
-              Grade band
-              <select id="planit-quick-grade" aria-label="Quick lesson grade band">
-                <option value="K-2">K-2</option>
-                <option value="3-5">3-5</option>
-                <option value="6-8">6-8</option>
-                <option value="9-12">9-12</option>
-              </select>
-            </label>
-            <label class="planit-quick-field">
-              Target skill
-              <select id="planit-quick-focus" aria-label="Quick lesson target skill"></select>
-            </label>
-            <label class="planit-quick-field">
-              Minutes
-              <select id="planit-quick-minutes" aria-label="Quick lesson duration">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-              </select>
-            </label>
-            <button id="planit-quick-generate" type="button" class="primary-btn">Build Lesson</button>
-          </div>
-          <div id="planit-quick-output" class="planit-quick-output"></div>
-          <div id="planit-quick-status" class="muted"></div>
-        </div>
-
-        <div id="planit-lesson" class="planit-lesson hidden" aria-label="Mini lesson"></div>
-
-        <div id="planit-task-list" class="planit-task-list" aria-label="Tasks"></div>
-
-        <div class="planit-actions" aria-label="Actions">
-          <div class="planit-actions-row">
-            <button id="planit-auto" type="button" class="secondary-btn">Auto-plan</button>
-            <button id="planit-hint" type="button" class="secondary-btn">Hint move</button>
-            <button id="planit-check" type="button" class="primary-btn">Check Plan</button>
-            <button id="planit-reset" type="button" class="secondary-btn">Reset</button>
-          </div>
-          <div id="planit-feedback" class="planit-feedback" aria-live="polite"></div>
-
-          <div id="planit-reflection" class="planit-reflection hidden" aria-label="Reflection">
-            <div class="planit-reflection-title">Reflection</div>
-            <div id="planit-reflection-prompt" class="planit-reflection-prompt"></div>
-            <textarea id="planit-reflection-input" rows="3" placeholder="Type a short answer…"></textarea>
-            <div class="planit-reflection-actions">
-              <button id="planit-reflection-save" type="button" class="secondary-btn">Save</button>
-              <div id="planit-reflection-saved" class="muted"></div>
-            </div>
-          </div>
-
-          <details class="planit-teacher-tools">
-            <summary>Teacher tools</summary>
-            <div class="planit-teacher-body">
-              <label for="planit-video-url"><strong>Mini-lesson video link</strong></label>
-              <div class="planit-teacher-row">
-                <input id="planit-video-url" type="url" placeholder="Paste a YouTube link or a teacher video link" />
-                <button id="planit-video-open" type="button" class="secondary-btn">Open</button>
-              </div>
-              <div class="muted">Tip: use a “share” link you trust. This app does not download videos.</div>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <section class="planit-panel" aria-label="Timeline">
-        <div class="planit-panel-header">
-          <div>
-            <h2>Timeline</h2>
-            <div class="planit-help">Your choices appear here. Aim for no overlaps.</div>
-          </div>
-        </div>
-
-        <div id="planit-timeline" class="planit-timeline" aria-label="Timeline grid"></div>
-      </section>
-    </main>
   </body>
 </html>

@@ -3,58 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Story Fill</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
-    <script src="cloze.js" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/cloze.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/cloze.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="cloze-page force-light look-35">
-    <div class="cloze-header">
-      <div>
-        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
-        <div class="cloze-subtitle">Story Fill: drag words into the blanks, then check your story.</div>
-      </div>
-      <nav class="header-actions" aria-label="Primary">
-        <a class="link-btn" href="index.html">Home</a>
-      </nav>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/cloze.html">Continue</a>
     </div>
-
-    <main class="cloze-main">
-      <section class="cloze-panel cloze-story" aria-label="Story">
-        <div class="cloze-panel-header">
-          <h2 id="cloze-title">Story</h2>
-          <div class="cloze-controls">
-            <select id="cloze-select" aria-label="Choose a story"></select>
-            <button id="cloze-reset" class="secondary-btn" type="button">Reset</button>
-            <button id="cloze-shuffle" class="secondary-btn" type="button">Shuffle</button>
-          </div>
-        </div>
-
-        <div id="cloze-passage" class="cloze-passage" aria-label="Passage"></div>
-        <div id="cloze-message" class="cloze-message" aria-live="polite"></div>
-      </section>
-
-      <section class="cloze-panel" aria-label="Word bank">
-        <div class="cloze-panel-header">
-          <h2>Word Bank</h2>
-          <div class="cloze-hud" aria-label="Scoreboard">
-            <span class="cloze-hud-item">🪙 <span id="cloze-coins">0</span></span>
-            <span class="cloze-hud-item">🔥 <span id="cloze-streak">0</span></span>
-            <span class="cloze-hud-item cloze-hearts" id="cloze-hearts" aria-label="Hearts"></span>
-          </div>
-        </div>
-
-        <div id="cloze-bank" class="cloze-bank-grid" aria-label="Word choices"></div>
-
-        <div class="cloze-actions">
-          <label class="cloze-toggle">
-            <input id="cloze-challenge" type="checkbox" />
-            Challenge Mode (hearts)
-          </label>
-          <button id="cloze-check" type="button" class="primary-btn">Check Story</button>
-        </div>
-      </section>
-    </main>
   </body>
 </html>

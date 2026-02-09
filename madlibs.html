@@ -3,60 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Silly Stories</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260208d" defer></script>
-    <script src="madlibs.js" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/madlibs.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/madlibs.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="madlibs-page force-light look-35">
-    <div class="madlibs-header">
-      <div>
-        <h1><a href="index.html">CORNERSTONE MTSS</a></h1>
-        <div class="madlibs-subtitle">Silly Stories: build a Mad Lib and read it aloud.</div>
-      </div>
-      <nav class="header-actions" aria-label="Primary">
-        <a class="link-btn" href="index.html">Home</a>
-      </nav>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/madlibs.html">Continue</a>
     </div>
-
-    <main class="madlibs-main">
-      <section class="madlibs-panel" aria-label="Template">
-        <h2>Template</h2>
-        <p class="muted">Pick a template, then fill the fields to generate a story.</p>
-
-        <label for="madlibs-template-select">Choose a template</label>
-        <select id="madlibs-template-select"></select>
-
-        <label style="display:flex; gap:10px; align-items:center; margin-top:8px;">
-          <input id="madlibs-use-template" type="checkbox" checked />
-          <span>Use selected template</span>
-        </label>
-
-        <label for="madlibs-template-input">Or edit / paste your own</label>
-        <textarea id="madlibs-template-input" placeholder="Use {placeholders} like {adjective}, {animal}, {verb_past}..."></textarea>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="madlibs-parse-template" type="button" class="secondary-btn">Parse</button>
-          <button id="madlibs-random-template" type="button" class="secondary-btn">Random</button>
-          <button id="madlibs-autofill" type="button" class="secondary-btn">Auto-fill</button>
-        </div>
-
-        <div id="madlibs-fields" aria-label="Fields"></div>
-      </section>
-
-      <section class="madlibs-panel" aria-label="Story output">
-        <h2>Story</h2>
-        <p class="muted">Generate, then read aloud for fluency and fun.</p>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="madlibs-generate" type="button" class="primary-btn">Generate</button>
-          <button id="madlibs-read" type="button" class="secondary-btn">Read Aloud</button>
-          <button id="madlibs-reset" type="button" class="secondary-btn">Reset</button>
-        </div>
-
-        <div id="madlibs-output" class="madlibs-output" aria-label="Generated story"></div>
-      </section>
-    </main>
   </body>
 </html>

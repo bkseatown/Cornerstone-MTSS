@@ -3,382 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Word Quest</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=20260209f" defer></script>
-    <script src="words.js" defer></script>
-    <script src="decodables-expansion.js" defer></script>
-    <script src="young-overrides.js" defer></script>
-    <script src="phoneme-data.js" defer></script>
-    <script src="focus-info.js" defer></script>
-    <script src="translations.js" defer></script>
-    <script src="app.js?v=20260209f" defer></script>
+    <title>CORNERSTONE MTSS</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function redirectToCanonicalPage() {
+        var source = window.location;
+        var target = new URL('./literacy-platform/word-quest.html', source.href);
+        target.search = source.search || '';
+        target.hash = source.hash || '';
+        window.location.replace(target.toString());
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./literacy-platform/word-quest.html" />
+    </noscript>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f2f6ff;
+        color: #1f2a44;
+      }
+
+      .redirect-card {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 14px;
+        border: 1px solid #b8c7f4;
+        background: #ffffff;
+      }
+
+      a {
+        color: #2a4fd7;
+        font-weight: 600;
+      }
+    </style>
   </head>
-
-  <body class="word-quest-page force-light look-35">
-    <header>
-      <div class="header-top">
-        <h1>
-          <a href="index.html">CORNERSTONE MTSS</a>
-        </h1>
-        <nav class="header-actions" aria-label="Primary">
-          <a id="home-btn" class="link-btn" href="index.html">Home</a>
-        </nav>
-      </div>
-
-      <div class="controls" role="group" aria-label="Game setup">
-        <div class="control-group">
-          <label for="pattern-select">Focus</label>
-          <select id="pattern-select" aria-label="Focus pattern">
-            <option value="shuffle" selected>Shuffle Focus (clue on)</option>
-            <option value="all">All Words</option>
-            <option value="cvc">CVC (short vowels: cat, pin)</option>
-            <option value="digraph">Digraphs (sh, ch, th)</option>
-            <option value="ccvc">Initial blends (bl-, tr-, st-)</option>
-            <option value="cvcc">Final blends (-nd, -st, -mp)</option>
-            <option value="trigraph">Trigraphs (tch, dge)</option>
-            <option value="cvce">Magic E (a_e: cake)</option>
-            <option value="vowel_team">Vowel teams (ai, ee, oa)</option>
-            <option value="r_controlled">R-controlled (ar, er, ir)</option>
-            <option value="diphthong">Diphthongs (oi, ow)</option>
-            <option value="floss">FLOSS rule (ff, ll, ss)</option>
-            <option value="welded">Welded sounds (ang, ong)</option>
-            <option value="schwa">Schwa (a in about)</option>
-            <option value="prefix">Prefixes (un-, re-)</option>
-            <option value="suffix">Suffixes (-ing, -ed)</option>
-            <option value="compound">Compound words (sun+set)</option>
-            <option value="multisyllable">Multisyllabic (pic-nic)</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label for="length-select">Length</label>
-          <select id="length-select" aria-label="Word length">
-            <option value="any">Any</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5" selected>5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="guess-count-select">Guesses</label>
-          <select id="guess-count-select" aria-label="Number of guesses">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6" selected>6</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="case-toggle">Case</label>
-          <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="new-word-btn">Round</label>
-          <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
-        </div>
-      </div>
-      <div id="focus-round-chip" class="focus-round-chip" aria-live="polite"></div>
-    </header>
-
-    <main>
-      <section class="quick-custom-word-panel" aria-label="Custom challenge word">
-        <button id="quick-custom-word-toggle" type="button" class="quick-custom-word-toggle" aria-expanded="false">
-          Custom challenge word (optional)
-        </button>
-        <div id="quick-custom-word-body" class="quick-custom-word-body hidden">
-          <div class="quick-custom-word-row">
-            <input
-              id="quick-custom-word-input"
-              type="text"
-              class="masked"
-              placeholder="Type a class-safe word (3-12 letters)"
-              autocapitalize="none"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <button id="quick-custom-word-toggle-mask" type="button" class="hint-btn secondary" aria-label="Show or hide custom word">Show</button>
-            <button id="quick-custom-word-start" type="button" class="hint-btn">Start Custom Word</button>
-            <button id="quick-custom-word-clear" type="button" class="hint-btn secondary">Use Library</button>
-          </div>
-          <div id="quick-custom-word-status" class="quick-custom-word-status muted" aria-live="polite">
-            Mode: Library. Pick a focus or set a custom challenge word.
-          </div>
-        </div>
-      </section>
-
-      <div id="focus-panel" class="focus-panel hidden" aria-label="Focus hint">
-        <button id="focus-toggle-btn" class="focus-toggle-btn" type="button">💡 Hints</button>
-        <div class="focus-copy">
-          <div id="focus-title" class="focus-title"></div>
-          <div id="focus-desc" class="focus-desc"></div>
-          <div id="focus-examples" class="focus-examples hidden"></div>
-        </div>
-        <div id="quick-tiles-row" class="quick-tiles-row hidden" aria-label="Quick tiles"></div>
-      </div>
-
-      <div id="game-canvas">
-        <div id="game-board" aria-label="Guess grid"></div>
-
-        <div class="hint-actions" aria-label="Quick audio">
-          <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
-          <button id="simple-hear-sentence" type="button" class="hint-btn">💬 Sentence</button>
-          <button id="simple-voice-settings" type="button" class="hint-btn secondary">🎛️ Voice</button>
-        </div>
-        <div id="sentence-preview" class="sentence-preview hidden" aria-live="polite"></div>
-
-        <div id="keyboard" aria-label="Keyboard"></div>
-      </div>
-    </main>
-
-    <div id="banner-container" class="banner-container hidden" role="status" aria-live="polite"></div>
-    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
-
-    <div id="modal-overlay" class="hidden" aria-hidden="true"></div>
-
-    <!-- Welcome / Tutorial -->
-    <div id="welcome-modal" class="modal hidden welcome-modal" role="dialog" aria-modal="true" aria-label="Welcome">
-      <div class="modal-content">
-        <button class="close-btn" type="button" aria-label="Close">✕</button>
-        <h2>Welcome</h2>
-        <p>Pick a focus, listen to the word, and decode it.</p>
-        <label style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-          <input id="dont-show-tutorial" type="checkbox" />
-          <span>Don’t show this again</span>
-        </label>
-        <div style="display:flex; gap:10px; margin-top:14px;">
-          <button id="start-playing-btn" type="button" class="primary-btn">Start</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Teacher modal -->
-    <div id="teacher-modal" class="modal hidden teacher-modal" role="dialog" aria-modal="true" aria-label="Teacher settings">
-      <div class="modal-content">
-        <button class="close-btn close-teacher" type="button" aria-label="Close">✕</button>
-        <h2>Teacher Session Setup</h2>
-        <p class="teacher-intro-note">Quick class defaults live here. Deep audio and reports are in dedicated hubs.</p>
-        <div class="teacher-tools-grid"></div>
-      </div>
-    </div>
-
-    <!-- Recording Studio -->
-    <div
-      id="recording-studio-modal"
-      class="modal hidden recording-studio-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Recording studio"
-    >
-      <div class="modal-content">
-        <button class="close-btn close-studio" type="button" aria-label="Close">✕</button>
-        <h2>Recording Studio</h2>
-
-        <div id="studio-setup-view">
-          <p class="muted">Record a teacher voice for words/sentences (stored locally in this browser).</p>
-
-          <div class="teacher-row">
-            <label for="studio-source-select"><strong>Word source</strong></label>
-            <select id="studio-source-select">
-              <option value="focus">Current Focus</option>
-              <option value="paste">Paste a list</option>
-            </select>
-          </div>
-
-          <div id="studio-paste-area" class="hidden">
-            <label for="studio-paste-input"><strong>Paste words (one per line)</strong></label>
-            <textarea id="studio-paste-input" rows="6" placeholder="apple&#10;ship&#10;rain"></textarea>
-          </div>
-
-          <label style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-            <input id="studio-skip-existing" type="checkbox" checked />
-            <span>Skip words already recorded</span>
-          </label>
-          <label style="display:flex; gap:10px; align-items:center; margin-top:6px;">
-            <input id="studio-auto-advance" type="checkbox" checked />
-            <span>Auto-advance after each recording</span>
-          </label>
-
-          <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
-            <button id="start-studio-btn" type="button" class="primary-btn">Start studio</button>
-            <button id="exit-studio-btn" type="button" class="secondary-btn">Exit</button>
-          </div>
-        </div>
-
-        <div id="studio-record-view" class="hidden">
-          <div class="studio-meta">
-            <div id="studio-progress" class="muted"></div>
-            <div id="studio-word-display" class="studio-word"></div>
-            <div id="studio-definition-display" class="muted"></div>
-            <div id="studio-sentence-display" class="muted"></div>
-          </div>
-
-          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-            <button id="record-word-btn" type="button" class="primary-btn">Record Word</button>
-            <button id="play-word-preview" type="button" class="secondary-btn">Play Word</button>
-            <button id="record-sentence-btn" type="button" class="primary-btn">Record Sentence</button>
-            <button id="play-sentence-preview" type="button" class="secondary-btn">Play Sentence</button>
-          </div>
-
-          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
-            <button id="prev-item-btn" type="button" class="secondary-btn">Prev</button>
-            <button id="next-item-btn" type="button" class="secondary-btn">Next</button>
-            <button id="skip-item-btn" type="button" class="secondary-btn">Skip</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- End-of-round modal -->
-    <div id="modal" class="modal hidden game-modal" role="dialog" aria-modal="true" aria-label="Round result">
-      <div class="modal-content">
-        <button class="close-btn" type="button" aria-label="Close">✕</button>
-        <h2 id="modal-title">Great Job!</h2>
-        <div id="modal-word" class="modal-word"></div>
-        <div id="modal-syllables" class="modal-syllables hidden"></div>
-        <div id="modal-def" class="modal-def"></div>
-        <div id="modal-sentence" class="modal-sentence"></div>
-
-	        <div id="modal-action-row" class="modal-action-row">
-	          <button id="speak-btn" type="button" class="modal-audio-btn">Hear Word</button>
-	          <button id="play-again-btn" type="button" class="primary-btn">Play Again</button>
-	        </div>
-
-	        <div class="translation-selector" aria-label="Translate">
-	          <label for="language-select"><strong>Language</strong></label>
-	          <select id="language-select" aria-label="Translation language">
-	            <option value="en">English</option>
-	            <option value="es">Español (Spanish)</option>
-	            <option value="zh">中文 (Simplified Chinese)</option>
-	            <option value="hi">हिन्दी (Hindi)</option>
-	            <option value="ms">Bahasa Melayu (Malay)</option>
-	            <option value="vi">Tiếng Việt (Vietnamese)</option>
-	            <option value="tl">Tagalog (Filipino)</option>
-	            <option value="ar">العربية (Arabic)</option>
-	            <option value="ko">한국어 (Korean)</option>
-	            <option value="ja">日本語 (Japanese)</option>
-	          </select>
-	          <label class="translation-pin">
-	            <input type="checkbox" id="pin-language" />
-	            Lock this language
-	          </label>
-	          <div id="translation-pin-status" class="translation-pin-status hidden" aria-live="polite"></div>
-	        </div>
-	      </div>
-	    </div>
-
-    <!-- Bonus modal (joke / fun fact / quote) -->
-    <div id="bonus-modal" class="modal hidden bonus-modal" role="dialog" aria-modal="true" aria-label="Bonus content">
-      <div class="modal-content">
-        <button class="close-btn" type="button" aria-label="Close">✕</button>
-        <div id="bonus-emoji" class="bonus-emoji">🌟</div>
-        <div id="bonus-title" class="bonus-title">Fun Fact!</div>
-        <div id="bonus-text" class="bonus-text"></div>
-        <div class="bonus-actions">
-          <button id="bonus-hear" type="button" class="secondary-btn">Hear This</button>
-          <button id="bonus-continue" type="button" class="primary-btn">Continue</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sound Lab (required by Tools ▾ → Sound Lab) -->
-    <div id="phoneme-modal" class="modal hidden phoneme-modal" role="dialog" aria-modal="true" aria-label="Sound Lab">
-      <div class="modal-content">
-        <button class="close-btn close-phoneme" type="button" aria-label="Close">✕</button>
-        <h2>Sound Lab</h2>
-        <p class="sound-guide-subtitle">Tap a tile to see a quick tip and example. Each sound can have its own video clip, including teacher-recorded versions.</p>
-
-        <div class="sound-guide-top-actions">
-          <button id="sound-lab-popout" type="button" class="secondary-btn">Open in new tab</button>
-        </div>
-
-        <div class="sound-guide-layout">
-          <aside class="sound-guide-card" aria-label="Selected sound">
-            <div id="selected-sound-display" class="selected-sound hidden">
-              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <div id="sound-letter" style="font-size:2rem; font-weight:900;"></div>
-                <div>
-                  <div id="sound-name" style="font-weight:800;"></div>
-                  <div id="mouth-cue" class="muted"></div>
-                </div>
-              </div>
-              <div id="mouth-description" class="muted" style="margin-top:8px;"></div>
-              <div id="mouth-visual" style="margin-top:10px;"></div>
-            </div>
-            <p class="muted" style="margin:0;">Choose a sound tile to see tips here.</p>
-          </aside>
-
-          <section class="sound-guide-board" aria-label="Sound tiles">
-            <div class="sound-guide-section">
-              <h3>Short Vowels</h3>
-              <div id="vowel-row" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>Alphabet Sounds</h3>
-              <div id="alphabet-board" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>Digraphs</h3>
-              <div id="digraph-board" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>Blends</h3>
-              <div id="blend-board" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>Vowel Teams</h3>
-              <div id="vowel-team-board" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>R-Controlled</h3>
-              <div id="rcontrolled-board" class="sound-row"></div>
-            </div>
-            <div class="sound-guide-section">
-              <h3>Welded</h3>
-              <div id="welded-board" class="sound-row"></div>
-            </div>
-
-            <div class="sound-guide-section">
-              <h3>Letter Sounds (optional)</h3>
-              <div id="letters-grid" aria-label="Letters"></div>
-              <div id="letter-sounds-display" class="hidden" style="margin-top:10px;">
-                <div class="muted" style="margin-bottom:8px;">
-                  Selected letter: <strong id="selected-letter">—</strong>
-                </div>
-                <div id="letter-sounds-grid" aria-label="Letter sounds"></div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- Progress modal (optional, but used by openProgressModal when enabled) -->
-    <div id="progress-modal" class="modal hidden progress-modal" role="dialog" aria-modal="true" aria-label="Progress">
-      <div class="modal-content">
-        <button class="close-btn close-progress" type="button" aria-label="Close">✕</button>
-        <h2>Progress</h2>
-        <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px;">
-          <div><strong>Attempted</strong><div id="stat-attempted">0</div></div>
-          <div><strong>Correct</strong><div id="stat-correct">0</div></div>
-          <div><strong>Success rate</strong><div id="stat-rate">0%</div></div>
-          <div><strong>Avg guesses</strong><div id="stat-avg-guesses">0</div></div>
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
-          <button id="export-data-btn" type="button" class="secondary-btn">Export</button>
-          <button id="clear-data-btn" type="button" class="secondary-btn">Clear</button>
-        </div>
-        <div id="recent-words" style="margin-top: 12px;"></div>
-      </div>
+  <body>
+    <div class="redirect-card" role="status" aria-live="polite">
+      Redirecting to the live Cornerstone page.
+      <br />
+      <a href="./literacy-platform/word-quest.html">Continue</a>
     </div>
   </body>
 </html>
