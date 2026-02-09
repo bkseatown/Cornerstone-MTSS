@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T07:22:30.440Z",
+  "updatedAt": "2026-02-09T08:55:13.784Z",
   "packs": [
     {
       "id": "emma-en",
@@ -111,7 +111,7 @@
       "name": "Ava Multilingual",
       "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
       "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-09T07:22:30.440Z",
+      "generatedAt": "2026-02-09T08:55:13.784Z",
       "languages": [
         "en",
         "es",
@@ -126,7 +126,9 @@
       ],
       "fields": [
         "def",
-        "sentence"
+        "sentence",
+        "word",
+        "phoneme"
       ],
       "voices": {
         "en": "en-US-AvaMultilingualNeural",

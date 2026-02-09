@@ -448,6 +448,26 @@ npm run tts:azure -- \
   --overwrite=false
 ```
 
+## 2026-02-09 ava-multi export completion (user-run)
+### Output received
+- Manifest: `literacy-platform/audio/tts/packs/ava-multi/tts-manifest.json`
+- Report: `literacy-platform/audio/tts/packs/ava-multi/tts-export-report.json`
+- Registry: `literacy-platform/audio/tts/packs/pack-registry.json`
+
+### Result summary
+- Manifest entries: `10579`
+  - `def=5000`, `sentence=5000`, `word=500`, `phoneme=79`
+  - Language distribution: `en=1579`, other configured languages `1000` each.
+- Export report:
+  - `attempted=10579`, `generated=79`, `reused=10500`, `failed=0`
+  - New generation in this pass was all phoneme clips (`79`).
+- New files now exist under:
+  - `literacy-platform/audio/tts/packs/ava-multi/phoneme/*.mp3` (`79` clips)
+
+### Still open after this run
+- Passage manifest keys are still absent in `ava-multi` (`@passage:*` count is `0`), though passage mp3 files exist on disk.
+- If passage audio indexing must be complete in-manifest, run a follow-up export with `--include-passages=true` for the target pack(s).
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
