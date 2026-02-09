@@ -7,7 +7,7 @@ Last updated: 2026-02-09
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
 - Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Latest pushed commit: `0f1bc445` (`origin/main`)
+- Latest pushed commit: `087c94e0` (`origin/main`)
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
 ## 2026-02-08 latest shipped pass
@@ -56,6 +56,15 @@ Last updated: 2026-02-09
   - Added additional school-safe overrides for high-risk entries (`dog`, `stress`, `gross`, `trunk`, `snort`, `fetch`, `eat`, `butterfly`, `snowman`, `fearless`, `knight`, `it's`, `fall`, `some`, `eye`, `sock`, `room`, `dad`, `sneeze`, `snore`, `pink`, `stapler`, `reflection`).
   - Expanded phrase blocklist so problematic legacy lines auto-fallback to safe text.
 
+## 2026-02-09 handoff continuity update (pushed)
+- Commit: `087c94e0`
+- This handoff now reflects:
+  - strict sequential Home onboarding status,
+  - current translation/audio limitations,
+  - current trust/safety expectations from user feedback,
+  - next-chat bootstrap prompt.
+- Important: there are still local generated artifacts (audio pack files + Playwright outputs) in the working tree that are intentionally not auto-committed by the agent.
+
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
 2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
@@ -91,9 +100,11 @@ No net-new features before visual/UX stability passes.
   - concise safe fallbacks
   - language-aware punctuation/length cleanup
 - Manual override bank exists in `young-overrides.js` (including: `sharp`, `dull`, `butter`, `blood`, `through`, `history`, `tax`).
-- New local updates (pending push in this handoff state):
-  - `app.js`: expanded young replacements for `scary`, `hurt`, `hate`, and `fight`.
-  - `words.js`: rewrote base `tax` definitions/sentences across `en/es/zh/tl/ms/vi` to be clearer and younger-safe.
+- User trust requirements (must remain enforced):
+  - No sexual/inappropriate references, no body-humor lines that can undermine school trust.
+  - Humor should be kind/silly and understandable for school contexts.
+  - Avoid harsh red error styling where possible in student-facing flows.
+  - Keep reveal copy safe for all grades (not only Young/EAL mode).
 
 ## Translation + voice coverage status
 ### Written translations (`words.js`)
@@ -105,10 +116,14 @@ No net-new features before visual/UX stability passes.
   - `tl`: `500/500`
   - `ms`: `500/500`
   - `vi`: `500/500`
-  - `hi`: currently incomplete / per-word gaps remain
-  - `ar`: currently not populated across full bank
-  - `ko`: currently not populated across full bank
-  - `ja`: currently not populated across full bank
+  - `hi`: partial/incomplete coverage; some words still show "Translation coming soon"
+  - `ar`: UI option exists; full word-bank translation not yet completed
+  - `ko`: UI option exists; full word-bank translation not yet completed
+  - `ja`: UI option exists; full word-bank translation not yet completed
+
+### Bonus content translation status
+- Jokes/riddles/facts/quotes are curated in English pools and support read-aloud.
+- They are not currently maintained as full translated pools across all selected languages.
 
 ### Default Azure pack (`audio/tts`)
 - Manifest: `audio/tts/tts-manifest.json`
@@ -148,6 +163,17 @@ npm run tts:azure -- \
 
 `scripts/reveal-safety.overrides.json` is generated from `SCHOOL_SAFE_REVEAL_OVERRIDES` in `app.js` and keeps Azure clips aligned with school-safe reveal copy.
 
+### Interpreting recent TTS output (`1000/1000 generated`)
+- In `ava-multi`, `1000` tasks usually means `500 words x (def + sentence)` for English fields.
+- `generated=1000, reused=0` means those clips were freshly regenerated (not reused).
+- Next required step to publish those clips:
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project"
+git add literacy-platform/audio/tts/packs/ava-multi literacy-platform/audio/tts/packs/pack-registry.json
+git commit -m "Refresh Ava multilingual EN definition/sentence clips"
+git push origin main
+```
+
 ### Regenerate updated clips for `tax` in each named English pack
 ```bash
 for pack in ava-multi emma-en guy-en-us sonia-en-gb ryan-en-gb; do
@@ -176,3 +202,17 @@ git push origin main
 2. Re-export only changed clips per affected words and verify hear-buttons per language in HTTP context.
 3. Run focused visual regression (`home` + `word-quest`) and keep artifact outputs out of commits.
 4. Re-rate the four stabilization priorities after that sweep.
+
+## New-chat bootstrap prompt (copy/paste)
+```text
+Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
+Read /Users/robertwilliamknaus/Desktop/New project/HANDOFF.md first and follow it exactly.
+Assume GitHub access is already working; commit/push directly to main when each stabilization slice is done.
+Current priorities, in order:
+1) Full reveal-copy safety sweep for all grades (definitions/sentences + jokes/riddles/facts/quotes quality).
+2) Translation/audio reliability completion for target languages (EN/ES/ZH/TL first, then HI/MS/VI and optional AR/KO/JA).
+3) Keep Home sequential and low-scroll; no regression to multi-panel onboarding.
+4) Keep Word Quest no-scroll fit and visible vowel highlighting.
+Do not stop for permission prompts unless truly blocked.
+After each push: report commit hash, what was validated, updated ratings, and next max-impact step.
+```
