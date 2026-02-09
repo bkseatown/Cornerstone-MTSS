@@ -3326,8 +3326,8 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
             setTranslationAudioNote('Using an available device voice for this language.');
         }
     } else {
-        msg.lang = targetLang;
-        setTranslationAudioNote('Using browser fallback speech for this language.');
+        setTranslationAudioNote('Audio unavailable for this language.', true);
+        return;
     }
     
     const packedType = normalizePackedTtsType(type);
@@ -3341,14 +3341,7 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
 function getTranslationData(word, langCode, options = {}) {
     if (!word || !langCode || langCode === 'en') return null;
     const lower = word.toLowerCase();
-    if (!window.WORD_ENTRIES?.[lower]) {
-        return {
-            word: '',
-            definition: getKidSafeFallbackText(lower, 'definition', normalizePackedTtsLanguage(langCode)),
-            sentence: getKidSafeFallbackText(lower, 'sentence', normalizePackedTtsLanguage(langCode)),
-            generated: true
-        };
-    }
+    if (!window.WORD_ENTRIES?.[lower]) return null;
     const normalizedLang = normalizePackedTtsLanguage(langCode);
     const audienceMode = normalizeAudienceMode(options.audienceMode || getResolvedAudienceMode());
     const englishCopy = getWordCopyForAudience(lower, 'en', audienceMode);
@@ -3414,14 +3407,6 @@ function getTranslationData(word, langCode, options = {}) {
             if (!sanitized.definition && !sanitized.sentence) return null;
             return sanitized;
         }
-    }
-    if (normalizedLang !== 'en') {
-        return {
-            word: '',
-            definition: getKidSafeFallbackText(lower, 'definition', normalizedLang),
-            sentence: getKidSafeFallbackText(lower, 'sentence', normalizedLang),
-            generated: true
-        };
     }
     return null;
 }
@@ -6497,7 +6482,6 @@ function showEndModal(win) {
             audienceMode: resolvedAudienceMode
         });
         if (translation && (translation.definition || translation.sentence || translation.word)) {
-            const generatedFallback = !!translation.generated;
             const safeWord = cleanAudienceText(translation.word || '');
             const safeDefinition = translation.definition || '';
             const safeSentence = translation.sentence || '';
@@ -6526,22 +6510,17 @@ function showEndModal(win) {
                 safeSentence ? hasPackedTtsClipForCurrentWord({ text: safeSentence, languageCode: selectedLang, type: 'sentence' }) : Promise.resolve(false)
             ]);
 
-            const canPlayWord = !!safeWord;
-            const canPlayDefinition = !!safeDefinition;
-            const canPlaySentence = !!safeSentence;
+            const canPlayWord = !!safeWord && (packedWordReady || hasVoice);
+            const canPlayDefinition = !!safeDefinition && (packedDefReady || hasVoice);
+            const canPlaySentence = !!safeSentence && (packedSentenceReady || hasVoice);
 
             if (playTranslatedWord) playTranslatedWord.disabled = !canPlayWord;
             if (playTranslatedDef) playTranslatedDef.disabled = !canPlayDefinition;
             if (playTranslatedSentence) playTranslatedSentence.disabled = !canPlaySentence;
 
-            const hasAnyText = canPlayWord || canPlayDefinition || canPlaySentence;
-            const hasAnyPlayable = packedWordReady || packedDefReady || packedSentenceReady || hasVoice;
-            if (generatedFallback) {
-                const placeholderNote = hasAnyPlayable
-                    ? 'Using a classroom-safe placeholder translation while full translation is prepared.'
-                    : 'Using a classroom-safe placeholder translation. Audio is unavailable for this language.';
-                setTranslationAudioNote(placeholderNote, !hasAnyPlayable && hasAnyText);
-            } else if (!hasAnyPlayable && hasAnyText) {
+            const hasAnyText = !!safeWord || !!safeDefinition || !!safeSentence;
+            const hasAnyPlayable = canPlayWord || canPlayDefinition || canPlaySentence;
+            if (!hasAnyPlayable && hasAnyText) {
                 setTranslationAudioNote('Audio unavailable for this language.', true);
             } else {
                 setTranslationAudioNote('');
