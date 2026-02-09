@@ -705,8 +705,8 @@
         exitBtn = document.createElement('button');
         exitBtn.type = 'button';
         exitBtn.className = 'link-btn student-mode-exit-btn';
-        exitBtn.textContent = 'Teacher Access';
-        exitBtn.title = 'Teacher PIN required';
+        exitBtn.textContent = 'Adult View';
+        exitBtn.title = 'Adult PIN required';
         container.appendChild(exitBtn);
       }
 
@@ -2044,7 +2044,7 @@
     if (!main) return;
     const guide = existing || document.createElement('aside');
     guide.id = 'page-guide-tip';
-    const compact = activityId === 'word-quest';
+    const compact = activityId === 'word-quest' || getCurrentPageFile() === 'word-quest.html';
     guide.className = `page-guide-tip${compact ? ' compact-overlay' : ''}`;
     guide.setAttribute('role', 'status');
     guide.setAttribute('aria-live', 'polite');

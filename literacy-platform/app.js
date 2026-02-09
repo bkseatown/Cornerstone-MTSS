@@ -1186,6 +1186,12 @@ function shouldUsePackedClipForCurrentRevealText({ text = '', languageCode = 'en
     const normalizedText = normalizeTextForCompare(text);
     if (!normalizedText) return false;
     const normalizedType = normalizePackedTtsType(type);
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+
+    // Translation clips should remain usable even when displayed text was
+    // lightly transformed (punctuation/safety trimming).
+    if (normalizedLang !== 'en') return true;
+
     if (normalizedType === 'word') {
         return normalizedText === normalizeTextForCompare(currentWord || '');
     }
@@ -7090,7 +7096,12 @@ const YOUNG_AUDIENCE_EXTRA_BLOCKLIST = [
     /\b(flipped\s+off|pointed\s+to\s+the\s+middle|inappropriate\s+gesture)\b/i,
     /\bsaw\s+the\s+tiny\b/i,
     /\b(zombie|booger(?:s)?|snot|slime|drool(?:ed|ing)?|poop|pee|fart|barf|vomit|puke)\b/i,
-    /\b(lied\s+smoothly|tiny\s+sign)\b/i
+    /\b(lied\s+smoothly|tiny\s+sign)\b/i,
+    /\b(hole\s+in\s+your\s+face|never\s+stops\s+talking)\b/i,
+    /\b(distance\s+to\s+the\s+bathroom|warm\s+in\s+bed)\b/i,
+    /\b(afraid\s+of\s+the\s+stapler|brain\s+store)\b/i,
+    /\b(looks\s+like\s+a\s+crocodile\s+mouth|poop\s+on\s+my\s+hat)\b/i,
+    /\b(tried\s+it\s+\(it\s+hurt\)|it\s+hurt)\b/i
 ];
 const SCHOOL_SAFE_REPLACEMENTS = [
     [/\bhate\b/gi, 'do not like'],
@@ -7247,6 +7258,118 @@ const SCHOOL_SAFE_REVEAL_OVERRIDES = {
     slip: {
         definition: 'To lose your footing for a moment.',
         sentence: 'I started to slip on the wet floor, then caught the rail.'
+    },
+    mouth: {
+        definition: 'The part of your face you use to speak, smile, and eat.',
+        sentence: 'I opened my mouth wide so the dentist could check my teeth.'
+    },
+    baby: {
+        definition: 'A very young child who needs care and comfort.',
+        sentence: 'The baby smiled and waved at everyone in the room.'
+    },
+    web: {
+        definition: 'A thin net made by a spider.',
+        sentence: 'A silver web shined in the morning light near the fence.'
+    },
+    solo: {
+        definition: 'A part performed by one person.',
+        sentence: 'Nia sang a solo at the class concert.'
+    },
+    steep: {
+        definition: 'Rising quickly at a sharp angle.',
+        sentence: 'The hill was steep, so we climbed slowly and stayed together.'
+    },
+    star: {
+        definition: 'A bright object in the night sky.',
+        sentence: 'We counted stars after sunset.'
+    },
+    misfit: {
+        definition: 'Something that does not match the group.',
+        sentence: 'This puzzle piece is a misfit in this corner.'
+    },
+    gnat: {
+        definition: 'A very small flying insect.',
+        sentence: 'A gnat buzzed near the window.'
+    },
+    cage: {
+        definition: 'A safe enclosure for an animal.',
+        sentence: 'The rabbit rested in its cage after playtime.'
+    },
+    spider: {
+        definition: 'A small animal with eight legs that can spin webs.',
+        sentence: 'A spider built a web between two plants in the garden.'
+    },
+    mouse: {
+        definition: 'A small furry animal.',
+        sentence: 'A mouse nibbled a seed near the hedge.'
+    },
+    toothbrush: {
+        definition: 'A brush used to clean your teeth.',
+        sentence: 'I used my toothbrush after breakfast.'
+    },
+    got: {
+        definition: 'Received or obtained something.',
+        sentence: 'I got my library card and checked out a new book.'
+    },
+    big: {
+        definition: 'Large in size.',
+        sentence: 'The big box held all our art supplies.'
+    },
+    soup: {
+        definition: 'A warm liquid food with vegetables, noodles, or other ingredients.',
+        sentence: 'The soup smelled warm and delicious at lunch.'
+    },
+    tea: {
+        definition: 'A drink made by steeping tea leaves in hot water.',
+        sentence: 'Grandma cooled her tea before taking a sip.'
+    },
+    fly: {
+        definition: 'A small flying insect.',
+        sentence: 'A fly buzzed near the window.'
+    },
+    frog: {
+        definition: 'A small jumping animal that lives near water.',
+        sentence: 'The frog hopped across a wet rock.'
+    },
+    hiccup: {
+        definition: 'A quick sound and movement in your throat that happens by surprise.',
+        sentence: 'I got a hiccup and took slow breaths until it stopped.'
+    },
+    laugh: {
+        definition: 'To make happy sounds when something is funny.',
+        sentence: 'We laughed at the class puppet show.'
+    },
+    monster: {
+        definition: 'An imaginary creature in stories and games.',
+        sentence: 'In our story, the monster turned out to be friendly.'
+    },
+    scared: {
+        definition: 'Feeling worried or afraid.',
+        sentence: 'I felt scared during the storm, so I sat with my family.'
+    },
+    dot: {
+        definition: 'A small round mark.',
+        sentence: 'I put a dot at the end of my design.'
+    },
+    construct: {
+        definition: 'To build or put something together.',
+        sentence: 'We used blocks to construct a tall tower.'
+    },
+    crawl: {
+        definition: 'To move close to the ground on hands and knees.',
+        sentence: 'The baby learned to crawl across the rug.'
+    },
+    hairy: {
+        definition: 'Covered with a lot of hair.',
+        sentence: 'The dog looked hairy after rolling in the grass.'
+    },
+    mosquito: {
+        definition: 'A small flying insect that can bite.',
+        sentence: 'We used bug spray to keep mosquitoes away.'
+    },
+    force: {
+        definition: 'Strength used to push or pull something.',
+        sentence: 'We used gentle force to open the heavy library door.'
     }
 };
 
@@ -7476,14 +7599,20 @@ function buildKidSafeEntryVariant(word, entry = {}) {
         if (!langEntry) return;
         const manualDef = getManualYoungOverride(word, langCode, 'definition');
         const manualSentence = getManualYoungOverride(word, langCode, 'sentence');
+        const safeManualDef = manualDef
+            ? buildKidSafeAudienceText(manualDef, { word, field: 'definition', languageCode: langCode })
+            : '';
+        const safeManualSentence = manualSentence
+            ? buildKidSafeAudienceText(manualSentence, { word, field: 'sentence', languageCode: langCode })
+            : '';
         safeEntry[langCode] = {
             ...langEntry,
-            def: manualDef || buildKidSafeAudienceText(langEntry.def, {
+            def: safeManualDef || buildKidSafeAudienceText(langEntry.def, {
                 word,
                 field: 'definition',
                 languageCode: langCode
             }),
-            sentence: manualSentence || buildKidSafeAudienceText(langEntry.sentence, {
+            sentence: safeManualSentence || buildKidSafeAudienceText(langEntry.sentence, {
                 word,
                 field: 'sentence',
                 languageCode: langCode
@@ -7493,14 +7622,20 @@ function buildKidSafeEntryVariant(word, entry = {}) {
 
     const manualRootDef = getManualYoungOverride(word, 'en', 'definition');
     const manualRootSentence = getManualYoungOverride(word, 'en', 'sentence');
+    const safeManualRootDef = manualRootDef
+        ? buildKidSafeAudienceText(manualRootDef, { word, field: 'definition', languageCode: 'en' })
+        : '';
+    const safeManualRootSentence = manualRootSentence
+        ? buildKidSafeAudienceText(manualRootSentence, { word, field: 'sentence', languageCode: 'en' })
+        : '';
 
-    if (safeEntry.def || safeEntry.sentence || manualRootDef || manualRootSentence) {
-        safeEntry.def = manualRootDef || buildKidSafeAudienceText(safeEntry.def, {
+    if (safeEntry.def || safeEntry.sentence || safeManualRootDef || safeManualRootSentence) {
+        safeEntry.def = safeManualRootDef || buildKidSafeAudienceText(safeEntry.def, {
             word,
             field: 'definition',
             languageCode: 'en'
         });
-        safeEntry.sentence = manualRootSentence || buildKidSafeAudienceText(safeEntry.sentence, {
+        safeEntry.sentence = safeManualRootSentence || buildKidSafeAudienceText(safeEntry.sentence, {
             word,
             field: 'sentence',
             languageCode: 'en'
@@ -7508,8 +7643,8 @@ function buildKidSafeEntryVariant(word, entry = {}) {
     }
 
     if (safeEntry.en && typeof safeEntry.en === 'object') {
-        if (manualRootDef) safeEntry.en.def = manualRootDef;
-        if (manualRootSentence) safeEntry.en.sentence = manualRootSentence;
+        if (safeManualRootDef) safeEntry.en.def = safeManualRootDef;
+        if (safeManualRootSentence) safeEntry.en.sentence = safeManualRootSentence;
     }
 
     return safeEntry;
@@ -7701,15 +7836,25 @@ function renderAudienceModeNote(mode) {
 const BONUS_CONTENT = {
     jokes: [
         "What do you call cheese that is not yours? Nacho cheese.",
-        "Why did the student bring a ladder to school? To go to high school.",
+        "Why did the student bring a ladder to music class? To reach the high notes.",
         "Why did the math book look worried? It had too many problems.",
-        "What did one pencil say to the other? You are looking sharp.",
+        "Why did the broom miss first period? It swept in.",
+        "What did one pencil say to the other? Write on.",
         "Why did the computer go to class? To improve its byte skills.",
-        "What kind of music do planets like? Neptunes.",
-        "Why did the cookie go to the nurse? It felt crummy.",
         "What did the ocean say to the beach? Nothing, it just waved.",
-        "Why did the broom miss class? It swept in.",
-        "What has four wheels and flies? A garbage truck."
+        "Why did the cookie go to the nurse? It felt crummy.",
+        "Why did the calendar feel proud? Its days were numbered in order.",
+        "What did one plate say to the other plate? Dinner is on me.",
+        "Why did the moon skip breakfast? It was already full.",
+        "What did one wall say to the other wall? I will meet you at the corner.",
+        "Why did the eraser feel calm? It knew mistakes can be fixed.",
+        "Why did the notebook bring a sweater? It had too many drafts.",
+        "Why did the teacher wear sunglasses? The class had bright ideas.",
+        "Why did the crayon stay after school? It wanted to draw better.",
+        "Why did the robot join reading group? It wanted better character development.",
+        "Why was the belt funny at lunch? It held up the whole table.",
+        "Why did the bicycle rest? It was two-tired.",
+        "Why did the ruler win the race? It knew how to measure pace."
     ],
     riddles: [
         "I have keys but no locks and space but no room. What am I? A keyboard.",
@@ -7718,43 +7863,64 @@ const BONUS_CONTENT = {
         "What can travel around the world while staying in one corner? A stamp.",
         "I am full of holes but still hold water. What am I? A sponge.",
         "What has many teeth but cannot bite? A comb.",
-        "What comes down but never goes up? Rain."
+        "What comes down but never goes up? Rain.",
+        "What has one eye but cannot see? A needle.",
+        "What has a neck but no head? A bottle.",
+        "What has pages but is not a tree? A book.",
+        "What can you catch but not throw? A cold.",
+        "What has a face and two hands but no arms? A clock.",
+        "What belongs to you but others use more? Your name.",
+        "What has legs but cannot walk? A table.",
+        "What building has the most stories? A library.",
+        "What goes up and down but stays in one place? Stairs."
     ],
     facts: [
-        "Honey never spoils! Archaeologists have found 3,000-year-old honey that's still edible.",
-        "A group of flamingos is called a 'flamboyance'!",
-        "Octopuses have three hearts and blue blood.",
-        "Bananas are berries, but strawberries aren't!",
-        "Lightning strikes Earth about 100 times every second.",
-        "The shortest war in history lasted only 38 minutes.",
-        "Your brain generates enough electricity to power a small light bulb.",
-        "A cloud can weigh more than a million pounds!",
-        "Butterflies taste with their feet.",
-        "The dot over 'i' and 'j' is called a 'tittle'.",
-        "Koalas sleep up to 20 hours a day.",
+        "Honey can last for a very long time when sealed.",
+        "A group of flamingos is called a flamboyance.",
+        "Octopuses have three hearts.",
+        "Bananas are berries, but strawberries are not.",
+        "Lightning flashes around Earth many times each second.",
+        "Butterflies can taste with their feet.",
+        "Koalas sleep many hours each day.",
         "A day on Venus is longer than a year on Venus.",
-        "Some cats can jump up to six times their body length.",
-        "The heart of a shrimp is in its head.",
-        "Dolphins have names for each other!",
-        "Hot water can freeze faster than cold water (the Mpemba effect).",
-        "Sea otters hold hands while they sleep so they don't drift apart."
+        "Some cats can jump several times their own body length.",
+        "Dolphins use signature sounds like names.",
+        "Sea otters hold hands while they sleep so they stay together.",
+        "Sharks have lived on Earth longer than trees.",
+        "The Eiffel Tower grows a little taller in summer heat.",
+        "The human nose can remember many different smells.",
+        "Some bamboo plants can grow very quickly in one day.",
+        "Owls can turn their heads very far to each side.",
+        "A blue whale heart is about the size of a small car.",
+        "Crows can recognize human faces.",
+        "Rainbows are full circles, but we usually see only part of one.",
+        "A cloud can weigh more than a large truck.",
+        "The dot above i and j is called a tittle.",
+        "Penguins use sounds to find family in a crowd.",
+        "Some turtles can breathe through special body parts underwater.",
+        "Saturn could float in water because it is very low density."
     ],
     quotes: [
-        "The more that you read, the more things you will know. — Dr. Seuss",
-        "Today a reader, tomorrow a leader. — Margaret Fuller",
-        "A person who never made a mistake never tried anything new. — Albert Einstein",
-        "Be yourself; everyone else is already taken. — Oscar Wilde",
-        "In a world where you can be anything, be kind.",
-        "You're braver than you believe, stronger than you seem. — A.A. Milne",
-        "The expert in anything was once a beginner.",
-        "Every mistake is a chance to learn something new.",
-        "Believe you can and you're halfway there. — Theodore Roosevelt",
-        "What you do today can improve all your tomorrows.",
-        "Mistakes are proof that you are trying.",
+        "The more that you read, the more things you will know. - Dr. Seuss",
+        "Today a reader, tomorrow a leader. - Margaret Fuller",
+        "Every expert started as a beginner.",
         "Small steps every day add up to big progress.",
-        "Curiosity is the spark behind every discovery.",
-        "Kind words can make someone's whole day brighter.",
-        "Practice makes progress."
+        "Mistakes are proof that you are trying.",
+        "Curiosity is the spark behind discovery.",
+        "Kind words can brighten someone's whole day.",
+        "Practice makes progress.",
+        "You can do hard things one step at a time.",
+        "Effort grows your skills.",
+        "Learning is a team sport.",
+        "Ask questions. That is how learning starts.",
+        "Progress is built one try at a time.",
+        "Read, think, and keep going.",
+        "Your ideas matter in this classroom.",
+        "Be brave enough to try again.",
+        "Take your time and do your best.",
+        "Success is many small wins added together.",
+        "Kindness and effort are always in style.",
+        "You are capable of learning something new today."
     ]
 };
 
@@ -7763,13 +7929,21 @@ const BONUS_CONTENT_YOUNG = {
         "What do you call a sleeping dinosaur? A dino-snore.",
         "Why did the teddy bear skip dessert? It was stuffed.",
         "What kind of tree fits in your hand? A palm tree.",
-        "Why did the banana go to school? To become a little brighter.",
         "What did one plate say to the other plate? Lunch is on me.",
         "What do you call cheese that is not yours? Nacho cheese.",
         "Why did the pencil smile? It had a bright idea.",
         "What did one wall say to the other wall? I will meet you at the corner.",
         "Why did the broom miss class? It swept in.",
-        "What did the zero say to the eight? Nice belt."
+        "What did the zero say to the eight? Nice belt.",
+        "Why did the crayon laugh? It felt colorful today.",
+        "Why did the clock stay calm? It had time to think.",
+        "Why did the notebook blush? It saw a lot of good writing.",
+        "Why did the snack smile? It was a happy meal.",
+        "What sound do bees make on the playground? Buzzzzz!",
+        "Why did the marker smile? It had a bright cap.",
+        "Why did the backpack sing? It was full of notes.",
+        "Why did the shoe sit down? It was a little tired.",
+        "Why did the apple grin? It had a core of confidence."
     ],
     riddles: [
         "I have a face and two hands, but no arms or legs. What am I? A clock.",
@@ -7779,7 +7953,15 @@ const BONUS_CONTENT_YOUNG = {
         "What has to be broken before you can use it? An egg.",
         "What has four wheels and flies? A garbage truck.",
         "What has one eye but cannot see? A needle.",
-        "What is full of holes but still holds water? A sponge."
+        "What is full of holes but still holds water? A sponge.",
+        "What has pages but is not a tree? A book.",
+        "What has legs but cannot walk? A table.",
+        "What can you hear but not touch? A sound.",
+        "What can run but cannot walk? Water.",
+        "What has stripes and helps measure? A ruler.",
+        "What is easy to lift but hard to throw far? A feather.",
+        "What has a ring but no finger? A phone.",
+        "What gets bigger the more you share it? A smile."
     ],
     facts: [
         "Octopuses have three hearts.",
@@ -7790,7 +7972,15 @@ const BONUS_CONTENT_YOUNG = {
         "Some clouds are heavier than a truck.",
         "Sea otters hold hands while they sleep.",
         "A day on Venus is longer than a year there.",
-        "Sharks have been around longer than trees."
+        "Sharks have been around longer than trees.",
+        "Crows can remember friendly faces.",
+        "Owls can turn their heads very far.",
+        "Bananas are berries.",
+        "A snail can sleep for a long time.",
+        "Some frogs can jump many times their body length.",
+        "Bees dance to show where flowers are.",
+        "The moon has mountains and valleys.",
+        "Kangaroos cannot walk backward easily."
     ],
     quotes: [
         "Small steps every day lead to big progress.",
@@ -7801,7 +7991,15 @@ const BONUS_CONTENT_YOUNG = {
         "Kind words make learning easier.",
         "Readers become leaders.",
         "Try, reflect, and try again.",
-        "Your effort matters every day."
+        "Your effort matters every day.",
+        "Breathe, think, and keep going.",
+        "Learning is an adventure.",
+        "Your voice matters in our class.",
+        "You are a problem-solver.",
+        "Kind choices build strong classrooms.",
+        "Each question helps your brain grow.",
+        "Progress is more important than perfect.",
+        "You can learn one new thing today."
     ]
 };
 
@@ -7909,9 +8107,16 @@ function showBonusContent() {
     const emojiEl = document.getElementById('bonus-emoji');
     const titleEl = document.getElementById('bonus-title');
     const textEl = document.getElementById('bonus-text');
+    const hearBtn = document.getElementById('bonus-hear');
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;
     if (textEl) textEl.textContent = content;
+    if (hearBtn) {
+        hearBtn.disabled = !content;
+        hearBtn.onclick = () => {
+            speakText(`${title} ${content}`, 'sentence');
+        };
+    }
 }
 
 /* ==========================================

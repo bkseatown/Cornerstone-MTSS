@@ -1,13 +1,13 @@
 # Literacy Platform Handoff
 
-Last updated: 2026-02-08
+Last updated: 2026-02-09
 
 ## Project + repo
 - Git root: `/Users/robertwilliamknaus/Desktop/New project`
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
 - Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Latest pushed commit: `09b63711` (`origin/main`)
+- Latest pushed commit: `9fce377c` (`origin/main`)
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
 ## 2026-02-08 latest shipped pass
@@ -23,6 +23,22 @@ Last updated: 2026-02-08
 - Azure exporter improvements:
   - Added locale + default voice support for `ms`, `vi`, `ar`, `ko`, `ja`.
   - Updated `scripts/azure-voice-map.ava-multilingual.example.json` with recommended voices, including a stronger Vietnam voice baseline.
+
+## 2026-02-09 local stabilization pass (not pushed yet)
+- Full reveal-copy safety sweep (all grades):
+  - Added broader trust/safety phrase blocking for reveal text (e.g., inappropriate/body-humor style lines).
+  - Added explicit school-safe overrides for high-friction words (`mouth`, `web`, `solo`, `misfit`, `gnat`, `spider`, `mouse`, `toothbrush`, `soup`, `monster`, `mosquito`, and more).
+  - Young/EAL manual overrides now pass through sanitization (manual text can no longer bypass safety cleanup).
+- Translation audio reliability:
+  - Non-English reveal playback now attempts packed clips by language/type even if displayed translation text was lightly normalized.
+  - Helps prevent silent Tagalog/Hindi/other translated playback when copy punctuation differs.
+- Bonus content quality + quantity:
+  - Curated and expanded jokes/riddles/facts/quotes pools (larger rotation, cleaner school tone).
+  - Added read-aloud control in bonus modal (`Hear This`).
+- Word Quest polish:
+  - Forced compact quick-start overlay detection on `word-quest.html` path.
+  - Increased visual prominence of vowel keys (stronger highlight + indicator dot).
+  - Renamed student-mode exit affordance text to `Adult View` for clarity.
 
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad

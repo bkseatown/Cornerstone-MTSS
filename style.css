@@ -4166,10 +4166,23 @@ main {
 }
 
 .key.vowel:not(.correct):not(.present):not(.absent) { 
-    background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%); 
-    border: 2px solid #5b8ff7; 
+    background: linear-gradient(180deg, #d7ecff 0%, #b7d6ff 100%); 
+    border: 2px solid #3f78e0; 
     color: #0f172a;
-    box-shadow: 0 4px 0 0 #9fb8e8, 0 4px 10px rgba(15, 23, 42, 0.15);
+    box-shadow:
+        0 4px 0 0 #8cb5ee,
+        0 0 0 2px rgba(63, 120, 224, 0.2),
+        0 4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.key.vowel:not(.correct):not(.present):not(.absent)::after {
+    content: "•";
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    font-size: 0.78rem;
+    line-height: 1;
+    color: #1d4ed8;
 }
 
 /* MODALS - Clean, focused */
@@ -4942,6 +4955,17 @@ main {
 .bonus-text {
     font-size: 1.05rem;
     line-height: 1.6;
+}
+
+.bonus-actions {
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.bonus-actions .secondary-btn,
+.bonus-actions .primary-btn {
+    width: 100%;
 }
 
 /* ---------- Teacher modal layout ---------- */

@@ -36,7 +36,7 @@
     },
     butter: {
       def_young: "A soft, creamy spread that can melt on warm food.",
-      sentence_young: "The butter slid on warm toast like it was on a tiny ice rink."
+      sentence_young: "The butter melted on warm toast before breakfast."
     },
     blood: {
       def_young: "A red liquid in your body that carries oxygen where it is needed.",
@@ -53,7 +53,7 @@
     force: {
       en: {
         def_young: "Using strength to push or pull something.",
-        sentence_young: "Maya used force to push the heavy gym door, then did a tiny victory dance."
+        sentence_young: "Maya used force to push the heavy gym door open."
       },
       es: {
         def_young: "Usar fuerza para empujar o jalar algo.",
@@ -110,7 +110,7 @@
     },
     bug: {
       def_young: "A small insect.",
-      sentence_young: "A tiny bug landed on the leaf."
+      sentence_young: "A small bug landed on the leaf."
     },
     globe: {
       en: {
