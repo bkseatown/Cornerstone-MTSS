@@ -4770,13 +4770,8 @@ main {
 }
 
 .key.vowel:not(.correct):not(.present):not(.absent)::after {
-    content: "•";
-    position: absolute;
-    top: 2px;
-    right: 6px;
-    font-size: 0.78rem;
-    line-height: 1;
-    color: #1d4ed8;
+    content: none;
+    display: none;
 }
 
 /* MODALS - Clean, focused */
@@ -14024,15 +14019,8 @@ body.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent) {
 }
 
 body.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::before {
-    content: "";
-    position: absolute;
-    top: 5px;
-    right: 6px;
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: rgba(29, 78, 216, 0.9);
-    box-shadow: 0 0 0 2px rgba(219, 234, 254, 0.92);
+    content: none;
+    display: none;
 }
 
 /* Force-light uses !important in a few places; keep Word Quest contrast consistent. */
@@ -14079,15 +14067,8 @@ body.force-light.word-quest-page .key.vowel:not(.correct):not(.present):not(.abs
 }
 
 body.force-light.word-quest-page .key.vowel:not(.correct):not(.present):not(.absent)::before {
-    content: "";
-    position: absolute;
-    top: 5px;
-    right: 6px;
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: rgba(29, 78, 216, 0.92);
-    box-shadow: 0 0 0 2px rgba(219, 234, 254, 0.95);
+    content: none;
+    display: none;
 }
 
 /* ==========================================================================
@@ -15610,8 +15591,8 @@ body.word-quest-page .quick-custom-word-status {
 @media (min-width: 821px) {
     body.word-quest-page {
         --wq-tile-size-desktop: 58px;
-        --wq-key-size-desktop: 48px;
-        --wq-key-wide-size-desktop: 80px;
+        --wq-key-size-desktop: 52px;
+        --wq-key-wide-size-desktop: 88px;
         --wq-keyboard-max-desktop: 760px;
         --wq-canvas-max-desktop: 980px;
         --wq-desktop-bottom-gap: 20px;
