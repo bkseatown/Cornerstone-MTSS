@@ -5797,7 +5797,7 @@ function updateAdaptiveActions() {
     hearWord.classList.add('hint-primary');
     hearWord.onclick = async () => {
         const played = await speak(word, 'word', { allowSystemFallback: false, stopExistingAudio: true });
-        if (!played) showToast('Packed audio unavailable for this word.');
+        if (!played) showToast('Word audio unavailable (Azure clip not found).');
     };
     
     // Show "Hear sentence" only if sentence exists
@@ -5807,7 +5807,7 @@ function updateAdaptiveActions() {
         hearSentence.classList.add('hint-primary');
         hearSentence.onclick = async () => {
             const played = await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
-            if (!played) showToast('Packed audio unavailable for this sentence.');
+            if (!played) showToast('Sentence audio unavailable (Azure clip not found).');
         };
     } else {
         hearSentence.style.display = 'none';
@@ -6167,14 +6167,6 @@ function estimateSpeechDuration(text, rate = 1) {
     return Math.min(9000, base / normalized);
 }
 
-function autoPlayReveal(definitionText, sentenceText) {
-    if (definitionText || sentenceText) {
-        appSettings.autoHear = false;
-    }
-    // Reveal audio is now fully user-initiated via Hear buttons.
-    return;
-}
-
 function prepareTranslationSection() {
     const languageSelect = document.getElementById("language-select");
     let section = document.querySelector(".translation-selector");
@@ -6346,7 +6338,7 @@ function setupModalAudioControls(definitionText, sentenceText) {
         const played = currentWord
             ? await speak(currentWord, 'word', { allowSystemFallback: false, stopExistingAudio: true })
             : false;
-        if (!played) showToast('Word audio unavailable (packed clip not found).');
+        if (!played) showToast('Word audio unavailable (Azure clip not found).');
     };
     if (!audioControls.contains(speakBtn)) audioControls.appendChild(speakBtn);
 
@@ -6363,7 +6355,7 @@ function setupModalAudioControls(definitionText, sentenceText) {
         const played = definitionText
             ? await speakText(definitionText, 'definition', { allowSystemFallback: false, stopExistingAudio: true })
             : false;
-        if (!played && definitionText) showToast('Definition audio unavailable (packed clip not found).');
+        if (!played && definitionText) showToast('Definition audio unavailable (Azure clip not found).');
     };
     if (!audioControls.contains(defBtn)) audioControls.appendChild(defBtn);
 
@@ -6380,7 +6372,7 @@ function setupModalAudioControls(definitionText, sentenceText) {
         const played = sentenceText
             ? await speak(sentenceText, 'sentence', { allowSystemFallback: false, stopExistingAudio: true })
             : false;
-        if (!played && sentenceText) showToast('Sentence audio unavailable (packed clip not found).');
+        if (!played && sentenceText) showToast('Sentence audio unavailable (Azure clip not found).');
     };
     if (!audioControls.contains(sentenceBtn)) audioControls.appendChild(sentenceBtn);
 
@@ -6481,6 +6473,13 @@ function setupModalAudioControls(definitionText, sentenceText) {
 }
 
 function showEndModal(win) {
+    // Always hard-stop any in-flight speech/audio before opening reveal.
+    // This prevents overlap from diagnostics, prior prompts, or queued utterances.
+    stopAllActiveAudioPlayers();
+    cancelPendingSpeech(true);
+    voiceHealthCheckToken += 1;
+    voiceHealthCheckInProgress = false;
+
     // Track progress
     trackProgress(currentWord, win, guesses.length);
     try {
@@ -6751,8 +6750,6 @@ function showEndModal(win) {
     
     // Store that we should show bonus when modal closes
     sessionStorage.setItem('showBonusOnClose', 'true');
-
-    autoPlayReveal(def, sentence);
 }
 
 function openTeacherMode() {
@@ -8569,7 +8566,7 @@ function showBonusContent() {
         hearBtn.disabled = !content;
         hearBtn.onclick = async () => {
             const played = await speakText(`${title} ${content}`, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
-            if (!played) showToast('Bonus audio unavailable (packed clip not found).');
+            if (!played) showToast('Bonus audio unavailable (Azure clip not found).');
         };
     }
 }
