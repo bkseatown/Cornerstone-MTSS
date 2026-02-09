@@ -1,53 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-09T04:58:27.121Z",
+  "updatedAt": "2026-02-09T05:52:30.559Z",
   "packs": [
-    {
-      "id": "guy-en-us",
-      "name": "Guy English US",
-      "manifestPath": "audio/tts/packs/guy-en-us/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Guy English US).",
-      "generatedAt": "2026-02-08T12:54:51.895Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "word",
-        "def",
-        "sentence",
-        "passage"
-      ],
-      "voices": {
-        "en": "en-US-GuyNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural"
-      }
-    },
-    {
-      "id": "sonia-en-gb",
-      "name": "Sonia British English",
-      "manifestPath": "audio/tts/packs/sonia-en-gb/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Sonia British English).",
-      "generatedAt": "2026-02-08T12:54:51.895Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "word",
-        "def",
-        "sentence",
-        "passage"
-      ],
-      "voices": {
-        "en": "en-GB-SoniaNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural"
-      }
-    },
     {
       "id": "ryan-en-gb",
       "name": "Ryan British English",
@@ -112,6 +66,58 @@
       ],
       "voices": {
         "en": "en-US-EmmaNeural",
+        "es": "es-ES-ElviraNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "guy-en-us",
+      "name": "Guy English US",
+      "manifestPath": "audio/tts/packs/guy-en-us/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Guy English US).",
+      "generatedAt": "2026-02-09T05:18:12.389Z",
+      "languages": [
+        "en"
+      ],
+      "fields": [
+        "def",
+        "sentence"
+      ],
+      "voices": {
+        "en": "en-US-GuyNeural",
+        "es": "es-ES-ElviraNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "sonia-en-gb",
+      "name": "Sonia British English",
+      "manifestPath": "audio/tts/packs/sonia-en-gb/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (Sonia British English).",
+      "generatedAt": "2026-02-09T05:52:30.559Z",
+      "languages": [
+        "en"
+      ],
+      "fields": [
+        "def",
+        "sentence"
+      ],
+      "voices": {
+        "en": "en-GB-SoniaNeural",
         "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
