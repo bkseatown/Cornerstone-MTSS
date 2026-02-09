@@ -131,6 +131,7 @@ const PACKED_TTS_BASE_PATH = resolvePackedTtsBasePath();
 const PACKED_TTS_DEFAULT_MANIFEST_PATH = `${PACKED_TTS_BASE_PATH}/tts-manifest.json`;
 const PACKED_TTS_PACK_REGISTRY_PATH = `${PACKED_TTS_BASE_PATH}/packs/pack-registry.json`;
 const ENFORCE_NATURAL_ONLY_VOICE = true;
+const ENFORCE_PACKED_TTS_ONLY = true;
 const packedTtsManifestCacheByPath = new Map();
 const packedTtsManifestPromiseByPath = new Map();
 let packedTtsPackRegistryCache = null;
@@ -312,6 +313,11 @@ function normalizeGuessCount(value) {
 
 function normalizeCustomWordInput(value) {
     return String(value || '').trim().toLowerCase();
+}
+
+function isSystemSpeechFallbackAllowed(options = {}) {
+    if (ENFORCE_PACKED_TTS_ONLY) return false;
+    return options?.allowSystemFallback !== false;
 }
 
 function isBlockedCustomWord(value) {
@@ -2944,7 +2950,7 @@ async function speak(text, type = "word", options = {}) {
     });
     if (packedPlayed) return true;
 
-    const allowSystemFallback = options.allowSystemFallback !== false;
+    const allowSystemFallback = isSystemSpeechFallbackAllowed(options);
     if (!allowSystemFallback) return false;
 
     // 2. Fallback to System Voice
@@ -3386,7 +3392,7 @@ async function playTextInLanguage(text, languageCode, type = 'sentence', options
         setTranslationAudioNote('');
         return true;
     }
-    if (options.allowSystemFallback === false) {
+    if (!isSystemSpeechFallbackAllowed(options)) {
         setTranslationAudioNote('Audio unavailable for this language.', true);
         return false;
     }
@@ -8503,6 +8509,9 @@ function shouldShowBonusContent() {
 }
 
 function showBonusContent() {
+    stopAllActiveAudioPlayers();
+    cancelPendingSpeech(true);
+
     const pool = getBonusContentPool();
     if (!pool) return;
 
@@ -8754,7 +8763,7 @@ function initNewFeatures() {
     }
     
     // Phoneme card clicks - respect voice source selection
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         const card = e.target.closest('.phoneme-card');
         if (card) {
             const sound = card.dataset.sound;
@@ -8764,18 +8773,20 @@ function initNewFeatures() {
             const voiceSource = document.querySelector('input[name="guide-voice-source"]:checked')?.value;
             
             if (voiceSource === 'system') {
-                // Force system voice - bypass any recordings
-                speakWithSystemVoice(example);
-            } else {
-                // Use recorded voice if available, fallback to system
-                speak(example, 'word');
+                showToast('System voice fallback is off for student safety.');
             }
+            const played = await speak(example, 'word', { allowSystemFallback: false, stopExistingAudio: true });
+            if (!played) showToast('Example audio unavailable (Azure clip not found).');
         }
     });
 }
 
 // Force system voice (ignore recordings)
 async function speakWithSystemVoice(text) {
+    if (ENFORCE_PACKED_TTS_ONLY) {
+        showToast('System voice fallback is off for this activity.');
+        return false;
+    }
     if (!('speechSynthesis' in window)) return;
 
     const voices = await getVoicesForSpeech();
@@ -9693,6 +9704,7 @@ function bindDecodableAudioFollowAlong(token, audio) {
 }
 
 async function speakDecodableTextWithFollowAlong(text, title, speed = 1, existingToken = null) {
+    if (ENFORCE_PACKED_TTS_ONLY) return false;
     if (!('speechSynthesis' in window)) return false;
     const normalized = normalizeTextForTTS(text);
     if (!normalized) return false;
@@ -9845,7 +9857,8 @@ async function readDecodableText(title) {
         return;
     }
 
-    await speakDecodableTextWithFollowAlong(text.content, text.title, speed, token);
+    showToast('Passage audio unavailable (Azure clip not found).');
+    stopDecodableFollowAlong({ clearHighlights: false });
 }
 
 // Open progress modal
@@ -11427,7 +11440,7 @@ async function speakText(text, rateType = 'word', options = {}) {
     });
     if (packedPlayed) return true;
 
-    if (options.allowSystemFallback === false) {
+    if (!isSystemSpeechFallbackAllowed(options)) {
         return false;
     }
 

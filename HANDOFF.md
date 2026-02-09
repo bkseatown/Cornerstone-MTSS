@@ -334,6 +334,26 @@ git push origin main
 - Existing helper script `/tmp/home_flow_check.js` currently fails because it does not select a required student grade-band button before moving from Step 2; this is a script assumption mismatch, not a new runtime JS syntax failure.
 - Large in-progress TTS outputs under `literacy-platform/audio/tts/packs/ava-multi/*` remain uncommitted in this slice by design.
 
+## 2026-02-09 packed-audio-only stability slice
+### What changed
+- `literacy-platform/app.js`
+  - Added `ENFORCE_PACKED_TTS_ONLY` guard and centralized `isSystemSpeechFallbackAllowed(options)` helper.
+  - Locked `speak`, `speakText`, and `playTextInLanguage` to packed clips only (no system/browser speech fallback).
+  - Decodable passage read flow now shows a clear toast when no packed clip exists instead of dropping to browser TTS.
+  - Bonus modal now force-stops active audio/speech before opening to prevent overlap.
+  - Phoneme-card click handling now always uses packed-only playback and shows a safety toast if "system voice" is selected.
+  - `speakWithSystemVoice` now short-circuits under packed-only mode.
+
+### Validated
+- `node --check literacy-platform/app.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/voice_quick_check.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/translation_runtime_check.js`
+
+### User-impact note
+- Reveal and bonus read-aloud remain manual-only.
+- If a packed Azure clip is missing, app now stays silent (with clear unavailable messaging) instead of using robotic system speech.
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
