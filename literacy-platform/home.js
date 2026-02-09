@@ -7,6 +7,14 @@
   const HOME_LANGUAGE_PREF_KEY = 'cornerstone_home_language_pref_v1';
   const HOME_VOICE_DIALECT_PREF_KEY = 'cornerstone_home_voice_dialect_pref_v1';
   const HOME_VOICE_PACK_PREF_KEY = 'cornerstone_home_voice_pack_pref_v1';
+  const HOME_DEFAULT_TTS_PACK_ID = 'ava-multi';
+  const HOME_FALLBACK_PACKS = Object.freeze([
+    { id: 'ava-multi', name: 'Ava Multilingual', dialect: 'en-US' },
+    { id: 'emma-en', name: 'Emma English', dialect: 'en-US' },
+    { id: 'guy-en-us', name: 'Guy English US', dialect: 'en-US' },
+    { id: 'sonia-en-gb', name: 'Sonia British English', dialect: 'en-GB' },
+    { id: 'ryan-en-gb', name: 'Ryan British English', dialect: 'en-GB' }
+  ]);
   const TTS_BASE_PREF_KEY = 'decode_tts_base_path_v1';
   const TTS_BASE_PLAIN = 'audio/tts';
   const TTS_BASE_SCOPED = 'literacy-platform/audio/tts';
@@ -298,13 +306,13 @@
     if (!homeStepSummaries) return;
     const summaries = [];
     if (activeStep > 1) {
-      summaries.push({ step: 1, label: 'Role', value: summarizeRoleSelection() });
+      summaries.push({ step: 1, label: 'Started with', value: summarizeRoleSelection() });
     }
     if (activeStep > 2) {
-      summaries.push({ step: 2, label: 'Who you are', value: summarizeWhoYouAre() });
+      summaries.push({ step: 2, label: 'Chosen pathway', value: summarizeWhoYouAre() });
     }
     if (activeStep > 3) {
-      summaries.push({ step: 3, label: 'Focus', value: summarizeFocusSelection() });
+      summaries.push({ step: 3, label: "Today's help", value: summarizeFocusSelection() });
     }
     if (!summaries.length) {
       homeStepSummaries.classList.add('hidden');
@@ -323,22 +331,21 @@
 
   function hasRoleSelection(state) {
     const role = normalizeHomeEntryGroup(state?.role || '');
-    if (!role) return false;
-    if (role !== 'school') return true;
-    return !!normalizeRoleId(state?.subrole || '');
+    return !!role;
   }
 
   function hasWhoDetails(state) {
     const role = normalizeHomeEntryGroup(state?.role || '');
-    const name = String(state?.learnerName || '').trim();
-    if (role === 'student') return !!name;
-    if (role === 'parent') return !!name;
-    if (role === 'school') return !!normalizeSchoolDivision(state?.gradeBand || '');
+    if (role === 'student') return !!normalizeFocusToday(state?.focus || '');
+    if (role === 'school') return !!normalizeRoleId(state?.subrole || '');
+    if (role === 'parent') return false;
     return false;
   }
 
   function hasFocusSelection(state) {
-    return !!normalizeFocusToday(state?.focus || '');
+    const role = normalizeHomeEntryGroup(state?.role || '');
+    if (!role) return false;
+    return true;
   }
 
   function maxUnlockedWizardStep(state = readHomeState()) {
@@ -349,10 +356,10 @@
   }
 
   function wizardStepSummary(step) {
-    if (step === 1) return 'Step 1 of 4: Choose who is using Cornerstone.';
-    if (step === 2) return 'Step 2 of 4: Add who is being supported today.';
-    if (step === 3) return 'Step 3 of 4: Pick your focus for this session.';
-    return 'Step 4 of 4: Run Quick Check to unlock your next step.';
+    if (step === 1) return 'Choose one option to begin.';
+    if (step === 2) return 'Answer this one question to personalize the start.';
+    if (step === 3) return 'Confirm the short starter check.';
+    return 'Start when you are ready.';
   }
 
   function applyWizardPanels(activeStep = 1) {
@@ -416,6 +423,8 @@
   function applyHomeEntryGroup(group, options = {}) {
     const normalizedGroup = normalizeHomeEntryGroup(group);
     const shouldPersist = !!options.persist;
+    const currentState = readHomeState();
+    const roleChanged = normalizedGroup !== normalizeHomeEntryGroup(currentState.role || '');
 
     homeEntryGroupButtons.forEach((button) => {
       const buttonGroup = normalizeHomeEntryGroup(button.dataset.entryGroup || '');
@@ -455,6 +464,13 @@
     if (shouldPersist) {
       const nextPatch = { role: normalizedGroup };
       if (normalizedGroup !== 'school') nextPatch.subrole = '';
+      if (roleChanged) {
+        nextPatch.focus = '';
+        nextPatch.learnerName = '';
+        nextPatch.gradeBand = '';
+        nextPatch.parentGoal = '';
+        nextPatch.schoolPrimaryArea = '';
+      }
       writeHomeState(nextPatch);
     }
     return normalizedGroup;
@@ -536,6 +552,12 @@
     return cleaned || 'default';
   }
 
+  function detectPackDialect(pack = null) {
+    const voiceCode = String(pack?.voices?.en || '').trim().toLowerCase();
+    if (voiceCode.startsWith('en-gb-')) return 'en-GB';
+    return 'en-US';
+  }
+
   function normalizeTtsBasePath(value) {
     const normalized = String(value || '').trim().replace(/^\/+|\/+$/g, '');
     if (normalized === TTS_BASE_PLAIN || normalized === TTS_BASE_SCOPED) {
@@ -613,7 +635,7 @@
     homeQuickVoiceNote.textContent = `${dialectLabel} narration is set as your default classroom voice.`;
   }
 
-  async function loadQuickVoicePackOptions(selectedPackId = 'default') {
+  async function loadQuickVoicePackOptions(selectedPackId = HOME_DEFAULT_TTS_PACK_ID, selectedDialect = '') {
     if (!homeQuickVoicePackSelect) return 'default';
 
     const candidates = getTtsBasePathCandidates().map((base) => `${base}/packs/pack-registry.json`);
@@ -630,30 +652,57 @@
             .filter((pack) => pack && typeof pack === 'object')
             .map((pack) => ({
               id: normalizeVoicePackId(pack.id),
-              name: String(pack.name || pack.id || '').trim() || 'Voice Pack'
+              name: String(pack.name || pack.id || '').trim() || 'Voice Pack',
+              dialect: detectPackDialect(pack)
             }))
-            .filter((pack) => pack.id && pack.id !== 'default');
+            .filter((pack) => pack.id && pack.id !== 'default' && (pack.dialect === 'en-US' || pack.dialect === 'en-GB'));
           break;
         }
       } catch {}
     }
+    if (!packs.length) {
+      packs = HOME_FALLBACK_PACKS.map((pack) => ({ ...pack }));
+    }
+
+    const normalizedDialect = normalizeVoiceDialect(selectedDialect || homeQuickVoiceDialectSelect?.value || 'en-US');
+    const scopedPacks = packs.filter((pack) => pack.dialect === normalizedDialect);
+    const activePacks = (scopedPacks.length ? scopedPacks : packs)
+      .slice()
+      .sort((a, b) => {
+        const score = (pack) => {
+          let points = 0;
+          if (pack.id === HOME_DEFAULT_TTS_PACK_ID) points += 200;
+          if (pack.dialect === normalizedDialect) points += 40;
+          return points;
+        };
+        const delta = score(b) - score(a);
+        if (delta !== 0) return delta;
+        return a.name.localeCompare(b.name);
+      });
 
     homeQuickVoicePackSelect.innerHTML = '';
-    const defaultOption = document.createElement('option');
-    defaultOption.value = 'default';
-    defaultOption.textContent = 'Default voice pack';
-    homeQuickVoicePackSelect.appendChild(defaultOption);
-
-    packs.forEach((pack) => {
+    activePacks.forEach((pack) => {
       const option = document.createElement('option');
       option.value = pack.id;
       option.textContent = pack.name;
       homeQuickVoicePackSelect.appendChild(option);
     });
 
-    const normalizedSelected = normalizeVoicePackId(selectedPackId);
-    const hasSelected = Array.from(homeQuickVoicePackSelect.options).some((opt) => opt.value === normalizedSelected);
-    homeQuickVoicePackSelect.value = hasSelected ? normalizedSelected : 'default';
+    if (!activePacks.length) {
+      const fallbackOption = document.createElement('option');
+      fallbackOption.value = 'default';
+      fallbackOption.textContent = 'Default voice pack';
+      homeQuickVoicePackSelect.appendChild(fallbackOption);
+      homeQuickVoicePackSelect.value = 'default';
+      return homeQuickVoicePackSelect.value;
+    }
+
+    const normalizedSelected = normalizeVoicePackId(selectedPackId || HOME_DEFAULT_TTS_PACK_ID);
+    const hasSelected = activePacks.some((opt) => opt.id === normalizedSelected);
+    const fallbackPackId = activePacks.some((pack) => pack.id === HOME_DEFAULT_TTS_PACK_ID)
+      ? HOME_DEFAULT_TTS_PACK_ID
+      : activePacks[0].id;
+    homeQuickVoicePackSelect.value = hasSelected ? normalizedSelected : fallbackPackId;
     return homeQuickVoicePackSelect.value;
   }
 
@@ -669,7 +718,8 @@
     settings.translation.lang = selectedLanguage;
     settings.translation.pinned = selectedLanguage !== 'en';
     settings.voiceDialect = normalizeVoiceDialect(settings.voiceDialect || localStorage.getItem(HOME_VOICE_DIALECT_PREF_KEY) || 'en-US');
-    settings.ttsPackId = normalizeVoicePackId(settings.ttsPackId || localStorage.getItem(HOME_VOICE_PACK_PREF_KEY) || 'default');
+    const rawPackPreference = normalizeVoicePackId(settings.ttsPackId || localStorage.getItem(HOME_VOICE_PACK_PREF_KEY) || HOME_DEFAULT_TTS_PACK_ID);
+    settings.ttsPackId = rawPackPreference === 'default' ? HOME_DEFAULT_TTS_PACK_ID : rawPackPreference;
 
     if (homeQuickLanguageSelect) {
       homeQuickLanguageSelect.value = selectedLanguage;
@@ -698,18 +748,21 @@
 
     if (homeQuickVoiceDialectSelect) {
       homeQuickVoiceDialectSelect.value = normalizeVoiceDialect(settings.voiceDialect || 'en-US');
-      homeQuickVoiceDialectSelect.addEventListener('change', () => {
+      homeQuickVoiceDialectSelect.addEventListener('change', async () => {
         const nextDialect = normalizeVoiceDialect(homeQuickVoiceDialectSelect.value);
         const latest = readDecodeSettings();
         latest.voiceDialect = nextDialect;
+        const nextPackId = await loadQuickVoicePackOptions(latest.ttsPackId || HOME_DEFAULT_TTS_PACK_ID, nextDialect);
+        latest.ttsPackId = normalizeVoicePackId(nextPackId || HOME_DEFAULT_TTS_PACK_ID);
         localStorage.setItem(HOME_VOICE_DIALECT_PREF_KEY, nextDialect);
+        localStorage.setItem(HOME_VOICE_PACK_PREF_KEY, latest.ttsPackId);
         writeDecodeSettings(latest);
         updateQuickVoiceNote(nextDialect, homeQuickVoicePackSelect?.selectedOptions?.[0]?.textContent || '');
       });
     }
 
     if (homeQuickVoicePackSelect) {
-      loadQuickVoicePackOptions(settings.ttsPackId).then((resolvedPackId) => {
+      loadQuickVoicePackOptions(settings.ttsPackId, settings.voiceDialect).then((resolvedPackId) => {
         const selectedPackId = normalizeVoicePackId(resolvedPackId);
         const latest = readDecodeSettings();
         latest.ttsPackId = selectedPackId;
@@ -1515,7 +1568,7 @@
     });
 
     if (homeRoleLaunchBtn) {
-      homeRoleLaunchBtn.textContent = 'Start Quick Check';
+      homeRoleLaunchBtn.textContent = 'Start Starter Check';
       homeRoleLaunchBtn.setAttribute('data-role-target', normalizedRole);
     }
   }
@@ -2288,7 +2341,7 @@
   }
 
   function setQuickCheckButtonState(inProgress) {
-    calcBtn.textContent = inProgress ? 'Restart Quick Check' : 'Start Quick Check';
+    calcBtn.textContent = inProgress ? 'Restart Starter Check' : 'Start Starter Check';
   }
 
   function setFocusButtons(value, options = {}) {
@@ -2491,11 +2544,13 @@
     const recommendation = payload?.recommendation || null;
     if (!completed) {
       homePostCheckCard.classList.add('hidden');
-      homePostCheckTitle.textContent = 'Next best step';
+      homePostCheckTitle.textContent = 'Your Starting Path';
       homePostCheckBullets.innerHTML = '';
       homePostCheckLaunch.href = '#activities-grid';
-      homePostCheckLaunch.textContent = 'Continue Recommended Path';
+      homePostCheckLaunch.textContent = 'Start Recommended Path';
       if (homePostCheckConfidence) homePostCheckConfidence.textContent = 'Good start';
+      if (homePostCheckExplore) homePostCheckExplore.textContent = 'Try another area';
+      if (homePostCheckRerun) homePostCheckRerun.textContent = 'Run Starter Check Again';
       return;
     }
 
@@ -2515,20 +2570,24 @@
     }
 
     homePostCheckCard.classList.remove('hidden');
-    homePostCheckTitle.textContent = recommendation ? 'Next best step' : 'Choose your next step';
+    homePostCheckTitle.textContent = recommendation ? 'Your Starting Path' : 'Choose your starting path';
     homePostCheckBullets.innerHTML = bullets.slice(0, 4).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
     if (homePostCheckConfidence) {
       homePostCheckConfidence.textContent = confidenceLabelFromSummary(payload);
     }
     if (recommendation) {
       homePostCheckLaunch.href = String(recommendation.activityHref || '#activities-grid');
-      homePostCheckLaunch.textContent = 'Continue Recommended Path';
+      homePostCheckLaunch.textContent = recommendation.ctaLabel || 'Start Recommended Path';
     } else {
       homePostCheckLaunch.href = '#activities-grid';
       homePostCheckLaunch.textContent = 'Choose a starter activity';
     }
     if (homePostCheckExplore) {
       homePostCheckExplore.href = '#activities-grid';
+      homePostCheckExplore.textContent = 'Try another area';
+    }
+    if (homePostCheckRerun) {
+      homePostCheckRerun.textContent = 'Run Starter Check Again';
     }
   }
 
@@ -2564,7 +2623,7 @@
     const rec = payload?.recommendation || null;
     if (!rec) {
       result.classList.remove('hidden');
-      result.innerHTML = '<div class="placement-result-title">Quick Check complete</div><div class="muted">No recommendation generated. Please run it again.</div>';
+      result.innerHTML = '<div class="placement-result-title">Starter check complete</div><div class="muted">No starting path generated yet. Please run it again.</div>';
       return;
     }
     const literacySummary = payload?.domains?.literacy;
@@ -2580,7 +2639,7 @@
 
     result.classList.remove('hidden');
     result.innerHTML = `
-      <div class="placement-result-title">You are ready to start here</div>
+      <div class="placement-result-title">Your Starting Path</div>
       <div class="placement-result-main">${kidLead}</div>
       <div class="muted" style="margin-top:6px;"><strong>${escapeHtml(rec.activityLabel || 'Recommended activity')}</strong>: ${escapeHtml(rec.headline || '')}</div>
       ${rec.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(rec.notes)}</div>` : ''}
@@ -2602,7 +2661,7 @@
     if (!data || !data.recommendation) {
       summary.innerHTML = `
         <div class="home-mini-title">Current recommendation</div>
-        <div class="muted">Not set yet. Run Quick Check to get a starting path.</div>
+        <div class="muted">Not set yet. Run Starter Check to get a starting path.</div>
       `;
       if (openWordQuest) openWordQuest.href = '#activities-grid';
       renderHomePostCheckCard(null, false);
@@ -2645,22 +2704,25 @@
     const focusLabel = focusToday === 'numeracy'
       ? 'Math & Numbers'
       : focusToday === 'both'
-        ? 'Reading & Words + Math & Numbers'
+        ? 'Not sure yet (mixed check)'
         : 'Reading & Words';
     const nameLine = group === 'student' && studentName
       ? `<div class="quickcheck-inline-note">Learner: <strong>${escapeHtml(studentName)}</strong>${gradeBand ? ` (${escapeHtml(gradeBand)})` : ''}</div>`
       : '';
     if (placementSubtitle) {
       placementSubtitle.textContent = group === 'student'
-        ? 'A short adaptive check to find the best starting point.'
-        : 'A quick check to set a clear first step for this pathway.';
+        ? 'Literacy Starter Check or Numeracy Starter Check will set your starting path.'
+        : 'A short starter check sets a clear first step for your school team pathway.';
     }
+    const selectionLine = group === 'student'
+      ? `You chose <strong>${escapeHtml(focusLabel)}</strong>.`
+      : `You chose <strong>${escapeHtml(roleLabel)}</strong>.`;
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-title">Ready to run Quick Check?</div>
-        <p class="quickcheck-copy">Role: <strong>${escapeHtml(roleLabel)}</strong> · Focus: <strong>${escapeHtml(focusLabel)}</strong>.</p>
+        <div class="quickcheck-title">Ready for a 5-8 minute starter check?</div>
+        <p class="quickcheck-copy">${selectionLine}</p>
         ${nameLine}
-        <p class="quickcheck-copy">You will answer short items with strategy choices, then get a recommended next step.</p>
+        <p class="quickcheck-copy">You will answer short items, then get one clear starting path.</p>
       </div>
     `;
     result.classList.add('hidden');
@@ -2682,7 +2744,7 @@
       renderSummary(payload);
       quickCheckStage.innerHTML = `
         <div class="quickcheck-card quickcheck-complete">
-          <div class="quickcheck-progress">Quick Check complete</div>
+          <div class="quickcheck-progress">Starter check complete</div>
           <div class="quickcheck-title">Your recommended next step is ready below.</div>
           <p class="quickcheck-copy">Use Start Recommended Path to begin, or restart this check any time.</p>
         </div>
@@ -2693,7 +2755,7 @@
     session.currentQuestion = question;
     const index = Number(session.counts[domain] || 0) + 1;
     const total = session.maxQuestionsPerDomain;
-    const progressLabel = domain === 'literacy' ? 'Literacy Quick Check' : 'Numeracy Quick Check';
+    const progressLabel = domain === 'literacy' ? 'Literacy Starter Check' : 'Numeracy Starter Check';
     const selectedIndex = reviewPending ? Number(session.pendingAnswer?.selectedIndex) : Number.NaN;
     const hasAudioPrompt = !!String(question.audioPrompt || '').trim();
     const promptHint = hasAudioPrompt ? 'Listen first, then pick one answer.' : 'Pick one answer.';
@@ -2881,29 +2943,19 @@
   function canAdvanceRoleStep() {
     const group = readHomeEntryGroup();
     if (!group) {
-      if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a role to continue.';
+      if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Choose Student or School Team Member to continue.';
       return false;
     }
-    if (group === 'school') {
-      const subrole = normalizeRoleId(homeTeamRoleSelect?.value || '');
-      if (!subrole) {
-        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a School Team role to continue.';
-        homeTeamRoleSelect?.focus();
-        return false;
-      }
-      writeHomeState({ role: 'school', subrole });
-      return true;
-    }
     writeHomeState({ role: group, subrole: '' });
+    if (homeRolePreviewEl) {
+      homeRolePreviewEl.textContent = group === 'student'
+        ? 'What do you want help with today?'
+        : 'What best describes your work?';
+    }
     return true;
   }
 
   function canAdvanceFocusStep() {
-    const focus = readFocusToday();
-    if (!focus) {
-      if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 3 of 4: choose a focus before continuing.';
-      return false;
-    }
     return true;
   }
 
@@ -2912,9 +2964,7 @@
     const maxStep = maxUnlockedWizardStep(readHomeState());
     if (targetStep > maxStep) {
       if (homeRolePreviewEl) {
-        homeRolePreviewEl.textContent = targetStep === 4
-          ? 'Finish Steps 1-3 before starting Quick Check.'
-          : `Complete Step ${targetStep - 1} first.`;
+        homeRolePreviewEl.textContent = 'Answer this question first.';
       }
       return;
     }
@@ -2924,44 +2974,33 @@
   function canAdvanceDetailsStep() {
     const group = readHomeEntryGroup();
     if (group === 'student') {
-      const studentName = String(homeStudentNameInput?.value || '').trim();
-      if (!studentName) {
-        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: add a student name before continuing.';
-        homeStudentNameInput?.focus();
-        return false;
-      }
-      writeHomeState({ learnerName: studentName });
-      return true;
-    }
-    if (group === 'parent') {
-      const parentName = String(homeParentNameInput?.value || '').trim();
-      if (!parentName) {
-        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: add your first name before continuing.';
-        homeParentNameInput?.focus();
+      const focus = readFocusToday();
+      if (!focus) {
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Choose Reading, Math, or Not sure yet.';
         return false;
       }
       writeHomeState({
-        learnerName: parentName,
-        gradeBand: normalizeGradeBand(homeParentGradeBandSelect?.value || ''),
-        parentGoal: String(homeParentGoalSelect?.value || '').trim().toLowerCase()
+        role: 'student',
+        subrole: '',
+        focus
       });
       return true;
     }
     if (group === 'school') {
-      const division = normalizeSchoolDivision(homeSchoolDivisionSelect?.value || '');
-      if (!division) {
-        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 2 of 4: choose division focus (ES, MS, or HS).';
-        homeSchoolDivisionSelect?.focus();
+      const subrole = normalizeRoleId(homeTeamRoleSelect?.value || '');
+      if (!subrole) {
+        if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Choose what best describes your work before continuing.';
+        homeTeamRoleSelect?.focus();
         return false;
       }
       writeHomeState({
-        learnerName: String(homeSchoolNameInput?.value || '').trim(),
-        gradeBand: division,
-        schoolPrimaryArea: String(homeSchoolAreaSelect?.value || '').trim().toLowerCase()
+        role: 'school',
+        subrole,
+        focus: 'both'
       });
       return true;
     }
-    if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Step 1 of 4: choose a role before continuing.';
+    if (homeRolePreviewEl) homeRolePreviewEl.textContent = 'Choose Student or School Team Member before continuing.';
     return false;
   }
 

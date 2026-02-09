@@ -165,7 +165,7 @@ const DEFAULT_SETTINGS = {
     voiceDialect: 'en-US',
     narrationStyle: 'expressive', // expressive | neutral
     speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
-    ttsPackId: 'default',
+    ttsPackId: 'ava-multi',
     voiceUri: '',
     audienceMode: 'auto', // auto | general | young-eal
     autoHear: true,
@@ -252,6 +252,38 @@ const CUSTOM_WORD_BLOCK_PATTERNS = [
     /\bkike\b/i,
     /\bwetback\b/i
 ];
+const CLASS_SAFE_BLOCKED_WORD_PATTERNS = [
+    /^ass$/i,
+    /^asses$/i,
+    /^asshole(?:s)?$/i,
+    /^anal$/i,
+    /^anus$/i,
+    /^cum(?:s|ming)?$/i,
+    /^sex(?:y)?$/i,
+    /^porn$/i,
+    /^nude$/i,
+    /^xxx$/i,
+    /^slut$/i,
+    /^whore$/i,
+    /^fetish$/i,
+    /^nsfw$/i,
+    /^fuck(?:ed|er|ers|ing)?$/i,
+    /^shit(?:s|ty|ting)?$/i,
+    /^bitch(?:es|y)?$/i,
+    /^cunt(?:s)?$/i,
+    /^dick(?:s)?$/i,
+    /^cock(?:s)?$/i,
+    /^pussy$/i,
+    /^penis(?:es)?$/i,
+    /^vagina(?:s)?$/i,
+    /^nigg(?:a|er|ers|as)$/i,
+    /^fag(?:got|gots)?$/i,
+    /^retard(?:ed|s)?$/i,
+    /^chink(?:s)?$/i,
+    /^spic(?:s)?$/i,
+    /^kike(?:s)?$/i,
+    /^wetback(?:s)?$/i
+];
 let kidSafeWordEntriesCache = null;
 let kidSafeWordEntriesSourceSize = -1;
 let kidSafeWordEntriesOverrideSize = -1;
@@ -314,7 +346,14 @@ function normalizeCustomWordInput(value) {
 function isBlockedCustomWord(value) {
     const normalized = normalizeCustomWordInput(value);
     if (!normalized) return false;
-    return CUSTOM_WORD_BLOCK_PATTERNS.some((pattern) => pattern.test(normalized));
+    return isBlockedClassSafeWord(normalized)
+        || CUSTOM_WORD_BLOCK_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+function isBlockedClassSafeWord(value) {
+    const normalized = normalizeCustomWordInput(value);
+    if (!normalized) return false;
+    return CLASS_SAFE_BLOCKED_WORD_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 function validateCustomWordValue(value) {
@@ -1060,8 +1099,11 @@ async function resolvePackedTtsManifestInfo(packId = '') {
     const registry = await loadPackedTtsPackRegistry();
     const pack = registry?.packMap?.[selectedPackId];
     if (pack?.manifestPath) return pack;
-    if (appSettings.ttsPackId !== 'default') {
-        appSettings.ttsPackId = 'default';
+    const preferredFallbackPackId = registry?.packMap?.[DEFAULT_SETTINGS.ttsPackId]
+        ? DEFAULT_SETTINGS.ttsPackId
+        : 'default';
+    if (appSettings.ttsPackId !== preferredFallbackPackId) {
+        appSettings.ttsPackId = preferredFallbackPackId;
         saveSettings();
     }
     return getDefaultTtsPackOption();
@@ -1681,7 +1723,8 @@ function loadSettings() {
         appSettings.audienceMode = normalizeAudienceMode(appSettings.audienceMode || DEFAULT_SETTINGS.audienceMode);
         appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
-        appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 
@@ -1705,7 +1748,8 @@ function saveSettings() {
     appSettings.audienceMode = normalizeAudienceMode(appSettings.audienceMode || DEFAULT_SETTINGS.audienceMode);
     appSettings.narrationStyle = normalizeNarrationStyle(appSettings.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
-    appSettings.ttsPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
@@ -1737,7 +1781,8 @@ function getSpeechQualityMode() {
 }
 
 function getPreferredTtsPackId() {
-    return normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+    return normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
 }
 
 function shouldAttemptPackedTtsLookup() {
@@ -4143,7 +4188,8 @@ async function importPlatformSettingsFromFile(file) {
         merged.audienceMode = normalizeAudienceMode(merged.audienceMode || DEFAULT_SETTINGS.audienceMode);
         merged.narrationStyle = normalizeNarrationStyle(merged.narrationStyle || DEFAULT_SETTINGS.narrationStyle);
         merged.speechQualityMode = normalizeSpeechQualityMode(merged.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
-        merged.ttsPackId = normalizeTtsPackId(merged.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        const mergedPackId = normalizeTtsPackId(merged.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        merged.ttsPackId = mergedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : mergedPackId;
         merged.guessCount = normalizeGuessCount(merged.guessCount ?? DEFAULT_SETTINGS.guessCount);
 
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
@@ -4667,8 +4713,11 @@ async function populateTtsPackSelect({ forceRefresh = false } = {}) {
         if (hasSelected) {
             selectEl.value = selectedPackId;
         } else {
-            selectEl.value = 'default';
-            appSettings.ttsPackId = 'default';
+            const preferredFallbackPackId = packs.some((pack) => pack.id === DEFAULT_SETTINGS.ttsPackId)
+                ? DEFAULT_SETTINGS.ttsPackId
+                : 'default';
+            selectEl.value = preferredFallbackPackId;
+            appSettings.ttsPackId = preferredFallbackPackId;
             saveSettings();
         }
 
@@ -5359,6 +5408,10 @@ function startNewGame(customWord = null) {
     
     if (customWord) {
         currentWord = customWord.toLowerCase();
+        if (isBlockedClassSafeWord(currentWord)) {
+            showToast("That word is blocked by the class-safe filter.");
+            return startNewGame(null);
+        }
         CURRENT_WORD_LENGTH = currentWord.length;
         isCustomWordRound = true;
         activeRoundPattern = 'all';
@@ -5441,6 +5494,7 @@ function getWordFromDictionary() {
             const lenMatch = !length || word.length === length;
             const focusMatch = focus === 'all' || (Array.isArray(entry.tags) && entry.tags.includes(focus));
             if (!lenMatch || !focusMatch) return false;
+            if (isBlockedClassSafeWord(word)) return false;
             if (focus === 'schwa') {
                 const syllableCount = Number(entry?.phonics?.syllables || 0);
                 if (syllableCount > 0 && syllableCount < 2) return false;
@@ -5525,11 +5579,12 @@ function getWordFromDictionary() {
     }
 
     activeRoundPattern = effectivePattern;
+    const safeFallbackWord = allWords.find((word) => !isBlockedClassSafeWord(word)) || 'plant';
     const final = (forcedWord && pool.includes(forcedWord) ? forcedWord : '')
         || getNonRepeatingShuffleChoice(
             pool,
             `word:${effectivePattern || 'all'}:${targetLen || 'any'}:${getResolvedAudienceMode()}`
-        ) || pool[Math.floor(Math.random() * pool.length)] || allWords[0] || 'plant';
+        ) || pool[Math.floor(Math.random() * pool.length)] || safeFallbackWord;
     const finalEntry = window.WORD_ENTRIES[final] || { def: '', sentence: '', syllables: final, tags: [] };
     return { word: final, entry: finalEntry };
 }
@@ -5871,6 +5926,10 @@ function submitGuess() {
             setTimeout(() => first.style.transform = "none", 100);
         }
         showToast("Finish the word first."); // CLEAN TOAST
+        return;
+    }
+    if (isBlockedClassSafeWord(currentGuess)) {
+        showToast("That guess is blocked by the class-safe filter.");
         return;
     }
     const gameModeRunning = !!appSettings.gameMode?.active;

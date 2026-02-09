@@ -2,6 +2,105 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-09 home setup gate + azure voice lock + class-safe guess filter slice
+- Scope files:
+  - `literacy-platform/platform.js`
+  - `literacy-platform/home.js`
+  - `literacy-platform/app.js`
+  - `literacy-platform/index.html`
+  - `literacy-platform/style.css`
+  - cache query bumps to `v=20260209j` across deployed HTML pages using `platform.js`, `home.js`, and `app.js`.
+- Home onboarding cleanup:
+  - Removed legacy Home guide-tip banner (`Hide` / `Don't show again`) by dropping the Home guide tip source.
+  - Home hero now keeps single visible question panel with cleaner wording (`Who are we helping today?`) and no visible lookahead step chips.
+  - While `home-precheck` is active, top nav controls are hidden so setup is uncluttered; full nav reappears after completion.
+- Voice modal hard lock to Azure pack voices:
+  - Rebuilt global `Voice & Language` quick modal to a single Azure voice dropdown only (5 allowed voices):
+    - Ava (en-US), Emma (en-US), Guy (en-US), Sonia (en-GB), Ryan (en-GB).
+  - Removed `English preset` and `Audio pack` controls and removed any system/browser voice list path from this modal.
+  - Default selection is `ava-multi` (Ava) when prior setting is invalid/missing.
+  - Preview button now plays packed Azure clips directly (with fallback candidate clip paths) and translation language lock remains.
+- Theme system polish:
+  - Accessibility theme options are now 4 named presets:
+    - `Calm`, `Playful`, `Classic`, `High Contrast`.
+  - Added `minimal-ink -> classic` compatibility mapping for older saved settings.
+  - Increased visual separation between preset palettes in CSS for clearer app-wide theme differences.
+- Class-safe profanity guard restored/expanded:
+  - Added explicit class-safe blocked-word checks for:
+    - custom challenge word validation,
+    - random dictionary target selection,
+    - submitted board guesses.
+  - Isolated unsafe guesses (for example `ass`) are blocked; safe containing words (for example `class`) remain allowed.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/platform.js` ✅
+  - `node --check literacy-platform/home.js` ✅
+  - `node --check literacy-platform/app.js` ✅
+- Regression scripts:
+  - `node /tmp/home_detail_visible.js` ✅ (`[]` pre-check details hidden)
+  - `node /tmp/wordquest_regression.js` ✅ (no overflow, no scroll fallback, vowel dots off, voice shortcut present)
+  - `node /tmp/translation_runtime_check.js` ✅
+- Focused smoke checks (Playwright inline) ✅:
+  - Voice modal:
+    - only one voice dropdown,
+    - no dialect/audio-pack controls,
+    - exactly 5 Azure voices,
+    - selected default `ava-multi`,
+    - preview status: `Previewing Ava (en-US).`
+  - Home setup:
+    - no `page-guide-tip`,
+    - only `home-step-panel-1` visible on load,
+    - header actions hidden during `home-precheck`.
+  - Class-safe filter:
+    - `isBlockedClassSafeWord('ass') === true`,
+    - `isBlockedClassSafeWord('class') === false`,
+    - blocked sample count from 120 dictionary picks: `0`.
+
+## 2026-02-09 home single-question flow + Azure-only voice picker slice
+- Scope files:
+  - `literacy-platform/index.html`
+  - `literacy-platform/home.js`
+  - `literacy-platform/style.css`
+  - `literacy-platform/platform.js`
+  - `literacy-platform/app.js`
+  - cache-query bumps across HTML pages (`platform.js`, `home.js`, `app.js`) to `v=20260209h`.
+- Home UX overhaul (strict guided flow):
+  - Removed visible step pills and right-side helper panel from the hero onboarding shell.
+  - Replaced with one-question-at-a-time cards:
+    - Welcome -> role choice (`I am a Student` / `I am a School Team Member`)
+    - Student path -> `What do you want help with today?` (`Reading & Words`, `Math & Numbers`, `Not sure yet`)
+    - School Team path -> `What is your role?`
+    - Quick Check confirm + launch.
+  - Updated Home copy to emphasize `Your Starting Path` and simplified CTA language.
+  - Preserved strict pre-check gating:
+    - workspace/detail cards remain hidden until Quick Check completion.
+  - Added stale-state guard on role change:
+    - switching Student/School now clears stale prior onboarding answers so old values do not auto-fill the new flow.
+- Voice picker correction:
+  - Global `Voice & Language` quick modal now uses Azure pack voices only (no giant browser/system list).
+  - Dialect filtering now surfaces only relevant US/GB pack voices.
+  - Added deterministic fallback pack roster when registry fetch is unavailable.
+  - Default voice pack set to `ava-multi` (Ava) across modal/home/app settings.
+
+### Validation run
+- Syntax:
+  - `node --check literacy-platform/home.js` ✅
+  - `node --check literacy-platform/platform.js` ✅
+  - `node --check literacy-platform/app.js` ✅
+- Regression scripts:
+  - `node /tmp/home_detail_visible.js` ✅ (`[]` before quick check)
+  - `node /tmp/wordquest_regression.js` ✅ (no overflow, no scroll fallback, vowel dots off)
+  - `node /tmp/voice_quick_check.js` ✅ (`Ava/Emma/Guy` shown for `en-US`; Ava selected)
+  - `node /tmp/translation_runtime_check.js` ✅
+- Focused Home UI smoke (Playwright inline) ✅:
+  - stepper hidden, only one panel visible at a time,
+  - role buttons show Student + School Team only,
+  - Student path shows Reading/Math/Not sure choices,
+  - School path shows role selector in step 2.
+- Note:
+  - Legacy `/tmp/home_flow_check.js` currently fails because it still expects removed field `#home-student-name`; this is a script-assumption mismatch after the one-question Home refactor.
+
 ## 2026-02-09 stale-cache + voice picker stabilization slice
 - Scope files:
   - `home.js`
