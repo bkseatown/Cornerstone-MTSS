@@ -47,6 +47,9 @@ Last updated: 2026-02-09
     - `Hub Build: 6393551e` on each hub page.
   - Added global nav `Hubs` menu section with clear `(Coming soon)` labels.
   - Added root redirect wrappers so required root URLs resolve without 404 and point to canonical `/literacy-platform` hub pages.
+  - Updated global build stamp rendering in `platform.js`:
+    - build stamp now prefers `platform.js?v=...` query value first,
+    - avoids GitHub API lookup on these pages so hub console logs stay clean.
 
 ### Validation run
 - Syntax:

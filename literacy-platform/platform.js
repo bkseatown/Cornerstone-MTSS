@@ -635,9 +635,25 @@
       document.body.appendChild(badge);
     }
     badge.textContent = 'Build: loading...';
+    const scriptVersion = readPlatformScriptVersion();
+    if (scriptVersion) {
+      badge.textContent = `Build: ${scriptVersion}`;
+      return;
+    }
     resolveBuildStamp().then((payload) => {
       badge.textContent = `Build: ${payload.sha} | ${payload.time}`;
     });
+  }
+
+  function readPlatformScriptVersion() {
+    const script = Array.from(document.querySelectorAll('script[src]')).find((node) => /platform\.js(\?|$)/.test(String(node.src || '')));
+    if (!(script instanceof HTMLScriptElement)) return '';
+    try {
+      const parsed = new URL(script.src, window.location.href);
+      return String(parsed.searchParams.get('v') || '').trim();
+    } catch {
+      return '';
+    }
   }
 
   function normalizeLook(value) {
