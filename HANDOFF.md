@@ -65,6 +65,33 @@ Last updated: 2026-02-09
   - next-chat bootstrap prompt.
 - Important: there are still local generated artifacts (audio pack files + Playwright outputs) in the working tree that are intentionally not auto-committed by the agent.
 
+## 2026-02-09 audio hardening slice (pushed)
+- Commit: `70b23129`
+- Word Quest reveal audio hardening:
+  - Reveal opening now force-stops any in-flight audio players and queued speech before rendering.
+  - Prevents overlapping/competing voices when prior speech diagnostics or prompts were still active.
+  - Reveal remains fully manual (no automatic read-aloud on reveal open).
+- Fallback behavior clarified:
+  - Reveal + bonus hear actions keep `allowSystemFallback: false` so no robotic fallback voice is used when packed/Azure clips are missing.
+  - Unavailable audio messaging now explicitly references missing Azure clips.
+- Audio content refresh:
+  - Refreshed `ryan-en-gb` English `def` + `sentence` clips for updated safety override words (committed clip files only).
+- Validations run:
+  - `node --check app.js`
+  - `node /tmp/wordquest_regression.js`
+  - `node /tmp/voice_quick_check.js`
+  - `node /tmp/translation_runtime_check.js`
+
+### Important local-state caution after partial TTS exports
+- Local unstaged files may show exporter metadata drift:
+  - `audio/tts/packs/pack-registry.json`
+  - `audio/tts/packs/ryan-en-gb/tts-manifest.json`
+  - `audio/tts/packs/ryan-en-gb/tts-export-report.json`
+- Reason:
+  - Running exporter with `--fields=def,sentence` can rewrite registry/manifest metadata to those fields only.
+- Guardrail:
+  - Do **not** commit those metadata files unless a full intended export is completed (or metadata is deliberately rebuilt).
+
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
 2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
