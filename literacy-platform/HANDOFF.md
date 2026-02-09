@@ -7,7 +7,7 @@ Last updated: 2026-02-09
 - App folder: `/Users/robertwilliamknaus/Desktop/New project/literacy-platform`
 - Remote: `origin https://github.com/bkseatown/Cornerstone-MTSS.git`
 - Branch: `main`
-- Latest pushed commit: `9fce377c` (`origin/main`)
+- Latest pushed commit: `7c69d53f` (`origin/main`)
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
 ## 2026-02-08 latest shipped pass
@@ -24,7 +24,7 @@ Last updated: 2026-02-09
   - Added locale + default voice support for `ms`, `vi`, `ar`, `ko`, `ja`.
   - Updated `scripts/azure-voice-map.ava-multilingual.example.json` with recommended voices, including a stronger Vietnam voice baseline.
 
-## 2026-02-09 local stabilization pass (not pushed yet)
+## 2026-02-09 stabilization pass (pushed)
 - Full reveal-copy safety sweep (all grades):
   - Added broader trust/safety phrase blocking for reveal text (e.g., inappropriate/body-humor style lines).
   - Added explicit school-safe overrides for high-friction words (`mouth`, `web`, `solo`, `misfit`, `gnat`, `spider`, `mouse`, `toothbrush`, `soup`, `monster`, `mosquito`, and more).
