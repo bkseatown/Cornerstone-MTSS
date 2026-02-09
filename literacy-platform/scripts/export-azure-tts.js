@@ -430,7 +430,9 @@ function getTaskText({ word, lang, field, entry, overrides, fallbackLang }) {
         if (localizedWord) {
             return { text: localizedWord, source: 'localized-word', sourceLang: lang };
         }
-        if (fallbackLang === 'en') {
+        // words.js often omits localized "word" tokens even when definition/sentence exist.
+        // Default to English headword so per-language voices can still generate word clips.
+        if (fallbackLang === 'en' || !fallbackLang) {
             return { text: word, source: 'fallback-word-key', sourceLang: 'en' };
         }
         return { text: '', source: 'missing', sourceLang: lang };

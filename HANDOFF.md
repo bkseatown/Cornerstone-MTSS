@@ -491,6 +491,40 @@ npm run tts:azure -- \
 ### Remaining audio gap after this step
 - Non-English `word` clips in `ava-multi` are still not populated from `words.js` schema (`skippedMissing` for non-English `word` fields); current manifest has `word` entries for `en` only.
 
+## 2026-02-09 exporter fallback fix for multilingual word clips
+### What changed
+- `literacy-platform/scripts/export-azure-tts.js`
+  - For `field=word`, exporter now defaults to English headword fallback when localized `entry[lang].word` is not present.
+  - This removes prior `skippedMissing` gaps for non-English `word` tasks in `words.js`-based exports.
+
+### Verified in dry-run
+- Command (dry-run):
+  - `npm run tts:azure -- --dry-run=true --pack-id=ava-multi --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja --fields=word,def,sentence --include-phonemes=true --phoneme-set=all --voice-map=scripts/azure-voice-map.ava-multilingual.example.json --overrides=scripts/reveal-safety.overrides.json --overwrite=false --region=eastus`
+- Result:
+  - `tasks=15079`
+  - `missing=0` (previously `missing=4500`)
+  - `phonemes=79`
+
+### Current blocker
+- Full synthesis pass for the remaining non-English `word` clips requires Azure credentials in the executing shell (`AZURE_SPEECH_KEY`).
+- This Codex shell currently has no key, so full export cannot be completed here.
+
+### Run this in a terminal with Azure env loaded
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
+npm run tts:azure -- \
+  --pack-id=ava-multi \
+  --pack-name="Ava Multilingual" \
+  --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja \
+  --fields=word,def,sentence \
+  --include-phonemes=true \
+  --phoneme-set=all \
+  --voice-map=scripts/azure-voice-map.ava-multilingual.example.json \
+  --overrides=scripts/reveal-safety.overrides.json \
+  --overwrite=false \
+  --region=eastus
+```
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
