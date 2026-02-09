@@ -530,6 +530,7 @@ Optional:
   --phonemes-only=true          only generate phoneme clips
   --phoneme-set=core            core (default) or all
   --phoneme-file=phoneme-data.js
+  --preserve-existing=true       keep existing manifest entries/fields when updating
   --words=words.js
   --out=audio/tts
   --manifest-base=audio/tts
@@ -756,10 +757,47 @@ async function main() {
     }
 
     const finalTasks = limit > 0 ? tasks.slice(0, limit) : tasks;
-    const manifestFieldSet = new Set(fields.slice());
+    const manifestPath = path.join(outDir, 'tts-manifest.json');
+    const preserveExisting = args['preserve-existing'] !== 'false';
+    let existingManifest = null;
+    if (preserveExisting && fs.existsSync(manifestPath)) {
+        try {
+            const rawExisting = fs.readFileSync(manifestPath, 'utf8');
+            existingManifest = JSON.parse(rawExisting);
+        } catch (error) {
+            console.warn('[TTS] Could not parse existing manifest; continuing without preserve-existing merge.');
+        }
+    }
+
+    const manifestFieldSet = new Set(
+        preserveExisting && Array.isArray(existingManifest?.fields)
+            ? existingManifest.fields
+            : []
+    );
+    fields.forEach((field) => manifestFieldSet.add(field));
     if (includePassages) manifestFieldSet.add('passage');
     if (includePhonemes) manifestFieldSet.add('phoneme');
     const manifestFields = Array.from(manifestFieldSet);
+
+    const manifestLanguageSet = new Set(
+        preserveExisting && Array.isArray(existingManifest?.languages)
+            ? existingManifest.languages.map((lang) => normalizeLangCode(lang))
+            : []
+    );
+    languages.forEach((lang) => manifestLanguageSet.add(normalizeLangCode(lang)));
+    const manifestLanguages = Array.from(manifestLanguageSet);
+
+    const manifestVoiceMap = {
+        ...(preserveExisting && existingManifest?.voiceMap && typeof existingManifest.voiceMap === 'object'
+            ? existingManifest.voiceMap
+            : {}),
+        ...voiceMap
+    };
+
+    const preservedEntries = preserveExisting && existingManifest?.entries && typeof existingManifest.entries === 'object'
+        ? { ...existingManifest.entries }
+        : {};
+
     const generatedAt = new Date().toISOString();
     const manifest = {
         version: 1,
@@ -768,10 +806,10 @@ async function main() {
         format: OUTPUT_FORMAT,
         packId: packId || 'default',
         packName: packName || 'Default voice pack',
-        languages,
+        languages: manifestLanguages,
         fields: manifestFields,
-        voiceMap,
-        entries: {}
+        voiceMap: manifestVoiceMap,
+        entries: preservedEntries
     };
 
     let totalCharacters = 0;
@@ -871,7 +909,6 @@ async function main() {
         }
     }
 
-    const manifestPath = path.join(outDir, 'tts-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
     const report = {
@@ -879,9 +916,9 @@ async function main() {
         region,
         packId: packId || 'default',
         packName: packName || 'Default voice pack',
-        languages,
+        languages: manifestLanguages,
         fields: manifestFields,
-        voiceMap,
+        voiceMap: manifestVoiceMap,
         retries,
         words: wordList.length,
         attempted: finalTasks.length,
@@ -910,9 +947,9 @@ async function main() {
             packName: manifest.packName,
             manifestBasePath: manifestBase,
             generatedAt,
-            languages,
+            languages: manifestLanguages,
             fields: manifestFields,
-            voiceMap
+            voiceMap: manifestVoiceMap
         });
     }
 

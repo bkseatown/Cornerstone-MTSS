@@ -1438,6 +1438,20 @@ async function tryPlayPackedPhoneme(soundKey = '', languageCode = 'en') {
         }
     }
 
+    const registry = await loadPackedTtsPackRegistry();
+    const packs = Array.isArray(registry?.packs) && registry.packs.length
+        ? registry.packs
+        : [getDefaultTtsPackOption()];
+    const orderedPacks = orderPacksForLanguage(packs, 'en');
+    const encodedSound = encodeURIComponent(normalizedSound);
+    for (const pack of orderedPacks) {
+        const packId = String(pack?.id || '').trim();
+        if (!packId) continue;
+        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/phoneme/${encodedSound}.mp3`;
+        const played = await playPackedClipWithFallbackPaths(candidate);
+        if (played) return true;
+    }
+
     return false;
 }
 
@@ -1465,6 +1479,24 @@ async function tryPlayPackedPassageClip({
         if (fallbackClip) {
             return playPackedClipWithFallbackPaths(fallbackClip, { playbackRate, onPlay });
         }
+    }
+
+    const slug = normalizePassageSlug(title);
+    if (!slug) return false;
+    const normalizedLang = normalizePackedTtsLanguage(languageCode);
+    const encodedSlug = encodeURIComponent(slug);
+    const registry = await loadPackedTtsPackRegistry();
+    const packs = Array.isArray(registry?.packs) && registry.packs.length
+        ? registry.packs
+        : [getDefaultTtsPackOption()];
+    const orderedPacks = orderPacksForLanguage(packs, normalizedLang);
+
+    for (const pack of orderedPacks) {
+        const packId = String(pack?.id || '').trim();
+        if (!packId) continue;
+        const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/passage/${encodedSlug}.mp3`;
+        const played = await playPackedClipWithFallbackPaths(candidate, { playbackRate, onPlay });
+        if (played) return true;
     }
 
     return false;
@@ -6796,7 +6828,7 @@ function initTeacherVoiceControl() {
         const enabled = toggle.checked;
         localStorage.setItem('useTeacherRecordings', enabled.toString());
         updateVoiceIndicator();
-        showToast(enabled ? '✅ Teacher voice enabled' : '🔊 Using system voice');
+        showToast(enabled ? '✅ Teacher voice enabled' : '🔊 Using packed voice clips');
     };
 
     if (deleteWordBtn) {
@@ -8766,15 +8798,8 @@ function initNewFeatures() {
     document.addEventListener('click', async (e) => {
         const card = e.target.closest('.phoneme-card');
         if (card) {
-            const sound = card.dataset.sound;
             const example = card.dataset.example;
-            
-            // Check which voice source is selected
-            const voiceSource = document.querySelector('input[name="guide-voice-source"]:checked')?.value;
-            
-            if (voiceSource === 'system') {
-                showToast('System voice fallback is off for student safety.');
-            }
+
             const played = await speak(example, 'word', { allowSystemFallback: false, stopExistingAudio: true });
             if (!played) showToast('Example audio unavailable (Azure clip not found).');
         }
@@ -10941,18 +10966,24 @@ function initArticulationAudioControls() {
     ensurePronunciationCheckButton();
     
     if (hearLetterBtn) {
-        hearLetterBtn.onclick = () => {
+        hearLetterBtn.onclick = async () => {
             if (currentSelectedSound) {
                 const grapheme = currentSelectedSound.label || currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
-                speakSpelling(grapheme);
+                const played = await speakSpelling(grapheme);
+                if (!played) showToast('Letter audio unavailable (Azure clip not found).');
             }
         };
     }
     
     if (hearWordBtn) {
-        hearWordBtn.onclick = () => {
+        hearWordBtn.onclick = async () => {
             if (currentSelectedSound) {
-                speakText(currentSelectedSound.phoneme.example || '');
+                const played = await speakText(
+                    currentSelectedSound.phoneme.example || '',
+                    'word',
+                    { allowSystemFallback: false, stopExistingAudio: true }
+                );
+                if (!played) showToast('Example audio unavailable (Azure clip not found).');
             }
         };
     }
@@ -10963,17 +10994,23 @@ function initArticulationAudioControls() {
         const label = (btn.textContent || '').toLowerCase();
         if (label.includes('letter')) {
             btn.dataset.bound = 'true';
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 if (currentSelectedSound) {
                     const grapheme = currentSelectedSound.label || currentSelectedSound.phoneme.grapheme || currentSelectedSound.sound;
-                    speakSpelling(grapheme);
+                    const played = await speakSpelling(grapheme);
+                    if (!played) showToast('Letter audio unavailable (Azure clip not found).');
                 }
             };
         } else if (label.includes('example')) {
             btn.dataset.bound = 'true';
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 if (currentSelectedSound) {
-                    speakText(currentSelectedSound.phoneme.example || '');
+                    const played = await speakText(
+                        currentSelectedSound.phoneme.example || '',
+                        'word',
+                        { allowSystemFallback: false, stopExistingAudio: true }
+                    );
+                    if (!played) showToast('Example audio unavailable (Azure clip not found).');
                 }
             };
         } else if (label.includes('pronunciation')) {
@@ -11401,15 +11438,21 @@ function getLikelySoundHint(target, spoken) {
 
 function playLetterSequence(letter, word, phoneme) {
     // Play: spelling → example word → sound cue
-    speakSpelling(letter);
+    speakSpelling(letter).then((played) => {
+        if (!played) showToast('Letter audio unavailable (Azure clip not found).');
+    });
 
     setTimeout(() => {
-        speakText(word);
+        speakText(word, 'word', { allowSystemFallback: false, stopExistingAudio: true }).then((played) => {
+            if (!played) showToast('Word audio unavailable (Azure clip not found).');
+        });
     }, 900);
 
     setTimeout(() => {
         const phonemeData = window.getPhonemeData ? window.getPhonemeData(phoneme) : null;
-        speakPhonemeSound(phonemeData, phoneme);
+        speakPhonemeSound(phonemeData, phoneme).then((played) => {
+            if (!played) showToast('Sound audio unavailable (Azure clip not found).');
+        });
     }, 1800);
 }
 
@@ -11440,6 +11483,18 @@ async function speakText(text, rateType = 'word', options = {}) {
     });
     if (packedPlayed) return true;
 
+    if (type === 'word') {
+        const directWord = String(text || '').trim().toLowerCase();
+        if (/^[a-z][a-z'-]*$/.test(directWord)) {
+            const directPlayed = await tryPlayPackedClipByDirectPath({
+                word: directWord,
+                languageCode: 'en',
+                type: 'word'
+            });
+            if (directPlayed) return true;
+        }
+    }
+
     if (!isSystemSpeechFallbackAllowed(options)) {
         return false;
     }
@@ -11460,13 +11515,10 @@ async function speakText(text, rateType = 'word', options = {}) {
 }
 
 function speakSpelling(grapheme) {
-    if (!grapheme) return;
-    const letters = grapheme
-        .toString()
-        .toUpperCase()
-        .split('')
-        .join(' ');
-    speakText(letters, 'phoneme');
+    if (!grapheme) return Promise.resolve(false);
+    const normalized = String(grapheme || '').trim().toLowerCase();
+    if (!normalized) return Promise.resolve(false);
+    return speakPhonemeSound({ grapheme: normalized }, normalized);
 }
 
 function normalizePhonemeForTTS(sound) {
@@ -11592,16 +11644,28 @@ function getPhonemeTts(phoneme, soundKey = '') {
 
 async function speakPhonemeSound(phoneme, soundKey = '') {
     const tts = getPhonemeTts(phoneme, soundKey);
-    if (!tts) return;
+    if (!tts) return false;
     const key = soundKey || phoneme?.grapheme || '';
     if (key) {
         const played = await tryPlayRecordedPhoneme(key);
-        if (played) return;
+        if (played) return true;
         const packedPlayed = await tryPlayPackedPhoneme(key, 'en');
-        if (packedPlayed) return;
+        if (packedPlayed) return true;
     }
-    if (await tryPlayPackedPhoneme(soundKey || phoneme?.grapheme || '', 'en')) return;
-    speakText(tts, 'phoneme');
+    if (await tryPlayPackedPhoneme(soundKey || phoneme?.grapheme || '', 'en')) return true;
+
+    const fallbackWord = String(soundKey || phoneme?.grapheme || '')
+        .toLowerCase()
+        .replace(/[^a-z]/g, '');
+    if (fallbackWord) {
+        const directPlayed = await tryPlayPackedClipByDirectPath({
+            word: fallbackWord,
+            languageCode: 'en',
+            type: 'word'
+        });
+        if (directPlayed) return true;
+    }
+    return false;
 }
 
 function initPhonemeCards() {
@@ -11744,28 +11808,24 @@ let phonemeAudioChunks = [];
 let currentPhonemeForRecording = null;
 
 function initVoiceSourceControls() {
-    // Toggle voice source
-    const voiceRadios = document.getElementsByName('guide-voice-source');
-    voiceRadios.forEach(radio => {
-        radio.closest('.voice-option').addEventListener('click', function() {
-            const radioInput = this.querySelector('input[type="radio"]');
-            radioInput.checked = true;
-            
-            // Update styling
-            document.querySelectorAll('.voice-option').forEach(opt => {
-                opt.style.borderColor = '#d0d0d0';
-                opt.style.background = 'white';
-            });
-            this.style.borderColor = 'var(--color-correct)';
-            this.style.background = '#f0f8f5';
-            
-            if (radioInput.value === 'system') {
-                showToast('Using system voice');
-            } else {
-                showToast('Using your recorded voice');
+    // Legacy selector cleanup: packed + teacher recordings are the only supported paths.
+    const voiceRadios = Array.from(document.getElementsByName('guide-voice-source') || []);
+    if (voiceRadios.length) {
+        voiceRadios.forEach((radio) => {
+            const option = radio.closest('.voice-option');
+            if (radio.value === 'system') {
+                radio.checked = false;
+                radio.disabled = true;
+                if (option) option.classList.add('hidden');
+                return;
             }
+            if (option) {
+                option.style.borderColor = 'var(--color-correct)';
+                option.style.background = '#f0f8f5';
+            }
+            radio.checked = true;
         });
-    });
+    }
     
     // When clicking a phoneme card, set it as current for recording (Teacher Studio only)
     document.addEventListener('click', (e) => {

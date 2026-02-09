@@ -354,6 +354,100 @@ git push origin main
 - Reveal and bonus read-aloud remain manual-only.
 - If a packed Azure clip is missing, app now stays silent (with clear unavailable messaging) instead of using robotic system speech.
 
+## 2026-02-09 coverage + readiness snapshot
+### Translation text coverage (`literacy-platform/words.js`)
+- Total words: `500`
+- Complete `def + sentence` coverage (`500/500` each) for:
+  - `en`, `es`, `zh`, `tl`, `hi`, `ms`, `vi`, `ar`, `ko`, `ja`
+
+### TTS pack status (definitions/sentences)
+- `literacy-platform/audio/tts/packs/ava-multi/tts-manifest.json`
+  - Region: `eastus`
+  - Entries: `10000`
+  - Per-language coverage: `1000` each across `en/es/zh/tl/hi/ms/vi/ar/ko/ja`
+  - Fields: `def,sentence`
+  - Voice map includes:
+    - `en`: `en-US-AvaMultilingualNeural`
+    - `zh`: `zh-CN-XiaoxiaoNeural`
+    - `tl`: `fil-PH-BlessicaNeural`
+    - `hi`: `hi-IN-SwaraNeural`
+    - `ms`: `ms-MY-YasminNeural`
+    - `vi`: `vi-VN-HoaiMyNeural`
+    - `ar`: `ar-SA-ZariyahNeural`
+    - `ko`: `ko-KR-SunHiNeural`
+    - `ja`: `ja-JP-NanamiNeural`
+- English-only packs (`emma-en`, `guy-en-us`, `sonia-en-gb`, `ryan-en-gb`)
+  - Each has `1000` entries (`500 def + 500 sentence`) for `en`.
+
+### Important audio caveats still open
+- Word clips in packs:
+  - Current pack manifests were generated with `fields=def,sentence`, so pack word clips are not indexed there.
+  - Legacy default manifest (`audio/tts/tts-manifest.json`) still has `word+def+sentence` for `en/es/zh/tl` only.
+- Passage clips:
+  - `150` passage mp3 files exist on disk per English pack (`.../packs/*/en/passage`).
+  - Current manifests have `0` `passage` keys, so app passage playback lookup cannot resolve them yet.
+- Bonus content (jokes/riddles/facts/quotes):
+  - Content is English-only pools (`general` and `young-eal` variants).
+  - Under packed-only policy, bonus TTS requires packed clips; currently these lines are not packed as dedicated assets.
+
+### Current decodable passage inventory
+- Total passage texts in app: `150`
+  - Base set in `app.js`: `80`
+  - Expansion set in `decodables-expansion.js`: `70`
+  - Grade-band mix (combined): `K-2: 83`, `3-5: 40`, `6-8: 15`, `9-12: 12`
+
+### Remaining highest-impact tasks
+1. Regenerate/reindex manifests to include `passage` keys for active English pack(s) so fluency passage audio is playable again.
+2. Decide whether to add `word` fields to active multilingual pack (`ava-multi`) to enable translated “Hear Word” across all target languages.
+3. Decide bonus audio strategy:
+   - either generate packed clips for curated bonus lines, or
+   - keep silent fallback (current behavior) when no packed clip exists.
+4. Optional content scaling:
+   - expand grade `6-12` fluency passage volume (currently lighter than K-5).
+   - keep safety overrides + EN def/sentence clip refresh in lockstep after copy edits.
+
+## 2026-02-09 phoneme voice + exporter hardening slice
+### What changed
+- `literacy-platform/app.js`
+  - Added direct-path fallback for passage clips in `tryPlayPackedPassageClip` so existing `.../en/passage/*.mp3` files can play even when manifest keys are missing.
+  - Added direct-path fallback for single-word packed clips inside `speakText` (helps sound-lab example words that are not the active game word).
+  - Refactored `speakSpelling` to route through phoneme clip logic (no system TTS fallback).
+  - Updated `speakPhonemeSound` to return boolean and use packed/recorded sources only.
+  - Updated articulation button handlers to show explicit unavailable toasts when a packed clip is missing.
+  - Removed stale “system voice” messaging in phoneme practice flows; current paths are teacher recordings + packed clips.
+  - Teacher voice toggle now says `Using packed voice clips` when recordings are off.
+- `literacy-platform/scripts/export-azure-tts.js`
+  - Added `--preserve-existing=true` behavior (default) so incremental exports no longer wipe existing manifest entries/fields/languages.
+  - Export now merges existing manifest metadata before writing updated manifests/reports/registry.
+
+### Validation run
+- `node --check literacy-platform/app.js`
+- `node --check literacy-platform/scripts/export-azure-tts.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/wordquest_regression.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/voice_quick_check.js`
+- `NODE_PATH='/Users/robertwilliamknaus/Desktop/New project/literacy-platform/node_modules' node /tmp/translation_runtime_check.js`
+
+### Export command status
+- Full export attempt was blocked in this shell due missing Azure env credentials:
+  - `Missing Azure credentials. Provide --region/--key or AZURE_SPEECH_REGION/AZURE_SPEECH_KEY.`
+- Dry-run estimate for recommended command:
+  - tasks: `10579`, phoneme tasks: `79`, missing text records: `4500` (non-English `word` text not present in `words.js` schema).
+
+### Recommended next command (run in a shell with Azure creds loaded)
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
+npm run tts:azure -- \
+  --pack-id=ava-multi \
+  --pack-name="Ava Multilingual" \
+  --languages=en,es,zh,tl,hi,ms,vi,ar,ko,ja \
+  --fields=word,def,sentence \
+  --include-phonemes=true \
+  --phoneme-set=all \
+  --voice-map=scripts/azure-voice-map.ava-multilingual.example.json \
+  --overrides=scripts/reveal-safety.overrides.json \
+  --overwrite=false
+```
+
 ## New-chat bootstrap prompt (copy/paste)
 ```text
 Continue solo in /Users/robertwilliamknaus/Desktop/New project/literacy-platform.
