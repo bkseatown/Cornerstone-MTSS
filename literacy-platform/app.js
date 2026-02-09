@@ -3758,7 +3758,7 @@ function initControls() {
                 hearWordBtn.innerHTML = '🔊 Playing...';
                 hearWordBtn.style.opacity = '0.7';
                 
-                speak(currentWord, 'word');
+                speak(currentWord, 'word', { allowSystemFallback: false, stopExistingAudio: true });
                 
                 // Reset button after a short delay
                 setTimeout(() => {
@@ -3803,7 +3803,7 @@ function initControls() {
                 hearSentenceBtn.innerHTML = '🔊 Playing...';
                 hearSentenceBtn.style.opacity = '0.7';
                 
-                speak(sentence, 'sentence');
+                speak(sentence, 'sentence', { allowSystemFallback: false, stopExistingAudio: true });
                 
                 // Reset button after a short delay
                 setTimeout(() => {
@@ -3847,7 +3847,7 @@ function initControls() {
     
     document.getElementById("speak-btn").onclick = () => {
         if (isCurrentWordAudioBlocked()) return;
-        speak(currentWord, "word");
+        speak(currentWord, "word", { allowSystemFallback: false, stopExistingAudio: true });
     };
     document.getElementById("play-again-btn").onclick = () => {
         closeModal();
