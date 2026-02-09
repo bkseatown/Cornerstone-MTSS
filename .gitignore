@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+playwright-report/
+test-results/
+literacy-platform/playwright-report/
+literacy-platform/test-results/
+scripts/*.azure.json
+literacy-platform/scripts/*.azure.json
