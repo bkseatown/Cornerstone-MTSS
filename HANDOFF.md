@@ -92,6 +92,17 @@ Last updated: 2026-02-09
 - Guardrail:
   - Do **not** commit those metadata files unless a full intended export is completed (or metadata is deliberately rebuilt).
 
+## 2026-02-09 translation completion slices (pushed)
+- Commit: `37e502dc`
+  - Completed full Hindi coverage in `literacy-platform/words.js` (`500/500` words with `def+sentence`).
+- Commit: `fd1c597e`
+  - Completed full Arabic + Korean + Japanese coverage in `literacy-platform/words.js` (`500/500` each with `def+sentence`).
+- Validation snapshots:
+  - `translation_label_check`: Hindi label now fully ready; Arabic no longer shows `(coming soon)`.
+  - Coverage counts now show `500/500` for `en/es/zh/tl/hi/ms/vi/ar/ko/ja`.
+- Runtime note:
+  - `translation_runtime_check` now reports `hiMissingReturnsNull=false` (expected after completion).
+
 ## Non-negotiable user priorities
 1. Word Quest no-scroll fit on desktop non-fullscreen + iPad
 2. Audio/translation reliability (no wrong-language playback, no fake translation fallback)
@@ -143,10 +154,10 @@ No net-new features before visual/UX stability passes.
   - `tl`: `500/500`
   - `ms`: `500/500`
   - `vi`: `500/500`
-  - `hi`: partial/incomplete coverage; some words still show "Translation coming soon"
-  - `ar`: UI option exists; full word-bank translation not yet completed
-  - `ko`: UI option exists; full word-bank translation not yet completed
-  - `ja`: UI option exists; full word-bank translation not yet completed
+  - `hi`: `500/500`
+  - `ar`: `500/500`
+  - `ko`: `500/500`
+  - `ja`: `500/500`
 
 ### Bonus content translation status
 - Jokes/riddles/facts/quotes are curated in English pools and support read-aloud.
