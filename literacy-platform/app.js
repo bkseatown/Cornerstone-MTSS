@@ -1230,6 +1230,35 @@ function stopAllActiveAudioPlayers() {
     activeAudioPlayers.clear();
 }
 
+async function playAudioBlob(blob, options = {}) {
+    if (!blob) return false;
+    const revokeObjectUrl = options.revokeObjectUrl !== false;
+    const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
+    const onPlay = typeof options.onPlay === 'function' ? options.onPlay : null;
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.playbackRate = playbackRate;
+    activeAudioPlayers.add(audio);
+    const cleanup = () => {
+        activeAudioPlayers.delete(audio);
+        if (revokeObjectUrl) {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+        }
+    };
+    audio.onended = cleanup;
+    audio.onerror = cleanup;
+    try {
+        await audio.play();
+        if (onPlay) {
+            try { onPlay(audio); } catch (e) {}
+        }
+        return true;
+    } catch {
+        cleanup();
+        return false;
+    }
+}
+
 async function playAudioClipUrl(url, options = {}) {
     if (!url) return false;
     const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
@@ -1628,9 +1657,7 @@ async function tryPlayRecordedPhoneme(sound = '') {
         phonemeAudioCache.set(key, cached);
     }
     if (!cached?.url) return false;
-    const audio = new Audio(cached.url);
-    audio.play();
-    return true;
+    return playAudioClipUrl(cached.url);
 }
 
 function prefetchWarmupPhonemes() {
@@ -2874,11 +2901,8 @@ async function speak(text, type = "word", options = {}) {
     const blob = useTeacherVoice ? await getAudioFromDB(dbKey) : null;
     
     if (blob) {
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
-        audio.onended = () => URL.revokeObjectURL(url);
-        return true; 
+        const playedBlob = await playAudioBlob(blob);
+        if (playedBlob) return true;
     }
 
     const packedType = type === 'sentence' ? 'sentence' : 'word';
@@ -5374,8 +5398,7 @@ async function playPreview(type) {
     const key = type === "word" ? `${word}_word` : `${word}_sentence`;
     const blob = await getAudioFromDB(key);
     if (blob) {
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
+        await playAudioBlob(blob);
     }
 }
 
@@ -7052,8 +7075,7 @@ async function togglePracticeRecording(key) {
 function playPracticeRecording(key) {
     const recording = practiceRecordings.get(key);
     if (!recording?.url) return;
-    const audio = new Audio(recording.url);
-    audio.play();
+    playAudioClipUrl(recording.url);
 }
 
 function updatePracticeRecorderUI(key, isRecording = false) {
