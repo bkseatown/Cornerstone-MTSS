@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-02-10T16:39:23.035Z",
+  "packId": "ava-multi",
+  "packName": "Ava Multilingual",
+  "utterances": 591,
+  "generated": 591,
+  "reused": 0,
+  "failed": 0,
+  "voice": "en-US-AvaMultilingualNeural",
+  "locale": "en-US",
+  "retries": 2,
+  "failures": []
+}
