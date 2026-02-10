@@ -68,8 +68,6 @@
 
   function isFeatureEnabled() {
     if (URL_FLAGS.legacyHome) return false;
-    const raw = String(localStorage.getItem(FLAG_KEY) || '').trim().toLowerCase();
-    if (raw === 'false' || raw === '0') return false;
     return true;
   }
 
