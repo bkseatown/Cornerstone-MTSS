@@ -376,7 +376,11 @@ function validateCustomWordValue(value) {
 }
 
 function isCurrentWordAudioBlocked() {
-    return isCustomWordRound && !customWordInLibrary;
+    return isCustomWordRound;
+}
+
+function isTeacherCustomWordAllowed() {
+    return getCurrentAudienceRolePathway() === 'teacher';
 }
 
 function setTeacherErrorMessage(message = '', isError = false) {
@@ -434,19 +438,22 @@ function updateWordQuestAudioAvailabilityNotice() {
         btn.disabled = blocked;
         btn.classList.toggle('hint-btn-disabled', blocked);
         btn.title = blocked
-            ? 'Audio and sentence support are available only for words in the current library.'
+            ? 'Audio is disabled for custom challenge words.'
             : '';
     });
 
-    if (blocked && sentencePreview) {
-        sentencePreview.textContent = 'Custom challenge is active. Add this word to your library or teacher recordings for full support.';
-        sentencePreview.classList.remove('hidden');
-    } else if (sentencePreview) {
+    if (sentencePreview) {
         sentencePreview.classList.add('hidden');
     }
 }
 
 function applyCustomWordChallenge(rawValue, options = {}) {
+    const source = String(options.source || '').trim().toLowerCase();
+    if (source === 'quick' && !isTeacherCustomWordAllowed()) {
+        setQuickCustomWordStatus('Custom challenge words are teacher-only.', true, false);
+        return false;
+    }
+
     const result = validateCustomWordValue(rawValue);
     if (!result.ok) {
         if (options.source === 'teacher') {
@@ -3872,9 +3879,16 @@ function initControls() {
     const quickCustomWordClearBtn = document.getElementById('quick-custom-word-clear');
     const toggleMaskBtn = document.getElementById('quick-custom-word-toggle-mask');
     const customWordInput = quickCustomWordInput;
+    const quickCustomPanel = document.querySelector('.quick-custom-word-panel');
+    const customWordTeacherOnly = isTeacherCustomWordAllowed();
     const supportsTextSecurity = typeof CSS !== 'undefined' && CSS.supports && (
         CSS.supports('-webkit-text-security: disc') || CSS.supports('text-security: disc')
     );
+
+    if (quickCustomPanel) {
+        quickCustomPanel.classList.toggle('hidden', !customWordTeacherOnly);
+        quickCustomPanel.setAttribute('aria-hidden', customWordTeacherOnly ? 'false' : 'true');
+    }
 
     const setCustomPanelExpanded = (expanded) => {
         if (!quickCustomWordBody || !quickCustomWordToggleBtn) return;
@@ -3883,7 +3897,7 @@ function initControls() {
         quickCustomWordToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     };
 
-    if (quickCustomWordToggleBtn && quickCustomWordBody) {
+    if (customWordTeacherOnly && quickCustomWordToggleBtn && quickCustomWordBody) {
         setCustomPanelExpanded(false);
         quickCustomWordToggleBtn.onclick = () => {
             const shouldExpand = quickCustomWordBody.classList.contains('hidden');
@@ -3894,7 +3908,7 @@ function initControls() {
         };
     }
 
-    if (customWordInput) {
+    if (customWordTeacherOnly && customWordInput) {
         if (supportsTextSecurity) {
             customWordInput.type = 'text';
             customWordInput.classList.add('masked');
@@ -3906,7 +3920,7 @@ function initControls() {
         }
     }
 
-    if (toggleMaskBtn) {
+    if (customWordTeacherOnly && toggleMaskBtn) {
         toggleMaskBtn.onclick = () => {
             const inp = quickCustomWordInput;
             if (!inp) return;
@@ -3930,7 +3944,7 @@ function initControls() {
         };
     }
 
-    if (quickCustomWordStartBtn) {
+    if (customWordTeacherOnly && quickCustomWordStartBtn) {
         quickCustomWordStartBtn.onclick = () => {
             const value = quickCustomWordInput ? quickCustomWordInput.value : '';
             const ok = applyCustomWordChallenge(value, { source: 'quick' });
@@ -3942,7 +3956,7 @@ function initControls() {
         };
     }
 
-    if (quickCustomWordInput) {
+    if (customWordTeacherOnly && quickCustomWordInput) {
         quickCustomWordInput.addEventListener('keydown', (event) => {
             if (event.key !== 'Enter') return;
             event.preventDefault();
@@ -3954,7 +3968,7 @@ function initControls() {
         });
     }
 
-    if (quickCustomWordClearBtn) {
+    if (customWordTeacherOnly && quickCustomWordClearBtn) {
         quickCustomWordClearBtn.onclick = () => {
             if (quickCustomWordInput) quickCustomWordInput.value = '';
             isCustomWordRound = false;
@@ -4074,7 +4088,9 @@ function initControls() {
     }
 
     refreshPatternSelectTooltip();
-    setQuickCustomWordStatus(WORD_SOURCE_LIBRARY_STATUS, false, false);
+    if (customWordTeacherOnly) {
+        setQuickCustomWordStatus(WORD_SOURCE_LIBRARY_STATUS, false, false);
+    }
     updateWordQuestAudioAvailabilityNotice();
     
     document.getElementById("speak-btn").onclick = () => {
@@ -6005,25 +6021,34 @@ function updateAdaptiveActions() {
     
     if (!hearWord) return; // Elements not loaded yet
     
+    const audioBlocked = isCurrentWordAudioBlocked();
+
     // Always show "Hear word"
     hearWord.style.display = 'inline-block';
     hearWord.classList.add('hint-primary');
-    hearWord.onclick = () => speak(word, 'word');
+    hearWord.disabled = audioBlocked;
+    hearWord.onclick = () => {
+        if (audioBlocked) return;
+        speak(word, 'word');
+    };
     
     // Show "Hear sentence" only if sentence exists
     const sentenceText = audienceCopy.sentence || entry?.sentence || entry?.en?.sentence || '';
-    if (sentenceText && sentenceText.length > 5) {
+    if (!audioBlocked && sentenceText && sentenceText.length > 5) {
         hearSentence.style.display = 'inline-block';
         hearSentence.classList.add('hint-primary');
+        hearSentence.disabled = false;
         hearSentence.onclick = () => speak(sentenceText, 'sentence');
     } else {
         hearSentence.style.display = 'none';
+        hearSentence.disabled = true;
     }
     
     // Show "Hear sound" if we can detect a phoneme pattern
     const firstSound = detectPrimarySound(word);
-    if (firstSound) {
+    if (!audioBlocked && firstSound) {
         hearSound.style.display = 'inline-block';
+        hearSound.disabled = false;
         hearSound.onclick = () => {
             // Play sound then word
             speakPhoneme(firstSound);
@@ -6031,6 +6056,7 @@ function updateAdaptiveActions() {
         };
     } else {
         hearSound.style.display = 'none';
+        hearSound.disabled = true;
     }
     
     // Mouth guide is optional and off by default (Sound Guide is primary)
@@ -6572,6 +6598,8 @@ function setupModalAudioControls(definitionText, sentenceText) {
         };
     }
 
+    const audioBlocked = isCurrentWordAudioBlocked();
+
     let speakBtn = document.getElementById('speak-btn');
     if (!speakBtn) {
         speakBtn = document.createElement('button');
@@ -6580,7 +6608,9 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     speakBtn.textContent = 'Hear Word';
     speakBtn.classList.add('modal-audio-btn');
+    speakBtn.disabled = audioBlocked;
     speakBtn.onclick = () => {
+        if (audioBlocked) return;
         if (currentWord) speak(currentWord, 'word');
     };
     if (!audioControls.contains(speakBtn)) audioControls.appendChild(speakBtn);
@@ -6593,8 +6623,9 @@ function setupModalAudioControls(definitionText, sentenceText) {
         defBtn.className = 'modal-audio-btn';
     }
     defBtn.textContent = 'Hear Definition';
-    defBtn.disabled = !definitionText;
+    defBtn.disabled = audioBlocked || !definitionText;
     defBtn.onclick = () => {
+        if (audioBlocked) return;
         if (definitionText) speakText(definitionText, 'definition');
     };
     if (!audioControls.contains(defBtn)) audioControls.appendChild(defBtn);
@@ -6607,8 +6638,9 @@ function setupModalAudioControls(definitionText, sentenceText) {
         sentenceBtn.className = 'modal-audio-btn';
     }
     sentenceBtn.textContent = 'Hear Sentence';
-    sentenceBtn.disabled = !sentenceText;
+    sentenceBtn.disabled = audioBlocked || !sentenceText;
     sentenceBtn.onclick = () => {
+        if (audioBlocked) return;
         if (sentenceText) speak(sentenceText, 'sentence');
     };
     if (!audioControls.contains(sentenceBtn)) audioControls.appendChild(sentenceBtn);
@@ -6759,30 +6791,36 @@ function showEndModal(win) {
     sentence = adaptedCopy.sentence;
     renderAudienceModeNote(adaptedCopy.mode);
 
-    const hasLibrarySupport = !isCurrentWordAudioBlocked();
-    if (!hasLibrarySupport) {
-        def = simplifyRevealDefinition(def || '', currentWord, 'en');
-        sentence = simplifyRevealSentence(sentence || `Can you use "${currentWord}" in a class-safe sentence?`, currentWord, 'en');
+    const isCustomWithoutLibrarySupport = isCustomWordRound && !customWordInLibrary;
+    if (!isCustomWithoutLibrarySupport) {
+        const hasLibrarySupport = !!window.WORD_ENTRIES?.[currentWord];
+        if (!hasLibrarySupport) {
+            def = simplifyRevealDefinition(def || '', currentWord, 'en');
+            sentence = simplifyRevealSentence(sentence || `Can you use "${currentWord}" in a class-safe sentence?`, currentWord, 'en');
+        }
+    } else {
+        def = '';
+        sentence = '';
     }
     def = sanitizeRevealText(def, {
         word: currentWord,
         field: 'definition',
         languageCode: 'en',
-        allowFallback: true,
+        allowFallback: !isCustomWithoutLibrarySupport,
         maxWords: 20
     });
     sentence = sanitizeRevealText(sentence, {
         word: currentWord,
         field: 'sentence',
         languageCode: 'en',
-        allowFallback: true,
+        allowFallback: !isCustomWithoutLibrarySupport,
         maxWords: 24
     });
 
     const modalDefEl = document.getElementById("modal-def");
     const modalSentenceEl = document.getElementById("modal-sentence");
     if (modalDefEl) {
-        modalDefEl.textContent = def || 'Let’s practice this word together.';
+        modalDefEl.textContent = def || '';
     }
     if (modalSentenceEl) {
         modalSentenceEl.textContent = sentence ? `"${sentence}"` : '';
@@ -6790,7 +6828,7 @@ function showEndModal(win) {
 
     const speakBtn = document.getElementById("speak-btn");
     if (speakBtn) {
-        speakBtn.disabled = false;
+        speakBtn.disabled = isCurrentWordAudioBlocked();
         speakBtn.textContent = 'Hear Word';
     }
 
@@ -7150,7 +7188,7 @@ function updateVoiceIndicator() {
 function handleTeacherSubmit() {
     const input = document.getElementById("quick-custom-word-input");
     if (!input) return;
-    applyCustomWordChallenge(input.value, { source: 'quick' });
+    applyCustomWordChallenge(input.value, { source: 'teacher' });
     input.value = '';
 }
 
