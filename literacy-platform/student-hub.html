@@ -43,6 +43,10 @@
         </div>
 
         <p class="cs-hub-banner cs-hub-hidden" data-cs-hub-banner></p>
+        <p class="cs-hub-banner cs-hub-hidden" data-cs-student-placement-banner>
+          Placement complete — jump straight to activities.
+          <a class="cs-hub-action-open" href="word-quest.html">Go to activities</a>
+        </p>
 
         <section class="cs-hub-summary-grid" aria-label="Hub summary cards">
           <article class="cs-hub-card">
@@ -123,5 +127,17 @@
         </section>
       </section>
     </main>
+    <script>
+      (function () {
+        try {
+          const placementBanner = document.querySelector('[data-cs-student-placement-banner]');
+          if (!(placementBanner instanceof HTMLElement)) return;
+          const hasPlacement = localStorage.getItem('cs_lit_quickcheck_v1') !== null;
+          if (hasPlacement) {
+            placementBanner.classList.remove('cs-hub-hidden');
+          }
+        } catch {}
+      })();
+    </script>
   </body>
 </html>

@@ -19,7 +19,7 @@
   const ROLE_OPTIONS = [
     { value: 'student-me', role: 'student', label: 'Me', subline: 'I’m learning on my own.' },
     { value: 'student-teacher', role: 'student', label: 'With my teacher', subline: 'my teacher is guiding me.' },
-    { value: 'student-family', role: 'student', label: 'With my family', subline: 'I’m working with a parent or caregiver.' },
+    { value: 'parent', role: 'parent', label: 'Parent / Caregiver', subline: 'I’m supporting my child.' },
     { value: 'school', role: 'school', label: 'School Team', subline: 'I work at the school.' }
   ];
 
@@ -42,7 +42,7 @@
     counselor: 'counselor-hub.html',
     psychologist: 'psychologist-hub.html',
     admin: 'admin-hub.html',
-    dean: 'admin-hub.html'
+    dean: 'counselor-hub.html'
   };
 
   const HUB_BY_ROLE = {
@@ -149,6 +149,7 @@
       role: null,
       schoolRole: null,
       roleOption: null,
+      adultPath: false,
       focus: null,
       quickCheckStatus: 'not_started'
     };
@@ -160,12 +161,14 @@
     const normalizedRole = normalizeRole(raw.role) || roleForRoleOption(roleOption);
     const sanitizedFocus = normalizeFocus(raw.focus) || 'both';
     const schoolRole = normalizedRole === 'school' ? normalizeSchoolRole(raw.schoolRole) : null;
+    const adultPath = normalizedRole === 'parent' || normalizedRole === 'school';
 
     return {
       step: normalizeStep(raw.step),
       role: normalizedRole,
       schoolRole,
       roleOption,
+      adultPath,
       focus: sanitizedFocus,
       quickCheckStatus: normalizeQuickCheckStatus(raw.quickCheckStatus)
     };
@@ -219,6 +222,9 @@
     if (normalized === 2) {
       return role === 'school' ? 2 : 3;
     }
+    if (normalized === 3 && role !== 'student') {
+      return role === 'school' ? 2 : 1;
+    }
     if (normalized === 3 && role === 'school' && !state.schoolRole) return 2;
     return 3;
   }
@@ -247,12 +253,21 @@
     cs_hv2_quickcheck_poll = null;
   }
 
-  function routeToHub(quickCheckStatus) {
+  function routeToHub(options = {}) {
+    const routeOptions = options && typeof options === 'object' ? options : {};
     const state = readState();
     const target = resolveHubPath(state);
     const url = new URL(target, window.location.href);
     url.searchParams.set('source', 'home-v2');
-    url.searchParams.set('quickcheck', quickCheckStatus || state.quickCheckStatus);
+    const quickCheckStatus = String(routeOptions.quickCheckStatus || '').trim().toLowerCase();
+    if (quickCheckStatus) {
+      url.searchParams.set('quickcheck', quickCheckStatus);
+    }
+    const placed =
+      typeof routeOptions.placed === 'boolean'
+        ? routeOptions.placed
+        : (quickCheckStatus === 'complete' || state.quickCheckStatus === 'complete');
+    url.searchParams.set('placed', placed ? 'true' : 'false');
     if (state.focus) url.searchParams.set('focus', state.focus);
     window.location.href = url.toString();
   }
@@ -268,7 +283,7 @@
       if (!hasRecommendation()) return;
       stopQuickCheckPolling();
       writeState({ quickCheckStatus: 'complete' });
-      routeToHub('complete');
+      routeToHub({ quickCheckStatus: 'complete', placed: true });
     }, POLL_INTERVAL_MS);
   }
 
@@ -512,10 +527,12 @@
         const roleOption = normalizeRoleOption(button.getAttribute('data-role-option') || '');
         const role = roleForRoleOption(roleOption);
         if (!role) return;
+        const current = readState();
         writeState({
           roleOption,
           role,
-          schoolRole: role === 'school' ? readState().schoolRole : null,
+          schoolRole: role === 'school' ? current.schoolRole : null,
+          adultPath: role === 'parent' || role === 'school',
           focus: 'both',
           quickCheckStatus: 'not_started'
         });
@@ -528,10 +545,13 @@
       const role = roleForRoleOption(state.roleOption) || state.role;
       if (!role) return;
       if (role === 'school') {
-        writeState({ step: 2 });
+        writeState({ step: 2, adultPath: true });
         showStep(2);
+      } else if (role === 'parent') {
+        writeState({ quickCheckStatus: 'skipped', step: 1, schoolRole: null, adultPath: true });
+        routeToHub({ placed: false });
       } else {
-        writeState({ step: 3, schoolRole: null });
+        writeState({ step: 3, schoolRole: null, adultPath: false });
         showStep(3);
       }
     });
@@ -546,13 +566,13 @@
     root.querySelector('[data-action="school-role-next"]')?.addEventListener('click', () => {
       const state = readState();
       if (!state.schoolRole) return;
-      writeState({ step: 3 });
-      showStep(3);
+      writeState({ step: 2, quickCheckStatus: 'skipped', adultPath: true });
+      routeToHub({ placed: false });
     });
 
     root.querySelector('[data-action="skip"]')?.addEventListener('click', () => {
       writeState({ quickCheckStatus: 'skipped' });
-      routeToHub('skipped');
+      routeToHub({ quickCheckStatus: 'skipped', placed: false });
     });
 
     root.querySelector('[data-action="start"]')?.addEventListener('click', () => {
@@ -562,7 +582,7 @@
       pushLegacyBridgeState(prepared);
       if (hasRecommendation()) {
         writeState({ quickCheckStatus: 'complete' });
-        routeToHub('complete');
+        routeToHub({ quickCheckStatus: 'complete', placed: true });
         return;
       }
       openExistingQuickCheck(prepared.role);
@@ -596,7 +616,7 @@
       if (current.quickCheckStatus !== 'in_progress') return;
       if (!hasRecommendation()) return;
       writeState({ quickCheckStatus: 'complete' });
-      routeToHub('complete');
+      routeToHub({ quickCheckStatus: 'complete', placed: true });
     });
   }
 
