@@ -8,8 +8,10 @@
       (function () {
         try {
           const params = new URLSearchParams(window.location.search || '');
-          if (params.get('demo') === '1') {
+          const hash = String(window.location.hash || '').toLowerCase();
+          if (params.get('demo') === '1' || hash === '#demo' || hash === '#demo-mode') {
             document.documentElement.classList.add('wq-demo-mode');
+            window.__wqDemoMode = true;
           }
         } catch {}
       })();
