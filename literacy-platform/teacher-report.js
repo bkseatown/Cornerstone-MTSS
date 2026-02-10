@@ -1055,11 +1055,14 @@
 
   const NUMERACY_IMPORT_UNDO_KEY = 'decode_numeracy_import_undo_v1';
   const STUDENT_QUICKCHECK_KEY = 'cs_lit_quickcheck_v1';
+  const STUDENT_MATH_QUICKCHECK_KEY = 'cs_math_quickcheck_v1';
 
   const learnerNameEl = document.getElementById('report-learner-name');
   const generatedAtEl = document.getElementById('report-generated-at');
   const quickCheckPanelEl = document.getElementById('report-quickcheck-panel');
   const quickCheckClearBtn = document.getElementById('report-quickcheck-clear');
+  const mathQuickCheckPanelEl = document.getElementById('report-math-quickcheck-panel');
+  const mathQuickCheckClearBtn = document.getElementById('report-math-quickcheck-clear');
   const metricsEl = document.getElementById('report-metrics');
   const focusEl = document.getElementById('report-focus');
   const pulseEl = document.getElementById('report-pulse');
@@ -1349,6 +1352,28 @@
     };
   }
 
+  function yesNoLabel(value) {
+    return value ? 'Yes' : 'No';
+  }
+
+  function truncateNotes(value, maxLength = 200) {
+    const text = String(value || '').trim();
+    if (!text) return '—';
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength).trimEnd()}...`;
+  }
+
+  function normalizeMathQuickCheckPayload(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    return {
+      dateLabel: formatQuickCheckDate(payload.date),
+      numberSenseCorrect: clampCount(payload.ns_correct, 6),
+      makingTensComplete: clampCount(payload.make_tens_complete, 3),
+      strategyShared: yesNoLabel(Boolean(payload.shared_strategy)),
+      notes: truncateNotes(payload.notes, 200)
+    };
+  }
+
   function renderStudentQuickCheckPanel() {
     if (!quickCheckPanelEl) return;
     const payload = safeParse(localStorage.getItem(STUDENT_QUICKCHECK_KEY) || '');
@@ -1370,6 +1395,29 @@
       <p class="report-focus-note">These results are student self-reported and for classroom insight only.</p>
     `;
     if (quickCheckClearBtn) quickCheckClearBtn.disabled = false;
+  }
+
+  function renderStudentMathQuickCheckPanel() {
+    if (!mathQuickCheckPanelEl) return;
+    const payload = safeParse(localStorage.getItem(STUDENT_MATH_QUICKCHECK_KEY) || '');
+    const data = normalizeMathQuickCheckPayload(payload);
+    if (!data) {
+      mathQuickCheckPanelEl.innerHTML = '<p class="report-focus-note">No Math Quick Check results found. Students can download and share their results.</p>';
+      if (mathQuickCheckClearBtn) mathQuickCheckClearBtn.disabled = true;
+      return;
+    }
+
+    mathQuickCheckPanelEl.innerHTML = `
+      <div class="report-builder-summary">
+        <div><strong>Date:</strong> ${escapeHtml(data.dateLabel)}</div>
+        <div><strong>Number sense correct:</strong> ${data.numberSenseCorrect}/6</div>
+        <div><strong>Making tens/hundreds complete:</strong> ${data.makingTensComplete}/3</div>
+        <div><strong>Strategy shared:</strong> ${escapeHtml(data.strategyShared)}</div>
+        <div><strong>Notes:</strong> ${escapeHtml(data.notes)}</div>
+      </div>
+      <p class="report-focus-note">These results are student self-reported and for classroom insight only.</p>
+    `;
+    if (mathQuickCheckClearBtn) mathQuickCheckClearBtn.disabled = false;
   }
 
   function clamp(value, min = 0, max = 1) {
@@ -8360,6 +8408,7 @@
     if (learnerNameEl) learnerNameEl.textContent = learner?.name || 'Learner';
     if (generatedAtEl) generatedAtEl.textContent = new Date().toLocaleString();
     renderStudentQuickCheckPanel();
+    renderStudentMathQuickCheckPanel();
 
     const logs = getLogs();
     const metrics = renderMetrics(logs);
@@ -8486,6 +8535,12 @@
       localStorage.removeItem(STUDENT_QUICKCHECK_KEY);
     } catch {}
     renderStudentQuickCheckPanel();
+  });
+  mathQuickCheckClearBtn?.addEventListener('click', () => {
+    try {
+      localStorage.removeItem(STUDENT_MATH_QUICKCHECK_KEY);
+    } catch {}
+    renderStudentMathQuickCheckPanel();
   });
   loadSampleBtn?.addEventListener('click', () => {
     loadSampleData();
