@@ -21,8 +21,8 @@
         try {
           const allowedThemes = ['calm', 'professional', 'playful', 'high-contrast'];
           const rawTheme = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
-          if (!allowedThemes.includes(rawTheme)) return;
-          const themeClass = `cs-hv2-theme-${rawTheme}`;
+          const selectedTheme = allowedThemes.includes(rawTheme) ? rawTheme : 'calm';
+          const themeClass = `cs-hv2-theme-${selectedTheme}`;
           document.documentElement.classList.add(themeClass);
           document.addEventListener(
             'DOMContentLoaded',

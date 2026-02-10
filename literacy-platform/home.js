@@ -583,9 +583,12 @@
   }
 
   function getTtsBasePathCandidates() {
-    const preferred = readPreferredTtsBasePath();
+    const preferredRaw = readPreferredTtsBasePath();
     const pathname = String(window.location?.pathname || '').toLowerCase();
-    const inferredPrimary = pathname.includes('/literacy-platform/') ? TTS_BASE_PLAIN : TTS_BASE_SCOPED;
+    const preferred = preferredRaw === TTS_BASE_SCOPED && !pathname.includes('/literacy-platform/')
+      ? ''
+      : preferredRaw;
+    const inferredPrimary = TTS_BASE_PLAIN;
     return Array.from(new Set([preferred, inferredPrimary, TTS_BASE_PLAIN, TTS_BASE_SCOPED].filter(Boolean)));
   }
 
@@ -638,15 +641,17 @@
   async function loadQuickVoicePackOptions(selectedPackId = HOME_DEFAULT_TTS_PACK_ID, selectedDialect = '') {
     if (!homeQuickVoicePackSelect) return 'default';
 
-    const candidates = getTtsBasePathCandidates().map((base) => `${base}/packs/pack-registry.json`);
+    const candidates = getTtsBasePathCandidates().map((base) => ({
+      base,
+      url: new URL(`${base}/packs/pack-registry.json`, document.baseURI).toString()
+    }));
     let packs = [];
-    for (const path of candidates) {
+    for (const candidate of candidates) {
       try {
-        const response = await fetch(path, { cache: 'no-store' });
+        const response = await fetch(candidate.url, { cache: 'no-store' });
         if (!response.ok) continue;
         const parsed = await response.json();
-        const detectedBase = path.startsWith(`${TTS_BASE_PLAIN}/`) ? TTS_BASE_PLAIN : TTS_BASE_SCOPED;
-        rememberPreferredTtsBasePath(detectedBase);
+        rememberPreferredTtsBasePath(candidate.base);
         if (parsed && Array.isArray(parsed.packs)) {
           packs = parsed.packs
             .filter((pack) => pack && typeof pack === 'object')

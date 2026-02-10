@@ -358,17 +358,19 @@
 
   async function loadQuickVoicePackCatalog({ forceRefresh = false } = {}) {
     if (quickVoicePackCatalog && !forceRefresh) return quickVoicePackCatalog.slice();
-    const candidates = getQuickVoicePackCandidates().map((base) => `${base}/packs/pack-registry.json`);
+    const candidates = getQuickVoicePackCandidates().map((base) => ({
+      base,
+      url: new URL(`${base}/packs/pack-registry.json`, document.baseURI).toString()
+    }));
     let fetchedPacks = [];
 
-    for (const path of candidates) {
+    for (const candidate of candidates) {
       try {
-        const response = await fetch(path, { cache: 'no-store' });
+        const response = await fetch(candidate.url, { cache: 'no-store' });
         if (!response.ok) continue;
         const parsed = await response.json();
         if (!parsed || !Array.isArray(parsed.packs)) continue;
-        const detectedBase = path.startsWith(`${QUICK_TTS_BASE_PLAIN}/`) ? QUICK_TTS_BASE_PLAIN : QUICK_TTS_BASE_SCOPED;
-        rememberPreferredTtsBasePath(detectedBase);
+        rememberPreferredTtsBasePath(candidate.base);
         fetchedPacks = parsed.packs
           .map((pack) => normalizeQuickVoicePackRecord(pack))
           .filter(Boolean);
