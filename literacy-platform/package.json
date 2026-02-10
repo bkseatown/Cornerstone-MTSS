@@ -8,6 +8,7 @@
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "tts:azure": "node scripts/export-azure-tts.js",
+    "tts:azure:bonus": "node scripts/export-azure-bonus-tts.js",
     "tts:voices": "node scripts/list-azure-voices.js"
   },
   "keywords": [],
