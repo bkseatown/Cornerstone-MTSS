@@ -432,7 +432,6 @@
   }
 
   function renderRole(root, state) {
-    const selectedRole = roleForRoleOption(state.roleOption);
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
@@ -440,9 +439,6 @@
           <h2 class="cs-hv2-question">Who are we helping today?</h2>
           <div class="cs-hv2-choice-grid">${renderRoleChoices(state)}</div>
           <p class="cs-hv2-hint">Choose one option to begin.</p>
-          <div class="cs-hv2-quick-actions">
-            <button type="button" class="cs-hv2-btn cs-hv2-btn-primary" data-action="role-next" ${selectedRole ? '' : 'disabled'}>Find my pathway &rarr;</button>
-          </div>
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
           </div>
@@ -458,14 +454,15 @@
         <section class="cs-hv2-card cs-hv2-question-card">
           <p class="cs-hv2-step-label">Step 2 of 3</p>
           <h2 class="cs-hv2-question">What is your role?</h2>
-          <label class="cs-hv2-field-label" for="cs-hv2-school-role">Choose your role</label>
-          <select id="cs-hv2-school-role" class="cs-hv2-select">
-            <option value="">Choose your role</option>
-            ${renderSchoolRoleChoices(state)}
-          </select>
-          <div class="cs-hv2-quick-actions">
-            <button type="button" class="cs-hv2-btn cs-hv2-btn-primary" data-action="school-role-next" ${state.schoolRole ? '' : 'disabled'}>Next &rarr;</button>
+          <div class="cs-hv2-choice-grid" aria-label="School team roles">
+            ${SCHOOL_TEAM_ROLES.map((option) => `
+              <button type="button" class="cs-hv2-choice-card${state.schoolRole === option.value ? ' cs-hv2-choice-selected' : ''}" data-action="choose-school-role" data-school-role="${option.value}">
+                <span class="cs-hv2-choice-title">${escapeHtml(option.label)}</span>
+                <span class="cs-hv2-choice-subline">Open ${escapeHtml(option.label)} hub</span>
+              </button>
+            `).join('')}
           </div>
+          <p class="cs-hv2-hint">Choose your role to continue.</p>
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
           </div>
@@ -613,47 +610,36 @@
         const roleOption = normalizeRoleOption(button.getAttribute('data-role-option') || '');
         const role = roleForRoleOption(roleOption);
         if (!role) return;
-        const current = readState();
         writeState({
           roleOption,
           role,
-          schoolRole: role === 'school' ? current.schoolRole : null,
+          schoolRole: role === 'school' ? readState().schoolRole : null,
           adultPath: role === 'parent' || role === 'school',
           focus: 'both',
           quickCheckStatus: 'not_started'
         });
-        showStep(1);
+        if (role === 'school') {
+          writeState({ step: 2, adultPath: true });
+          showStep(2);
+          return;
+        }
+        if (role === 'parent') {
+          writeState({ quickCheckStatus: 'skipped', step: 1, schoolRole: null, adultPath: true });
+          routeToHub({ quickCheckStatus: 'skipped', placed: false });
+          return;
+        }
+        writeState({ step: 3, schoolRole: null, adultPath: false });
+        showStep(3);
       });
     });
 
-    root.querySelector('[data-action="role-next"]')?.addEventListener('click', () => {
-      const state = readState();
-      const role = roleForRoleOption(state.roleOption) || state.role;
-      if (!role) return;
-      if (role === 'school') {
-        writeState({ step: 2, adultPath: true });
-        showStep(2);
-      } else if (role === 'parent') {
-        writeState({ quickCheckStatus: 'skipped', step: 1, schoolRole: null, adultPath: true });
-        routeToHub({ placed: false });
-      } else {
-        writeState({ step: 3, schoolRole: null, adultPath: false });
-        showStep(3);
-      }
-    });
-
-    root.querySelector('#cs-hv2-school-role')?.addEventListener('change', (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLSelectElement)) return;
-      writeState({ schoolRole: normalizeSchoolRole(target.value) });
-      showStep(2);
-    });
-
-    root.querySelector('[data-action="school-role-next"]')?.addEventListener('click', () => {
-      const state = readState();
-      if (!state.schoolRole) return;
-      writeState({ step: 2, quickCheckStatus: 'skipped', adultPath: true });
-      routeToHub({ placed: false });
+    root.querySelectorAll('[data-action="choose-school-role"]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const schoolRole = normalizeSchoolRole(button.getAttribute('data-school-role') || '');
+        if (!schoolRole) return;
+        writeState({ schoolRole, step: 2, quickCheckStatus: 'skipped', adultPath: true });
+        routeToHub({ quickCheckStatus: 'skipped', placed: false });
+      });
     });
 
     root.querySelector('[data-action="skip"]')?.addEventListener('click', () => {
@@ -683,8 +669,10 @@
 
   function hideLegacyHome() {
     document.body.classList.add('cs-hv2-page', 'cs-hv2-enabled');
-    document.querySelectorAll('.home-main > .home-card').forEach((card) => {
-      card.setAttribute('aria-hidden', 'true');
+    document.querySelectorAll('.home-main > :not(#homeV2Root)').forEach((section) => {
+      section.setAttribute('aria-hidden', 'true');
+      section.setAttribute('hidden', 'hidden');
+      section.classList.add('hidden');
     });
   }
 
