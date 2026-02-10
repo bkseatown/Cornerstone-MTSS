@@ -689,6 +689,22 @@ body.cs-hv2-page.cs-hv2-enabled {
   background: var(--hv2-page-bg, #f5f7fb) !important;
 }
 
+/* Home V2 owns theming; disable legacy platform preset overlays on this page only. */
+body.cs-hv2-page::before,
+body.cs-hv2-page.cs-hv2-enabled::before {
+  content: none !important;
+}
+
+body.cs-hv2-page.theme-calm,
+body.cs-hv2-page.theme-playful,
+body.cs-hv2-page.theme-classic,
+body.cs-hv2-page.theme-high-contrast,
+body.cs-hv2-page.theme-minimal-ink {
+  --theme-bg: none !important;
+  --theme-grid-dot: transparent !important;
+  --theme-grid-opacity: 0 !important;
+}
+
 .hv2-root,
 .hv2-card,
 .step-container,
