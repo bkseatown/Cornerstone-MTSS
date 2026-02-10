@@ -501,6 +501,22 @@
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
   }
 
+  function applyPlatformThemePreset(preset) {
+    if (document.body && document.body.classList.contains('hv2-root')) {
+      // Home V2 owns its own theming — do NOT apply legacy preset backgrounds here
+      return;
+    }
+    // Also protect current Home V2 wiring used in this codebase.
+    if (document.body && (document.body.classList.contains('cs-hv2-page') || document.body.classList.contains('cs-hv2-enabled'))) {
+      return;
+    }
+    if (document.getElementById('homeV2Root')) {
+      return;
+    }
+    body.classList.remove('theme-calm', 'theme-playful', 'theme-classic', 'theme-high-contrast', 'theme-minimal-ink');
+    body.classList.add(`theme-${preset}`);
+  }
+
   function normalizeHomeTheme(value) {
     const raw = String(value || '').trim().toLowerCase();
     return HOME_THEME_VALUES.includes(raw) ? raw : 'calm';
@@ -1308,8 +1324,7 @@
     body.classList.toggle('line-focus', !!normalized.lineFocus);
     body.classList.remove('font-atkinson', 'font-opendyslexic');
     body.classList.add(normalized.fontProfile === 'opendyslexic' ? 'font-opendyslexic' : 'font-atkinson');
-    body.classList.remove('theme-calm', 'theme-playful', 'theme-classic', 'theme-high-contrast', 'theme-minimal-ink');
-    body.classList.add(`theme-${normalized.themePreset}`);
+    applyPlatformThemePreset(normalized.themePreset);
 
     const uiLook = normalizeLook(normalized.uiLook);
     UI_LOOK_CLASSES.forEach((cls) => body.classList.remove(cls));

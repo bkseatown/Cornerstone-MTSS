@@ -221,6 +221,10 @@ body.cs-hv2-theme-high-contrast {
   --cs-hv2-btn-secondary-text: #f8fafc;
   --cs-hv2-hover-lift: 0px;
   --cs-hv2-hover-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+  --hv2-page-bg: #05070d;
+  --hv2-card-bg: #0f172a;
+  --hv2-card-border: rgba(248, 250, 252, 0.45);
+  --hv2-accent: #facc15;
 
   /* Word Quest: High contrast */
   --wq-radius: 10px;
@@ -733,4 +737,9 @@ button.primary,
 .btn-primary,
 .cs-hv2-btn-primary {
   background: var(--hv2-accent, #7b6fff) !important;
+}
+
+/* Ensure Home V2 themes beat any legacy preset backgrounds */
+body.hv2-root {
+  background: var(--hv2-page-bg, #f5f7fb) !important;
 }
