@@ -3069,6 +3069,10 @@
 
   homeDetailsStepNextBtn?.addEventListener('click', () => {
     if (!canAdvanceDetailsStep()) return;
+    if (readHomeEntryGroup() === 'school') {
+      const roleId = activeWizardRole();
+      if (routeRoleToHub(roleId, { quickcheck: 'skipped', source: 'home-v1' })) return;
+    }
     goWizardStep(3);
   });
 
@@ -3275,6 +3279,9 @@
       applyHomeEntryGroup(nextGroup, { persist: true, preserveCurrentRole: false, step: 1 });
       const roleId = normalizeRoleId(homeRoleSelect?.value || HOME_ENTRY_GROUP_DEFAULT_ROLE[nextGroup] || 'student');
       if (roleId) localStorage.setItem(HOME_ROLE_WIZARD_KEY, roleId);
+      if (canAdvanceRoleStep()) {
+        goWizardStep(2);
+      }
       renderRoleDashboard();
       renderQuickCheckIntro();
     });
