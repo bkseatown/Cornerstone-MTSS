@@ -16,6 +16,7 @@
   const DEFAULT_STUDENT_MODE_PIN = '2468';
   const BUILD_STAMP_CACHE_KEY = 'cornerstone_build_stamp_v1';
   const BUILD_STAMP_CACHE_TTL_MS = 15 * 60 * 1000;
+  const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
 
   const LEARNERS_KEY = 'decode_learners_v1';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
@@ -206,6 +207,10 @@
     { value: 'ko', label: '한국어 (Korean)' },
     { value: 'ja', label: '日本語 (Japanese)' }
   ];
+
+  let csSentenceCaptionDismissedForRound = false;
+  let csSentenceCaptionSyncFn = null;
+  let csRefreshBonusStateFn = null;
 
   function normalizeVoicePackId(value) {
     const raw = String(value || '').trim().toLowerCase();
@@ -2397,6 +2402,445 @@
     }
   }
 
+  function readSentenceCaptionMode() {
+    try {
+      const raw = String(localStorage.getItem(SENTENCE_CAPTION_KEY) || '').trim().toLowerCase();
+      return raw === 'on' ? 'on' : 'off';
+    } catch {
+      return 'off';
+    }
+  }
+
+  function writeSentenceCaptionMode(mode = 'off') {
+    const next = String(mode || '').trim().toLowerCase() === 'on' ? 'on' : 'off';
+    try {
+      localStorage.setItem(SENTENCE_CAPTION_KEY, next);
+    } catch {}
+    return next;
+  }
+
+  function applySentenceCaptionModeClass(mode = readSentenceCaptionMode()) {
+    document.body.classList.toggle('cs-sentence-caption-off', mode !== 'on');
+    document.body.classList.toggle('cs-sentence-caption-on', mode === 'on');
+  }
+
+  function ensureSentenceCaptionControls() {
+    const sentenceBtn = document.getElementById('simple-hear-sentence');
+    const hintActions = sentenceBtn?.closest('.hint-actions');
+    const preview = document.getElementById('sentence-preview');
+    if (!(sentenceBtn instanceof HTMLButtonElement) || !(hintActions instanceof HTMLElement) || !(preview instanceof HTMLElement)) {
+      return;
+    }
+
+    let toggleWrap = document.getElementById('cs-sentence-caption-toggle-wrap');
+    if (!(toggleWrap instanceof HTMLElement)) {
+      toggleWrap = document.createElement('div');
+      toggleWrap.id = 'cs-sentence-caption-toggle-wrap';
+      toggleWrap.className = 'cs-sentence-caption-toggle-wrap';
+      toggleWrap.innerHTML = `
+        <label class="cs-sentence-caption-toggle">
+          <input id="cs-sentence-caption-toggle" type="checkbox" />
+          <span>Show sentence captions</span>
+        </label>
+      `;
+      hintActions.insertAdjacentElement('afterend', toggleWrap);
+    }
+
+    let hideBtn = document.getElementById('cs-sentence-caption-hide');
+    if (!(hideBtn instanceof HTMLButtonElement)) {
+      hideBtn = document.createElement('button');
+      hideBtn.type = 'button';
+      hideBtn.id = 'cs-sentence-caption-hide';
+      hideBtn.className = 'cs-sentence-caption-hide hidden';
+      hideBtn.textContent = 'Hide caption ×';
+      preview.insertAdjacentElement('afterend', hideBtn);
+    }
+
+    const toggle = document.getElementById('cs-sentence-caption-toggle');
+    if (!(toggle instanceof HTMLInputElement)) return;
+
+    let internalSync = false;
+    const syncVisibility = () => {
+      if (!(preview instanceof HTMLElement) || !(hideBtn instanceof HTMLButtonElement)) return;
+      const mode = readSentenceCaptionMode();
+      applySentenceCaptionModeClass(mode);
+      const hasText = !!String(preview.textContent || '').trim();
+      if (mode !== 'on') {
+        internalSync = true;
+        preview.classList.add('hidden');
+        hideBtn.classList.add('hidden');
+        internalSync = false;
+        return;
+      }
+      if (!hasText || csSentenceCaptionDismissedForRound) {
+        hideBtn.classList.add('hidden');
+        return;
+      }
+      internalSync = true;
+      preview.classList.remove('hidden');
+      hideBtn.classList.remove('hidden');
+      internalSync = false;
+    };
+
+    toggle.checked = readSentenceCaptionMode() === 'on';
+    applySentenceCaptionModeClass(toggle.checked ? 'on' : 'off');
+
+    if (toggle.dataset.bound !== 'true') {
+      toggle.dataset.bound = 'true';
+      toggle.addEventListener('change', () => {
+        const next = writeSentenceCaptionMode(toggle.checked ? 'on' : 'off');
+        if (next !== 'on') csSentenceCaptionDismissedForRound = false;
+        syncVisibility();
+      });
+    }
+
+    if (hideBtn.dataset.bound !== 'true') {
+      hideBtn.dataset.bound = 'true';
+      hideBtn.addEventListener('click', () => {
+        csSentenceCaptionDismissedForRound = true;
+        preview.classList.add('hidden');
+        hideBtn.classList.add('hidden');
+        hideBtn.blur();
+      });
+    }
+
+    if (!window.__csSentenceCaptionObserverBound) {
+      const observer = new MutationObserver(() => {
+        if (internalSync) return;
+        syncVisibility();
+      });
+      observer.observe(preview, {
+        attributes: true,
+        attributeFilter: ['class'],
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+      window.__csSentenceCaptionObserverBound = true;
+    }
+
+    csSentenceCaptionSyncFn = syncVisibility;
+    syncVisibility();
+  }
+
+  function normalizeSpeechText(value = '') {
+    return String(value || '')
+      .replace(/^listen:\s*/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function parsePunchlineParts(text = '') {
+    const raw = normalizeSpeechText(text);
+    if (!raw) return { setup: '', punchline: '' };
+    const rules = [
+      /(?:\s+|^)Answer::\s*/i,
+      /(?:\s+|^)Answer:\s*/i,
+      /\s+—\s+/,
+      /\.\.\.+\s+/,
+      /…\s+/
+    ];
+    let splitIndex = -1;
+    let splitLength = 0;
+    for (const pattern of rules) {
+      const match = raw.match(pattern);
+      if (!match || typeof match.index !== 'number') continue;
+      splitIndex = match.index;
+      splitLength = match[0].length;
+      break;
+    }
+    if (splitIndex < 0) return { setup: raw, punchline: '' };
+    const setup = raw.slice(0, splitIndex).trim();
+    const punchline = raw.slice(splitIndex + splitLength).trim();
+    if (!setup || !punchline) return { setup: raw, punchline: '' };
+    return { setup, punchline };
+  }
+
+  function classifyBonusTitle(title = '') {
+    const normalized = String(title || '').trim().toLowerCase();
+    if (normalized.includes('joke')) return 'joke';
+    if (normalized.includes('riddle')) return 'riddle';
+    if (normalized.includes('fact')) return 'fact';
+    if (normalized.includes('inspiration') || normalized.includes('quote')) return 'quote';
+    return 'note';
+  }
+
+  function readVoiceSettingsForReveal() {
+    const settings = safeParse(localStorage.getItem(SETTINGS_KEY) || '');
+    const normalized = settings && typeof settings === 'object' ? settings : {};
+    return {
+      ttsPackId: String(normalized.ttsPackId || '').trim().toLowerCase(),
+      voiceUri: String(normalized.voiceUri || '').trim(),
+      voiceDialect: String(normalized.voiceDialect || 'en-US').trim() || 'en-US'
+    };
+  }
+
+  function resolveSystemVoice({ voiceUri = '', voiceDialect = 'en-US' } = {}) {
+    if (!window.speechSynthesis || typeof window.speechSynthesis.getVoices !== 'function') return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!Array.isArray(voices) || !voices.length) return null;
+    const voiceByUri = voices.find((voice) => {
+      const uri = String(voice?.voiceURI || voice?.name || '').trim();
+      return uri && voiceUri && uri === voiceUri;
+    });
+    if (voiceByUri) return voiceByUri;
+    const dialect = String(voiceDialect || '').trim().toLowerCase();
+    if (dialect) {
+      const byDialect = voices.find((voice) => String(voice?.lang || '').toLowerCase().startsWith(dialect));
+      if (byDialect) return byDialect;
+    }
+    return voices.find((voice) => String(voice?.lang || '').toLowerCase().startsWith('en')) || null;
+  }
+
+  function speakWithSystemVoice(text = '') {
+    const normalized = normalizeSpeechText(text);
+    if (!normalized) return false;
+    if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance === 'undefined') return false;
+    try {
+      const settings = readVoiceSettingsForReveal();
+      const utterance = new SpeechSynthesisUtterance(normalized);
+      const preferredVoice = resolveSystemVoice(settings);
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        utterance.lang = preferredVoice.lang;
+      } else if (settings.voiceDialect) {
+        utterance.lang = settings.voiceDialect;
+      }
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function safeToast(message = '') {
+    if (!message) return;
+    if (typeof window.showToast === 'function') {
+      window.showToast(message);
+      return;
+    }
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+  }
+
+  function setupBonusHearRouting() {
+    const modal = document.getElementById('bonus-modal');
+    const titleEl = document.getElementById('bonus-title');
+    const textEl = document.getElementById('bonus-text');
+    const hearBtn = document.getElementById('bonus-hear');
+    if (!(modal instanceof HTMLElement) || !(titleEl instanceof HTMLElement) || !(textEl instanceof HTMLElement) || !(hearBtn instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    let revealBtn = document.getElementById('bonus-reveal-punchline');
+    if (!(revealBtn instanceof HTMLButtonElement)) {
+      revealBtn = document.createElement('button');
+      revealBtn.type = 'button';
+      revealBtn.id = 'bonus-reveal-punchline';
+      revealBtn.className = 'secondary-btn bonus-reveal-punchline hidden';
+      revealBtn.textContent = 'Reveal punchline';
+      const actions = hearBtn.closest('.bonus-actions');
+      if (actions) actions.insertBefore(revealBtn, hearBtn);
+    }
+
+    const state = {
+      contentType: 'note',
+      sourceText: '',
+      setupText: '',
+      punchlineText: '',
+      punchlineRevealed: true
+    };
+
+    let internalMutation = false;
+    const applyStateToDom = () => {
+      internalMutation = true;
+      const hasPunchline = state.contentType === 'joke' && !!state.punchlineText;
+      if (hasPunchline && !state.punchlineRevealed) {
+        textEl.textContent = state.setupText;
+        revealBtn.classList.remove('hidden');
+      } else if (hasPunchline && state.punchlineRevealed) {
+        textEl.textContent = `${state.setupText}\n\n${state.punchlineText}`;
+        revealBtn.classList.add('hidden');
+      } else {
+        textEl.textContent = state.sourceText;
+        revealBtn.classList.add('hidden');
+      }
+      modal.dataset.csBonusType = state.contentType;
+      modal.dataset.csBonusSetup = state.setupText || '';
+      modal.dataset.csBonusPunchline = state.punchlineText || '';
+      modal.dataset.csBonusRevealed = state.punchlineRevealed ? 'true' : 'false';
+      internalMutation = false;
+    };
+
+    const refreshFromDom = () => {
+      if (internalMutation) return;
+      const rawText = normalizeSpeechText(textEl.textContent || '');
+      const contentType = classifyBonusTitle(titleEl.textContent || '');
+      state.contentType = contentType;
+      state.sourceText = rawText;
+      state.setupText = rawText;
+      state.punchlineText = '';
+      state.punchlineRevealed = true;
+
+      if (contentType === 'joke') {
+        const parts = parsePunchlineParts(rawText);
+        state.setupText = parts.setup || rawText;
+        state.punchlineText = parts.punchline || '';
+        state.punchlineRevealed = !state.punchlineText;
+      }
+      applyStateToDom();
+    };
+
+    if (revealBtn.dataset.bound !== 'true') {
+      revealBtn.dataset.bound = 'true';
+      revealBtn.addEventListener('click', () => {
+        state.punchlineRevealed = true;
+        applyStateToDom();
+        revealBtn.blur();
+      });
+    }
+
+    if (modal.dataset.csBonusObserverBound !== 'true') {
+      modal.dataset.csBonusObserverBound = 'true';
+      const observer = new MutationObserver(() => {
+        if (internalMutation) return;
+        if (modal.classList.contains('hidden')) return;
+        refreshFromDom();
+      });
+      observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+      observer.observe(titleEl, { characterData: true, childList: true, subtree: true });
+      observer.observe(textEl, { characterData: true, childList: true, subtree: true });
+    }
+    csRefreshBonusStateFn = refreshFromDom;
+    refreshFromDom();
+  }
+
+  function resolveActiveRevealSpeechPayload() {
+    const bonusModal = document.getElementById('bonus-modal');
+    const bonusTitle = document.getElementById('bonus-title');
+    const bonusText = document.getElementById('bonus-text');
+    const bonusOpen = bonusModal instanceof HTMLElement && !bonusModal.classList.contains('hidden');
+    if (bonusOpen) {
+      const sourceText = normalizeSpeechText(bonusText?.textContent || '');
+      const type = String(bonusModal.dataset.csBonusType || classifyBonusTitle(bonusTitle?.textContent || '')).trim().toLowerCase() || 'note';
+      const setup = normalizeSpeechText(bonusModal.dataset.csBonusSetup || sourceText);
+      const fallbackParts = type === 'joke' ? parsePunchlineParts(sourceText) : { setup: sourceText, punchline: '' };
+      const punchline = normalizeSpeechText(bonusModal.dataset.csBonusPunchline || fallbackParts.punchline || '');
+      const revealed = String(bonusModal.dataset.csBonusRevealed || '').trim().toLowerCase() === 'true';
+      if (type === 'joke' && punchline) {
+        return { type, text: revealed ? punchline : (setup || fallbackParts.setup || sourceText) };
+      }
+      return { type, text: setup || sourceText };
+    }
+
+    const gameModal = document.getElementById('modal');
+    const gameOpen = gameModal instanceof HTMLElement && !gameModal.classList.contains('hidden');
+    if (!gameOpen) return { type: 'note', text: '' };
+    const sentence = normalizeSpeechText(document.getElementById('modal-sentence')?.textContent || '');
+    const definition = normalizeSpeechText(document.getElementById('modal-def')?.textContent || '');
+    const word = normalizeSpeechText(document.getElementById('modal-word')?.textContent || '');
+    const activePanel = String(gameModal.dataset.revealPanel || '').trim().toLowerCase();
+    if (activePanel.includes('sentence') && sentence) return { type: 'sentence', text: sentence };
+    if ((activePanel.includes('definition') || activePanel.includes('def')) && definition) return { type: 'definition', text: definition };
+    if (activePanel.includes('word') && word) return { type: 'word', text: word };
+    if (sentence) return { type: 'sentence', text: sentence };
+    if (definition) return { type: 'definition', text: definition };
+    if (word) return { type: 'word', text: word };
+    return { type: 'note', text: '' };
+  }
+
+  function installSpeechInterceptionListeners() {
+    if (window.__csInterceptsInstalled === true) return;
+    window.__csInterceptsInstalled = true;
+
+    document.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      const sentenceBtn = target.closest('#simple-hear-sentence');
+      if (sentenceBtn instanceof HTMLButtonElement) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        ensureSentenceCaptionControls();
+        csSentenceCaptionDismissedForRound = false;
+        const runOriginal = sentenceBtn.onclick;
+        if (typeof runOriginal === 'function') {
+          runOriginal.call(sentenceBtn);
+        }
+        setTimeout(() => {
+          if (typeof csSentenceCaptionSyncFn === 'function') {
+            csSentenceCaptionSyncFn();
+          }
+        }, 24);
+        return;
+      }
+
+      const bonusHearBtn = target.closest('#bonus-hear');
+      if (!(bonusHearBtn instanceof HTMLButtonElement)) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (bonusHearBtn.disabled) return;
+
+      if (typeof csRefreshBonusStateFn === 'function') {
+        csRefreshBonusStateFn();
+      }
+      const payload = resolveActiveRevealSpeechPayload();
+      const speechText = normalizeSpeechText(payload?.text || '');
+      if (!speechText) return;
+
+      bonusHearBtn.disabled = true;
+      try {
+        if (typeof window.stopAllActiveAudioPlayers === 'function') {
+          window.stopAllActiveAudioPlayers();
+        }
+        if (typeof window.cancelPendingSpeech === 'function') {
+          window.cancelPendingSpeech(true);
+        }
+
+        let playedPacked = false;
+        if (typeof window.tryPlayPackedTtsForLiteralText === 'function') {
+          playedPacked = await window.tryPlayPackedTtsForLiteralText({
+            text: speechText,
+            languageCode: 'en',
+            type: 'sentence'
+          });
+        }
+        if (playedPacked) return;
+
+        const settings = readVoiceSettingsForReveal();
+        const selectedPack = settings.ttsPackId;
+        if (selectedPack && selectedPack !== 'default') {
+          safeToast('Selected voice unavailable — using system voice.');
+        }
+        speakWithSystemVoice(speechText);
+      } finally {
+        setTimeout(() => {
+          bonusHearBtn.disabled = false;
+        }, 140);
+      }
+    }, true);
+  }
+
+  function installWordQuestSpeechGuards() {
+    const tryInstall = () => {
+      ensureSentenceCaptionControls();
+      setupBonusHearRouting();
+      installSpeechInterceptionListeners();
+    };
+    tryInstall();
+    window.setTimeout(tryInstall, 400);
+    window.setTimeout(tryInstall, 1200);
+  }
+
   function renderPrimaryNav() {
     const navs = Array.from(document.querySelectorAll('.header-actions'));
     if (!navs.length) return;
@@ -2580,6 +3024,7 @@
   renderStoryTrack();
   renderQuickResponseDock();
   applyFocusModeLayout();
+  installWordQuestSpeechGuards();
 
   window.addEventListener('decode:settings-changed', () => {
     renderAccessibilityPanel();
@@ -2600,6 +3045,9 @@
 
   window.addEventListener('decode:quick-responses-changed', () => {
     renderQuickResponseDock();
+  });
+  window.addEventListener('load', () => {
+    installWordQuestSpeechGuards();
   });
 
   const activityId = getCurrentActivityId();

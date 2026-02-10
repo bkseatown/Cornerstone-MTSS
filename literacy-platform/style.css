@@ -8705,6 +8705,63 @@ body.word-quest-page .controls #pattern-select {
     text-align: center;
 }
 
+body.cs-sentence-caption-off #sentence-preview {
+    display: none !important;
+}
+
+.cs-sentence-caption-toggle-wrap {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.cs-sentence-caption-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.cs-sentence-caption-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+.cs-sentence-caption-hide {
+    margin-top: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.cs-sentence-caption-hide:hover,
+.cs-sentence-caption-hide:focus-visible {
+    background: #f8fafc;
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.bonus-reveal-punchline {
+    white-space: nowrap;
+}
+
+.cs-hv2-debug-strip {
+    margin-top: 10px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: #475569;
+    opacity: 0.85;
+    word-break: break-word;
+}
+
 @keyframes wordFlip {
     0% { opacity: 0; transform: rotateX(80deg) scale(0.85); }
     60% { opacity: 1; transform: rotateX(0deg) scale(1.05); }

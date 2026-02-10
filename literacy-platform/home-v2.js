@@ -9,6 +9,7 @@
   const PLACEMENT_KEY = 'decode_placement_v1';
   const QUICKCHECK_SUMMARY_KEY = 'cornerstone_quickcheck_summary_v1';
   const POLL_INTERVAL_MS = 700;
+  const AUTO_ROUTE_DISABLED = true;
 
   const THEME_OPTIONS = [
     { value: 'calm', label: 'Calm' },
@@ -51,6 +52,8 @@
   };
 
   const ROLE_OPTION_LOOKUP = buildRoleOptionLookup();
+  const URL_FLAGS = readUrlFlags();
+  const DEBUG_MODE = URL_FLAGS.debug;
 
   let cs_hv2_quickcheck_poll = null;
 
@@ -64,6 +67,19 @@
 
   function isFeatureEnabled() {
     return String(localStorage.getItem(FLAG_KEY) || '').trim().toLowerCase() === 'true';
+  }
+
+  function readUrlFlags() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      return {
+        debug: String(params.get('debug') || '') === '1',
+        reset: String(params.get('reset') || '') === '1',
+        cb: String(params.get('cb') || '').trim()
+      };
+    } catch {
+      return { debug: false, reset: false, cb: '' };
+    }
   }
 
   function safeParse(raw) {
@@ -229,6 +245,36 @@
     return 3;
   }
 
+  function collectRoleStorageKeys() {
+    const matches = [];
+    const seen = new Set();
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || seen.has(key)) continue;
+      const include =
+        /^cs_role/i.test(key)
+        || /^cs_user_role/i.test(key)
+        || /(^|_)role($|_)/i.test(key)
+        || /entry_group/i.test(key);
+      if (!include) continue;
+      seen.add(key);
+      const value = String(localStorage.getItem(key) || '').trim();
+      matches.push(`${key}=${value || '(empty)'}`);
+    }
+    return matches.length ? matches.join(' | ') : '(none)';
+  }
+
+  function renderDebugStrip(state) {
+    if (!DEBUG_MODE) return '';
+    const role = state?.role || '(none)';
+    const roleKeys = collectRoleStorageKeys();
+    return `
+      <div class="cs-hv2-debug-strip" aria-live="polite">
+        hv2 role=${escapeHtml(role)} | sourceRoleKey=${escapeHtml(roleKeys)} | autoRouteDisabled=${AUTO_ROUTE_DISABLED ? 'true' : 'false'}
+      </div>
+    `;
+  }
+
   function resolveHubPath(state) {
     if (state.role === 'student' || state.role === 'parent') {
       return HUB_BY_ROLE[state.role] || 'student-hub.html';
@@ -365,6 +411,7 @@
 
   function renderWelcome(root) {
     const theme = readTheme();
+    const state = readState();
     root.innerHTML = `
       <div class="cs-hv2-container cs-hv2-hero-wrap">
         <section class="cs-hv2-card cs-hv2-hero" aria-label="Welcome">
@@ -378,6 +425,7 @@
           <h2 class="cs-hv2-hero-title">Let&rsquo;s find the right learning pathway.</h2>
           <p class="cs-hv2-hero-subline">We&rsquo;ll ask a few quick questions so we can help you get started in the right place.</p>
           <button type="button" class="cs-hv2-btn cs-hv2-btn-primary cs-hv2-hero-btn" data-action="begin">Get started &rarr;</button>
+          ${renderDebugStrip(state)}
         </section>
       </div>
     `;
@@ -398,6 +446,7 @@
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
           </div>
+          ${renderDebugStrip(state)}
         </section>
       </div>
     `;
@@ -420,6 +469,7 @@
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
           </div>
+          ${renderDebugStrip(state)}
         </section>
       </div>
     `;
@@ -440,9 +490,56 @@
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
           </div>
+          ${renderDebugStrip(state)}
         </section>
       </div>
     `;
+  }
+
+  function handleHardResetIfRequested() {
+    if (!URL_FLAGS.reset) return false;
+    const toDelete = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key === FLAG_KEY || key === THEME_STORAGE_KEY) {
+        toDelete.push(key);
+        continue;
+      }
+      if (key.startsWith(STATE_KEY_PREFIX)) {
+        toDelete.push(key);
+        continue;
+      }
+      if (/^cs_role/i.test(key) || /^cs_user_role/i.test(key)) {
+        toDelete.push(key);
+      }
+    }
+    toDelete.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
+    });
+    localStorage.setItem(FLAG_KEY, 'true');
+    const next = new URL('index.html', window.location.href);
+    if (URL_FLAGS.cb) next.searchParams.set('cb', URL_FLAGS.cb);
+    next.searchParams.set('debug', '1');
+    window.location.replace(next.toString());
+    return true;
+  }
+
+  function resetSessionToRoleSelection() {
+    writeState(
+      {
+        step: 1,
+        role: null,
+        schoolRole: null,
+        roleOption: null,
+        adultPath: false,
+        focus: 'both',
+        quickCheckStatus: 'not_started'
+      },
+      { reset: true }
+    );
   }
 
   function showStep(stepIndex) {
@@ -601,9 +698,8 @@
     }
     applyTheme(readTheme());
     hideLegacyHome();
-
-    const state = readState();
-    showStep(normalizeVisibleStep(state.step, state));
+    resetSessionToRoleSelection();
+    showStep(1);
 
     window.addEventListener('focus', () => {
       const current = readState();
@@ -614,6 +710,7 @@
     });
   }
 
+  if (handleHardResetIfRequested()) return;
   if (!isFeatureEnabled()) return;
   mountHomeV2();
 })();
