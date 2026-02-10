@@ -1,21 +1,60 @@
 :root {
-  --cs-hv2-bg: #fff;
-  --cs-hv2-bg-soft: #f6f8ff;
-  --cs-hv2-text: #0f172a;
-  --cs-hv2-muted: #475569;
-  --cs-hv2-brand: #4f46e5;
-  --cs-hv2-accent: #2563eb;
-  --cs-hv2-border: #c8d2f8;
-  --cs-hv2-shadow: 0 10px 24px rgba(37, 56, 120, 0.1);
-  --cs-hv2-r-lg: 22px;
-  --cs-hv2-r-md: 16px;
-  --cs-hv2-padding: 20px;
-  --cs-hv2-gap: 16px;
-  --cs-hv2-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --cs-hv2-bg: #ffffff;
+  --cs-hv2-text: #111827;
+  --cs-hv2-muted: #4b5563;
+  --cs-hv2-primary: #4f46e5;
+  --cs-hv2-primary-hover: #4338ca;
+  --cs-hv2-secondary-bg: #eef2ff;
+  --cs-hv2-secondary-text: #1f2a44;
+  --cs-hv2-border: #d6d9ec;
+  --cs-hv2-shadow: 0 16px 34px rgba(31, 46, 96, 0.1);
+  --cs-hv2-page-bg: linear-gradient(#f5f7ff, #fff4ee);
+  --cs-hv2-card-radius: 24px;
+  --cs-hv2-btn-radius: 14px;
+  --cs-hv2-choice-radius: 16px;
 }
 
 body.cs-hv2-page {
-  background: linear-gradient(145deg, #e8f2ff 0%, #f4f8ff 55%, #fff8f2 100%);
+  background: var(--cs-hv2-page-bg);
+}
+
+body.cs-hv2-enabled.cs-hv2-theme-calm {
+  --cs-hv2-page-bg: linear-gradient(#f5f7ff, #fff4ee);
+  --cs-hv2-primary: #4f46e5;
+  --cs-hv2-primary-hover: #4338ca;
+  --cs-hv2-secondary-bg: #eef2ff;
+  --cs-hv2-secondary-text: #1f2a44;
+  --cs-hv2-shadow: 0 16px 34px rgba(31, 46, 96, 0.1);
+  --cs-hv2-btn-radius: 14px;
+}
+
+body.cs-hv2-enabled.cs-hv2-theme-professional {
+  --cs-hv2-page-bg: #f3f6fa;
+  --cs-hv2-primary: #2563eb;
+  --cs-hv2-primary-hover: #1d4ed8;
+  --cs-hv2-secondary-bg: #e8eef9;
+  --cs-hv2-secondary-text: #1f2937;
+  --cs-hv2-shadow: 0 14px 28px rgba(17, 24, 39, 0.1);
+  --cs-hv2-btn-radius: 14px;
+}
+
+body.cs-hv2-enabled.cs-hv2-theme-professional .header-top,
+body.cs-hv2-enabled.cs-hv2-theme-professional .header-top a,
+body.cs-hv2-enabled.cs-hv2-theme-professional .header-actions .link-btn,
+body.cs-hv2-enabled.cs-hv2-theme-professional .header-right,
+body.cs-hv2-enabled.cs-hv2-theme-professional .menu-btn,
+body.cs-hv2-enabled.cs-hv2-theme-professional .menu-btn summary {
+  color: #1f2937 !important;
+}
+
+body.cs-hv2-enabled.cs-hv2-theme-playful {
+  --cs-hv2-page-bg: linear-gradient(145deg, #fffaf0 0%, #f2f9ff 100%);
+  --cs-hv2-primary: #2563eb;
+  --cs-hv2-primary-hover: #1d4ed8;
+  --cs-hv2-secondary-bg: #e9f1ff;
+  --cs-hv2-secondary-text: #1f2a44;
+  --cs-hv2-shadow: 0 16px 32px rgba(37, 99, 235, 0.13);
+  --cs-hv2-btn-radius: 12px;
 }
 
 #homeV2Root {
@@ -35,206 +74,247 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
 }
 
 .cs-hv2-container {
-  margin: 0 auto;
-  padding: var(--cs-hv2-padding);
-  max-width: 1100px;
-  font-family: var(--cs-hv2-font);
+  width: min(980px, calc(100% - 28px));
+  margin: 18px auto 24px;
+  font-family: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--cs-hv2-text);
+}
+
+.cs-hv2-hero-wrap {
+  min-height: 68vh;
+  display: grid;
+  place-items: center;
+}
+
+.cs-hv2-hero {
+  width: min(760px, 100%);
+  text-align: center;
+  padding: 16px 10px;
+}
+
+.cs-hv2-hero-title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.cs-hv2-hero-subline {
+  margin: 14px auto 0;
+  max-width: 52ch;
+  font-size: clamp(1.05rem, 2.2vw, 1.22rem);
+  line-height: 1.45;
+  color: var(--cs-hv2-muted);
 }
 
 .cs-hv2-card {
-  border-radius: var(--cs-hv2-r-lg);
+  border-radius: var(--cs-hv2-card-radius);
+  border: 1px solid var(--cs-hv2-border);
   background: var(--cs-hv2-bg);
   box-shadow: var(--cs-hv2-shadow);
-  border: 1px solid var(--cs-hv2-border);
-  padding: var(--cs-hv2-padding);
-  margin-bottom: var(--cs-hv2-gap);
 }
 
-.cs-hv2-onboard-card {
+.cs-hv2-question-card {
+  padding: 20px;
   display: grid;
   gap: 14px;
 }
 
-.cs-hv2-title {
-  margin: 0;
-  font-size: clamp(1.65rem, 2.8vw, 2.3rem);
-  line-height: 1.15;
-  color: var(--cs-hv2-text);
-  letter-spacing: -0.01em;
+.cs-hv2-toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.cs-hv2-subtitle {
-  margin: 0;
-  color: var(--cs-hv2-muted);
-  font-size: 1.04rem;
-  line-height: 1.45;
-  max-width: 62ch;
+.cs-hv2-settings-trigger {
+  border: 1px solid var(--cs-hv2-border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--cs-hv2-secondary-text);
+  font-weight: 700;
+  font-size: 0.94rem;
+  padding: 7px 12px;
+  cursor: pointer;
 }
 
-.cs-hv2-progress {
+.cs-hv2-settings {
+  border: 1px solid var(--cs-hv2-border);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 10px;
   display: grid;
   gap: 8px;
 }
 
-.cs-hv2-progress-text {
-  color: #31476d;
-  font-size: 0.94rem;
+.cs-hv2-hidden {
+  display: none !important;
+}
+
+.cs-hv2-settings-title {
+  font-size: 0.9rem;
   font-weight: 700;
+  color: var(--cs-hv2-muted);
 }
 
-.cs-hv2-progress-track {
-  width: min(430px, 100%);
-  height: 10px;
-  border-radius: 999px;
-  background: #dce7fb;
-  overflow: hidden;
+.cs-hv2-theme-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.cs-hv2-progress-fill {
-  height: 100%;
+.cs-hv2-theme-btn {
+  border: 1px solid var(--cs-hv2-border);
   border-radius: 999px;
-  background: linear-gradient(90deg, #4f46e5 0%, #2f76eb 100%);
+  background: #ffffff;
+  color: var(--cs-hv2-secondary-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.cs-hv2-theme-selected {
+  border-color: var(--cs-hv2-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.22);
+}
+
+.cs-hv2-step-label {
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cs-hv2-muted);
+}
+
+.cs-hv2-question {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
 .cs-hv2-choice-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.cs-hv2-choice-card {
+  border: 1px solid var(--cs-hv2-border);
+  border-radius: var(--cs-hv2-choice-radius);
+  background: #ffffff;
+  padding: 18px 14px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  color: var(--cs-hv2-text);
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.cs-hv2-choice-card:hover,
+.cs-hv2-choice-card:focus-visible {
+  border-color: var(--cs-hv2-primary);
+  box-shadow: 0 10px 20px rgba(37, 56, 120, 0.12);
+  transform: translateY(-1px);
+}
+
+.cs-hv2-choice-selected {
+  border-color: var(--cs-hv2-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.cs-hv2-choice-title {
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.cs-hv2-choice-subline {
+  font-size: 0.96rem;
+  line-height: 1.36;
+  color: var(--cs-hv2-muted);
+}
+
+.cs-hv2-quickcopy {
+  margin: 0;
+  text-align: center;
+  color: var(--cs-hv2-muted);
+  font-size: 1.03rem;
+  line-height: 1.5;
+}
+
+.cs-hv2-quick-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cs-hv2-footer {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .cs-hv2-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.02rem;
-  padding: 13px 18px;
-  border-radius: var(--cs-hv2-r-md);
-  cursor: pointer;
-  text-align: center;
   border: 1px solid transparent;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-}
-
-.cs-hv2-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  border-radius: var(--cs-hv2-btn-radius);
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
 
 .cs-hv2-btn-primary {
-  background: linear-gradient(90deg, var(--cs-hv2-brand) 0%, var(--cs-hv2-accent) 100%);
-  color: #fff;
+  background: var(--cs-hv2-primary);
+  color: #ffffff;
 }
 
-.cs-hv2-btn-primary:hover:not(:disabled),
-.cs-hv2-btn-primary:focus-visible:not(:disabled) {
+.cs-hv2-btn-primary:hover,
+.cs-hv2-btn-primary:focus-visible {
+  background: var(--cs-hv2-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(42, 71, 176, 0.24);
+  box-shadow: 0 10px 18px rgba(37, 56, 120, 0.2);
 }
 
 .cs-hv2-btn-secondary {
-  background: #eef2ff;
-  color: #223251;
-  border-color: #c8d2f8;
+  background: var(--cs-hv2-secondary-bg);
+  color: var(--cs-hv2-secondary-text);
+  border-color: var(--cs-hv2-border);
 }
 
-.cs-hv2-btn-secondary:hover:not(:disabled),
-.cs-hv2-btn-secondary:focus-visible:not(:disabled) {
+.cs-hv2-btn-secondary:hover,
+.cs-hv2-btn-secondary:focus-visible {
   transform: translateY(-1px);
-  box-shadow: 0 8px 14px rgba(37, 56, 120, 0.12);
+  box-shadow: 0 8px 16px rgba(37, 56, 120, 0.12);
 }
 
-.cs-hv2-is-selected {
-  border-color: #a9bcfb;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+.cs-hv2-hero-btn {
+  margin-top: 22px;
+  min-width: 210px;
 }
 
-.cs-hv2-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-btn,
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-choice-card,
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-theme-btn {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
 }
 
-.cs-hv2-actions-right {
-  justify-content: flex-end;
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-btn:hover,
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-choice-card:hover,
+body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-theme-btn:hover {
+  transform: translateY(-2px) scale(1.01);
 }
 
-.cs-hv2-action-group {
-  display: inline-flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.cs-hv2-form-grid {
-  display: grid;
-  gap: 12px;
-  max-width: 580px;
-}
-
-.cs-hv2-field {
-  display: grid;
-  gap: 7px;
-}
-
-.cs-hv2-field span {
-  color: #31476d;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.cs-hv2-field input,
-.cs-hv2-field select {
-  border: 1px solid #bccaf4;
-  border-radius: 12px;
-  padding: 11px 12px;
-  font-size: 1rem;
-  color: #10203d;
-  background: #fff;
-  font-family: inherit;
-}
-
-.cs-hv2-field input:focus-visible,
-.cs-hv2-field select:focus-visible {
-  outline: 2px solid rgba(79, 70, 229, 0.35);
-  outline-offset: 1px;
-}
-
-.cs-hv2-build-stamp {
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 0.84rem;
-  font-weight: 600;
-}
-
-@media (max-width: 760px) {
-  .cs-hv2-container {
-    padding: 12px;
-  }
-
-  .cs-hv2-card {
-    padding: 16px;
-  }
-
-  .cs-hv2-title {
-    font-size: 1.55rem;
-  }
-
+@media (max-width: 900px) {
   .cs-hv2-choice-grid {
     grid-template-columns: 1fr;
   }
 
-  .cs-hv2-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .cs-hv2-action-group {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
+  .cs-hv2-container {
+    width: calc(100% - 16px);
   }
 }
