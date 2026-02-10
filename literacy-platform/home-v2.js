@@ -66,7 +66,10 @@
   }
 
   function isFeatureEnabled() {
-    return String(localStorage.getItem(FLAG_KEY) || '').trim().toLowerCase() === 'true';
+    if (URL_FLAGS.legacyHome) return false;
+    const raw = String(localStorage.getItem(FLAG_KEY) || '').trim().toLowerCase();
+    if (raw === 'false' || raw === '0') return false;
+    return true;
   }
 
   function readUrlFlags() {
@@ -75,10 +78,11 @@
       return {
         debug: String(params.get('debug') || '') === '1',
         reset: String(params.get('reset') || '') === '1',
+        legacyHome: String(params.get('legacy_home') || '') === '1',
         cb: String(params.get('cb') || '').trim()
       };
     } catch {
-      return { debug: false, reset: false, cb: '' };
+      return { debug: false, reset: false, legacyHome: false, cb: '' };
     }
   }
 
@@ -679,6 +683,10 @@
   function mountHomeV2() {
     const root = document.getElementById('homeV2Root');
     if (!root) return;
+
+    try {
+      localStorage.setItem(FLAG_KEY, 'true');
+    } catch {}
 
     const themeFromUrl = readThemeFromUrl();
     if (themeFromUrl) {
