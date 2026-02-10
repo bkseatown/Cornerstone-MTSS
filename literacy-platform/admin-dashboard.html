@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CORNERSTONE MTSS - Admin Dashboard</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css?v=6393551e" />
+    <link rel="stylesheet" href="home-v2.css?v=step7theme1" />
+    <link rel="stylesheet" href="admin-dashboard.css?v=step12admin1" />
+    <script>
+      (function () {
+        try {
+          const valid = ['calm', 'professional', 'playful'];
+          const params = new URLSearchParams(window.location.search || '');
+          const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
+          const fromStorage = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
+          const chosen = valid.includes(fromUrl) ? fromUrl : valid.includes(fromStorage) ? fromStorage : 'calm';
+          if (valid.includes(fromUrl)) localStorage.setItem('cs_hv2_theme', fromUrl);
+          document.documentElement.classList.add('cs-hv2-theme-' + chosen);
+        } catch {}
+      })();
+    </script>
+    <script src="platform.js?v=audio-silence" defer></script>
+    <script src="admin-dashboard.js?v=step12admin1" defer></script>
+  </head>
+  <body class="cs-admin-page force-light look-35">
+    <header>
+      <div class="header-top">
+        <h1>
+          <a href="index.html">CORNERSTONE MTSS</a>
+        </h1>
+        <nav class="header-actions" aria-label="Primary">
+          <a class="link-btn" href="admin-hub.html">Administrator Hub</a>
+          <a class="link-btn" href="teacher-report.html">Teacher Report</a>
+          <a class="link-btn" href="progress-monitoring.html">Progress Monitoring</a>
+          <a class="link-btn" href="sst-wizard.html">SST Wizard</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="cs-admin-main">
+      <section class="cs-admin-shell" aria-label="Admin roll-up dashboard">
+        <section class="cs-admin-card cs-admin-intro" aria-label="Dashboard header">
+          <h2>Admin Dashboard (local only)</h2>
+          <p>This dashboard only shows data saved on this device.</p>
+        </section>
+
+        <section class="cs-admin-summary-grid" aria-label="Summary counts">
+          <article class="cs-admin-summary-card">
+            <h3>Students with Literacy Quick Check</h3>
+            <p id="admin-count-lit" class="cs-admin-count">0</p>
+          </article>
+          <article class="cs-admin-summary-card">
+            <h3>Students with Math Quick Check</h3>
+            <p id="admin-count-math" class="cs-admin-count">0</p>
+          </article>
+          <article class="cs-admin-summary-card">
+            <h3>Students with Progress Monitoring</h3>
+            <p id="admin-count-pm" class="cs-admin-count">0</p>
+          </article>
+          <article class="cs-admin-summary-card">
+            <h3>Students with SST Packets</h3>
+            <p id="admin-count-sst" class="cs-admin-count">0</p>
+          </article>
+        </section>
+
+        <section class="cs-admin-card" aria-label="Weekly MTSS activity">
+          <div class="cs-admin-card-head">
+            <h3>MTSS activity by week (this month)</h3>
+            <p>Counts include quick checks, PM entries, SST sessions, and writing sessions.</p>
+          </div>
+          <div class="cs-admin-table-wrap">
+            <table class="cs-admin-table">
+              <thead>
+                <tr>
+                  <th>Week starting</th>
+                  <th>Activity count</th>
+                </tr>
+              </thead>
+              <tbody id="admin-weekly-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="cs-admin-card" aria-label="MTSS activity this month">
+          <div class="cs-admin-card-head">
+            <h3>MTSS Activity This Month</h3>
+            <p>Student-level roll-up from local quick checks, PM entries, and SST sessions.</p>
+          </div>
+          <div class="cs-admin-table-wrap">
+            <table class="cs-admin-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Grade band</th>
+                  <th>Latest Literacy QC</th>
+                  <th>Latest Math QC</th>
+                  <th>Latest PM date</th>
+                  <th>Latest SST date</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="admin-rollup-body"></tbody>
+            </table>
+          </div>
+          <p id="admin-empty-note" class="cs-admin-note"></p>
+        </section>
+
+        <section class="cs-admin-card" aria-label="Exports">
+          <div class="cs-admin-card-head">
+            <h3>Exports</h3>
+            <p>Use these for local review and leadership handoff notes.</p>
+          </div>
+          <div class="cs-admin-action-row">
+            <button id="admin-export-csv" type="button" class="cs-admin-btn cs-admin-btn-primary">Download Admin Roll-up CSV</button>
+            <button id="admin-clear-data" type="button" class="cs-admin-btn">Clear local MTSS data</button>
+          </div>
+          <p id="admin-action-status" class="cs-admin-note" role="status" aria-live="polite"></p>
+        </section>
+      </section>
+    </main>
+
+    <div id="admin-clear-modal" class="cs-admin-modal-backdrop" hidden>
+      <section class="cs-admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-clear-title">
+        <h3 id="admin-clear-title">Clear local MTSS data?</h3>
+        <p>This removes local quick checks, progress monitoring, SST, and writing session data from this device.</p>
+        <div class="cs-admin-action-row">
+          <button id="admin-clear-cancel" type="button" class="cs-admin-btn">Cancel</button>
+          <button id="admin-clear-confirm" type="button" class="cs-admin-btn cs-admin-btn-primary">Yes, clear data</button>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
