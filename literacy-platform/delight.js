@@ -1,6 +1,7 @@
 (function () {
   if (window.csDelight && window.csDelight.__installed) return;
 
+  const MOTION_KEY = 'cs_delight_motion';
   const SOUND_KEY = 'cs_delight_sound';
   const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -10,6 +11,7 @@
     stars: [],
     label: null,
     particles: null,
+    ripple: null,
     soundToggle: null,
     hideTimer: 0,
     fillTimers: [],
@@ -36,21 +38,59 @@
     return !!state.reducedMotionMedia?.matches;
   }
 
-  function readSoundSetting() {
+  function normalizeToggle(value, fallback = 'off') {
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'on' || raw === 'off') return raw;
+    return fallback === 'on' ? 'on' : 'off';
+  }
+
+  function readMotionSetting() {
     try {
-      const raw = String(localStorage.getItem(SOUND_KEY) || '').trim().toLowerCase();
-      return raw === 'off' ? 'off' : 'on';
+      return normalizeToggle(localStorage.getItem(MOTION_KEY), 'on');
     } catch {
       return 'on';
     }
   }
 
+  function writeMotionSetting(next) {
+    const value = normalizeToggle(next, 'on');
+    try {
+      localStorage.setItem(MOTION_KEY, value);
+    } catch {}
+    if (value === 'off') {
+      clearTimers();
+      state.meter?.classList.remove('is-visible');
+      state.ripple?.classList.remove('is-live');
+      if (state.particles) state.particles.innerHTML = '';
+      setFilledStars(0);
+    }
+    return value;
+  }
+
+  function readSoundSetting() {
+    try {
+      return normalizeToggle(localStorage.getItem(SOUND_KEY), 'off');
+    } catch {
+      return 'off';
+    }
+  }
+
   function writeSoundSetting(next) {
-    const value = String(next || '').trim().toLowerCase() === 'off' ? 'off' : 'on';
+    const value = normalizeToggle(next, 'off');
     try {
       localStorage.setItem(SOUND_KEY, value);
     } catch {}
+    syncSoundToggleUi();
     return value;
+  }
+
+  function ensureDefaultSettings() {
+    writeMotionSetting(readMotionSetting());
+    writeSoundSetting(readSoundSetting());
+  }
+
+  function allowsMotion() {
+    return readMotionSetting() === 'on' && !prefersReducedMotion();
   }
 
   function ensureLayer() {
@@ -62,6 +102,7 @@
       state.stars = Array.from(existing.querySelectorAll('.cs-delight-star'));
       state.label = existing.querySelector('#cs-delight-label');
       state.particles = existing.querySelector('#cs-delight-particles');
+      state.ripple = existing.querySelector('#cs-delight-ripple');
       return existing;
     }
 
@@ -77,6 +118,7 @@
           <span class="cs-delight-star" data-index="3">★</span>
         </div>
         <div id="cs-delight-label" class="cs-delight-label"></div>
+        <span id="cs-delight-ripple" class="cs-delight-ripple" aria-hidden="true"></span>
       </div>
       <div id="cs-delight-particles" class="cs-delight-particles"></div>
     `;
@@ -86,6 +128,7 @@
     state.stars = Array.from(layer.querySelectorAll('.cs-delight-star'));
     state.label = layer.querySelector('#cs-delight-label');
     state.particles = layer.querySelector('#cs-delight-particles');
+    state.ripple = layer.querySelector('#cs-delight-ripple');
     return layer;
   }
 
@@ -116,7 +159,7 @@
   function syncSoundToggleUi() {
     if (!(state.soundToggle instanceof HTMLButtonElement)) return;
     const mode = readSoundSetting();
-    state.soundToggle.textContent = mode === 'on' ? 'Delight sound: On' : 'Delight sound: Off';
+    state.soundToggle.textContent = mode === 'on' ? 'Celebration sound: On' : 'Celebration sound: Off';
     state.soundToggle.setAttribute('aria-pressed', mode === 'on' ? 'true' : 'false');
   }
 
@@ -204,10 +247,12 @@
     }, 360);
   }
 
-  function hideMeterSoon(delayMs = 2200) {
+  function hideMeterSoon(delayMs = 2050) {
     clearTimeout(state.hideTimer);
     state.hideTimer = setTimeout(() => {
       state.meter?.classList.remove('is-visible');
+      state.ripple?.classList.remove('is-live');
+      if (state.particles) state.particles.innerHTML = '';
       setFilledStars(0);
       if (state.label) state.label.textContent = '';
     }, delayMs);
@@ -217,38 +262,47 @@
     return min + Math.random() * (max - min);
   }
 
+  function triggerRipple() {
+    if (!(state.ripple instanceof HTMLElement)) return;
+    if (!allowsMotion()) return;
+    state.ripple.classList.remove('is-live');
+    void state.ripple.offsetWidth;
+    state.ripple.classList.add('is-live');
+  }
+
   function burst(options = {}) {
     ensureLayer();
     if (!(state.particles instanceof HTMLElement)) return;
-    if (prefersReducedMotion()) return;
+    if (!allowsMotion()) return;
 
     const x = Number(options.x);
     const y = Number(options.y);
     const cx = Number.isFinite(x) ? x : window.innerWidth / 2;
     const cy = Number.isFinite(y) ? y : Math.max(56, window.innerHeight * 0.16);
-    const count = Math.max(10, Math.min(18, Number(options.count) || 14));
+    const count = Math.max(8, Math.min(14, Number(options.count) || 10));
     const serial = ++state.burstSerial;
 
     for (let i = 0; i < count; i += 1) {
       const particle = document.createElement('span');
       particle.className = 'cs-delight-particle';
-      const angle = (Math.PI * 2 * i) / count + randomBetween(-0.24, 0.24);
-      const distance = randomBetween(28, 72);
+      const angle = (Math.PI * 2 * i) / count + randomBetween(-0.2, 0.2);
+      const distance = randomBetween(20, 56);
       const dx = `${Math.cos(angle) * distance}px`;
-      const dy = `${Math.sin(angle) * distance - randomBetween(12, 24)}px`;
-      const hue = Math.round(randomBetween(190, 260));
+      const dy = `${Math.sin(angle) * distance - randomBetween(10, 18)}px`;
+      const hue = Math.round(randomBetween(36, 52));
+      const lightness = Math.round(randomBetween(74, 88));
       particle.style.left = `${cx}px`;
       particle.style.top = `${cy}px`;
-      particle.style.background = `hsl(${hue} 88% 64%)`;
+      particle.style.background = `hsl(${hue} 78% ${lightness}%)`;
       particle.style.setProperty('--dx', dx);
       particle.style.setProperty('--dy', dy);
-      particle.style.setProperty('--rot', `${randomBetween(-160, 160)}deg`);
+      particle.style.setProperty('--rot', `${randomBetween(-110, 110)}deg`);
       particle.dataset.serial = String(serial);
       state.particles.appendChild(particle);
       requestAnimationFrame(() => particle.classList.add('is-live'));
       setTimeout(() => {
         particle.remove();
-      }, 720);
+      }, 740);
     }
   }
 
@@ -267,6 +321,7 @@
   function awardStars(count = 1, options = {}) {
     ensureLayer();
     ensureSoundToggle();
+    ensureDefaultSettings();
     clearTimers();
     if (!(state.meter instanceof HTMLElement)) return;
 
@@ -274,11 +329,12 @@
     const label = String(options.label || '').trim();
     if (state.label) state.label.textContent = label;
     setFilledStars(0);
+    state.ripple?.classList.remove('is-live');
     state.meter.classList.add('is-visible');
 
-    if (prefersReducedMotion()) {
+    if (!allowsMotion()) {
       setFilledStars(total);
-      hideMeterSoon(1700);
+      hideMeterSoon(1850);
       return;
     }
 
@@ -287,14 +343,18 @@
       const timer = setTimeout(() => {
         setFilledStars(i + 1);
         pulseStar(i);
-      }, i * 240);
+      }, i * 160);
       state.fillTimers.push(timer);
     }
+    const rippleTimer = setTimeout(() => {
+      triggerRipple();
+    }, total * 160 + 40);
+    state.fillTimers.push(rippleTimer);
     const burstTimer = setTimeout(() => {
       burstFromEl(state.meter);
-    }, total * 240 + 40);
+    }, total * 160 + 80);
     state.fillTimers.push(burstTimer);
-    hideMeterSoon(total * 240 + 2100);
+    hideMeterSoon(2050);
   }
 
   function setupWordQuestHook() {
@@ -306,9 +366,7 @@
     const onModalState = () => {
       const isOpen = !modal.classList.contains('hidden');
       if (isOpen && !wasOpen && modal.classList.contains('win')) {
-        const label = 'Round complete';
-        awardStars(3, { label });
-        burstFromEl(document.getElementById('modal-word') || modal);
+        awardStars(3, { label: 'Round complete' });
       }
       wasOpen = isOpen;
     };
@@ -322,10 +380,10 @@
 
   function demo() {
     awardStars(3, { label: 'Delight demo' });
-    burst();
   }
 
   function init() {
+    ensureDefaultSettings();
     ensureLayer();
     ensureSoundToggle();
     bindAudioUnlock();
@@ -342,6 +400,8 @@
     burstFromEl,
     playStarPing,
     demo,
+    getMotionSetting: readMotionSetting,
+    setMotionSetting: writeMotionSetting,
     getSoundSetting: readSoundSetting,
     setSoundSetting: writeSoundSetting
   };

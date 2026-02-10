@@ -7262,6 +7262,22 @@ body {
   transform: translateY(0);
 }
 
+.phoneme-card.cs-phoneme-bounce {
+  animation: csPhonemeBounce 190ms ease-out;
+}
+
+@keyframes csPhonemeBounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(-1px) scale(1.025);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 .phoneme-letter {
   font-size: 2rem;
   font-weight: 700;

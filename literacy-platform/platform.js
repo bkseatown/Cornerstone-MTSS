@@ -244,10 +244,13 @@
   }
 
   function getQuickVoicePackCandidates() {
-    const preferred = readPreferredTtsBasePath();
     const pathname = String(window.location?.pathname || '').toLowerCase();
-    const inferredPrimary = pathname.includes('/literacy-platform/') ? QUICK_TTS_BASE_PLAIN : QUICK_TTS_BASE_SCOPED;
-    return Array.from(new Set([preferred, inferredPrimary, QUICK_TTS_BASE_PLAIN, QUICK_TTS_BASE_SCOPED].filter(Boolean)));
+    const preferredRaw = readPreferredTtsBasePath();
+    const preferred = preferredRaw === QUICK_TTS_BASE_SCOPED && !pathname.includes('/literacy-platform/')
+      ? ''
+      : preferredRaw;
+    const inferredPrimary = QUICK_TTS_BASE_PLAIN;
+    return Array.from(new Set([inferredPrimary, preferred, QUICK_TTS_BASE_PLAIN, QUICK_TTS_BASE_SCOPED].filter(Boolean)));
   }
 
   function detectQuickVoiceBasePathFromAsset(value = '') {

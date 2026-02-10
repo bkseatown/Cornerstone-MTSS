@@ -117,14 +117,15 @@ function resolvePackedTtsBasePath() {
     const runtimeOverride = normalizePackedTtsBasePath(window?.CORNERSTONE_TTS_BASE_PATH || '');
     if (runtimeOverride) return runtimeOverride;
 
-    const preferredBase = readPackedTtsBasePathPreference();
-    if (preferredBase) return preferredBase;
-
     const pathname = String(window?.location?.pathname || '').toLowerCase();
-    if (pathname.includes('/literacy-platform/')) {
-        return PACKED_TTS_BASE_PLAIN;
+    const preferredBase = readPackedTtsBasePathPreference();
+    if (preferredBase) {
+        if (preferredBase === PACKED_TTS_BASE_SCOPED && !pathname.includes('/literacy-platform/')) {
+            return PACKED_TTS_BASE_PLAIN;
+        }
+        return preferredBase;
     }
-    return PACKED_TTS_BASE_SCOPED;
+    return PACKED_TTS_BASE_PLAIN;
 }
 const PACKED_TTS_BASE_PATH = resolvePackedTtsBasePath();
 const PACKED_TTS_DEFAULT_MANIFEST_PATH = `${PACKED_TTS_BASE_PATH}/tts-manifest.json`;
@@ -6422,6 +6423,9 @@ function submitGuess() {
         if (!isReducedStimulationEnabled()) {
             confetti();
         }
+        if (window.csDelight && typeof window.csDelight.awardStars === 'function') {
+            window.csDelight.awardStars(3, { label: 'Round complete' });
+        }
         setTimeout(() => {
             showEndModal(true);  // Show word reveal first
         }, 1500);
@@ -11013,15 +11017,15 @@ function createPhonemeCard(sound, phoneme) {
         card.classList.remove('cs-phoneme-bounce');
         void card.offsetWidth;
         card.classList.add('cs-phoneme-bounce');
-        setTimeout(() => card.classList.remove('cs-phoneme-bounce'), 260);
+        setTimeout(() => card.classList.remove('cs-phoneme-bounce'), 190);
         selectSound(sound, phoneme);
     };
     
     // Hover effects
     card.addEventListener('mouseenter', () => {
-        card.style.borderColor = phoneme.color || '#3b82f6';
-        card.style.transform = 'translateY(-2px)';
-        card.style.boxShadow = '0 8px 22px rgba(79, 70, 229, 0.24)';
+        card.style.borderColor = phoneme.color || '#7aa6e6';
+        card.style.transform = 'translateY(-1px)';
+        card.style.boxShadow = '0 0 0 2px rgba(231, 198, 118, 0.22), 0 8px 16px rgba(15, 23, 42, 0.12)';
     });
     
     card.addEventListener('mouseleave', () => {
@@ -12028,18 +12032,14 @@ async function speakPhonemeSound(phoneme, soundKey = '') {
     }
     if (await tryPlayPackedPhoneme(soundKey || phoneme?.grapheme || '', 'en')) return;
     const voices = await getVoicesForSpeech();
-    const activePackId = normalizeTtsPackId(appSettings?.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
-    let preferred = pickBestEnglishVoice(voices);
-    if (!preferred || isLowQualityVoice(preferred)) {
-        preferred = pickPreferredEnglishCandidate(voices, getPreferredEnglishDialect(), { requireHighQuality: true })
-            || preferred;
-    }
-    if (activePackId && activePackId !== 'default' && (!preferred || isLowQualityVoice(preferred))) {
-        showToast('Selected voice unavailable for Sound Lab. Try another Azure voice.');
+    const preferred = pickPreferredEnglishCandidate(voices, getPreferredEnglishDialect(), { requireHighQuality: true })
+        || pickPreferredEnglishCandidate(voices, 'en-US', { requireHighQuality: true })
+        || pickPreferredEnglishCandidate(voices, 'en-GB', { requireHighQuality: true });
+    if (!preferred) {
+        showToast('No high-quality Azure voice is available for Sound Lab right now.');
         return;
     }
-    const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-    speakEnglishText(tts, 'phoneme', preferred, fallbackLang);
+    speakEnglishText(tts, 'phoneme', preferred, preferred.lang || getPreferredEnglishDialect());
 }
 
 function initPhonemeCards() {

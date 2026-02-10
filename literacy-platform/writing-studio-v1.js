@@ -180,7 +180,8 @@
     startedAt: Date.now(),
     updatedAt: Date.now(),
     status: '',
-    lastSavedKey: ''
+    lastSavedKey: '',
+    checklistCelebrated: false
   };
 
   hydrateActive();
@@ -208,6 +209,7 @@
     state.updatedAt = Number.isFinite(parsed.updatedAt) ? parsed.updatedAt : Date.now();
     state.status = String(parsed.status || '');
     state.lastSavedKey = String(parsed.lastSavedKey || '');
+    state.checklistCelebrated = !!parsed.checklistCelebrated;
 
     ensureOrganizerFields();
   }
@@ -301,6 +303,7 @@
       state.workspaceStarted = true;
       state.activeTab = 'plan';
       state.startedAt = Date.now();
+      state.checklistCelebrated = false;
       state.status = 'Writing session started.';
       ensureOrganizerFields();
       persistActive();
@@ -654,6 +657,8 @@
         const key = String(el.getAttribute('data-key') || '');
         if (!key) return;
         state.checklistState[key] = !!el.checked;
+        const nextCompletion = checklistCompletion(checklistForBand(state.gradeBand));
+        maybeCelebrateChecklistCompletion(nextCompletion);
         persistActive();
         renderReviseTab(panel);
       });
@@ -702,21 +707,46 @@
     });
 
     panel.querySelector('[data-action="save-local"]')?.addEventListener('click', () => {
-      saveCurrentSession();
+      if (saveCurrentSession()) {
+        celebrateWritingMilestone('Publish complete');
+      }
       renderWorkspace();
     });
     panel.querySelector('[data-action="export-txt"]')?.addEventListener('click', () => {
-      downloadTxt();
+      if (downloadTxt()) {
+        celebrateWritingMilestone('Publish complete');
+      }
       renderWorkspace();
     });
     panel.querySelector('[data-action="export-html"]')?.addEventListener('click', () => {
-      downloadPrintableHtml();
+      if (downloadPrintableHtml()) {
+        celebrateWritingMilestone('Publish complete');
+      }
       renderWorkspace();
     });
     panel.querySelector('[data-action="export-csv"]')?.addEventListener('click', () => {
-      downloadTeacherCsv();
+      if (downloadTeacherCsv()) {
+        celebrateWritingMilestone('Publish complete');
+      }
       renderWorkspace();
     });
+  }
+
+  function celebrateWritingMilestone(label = 'Completed') {
+    if (!window.csDelight || typeof window.csDelight.awardStars !== 'function') return;
+    window.csDelight.awardStars(3, { label });
+  }
+
+  function maybeCelebrateChecklistCompletion(completionPercent = 0) {
+    const complete = Number(completionPercent) >= 100;
+    if (complete && !state.checklistCelebrated) {
+      state.checklistCelebrated = true;
+      celebrateWritingMilestone('Checklist complete');
+      return;
+    }
+    if (!complete && state.checklistCelebrated) {
+      state.checklistCelebrated = false;
+    }
   }
 
   function ensureOrganizerFields() {
@@ -824,8 +854,10 @@
       state.lastSavedKey = key;
       state.status = `Saved locally: ${key}`;
       persistActive();
+      return true;
     } catch {
       state.status = 'Could not save locally on this device.';
+      return false;
     }
   }
 
@@ -864,6 +896,7 @@
     state.organizerFields = {};
     state.draftText = String(payload.draft_text || '');
     state.checklistState = parseChecklistScores(payload.checklist_scores);
+    state.checklistCelebrated = checklistCompletion(checklistForBand(gradeBand)) >= 100;
     state.conferenceFocus = FEEDBACK_FOCUS.includes(payload.conference_focus) ? payload.conference_focus : FEEDBACK_FOCUS[0];
     state.conferenceNotes = String(payload.conference_notes || '');
     state.title = String(payload.title || '');
@@ -911,8 +944,9 @@
       `Conference focus: ${payload.conference_focus}`,
       `Conference notes: ${payload.conference_notes || 'None'}`
     ].filter(Boolean).join('\n');
-    triggerDownload(`${slugify(payload.title || 'writing-studio')}.txt`, text, 'text/plain;charset=utf-8');
-    state.status = 'Downloaded .txt export.';
+    const ok = triggerDownload(`${slugify(payload.title || 'writing-studio')}.txt`, text, 'text/plain;charset=utf-8');
+    state.status = ok ? 'Downloaded .txt export.' : 'Download unavailable on this device.';
+    return ok;
   }
 
   function downloadPrintableHtml() {
@@ -936,8 +970,9 @@
   <pre>${escapeHtml(payload.draft_text || '(No draft text yet)')}</pre>
 </body>
 </html>`;
-    triggerDownload(`${slugify(payload.title || 'writing-studio')}.printable.html`, html, 'text/html;charset=utf-8');
-    state.status = 'Downloaded printable HTML export.';
+    const ok = triggerDownload(`${slugify(payload.title || 'writing-studio')}.printable.html`, html, 'text/html;charset=utf-8');
+    state.status = ok ? 'Downloaded printable HTML export.' : 'Download unavailable on this device.';
+    return ok;
   }
 
   function downloadTeacherCsv() {
@@ -951,8 +986,9 @@
       payload.checklist_scores
     ];
     const csv = `${headers.join(',')}\n${row.map(csvEscape).join(',')}\n`;
-    triggerDownload(`teacher-summary-${Date.now()}.csv`, csv, 'text/csv;charset=utf-8');
-    state.status = 'Downloaded Teacher Summary CSV.';
+    const ok = triggerDownload(`teacher-summary-${Date.now()}.csv`, csv, 'text/csv;charset=utf-8');
+    state.status = ok ? 'Downloaded Teacher Summary CSV.' : 'Download unavailable on this device.';
+    return ok;
   }
 
   function triggerDownload(filename, content, mimeType) {
@@ -966,8 +1002,10 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+      return true;
     } catch {
       state.status = 'Download unavailable on this device.';
+      return false;
     }
   }
 
@@ -1001,7 +1039,8 @@
       startedAt: Date.now(),
       updatedAt: Date.now(),
       status: '',
-      lastSavedKey: ''
+      lastSavedKey: '',
+      checklistCelebrated: false
     };
     Object.keys(fresh).forEach((key) => {
       state[key] = fresh[key];
