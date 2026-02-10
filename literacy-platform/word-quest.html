@@ -17,21 +17,28 @@
       })();
     </script>
     <script>
-      (function () {
-        try {
-          const allowedThemes = ['calm', 'professional', 'playful', 'high-contrast'];
-          const rawTheme = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
-          const selectedTheme = allowedThemes.includes(rawTheme) ? rawTheme : 'calm';
-          const themeClass = `cs-hv2-theme-${selectedTheme}`;
-          document.documentElement.classList.add(themeClass);
-          document.addEventListener(
-            'DOMContentLoaded',
-            () => {
-              document.body.classList.add(themeClass);
-            },
-            { once: true }
+      (function applyHv2ThemeToWordQuest() {
+        var KEY = 'cs_hv2_theme';
+        var allowed = new Set(['calm', 'professional', 'playful', 'high-contrast']);
+        var raw = null;
+        try { raw = localStorage.getItem(KEY); } catch (e) {}
+        var theme = (raw && allowed.has(raw)) ? raw : 'calm';
+        var cls = 'cs-hv2-theme-' + theme;
+
+        document.documentElement.classList.remove(
+          'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
+        );
+        document.documentElement.classList.add(cls);
+
+        function applyToBody() {
+          if (!document.body) return;
+          document.body.classList.remove(
+            'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
           );
-        } catch {}
+          document.body.classList.add(cls);
+        }
+        if (document.body) applyToBody();
+        document.addEventListener('DOMContentLoaded', applyToBody);
       })();
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />

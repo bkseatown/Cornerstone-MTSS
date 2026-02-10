@@ -15635,8 +15635,8 @@ body.word-quest-page .quick-custom-word-status {
   min-height: 220px;   /* desktop baseline */
   padding: 10px;
   border-radius: var(--wq-radius, 14px);
-  background: var(--wq-keyboard-surface, rgba(0,0,0,0.03));
-  border: 1px solid var(--wq-border, rgba(0,0,0,0.08));
+  background: var(--wq-keyboard-surface, rgba(0,0,0,0.03)) !important;
+  border: 1px solid var(--wq-border, rgba(0,0,0,0.08)) !important;
 }
 
 @media (pointer: coarse) {
@@ -15649,7 +15649,7 @@ body.fit-screen-tight #keyboard {
 }
 
 #game-board {
-  background: var(--wq-board-surface, transparent);
+  background: var(--wq-board-surface, transparent) !important;
   border-radius: var(--wq-radius, 14px);
 }
 
@@ -15670,6 +15670,21 @@ body.fit-screen-tight #keyboard {
   color: var(--wq-key-text, inherit);
   border-color: var(--wq-key-border, rgba(0,0,0,0.12));
   border-radius: var(--wq-key-radius, 12px);
+}
+
+/* Neutral (non-state) keys/tiles should respect theme */
+#keyboard button:not(.correct):not(.present):not(.absent),
+#keyboard .key:not(.correct):not(.present):not(.absent),
+#keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+  background: var(--wq-key-bg, rgba(0,0,0,0.06)) !important;
+  color: var(--wq-key-text, inherit) !important;
+}
+
+#game-board .tile:not(.correct):not(.present):not(.absent),
+#game-board .cell:not(.correct):not(.present):not(.absent),
+#game-board [data-tile]:not(.correct):not(.present):not(.absent) {
+  background: var(--wq-tile-bg, #fff) !important;
+  color: var(--wq-tile-text, inherit) !important;
 }
 
 body.cs-hv2-theme-playful #keyboard button,
