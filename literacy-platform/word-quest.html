@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CORNERSTONE MTSS — Word Quest</title>
+    <script>
+      (function () {
+        try {
+          const params = new URLSearchParams(window.location.search || '');
+          if (params.get('demo') === '1') {
+            document.documentElement.classList.add('wq-demo-mode');
+          }
+        } catch {}
+      })();
+    </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="delight.css?v=fddf335f" />
@@ -27,6 +37,7 @@
         <nav class="header-actions" aria-label="Primary">
           <a id="home-btn" class="link-btn" href="index.html">Home</a>
         </nav>
+        <a id="demo-exit-link" class="link-btn demo-exit-link" href="word-quest-demo.html" aria-label="Exit demo">Exit demo</a>
       </div>
 
       <div class="controls" role="group" aria-label="Game setup">
@@ -382,5 +393,31 @@
         <div id="recent-words" style="margin-top: 12px;"></div>
       </div>
     </div>
+    <style>
+      .demo-exit-link {
+        display: none;
+      }
+
+      html.wq-demo-mode body.word-quest-page .demo-exit-link {
+        display: inline-flex;
+        margin-left: auto;
+      }
+
+      html.wq-demo-mode body.word-quest-page .header-actions,
+      html.wq-demo-mode body.word-quest-page #activity-breadcrumb,
+      html.wq-demo-mode body.word-quest-page #global-accessibility-tools,
+      html.wq-demo-mode body.word-quest-page .page-guide-tip,
+      html.wq-demo-mode body.word-quest-page .student-mode-exit-btn {
+        display: none !important;
+      }
+
+      html.wq-demo-mode body.word-quest-page .header-top {
+        gap: 10px;
+      }
+
+      html.wq-demo-mode body.word-quest-page .header-top h1 a {
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+    </style>
   </body>
 </html>
