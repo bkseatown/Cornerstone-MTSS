@@ -2096,6 +2096,16 @@ function syncSettingsFromPlatform(nextSettings = {}) {
         const nextPackId = nextPackIdRaw === 'default' ? DEFAULT_SETTINGS.ttsPackId : nextPackIdRaw;
         if (nextPackId !== appSettings.ttsPackId) {
             appSettings.ttsPackId = nextPackId;
+            sessionEnglishVoice = { dialect: '', voiceUri: '' };
+            changed = true;
+        }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(nextSettings, 'voiceUri')) {
+        const nextVoiceUri = String(nextSettings.voiceUri || '').trim();
+        if (nextVoiceUri !== String(appSettings.voiceUri || '').trim()) {
+            appSettings.voiceUri = nextVoiceUri;
+            sessionEnglishVoice = { dialect: '', voiceUri: '' };
             changed = true;
         }
     }
@@ -3681,14 +3691,54 @@ function ensureWordQuestVoiceQuickOverlay() {
         return quickPacks.find((pack) => pack.id === normalized) || null;
     };
 
-    const applyQuickSelection = (packId = '') => {
+    const resolveVoiceUriForPack = async (pack) => {
+        if (!pack) return '';
+        const voices = await getVoicesForSpeech();
+        if (!Array.isArray(voices) || !voices.length) return '';
+        const dialect = normalizeQuickVoiceDialectFromPack(pack).toLowerCase();
+        const family = dialect.split('-')[0];
+        const englishVoices = voices.filter((voice) => {
+            const lang = String(voice?.lang || '').toLowerCase();
+            return lang.startsWith(family);
+        });
+        if (!englishVoices.length) return '';
+        const dialectVoices = englishVoices.filter((voice) => String(voice?.lang || '').toLowerCase().startsWith(dialect));
+        const pool = dialectVoices.length ? dialectVoices : englishVoices;
+        const normalizedPackId = normalizeTtsPackId(pack.id);
+        const targetPatterns = normalizedPackId === 'ava-multi'
+            ? [/ava/i, /samantha/i, /allison/i]
+            : normalizedPackId === 'emma-en'
+                ? [/emma/i, /samantha/i, /allison/i]
+                : normalizedPackId === 'guy-en-us'
+                    ? [/guy/i, /alex/i, /aaron/i]
+                    : normalizedPackId === 'sonia-en-gb'
+                        ? [/sonia/i, /daniel/i, /serena/i, /kate/i]
+                        : normalizedPackId === 'ryan-en-gb'
+                            ? [/ryan/i, /daniel/i, /serena/i, /kate/i]
+                            : [];
+        const matching = targetPatterns.length
+            ? pool.filter((voice) => targetPatterns.some((pattern) => pattern.test(String(voice?.name || ''))))
+            : pool;
+        const ranked = (matching.length ? matching : pool)
+            .slice()
+            .sort((a, b) => scoreVoiceForTarget(b, dialect) - scoreVoiceForTarget(a, dialect));
+        const best = ranked[0];
+        return best ? String(best.voiceURI || best.name || '').trim() : '';
+    };
+
+    const applyQuickSelection = async (packId = '') => {
         const pack = findPack(packId);
         if (!pack) return;
-        appSettings.ttsPackId = pack.id;
-        appSettings.voiceDialect = normalizeQuickVoiceDialectFromPack(pack);
-        appSettings.voiceUri = '';
-        saveSettings();
-        applySettings();
+        const voiceDialect = normalizeQuickVoiceDialectFromPack(pack);
+        const matchedVoiceUri = await resolveVoiceUriForPack(pack);
+        syncSettingsFromPlatform({
+            ttsPackId: pack.id,
+            voiceDialect,
+            voiceUri: matchedVoiceUri || ''
+        });
+        if (matchedVoiceUri) {
+            sessionEnglishVoice = { dialect: voiceDialect, voiceUri: matchedVoiceUri };
+        }
     };
 
     const populateVoiceChoices = async () => {
@@ -3706,7 +3756,7 @@ function ensureWordQuestVoiceQuickOverlay() {
             voiceSelect.value = preferred;
         } else if (quickPacks[0]) {
             voiceSelect.value = quickPacks[0].id;
-            applyQuickSelection(quickPacks[0].id);
+            await applyQuickSelection(quickPacks[0].id);
         }
         voiceSelect.disabled = !quickPacks.length;
         if (previewBtn) previewBtn.disabled = !quickPacks.length;
@@ -3742,8 +3792,8 @@ function ensureWordQuestVoiceQuickOverlay() {
     });
 
     if (voiceSelect instanceof HTMLSelectElement) {
-        voiceSelect.addEventListener('change', () => {
-            applyQuickSelection(voiceSelect.value || '');
+        voiceSelect.addEventListener('change', async () => {
+            await applyQuickSelection(voiceSelect.value || '');
             setStatus(`Saved: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`, true);
         });
     }
@@ -3753,7 +3803,7 @@ function ensureWordQuestVoiceQuickOverlay() {
             setStatus('Select a voice first.');
             return;
         }
-        applyQuickSelection(voiceSelect.value || '');
+        await applyQuickSelection(voiceSelect.value || '');
         setStatus('Playing voice preview…', true);
         await previewSelectedVoice('This is your selected English listening voice.');
         setStatus(`Preview ready: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`, true);
@@ -8692,11 +8742,13 @@ function showBonusContent() {
             });
             if (playedLiteral) return;
             const voices = await getVoicesForSpeech();
-            const preferred = pickBestEnglishVoice(voices);
+            const dialect = getPreferredEnglishDialect();
+            const preferred = pickPreferredEnglishCandidate(voices, dialect, { requireHighQuality: true })
+                || pickBestEnglishVoice(voices);
             const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
             speakEnglishText(popupText, 'sentence', preferred, fallbackLang);
             const activePackId = normalizeTtsPackId(appSettings?.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
-            if (activePackId && activePackId !== 'default') {
+            if (activePackId && activePackId !== 'default' && !preferred) {
                 showToast('Selected voice unavailable - using system voice.');
             }
         };
