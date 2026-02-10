@@ -17,18 +17,18 @@
   ];
 
   const ROLE_OPTIONS = [
-    { value: 'student', label: 'Student', subline: 'I\'m learning or practicing.' },
-    { value: 'parent', label: 'Parent / Caregiver', subline: 'I\'m supporting my child.' },
-    { value: 'school', label: 'School Team', subline: 'I\'m working with students.' }
+    { value: 'student', label: 'Student', subline: 'I want to learn, practice, or check my skills.' },
+    { value: 'school', label: 'School Team', subline: 'I\'m supporting a student (teacher, specialist, counselor, or administrator).' },
+    { value: 'parent', label: 'Parent / Caregiver', subline: 'I\'m supporting my child.' }
   ];
 
   const CONTEXT_OPTIONS = {
     student: {
-      prompt: 'What are you mainly here for today?',
+      prompt: 'Who are you today?',
       choices: [
-        { value: 'student-reading', label: 'Reading & Words', focus: 'literacy' },
-        { value: 'student-math', label: 'Math & Numbers', focus: 'numeracy' },
-        { value: 'student-both', label: 'Both', focus: 'both' }
+        { value: 'student-me', label: 'Me', subline: 'I\'m using Cornerstone on my own.', focus: 'both' },
+        { value: 'student-teacher', label: 'With my teacher', subline: 'My teacher is guiding me.', focus: 'both' },
+        { value: 'student-family', label: 'With my family', subline: 'I\'m working with a parent or caregiver.', focus: 'both' }
       ]
     },
     parent: {
@@ -40,11 +40,16 @@
       ]
     },
     school: {
-      prompt: 'What\'s your main focus today?',
+      prompt: 'What is your role?',
       choices: [
-        { value: 'school-literacy', label: 'Literacy', focus: 'literacy' },
-        { value: 'school-numeracy', label: 'Numeracy', focus: 'numeracy' },
-        { value: 'school-wellbeing', label: 'Wellbeing / Learning behaviors', focus: 'both' }
+        { value: 'school-teacher', label: 'Teacher', schoolRole: 'teacher', focus: 'both' },
+        { value: 'school-learning-support', label: 'Learning Support', schoolRole: 'learning-support', focus: 'both' },
+        { value: 'school-eal', label: 'EAL', schoolRole: 'eal', focus: 'both' },
+        { value: 'school-slp', label: 'SLP', schoolRole: 'slp', focus: 'both' },
+        { value: 'school-counselor', label: 'Counselor', schoolRole: 'counselor', focus: 'both' },
+        { value: 'school-psychologist', label: 'Psychologist', schoolRole: 'psychologist', focus: 'both' },
+        { value: 'school-admin', label: 'Administrator', schoolRole: 'admin', focus: 'both' },
+        { value: 'school-dean', label: 'Dean', schoolRole: 'dean', focus: 'both' }
       ]
     }
   };
@@ -173,13 +178,14 @@
   function sanitizeState(source) {
     const raw = source && typeof source === 'object' ? source : {};
     const contextChoice = normalizeContextChoice(raw.contextChoice);
+    const schoolRoleFromContext = contextChoice ? normalizeSchoolRole(CONTEXT_LOOKUP[contextChoice].schoolRole) : null;
     const focusFromContext = contextChoice ? CONTEXT_LOOKUP[contextChoice].focus : null;
     const sanitizedFocus = normalizeFocus(raw.focus) || focusFromContext;
 
     return {
       step: normalizeStep(raw.step),
       role: normalizeRole(raw.role),
-      schoolRole: normalizeSchoolRole(raw.schoolRole),
+      schoolRole: normalizeSchoolRole(raw.schoolRole) || schoolRoleFromContext,
       contextChoice,
       focus: sanitizedFocus,
       quickCheckStatus: normalizeQuickCheckStatus(raw.quickCheckStatus)
@@ -366,12 +372,15 @@
     return contextChoicesForRole(state.role).map((choice) => `
       <button type="button" class="cs-hv2-choice-card${state.contextChoice === choice.value ? ' cs-hv2-choice-selected' : ''}" data-action="choose-context" data-context="${choice.value}">
         <span class="cs-hv2-choice-title">${escapeHtml(choice.label)}</span>
+        ${choice.subline ? `<span class="cs-hv2-choice-subline">${escapeHtml(choice.subline)}</span>` : ''}
       </button>
     `).join('');
   }
 
-  function renderQuestionLayout(root, state, title, choicesMarkup, showBack) {
+  function renderQuestionLayout(root, state, title, choicesMarkup, options) {
     const theme = readTheme();
+    const showBack = !!options?.showBack;
+    const hintText = options?.hintText ? String(options.hintText) : '';
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
@@ -379,6 +388,7 @@
           <p class="cs-hv2-step-label">Step ${state.step} of 3</p>
           <h2 class="cs-hv2-question">${title}</h2>
           <div class="cs-hv2-choice-grid">${choicesMarkup}</div>
+          ${hintText ? `<p class="cs-hv2-hint">${escapeHtml(hintText)}</p>` : ''}
           ${showBack ? '<div class="cs-hv2-footer"><button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button></div>' : ''}
         </section>
       </div>
@@ -389,8 +399,12 @@
     root.innerHTML = `
       <div class="cs-hv2-container cs-hv2-hero-wrap">
         <section class="cs-hv2-hero" aria-label="Welcome">
-          <h2 class="cs-hv2-hero-title">Let&rsquo;s get you to the right starting place.</h2>
-          <p class="cs-hv2-hero-subline">Answer 3 quick questions and we&rsquo;ll match you to the best pathway.</p>
+          <div class="cs-hv2-hero-top">
+            <p class="cs-hv2-hero-eyebrow">WELCOME</p>
+            <button type="button" class="cs-hv2-start-over" data-action="start-over">Start over</button>
+          </div>
+          <h2 class="cs-hv2-hero-title">Let&rsquo;s find the right learning pathway.</h2>
+          <p class="cs-hv2-hero-subline">We&rsquo;ll ask a few quick questions so we can suggest your best next step.</p>
           <button type="button" class="cs-hv2-btn cs-hv2-btn-primary cs-hv2-hero-btn" data-action="begin">Get started &rarr;</button>
         </section>
       </div>
@@ -398,11 +412,16 @@
   }
 
   function renderRole(root, state) {
-    renderQuestionLayout(root, state, 'Who are you here as today?', renderRoleChoices(state), true);
+    renderQuestionLayout(root, state, 'Who are we helping today?', renderRoleChoices(state), {
+      showBack: true,
+      hintText: 'Choose one option to begin.'
+    });
   }
 
   function renderContext(root, state) {
-    renderQuestionLayout(root, state, contextPromptForRole(state.role), renderContextChoices(state), true);
+    renderQuestionLayout(root, state, contextPromptForRole(state.role), renderContextChoices(state), {
+      showBack: true
+    });
   }
 
   function renderQuickCheck(root, state) {
@@ -412,11 +431,16 @@
         <section class="cs-hv2-card cs-hv2-question-card">
           ${renderThemeSettings(theme)}
           <p class="cs-hv2-step-label">Step 3 of 3</p>
-          <h2 class="cs-hv2-question">Quick Check (5-8 minutes)</h2>
-          <p class="cs-hv2-quickcopy">This short check helps us match you to the right level right away. You can stop anytime.</p>
+          <h2 class="cs-hv2-question">Quick Check (recommended)</h2>
+          <p class="cs-hv2-quickcopy">A short, friendly check (about 5&ndash;8 minutes) helps us match you with the right level.</p>
+          <ul class="cs-hv2-quick-bullets">
+            <li>It&rsquo;s low-pressure &mdash; this is not a test.</li>
+            <li>You can stop anytime.</li>
+            <li>Your answers help guide next steps.</li>
+          </ul>
           <div class="cs-hv2-quick-actions">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-primary" data-action="start">Start Quick Check &rarr;</button>
-            <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="skip">Skip for now</button>
+            <button type="button" class="cs-hv2-btn cs-hv2-btn-link" data-action="skip">Skip for now</button>
           </div>
           <div class="cs-hv2-footer">
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="back">Back</button>
@@ -452,6 +476,12 @@
       cs_hv2_settings_open = false;
       const state = writeState({ step: 1 });
       showStep(state.step);
+    });
+
+    root.querySelector('[data-action="start-over"]')?.addEventListener('click', () => {
+      cs_hv2_settings_open = false;
+      writeState({}, { reset: true });
+      showStep(0);
     });
 
     root.querySelector('[data-action="back"]')?.addEventListener('click', () => {
@@ -512,10 +542,18 @@
         const contextChoice = normalizeContextChoice(button.getAttribute('data-context') || '');
         if (!contextChoice) return;
         const role = readState().role;
-        const focus = normalizeFocus(CONTEXT_LOOKUP[contextChoice]?.focus || null);
+        const contextConfig = CONTEXT_LOOKUP[contextChoice];
+        const focus = normalizeFocus(contextConfig?.focus || null);
+        const schoolRole = normalizeSchoolRole(contextConfig?.schoolRole || null);
         if (!role || !focus) return;
         cs_hv2_settings_open = false;
-        writeState({ contextChoice, focus, quickCheckStatus: 'not_started', step: 3 });
+        writeState({
+          contextChoice,
+          focus,
+          schoolRole: role === 'school' ? schoolRole : null,
+          quickCheckStatus: 'not_started',
+          step: 3
+        });
         showStep(3);
       });
     });

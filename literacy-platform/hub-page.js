@@ -153,7 +153,7 @@
 
     if (bannerEl) {
       if (quickCheckParam === 'skipped') {
-        bannerEl.textContent = 'Quick Check skipped — start anytime from Home.';
+        bannerEl.textContent = 'Quick Check skipped — you can start anytime from Home.';
         bannerEl.classList.remove('cs-hub-hidden');
       } else {
         bannerEl.classList.add('cs-hub-hidden');
@@ -161,11 +161,15 @@
     }
 
     if (cardResultsEl) {
-      const statusText = quickCheckParam === 'skipped' ? 'Skipped for now' : quickCheck.status === 'complete' ? 'Completed' : 'Not started';
+      const focusLabel = focusParam === 'numeracy' ? 'number-sense.html' : 'word-quest.html';
       cardResultsEl.innerHTML = `
-        <h3>Quick Check Results</h3>
-        <p class="cs-hub-value">${statusText}</p>
-        <p>${quickCheckParam === 'skipped' ? 'No score saved yet. Start anytime from Home.' : quickCheck.score}</p>
+        <h3>Your next step</h3>
+        <p>Based on your Quick Check, we&rsquo;ve suggested a starting pathway that matches your strengths and learning needs.</p>
+        <div class="cs-hub-actions">
+          <a class="cs-hub-link-btn" href="${focusLabel}">Start recommended path</a>
+          <a class="cs-hub-link-btn" href="index.html">Run Quick Check again</a>
+          <a class="cs-hub-link-btn" href="index.html">Explore activities</a>
+        </div>
       `;
     }
 

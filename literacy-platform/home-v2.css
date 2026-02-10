@@ -88,19 +88,45 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
 
 .cs-hv2-hero {
   width: min(760px, 100%);
-  text-align: center;
+  text-align: left;
   padding: 16px 10px;
 }
 
-.cs-hv2-hero-title {
+.cs-hv2-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cs-hv2-hero-eyebrow {
   margin: 0;
+  color: var(--cs-hv2-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.cs-hv2-start-over {
+  border: 0;
+  background: transparent;
+  color: var(--cs-hv2-secondary-text);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cs-hv2-hero-title {
+  margin: 8px 0 0;
   font-size: clamp(2rem, 5vw, 3.2rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
 .cs-hv2-hero-subline {
-  margin: 14px auto 0;
+  margin: 14px 0 0;
   max-width: 52ch;
   font-size: clamp(1.05rem, 2.2vw, 1.22rem);
   line-height: 1.45;
@@ -197,7 +223,7 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
 
 .cs-hv2-choice-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -238,18 +264,36 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   color: var(--cs-hv2-muted);
 }
 
-.cs-hv2-quickcopy {
+.cs-hv2-hint {
   margin: 0;
   text-align: center;
+  color: var(--cs-hv2-muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.cs-hv2-quickcopy {
+  margin: 0;
+  text-align: left;
   color: var(--cs-hv2-muted);
   font-size: 1.03rem;
   line-height: 1.5;
 }
 
+.cs-hv2-quick-bullets {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--cs-hv2-muted);
+  line-height: 1.45;
+}
+
 .cs-hv2-quick-actions {
   display: flex;
   gap: 10px;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
   flex-wrap: wrap;
 }
 
@@ -292,6 +336,20 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   box-shadow: 0 8px 16px rgba(37, 56, 120, 0.12);
 }
 
+.cs-hv2-btn-link {
+  border: 0;
+  background: transparent;
+  color: var(--cs-hv2-secondary-text);
+  padding: 0;
+  text-decoration: underline;
+}
+
+.cs-hv2-btn-link:hover,
+.cs-hv2-btn-link:focus-visible {
+  background: transparent;
+  box-shadow: none;
+}
+
 .cs-hv2-hero-btn {
   margin-top: 22px;
   min-width: 210px;
@@ -316,5 +374,22 @@ body.cs-hv2-enabled.cs-hv2-theme-playful .cs-hv2-theme-btn:hover {
 
   .cs-hv2-container {
     width: calc(100% - 16px);
+  }
+
+  .cs-hv2-hero {
+    text-align: center;
+  }
+
+  .cs-hv2-hero-top {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cs-hv2-quickcopy {
+    text-align: center;
+  }
+
+  .cs-hv2-quick-actions {
+    justify-content: center;
   }
 }
