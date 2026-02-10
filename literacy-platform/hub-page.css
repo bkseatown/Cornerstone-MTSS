@@ -309,6 +309,95 @@ body.cs-hub-page {
   display: none !important;
 }
 
+.cs-hub-tour-highlight {
+  position: relative;
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--cs-hub-color-chip-text) 28%, transparent),
+    0 10px 22px color-mix(in srgb, var(--cs-hub-color-chip-text) 18%, transparent);
+}
+
+.cs-hub-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: color-mix(in srgb, #0f172a 52%, transparent);
+  display: grid;
+  place-items: center;
+  padding: var(--cs-hv2-space-m);
+}
+
+.cs-hub-tour-dialog {
+  width: min(560px, calc(100% - 1rem));
+  border: 1px solid var(--cs-hub-color-outline);
+  border-radius: var(--cs-hub-shell-radius);
+  background: var(--cs-hub-color-surface);
+  box-shadow: var(--cs-hv2-shadow-medium);
+  padding: var(--cs-hv2-space-l);
+  display: grid;
+  gap: var(--cs-hv2-space-s);
+  max-height: min(88svh, 720px);
+  overflow: auto;
+}
+
+.cs-hub-tour-dialog h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.cs-hub-tour-dialog p {
+  margin: 0;
+  color: var(--cs-hub-color-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.cs-hub-tour-dialog ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--cs-hub-color-text);
+  display: grid;
+  gap: 0.35rem;
+  line-height: 1.42;
+}
+
+.cs-hub-tour-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--cs-hub-color-text);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.cs-hub-tour-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cs-hub-tour-btn {
+  border: 1px solid var(--cs-hub-color-outline);
+  background: var(--cs-hub-color-chip-bg);
+  color: var(--cs-hub-color-text);
+  border-radius: var(--cs-hv2-radius-button);
+  padding: 0.62rem 1rem;
+  font-size: 0.93rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cs-hub-tour-btn:hover,
+.cs-hub-tour-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--cs-hv2-shadow-soft);
+}
+
+.cs-hub-tour-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cs-hub-color-chip-text) 45%, transparent);
+  outline-offset: 2px;
+}
+
 @media (min-width: 768px) and (max-width: 1023px) {
   .cs-hub-summary-grid,
   .cs-hub-action-grid {
@@ -351,5 +440,14 @@ body.cs-hub-page {
   .cs-hub-action-grid,
   .cs-hub-module-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-hub-tour-dialog {
+    width: calc(100% - 0.75rem);
+    padding: var(--cs-hv2-space-m);
+  }
+
+  .cs-hub-tour-actions .cs-hub-tour-btn {
+    width: 100%;
   }
 }

@@ -104,13 +104,6 @@
             </div>
             <span class="cs-hub-action-open">Open &rarr;</span>
           </a>
-          <a class="cs-hub-action-card" href="student-placement.html">
-            <div class="cs-hub-action-copy">
-              <h4>Find my starting level (optional)</h4>
-              <p>Take a quick literacy check to inform grouping or instruction.</p>
-            </div>
-            <span class="cs-hub-action-open">Open &rarr;</span>
-          </a>
           </div>
         </section>
 
@@ -137,5 +130,67 @@
         </section>
       </section>
     </main>
+    <script>
+      (function () {
+        try {
+          const role = String(document.body?.dataset?.hubId || '').trim().toLowerCase();
+          const allowed = new Set(['parent', 'teacher', 'learning-support', 'eal', 'slp', 'counselor', 'psychologist', 'admin']);
+          if (!allowed.has(role)) return;
+
+          const dismissKey = `cs_hub_tour_v1::${role}`;
+          if (localStorage.getItem(dismissKey) === 'dismissed') return;
+
+          const topActions = document.querySelector('.cs-hub-top-actions');
+          topActions?.classList.add('cs-hub-tour-highlight');
+
+          const overlay = document.createElement('div');
+          overlay.className = 'cs-hub-tour-overlay';
+          overlay.innerHTML = `
+            <section class="cs-hub-tour-dialog" role="dialog" aria-modal="true" aria-label="Quick tour">
+              <h3>Quick tour</h3>
+              <p>Here are the best places to start.</p>
+              <ul>
+                <li>Top actions: jump into the tools you&rsquo;ll use most.</li>
+                <li>Reports: see progress and export/share.</li>
+                <li>More to come: new modules will appear here as they launch.</li>
+              </ul>
+              <label class="cs-hub-tour-check">
+                <input id="cs-hub-tour-dismiss" type="checkbox" />
+                <span>Don&rsquo;t show again</span>
+              </label>
+              <div class="cs-hub-tour-actions">
+                <button type="button" class="cs-hub-tour-btn" data-action="tour-close">Got it</button>
+              </div>
+            </section>
+          `;
+
+          const closeBtn = overlay.querySelector('[data-action="tour-close"]');
+          const dismissToggle = overlay.querySelector('#cs-hub-tour-dismiss');
+          const onKeyDown = (event) => {
+            if (event.key === 'Escape') close();
+          };
+          const close = () => {
+            if (dismissToggle instanceof HTMLInputElement && dismissToggle.checked) {
+              try {
+                localStorage.setItem(dismissKey, 'dismissed');
+              } catch {}
+            }
+            document.removeEventListener('keydown', onKeyDown);
+            topActions?.classList.remove('cs-hub-tour-highlight');
+            overlay.remove();
+          };
+
+          overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) close();
+          });
+          closeBtn?.addEventListener('click', close);
+          document.addEventListener('keydown', onKeyDown);
+          document.body.appendChild(overlay);
+          window.requestAnimationFrame(() => {
+            closeBtn?.focus();
+          });
+        } catch {}
+      })();
+    </script>
   </body>
 </html>
