@@ -3,12 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS — Admin Hub</title>
+    <title>CORNERSTONE MTSS - Administrator Hub</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css?v=6393551e" />
-    <link rel="stylesheet" href="hub-page.css?v=6393551e" />
+    <link rel="stylesheet" href="hub-page.css?v=step5hubs2" />
+    <script>
+(function () {
+  try {
+    const valid = ['calm', 'professional', 'playful'];
+    const params = new URLSearchParams(window.location.search || '');
+    const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
+    const fromStorage = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
+    const chosen = valid.includes(fromUrl) ? fromUrl : valid.includes(fromStorage) ? fromStorage : 'calm';
+    if (valid.includes(fromUrl)) localStorage.setItem('cs_hv2_theme', fromUrl);
+    document.documentElement.classList.add('cs-hv2-theme-' + chosen);
+  } catch {}
+})();
+</script>
     <script src="platform.js?v=audio-silence" defer></script>
-    <script src="hub-page.js?v=6393551e" defer></script>
+    <script src="hub-page.js?v=step5hubs2" defer></script>
   </head>
   <body class="cs-hub-page force-light look-35" data-hub-id="admin">
     <header>
@@ -24,23 +37,49 @@
 
     <main class="cs-hub-main">
       <section class="cs-hub-shell" aria-label="Hub workspace">
-        <div class="cs-hub-kicker">Role workspace</div>
-        <h2 class="cs-hub-title" data-cs-hub-title>Admin Hub</h2>
-        <p class="cs-hub-subtitle" data-cs-hub-subtitle></p>
-        <p class="cs-hub-banner cs-hub-hidden" data-cs-hub-banner></p>
-
-        <div class="cs-hub-card-grid" aria-label="Hub summary cards">
-          <article class="cs-hub-card" data-cs-hub-card="results"></article>
-          <article class="cs-hub-card" data-cs-hub-card="path"></article>
-          <article class="cs-hub-card" data-cs-hub-card="tools"></article>
+        <div class="cs-hub-headline-wrap">
+          <h2 class="cs-hub-title">Administrator Hub</h2>
+          <p class="cs-hub-subtitle">Your tools, insights, and next steps.</p>
         </div>
 
-        <section class="cs-hub-coming" aria-label="Coming soon modules">
-          <h3>Coming Soon</h3>
-          <div class="cs-hub-module-grid" data-cs-hub-modules></div>
+        <p class="cs-hub-banner cs-hub-hidden" data-cs-hub-banner></p>
+
+        <section class="cs-hub-summary-grid" aria-label="Hub summary cards">
+          <article class="cs-hub-card">
+            <h3>Quick Check Results</h3>
+            <p>Review recent check outcomes and where support should begin.</p>
+          </article>
+          <article class="cs-hub-card">
+            <h3>Recommended Path</h3>
+            <p>See the next pathway to start with confidence and clarity.</p>
+          </article>
+          <article class="cs-hub-card">
+            <h3>Workspace Tools</h3>
+            <p>Open the right tools for planning, instruction, and follow-up.</p>
+          </article>
         </section>
 
-        <p class="cs-hub-subtitle" data-cs-hub-stamp></p>
+        <div class="cs-hub-divider" role="presentation"></div>
+
+        <section class="cs-hub-coming" aria-label="Coming soon modules">
+          <h3>More to come — stay tuned</h3>
+          <div class="cs-hub-module-grid">
+          <article class="cs-hub-module cs-hub-module-disabled"><span class="cs-hub-soon-badge">Coming soon</span><h4>Schoolwide Data Overview</h4></article>
+          <article class="cs-hub-module cs-hub-module-disabled"><span class="cs-hub-soon-badge">Coming soon</span><h4>MTSS Fidelity Dashboard</h4></article>
+          <article class="cs-hub-module cs-hub-module-disabled"><span class="cs-hub-soon-badge">Coming soon</span><h4>Multi-role Summary Reports</h4></article>
+          </div>
+        </section>
+
+        <p class="cs-hub-stamp" data-cs-hub-stamp>Hub Build: --</p>
+
+        <section class="cs-hub-hidden" aria-hidden="true">
+          <div data-cs-hub-title></div>
+          <div data-cs-hub-subtitle></div>
+          <article data-cs-hub-card="results"></article>
+          <article data-cs-hub-card="path"></article>
+          <article data-cs-hub-card="tools"></article>
+          <div data-cs-hub-modules></div>
+        </section>
       </section>
     </main>
   </body>
