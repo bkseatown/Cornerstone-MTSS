@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CORNERSTONE MTSS - Progress Monitoring</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css?v=6393551e" />
+    <link rel="stylesheet" href="home-v2.css?v=step7theme1" />
+    <link rel="stylesheet" href="progress-monitoring.css?v=step10pm1" />
+    <script>
+      (function () {
+        try {
+          const valid = ['calm', 'professional', 'playful'];
+          const params = new URLSearchParams(window.location.search || '');
+          const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
+          const fromStorage = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
+          const chosen = valid.includes(fromUrl) ? fromUrl : valid.includes(fromStorage) ? fromStorage : 'calm';
+          if (valid.includes(fromUrl)) localStorage.setItem('cs_hv2_theme', fromUrl);
+          document.documentElement.classList.add('cs-hv2-theme-' + chosen);
+        } catch {}
+      })();
+    </script>
+    <script src="platform.js?v=audio-silence" defer></script>
+    <script src="progress-monitoring.js?v=step10pm1" defer></script>
+  </head>
+  <body class="cs-pm-page force-light look-35">
+    <header>
+      <div class="header-top">
+        <h1>
+          <a href="index.html">CORNERSTONE MTSS</a>
+        </h1>
+        <nav class="header-actions" aria-label="Primary">
+          <a class="link-btn" href="teacher-hub.html">Teacher Hub</a>
+          <a class="link-btn" href="learning-support-hub.html">Learning Support Hub</a>
+          <a class="link-btn" href="admin-hub.html">Administrator Hub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="cs-pm-main">
+      <section class="cs-pm-shell" aria-label="Progress monitoring workspace">
+        <section class="cs-pm-card cs-pm-card-header" aria-label="Page header">
+          <h2>Progress Monitoring</h2>
+          <p>Quick checks you can run weekly to track growth.</p>
+        </section>
+
+        <section class="cs-pm-card" aria-label="Student selector">
+          <div class="cs-pm-card-head">
+            <h3>Student setup</h3>
+            <p>Choose a student profile before entering probe results.</p>
+          </div>
+          <div class="cs-pm-student-grid">
+            <label class="cs-pm-field" for="cs-pm-student-name">
+              <span>Student name</span>
+              <input id="cs-pm-student-name" class="cs-pm-input" type="text" placeholder="Enter student name" autocomplete="name" />
+            </label>
+            <label class="cs-pm-field" for="cs-pm-grade-band">
+              <span>Grade band</span>
+              <select id="cs-pm-grade-band" class="cs-pm-select">
+                <option value="">Choose grade band</option>
+                <option value="K-2">K-2</option>
+                <option value="3-5">3-5</option>
+                <option value="6-8">6-8</option>
+                <option value="9-12">9-12</option>
+              </select>
+            </label>
+            <div class="cs-pm-field cs-pm-field-action">
+              <span class="cs-pm-field-label">Profile</span>
+              <button id="cs-pm-student-load" class="cs-pm-btn cs-pm-btn-primary" type="button">Start / Load student</button>
+            </div>
+          </div>
+          <p id="cs-pm-student-status" class="cs-pm-note" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="cs-pm-card" aria-label="Probe picker">
+          <div class="cs-pm-card-head">
+            <h3>Choose a probe</h3>
+            <p>Pick one probe at a time and save results in under two minutes.</p>
+          </div>
+          <div id="cs-pm-probe-grid" class="cs-pm-probe-grid"></div>
+        </section>
+
+        <section class="cs-pm-card" aria-label="Probe entry">
+          <div class="cs-pm-card-head">
+            <h3>Probe entry</h3>
+            <p id="cs-pm-entry-subtitle">Load a student to begin.</p>
+          </div>
+          <div id="cs-pm-entry-form"></div>
+          <p id="cs-pm-entry-status" class="cs-pm-note" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="cs-pm-card" aria-label="Trend view">
+          <div class="cs-pm-card-head">
+            <h3>Trend view</h3>
+            <p id="cs-pm-trend-subtitle">Saved results appear here, most recent first.</p>
+          </div>
+          <div id="cs-pm-trend-summary" class="cs-pm-stat-grid"></div>
+          <div class="cs-pm-table-wrap">
+            <table class="cs-pm-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Probe</th>
+                  <th>Score</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="cs-pm-trend-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="cs-pm-card" aria-label="Exports">
+          <div class="cs-pm-card-head">
+            <h3>Exports</h3>
+            <p>Generate share-ready files for SST and MTSS conversations.</p>
+          </div>
+          <div class="cs-pm-export-actions">
+            <button id="cs-pm-export-csv" class="cs-pm-btn cs-pm-btn-primary" type="button">Download student progress CSV</button>
+            <button id="cs-pm-export-sst" class="cs-pm-btn" type="button">Download SST snapshot (printable HTML)</button>
+          </div>
+          <p id="cs-pm-export-status" class="cs-pm-note" role="status" aria-live="polite"></p>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
