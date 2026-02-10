@@ -358,7 +358,7 @@
   function wizardStepSummary(step) {
     if (step === 1) return 'Choose one option to begin.';
     if (step === 2) return 'Answer this one question to personalize the start.';
-    if (step === 3) return 'Confirm the short starter check.';
+    if (step === 3) return 'Answer a few quick questions to get a starting suggestion.';
     return 'Start when you are ready.';
   }
 
@@ -907,6 +907,19 @@
     parent: 'Parent / Caregiver'
   };
 
+  const HOME_HUB_BY_ROLE = {
+    student: 'student-hub.html',
+    parent: 'parent-hub.html',
+    teacher: 'teacher-hub.html',
+    'learning-support': 'learning-support-hub.html',
+    eal: 'eal-hub.html',
+    slp: 'slp-hub.html',
+    counselor: 'counselor-hub.html',
+    psychologist: 'psychologist-hub.html',
+    admin: 'admin-hub.html',
+    dean: 'counselor-hub.html'
+  };
+
   const HOME_ROLE_ALIAS_MAP = {
     teacher: 'teacher',
     classroom: 'teacher',
@@ -1002,7 +1015,7 @@
       { id: 'lit-pa-2', level: 0, prompt: 'What word do these sounds make: /m/ /a/ /p/?', choices: ['map', 'mop', 'tap', 'mat'], answer: 0 },
       { id: 'lit-pa-3', level: 0, prompt: 'Which word ends with the /t/ sound?', choices: ['cat', 'pig', 'fan', 'jam'], answer: 0 },
       { id: 'lit-gr-1', level: 1, prompt: 'Listen and pick the letters for the /sh/ sound.', audioPrompt: 'sh', choices: ['ch', 'th', 'sh', 'wh'], answer: 2 },
-      { id: 'lit-gr-2', level: 1, prompt: 'Listen and pick the letters for the /th/ sound in "thin".', audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
+      { id: 'lit-gr-2', level: 1, prompt: "Which spelling matches the /th/ sound in 'thin'?", audioPrompt: 'th', choices: ['th', 'sh', 'wh', 'ch'], answer: 0 },
       { id: 'lit-gr-3', level: 1, prompt: 'Which letter team spells the long /e/ in "seed"?', choices: ['ea', 'ee', 'ie', 'oa'], answer: 1 },
       { id: 'lit-cvc-1', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['cat + fin', 'rain + smile', 'ship + kite', 'boat + train'], answer: 0 },
       { id: 'lit-cvc-2', level: 2, prompt: 'Pick the set where both words are CVC words.', choices: ['sun + map', 'tree + rain', 'stone + grape', 'chair + boat'], answer: 0 },
@@ -1568,7 +1581,7 @@
     });
 
     if (homeRoleLaunchBtn) {
-      homeRoleLaunchBtn.textContent = 'Start Starter Check';
+      homeRoleLaunchBtn.textContent = 'Start';
       homeRoleLaunchBtn.setAttribute('data-role-target', normalizedRole);
     }
   }
@@ -2298,6 +2311,19 @@
     return url.toString();
   }
 
+  function routeRoleToHub(roleId, options = {}) {
+    const normalizedRole = normalizeRoleId(roleId);
+    const hubFile = HOME_HUB_BY_ROLE[normalizedRole];
+    if (!hubFile || normalizedRole === 'student') return false;
+    const routeOptions = options && typeof options === 'object' ? options : {};
+    const url = new URL(hubFile, window.location.href);
+    url.searchParams.set('source', String(routeOptions.source || 'home-v2'));
+    url.searchParams.set('placed', 'false');
+    url.searchParams.set('quickcheck', String(routeOptions.quickcheck || 'skipped'));
+    window.location.href = url.toString();
+    return true;
+  }
+
   function openModal() {
     overlay.classList.remove('hidden');
     overlay.setAttribute('aria-hidden', 'false');
@@ -2341,7 +2367,7 @@
   }
 
   function setQuickCheckButtonState(inProgress) {
-    calcBtn.textContent = inProgress ? 'Restart Starter Check' : 'Start Starter Check';
+    calcBtn.textContent = inProgress ? 'Restart Quick Check' : 'Start';
   }
 
   function setFocusButtons(value, options = {}) {
@@ -2381,7 +2407,7 @@
     if (!text) return;
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
     try {
-      const utterance = new SpeechSynthesisUtterance(`Listen: ${text}`);
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       utterance.rate = 0.82;
       utterance.pitch = 1.0;
@@ -2550,7 +2576,7 @@
       homePostCheckLaunch.textContent = 'Start Recommended Path';
       if (homePostCheckConfidence) homePostCheckConfidence.textContent = 'Good start';
       if (homePostCheckExplore) homePostCheckExplore.textContent = 'Try another area';
-      if (homePostCheckRerun) homePostCheckRerun.textContent = 'Run Starter Check Again';
+      if (homePostCheckRerun) homePostCheckRerun.textContent = 'Run Quick Check Again';
       return;
     }
 
@@ -2587,7 +2613,7 @@
       homePostCheckExplore.textContent = 'Try another area';
     }
     if (homePostCheckRerun) {
-      homePostCheckRerun.textContent = 'Run Starter Check Again';
+      homePostCheckRerun.textContent = 'Run Quick Check Again';
     }
   }
 
@@ -2623,15 +2649,11 @@
     const rec = payload?.recommendation || null;
     if (!rec) {
       result.classList.remove('hidden');
-      result.innerHTML = '<div class="placement-result-title">Starter check complete</div><div class="muted">No starting path generated yet. Please run it again.</div>';
+      result.innerHTML = '<div class="placement-result-title">Nice work.</div><div class="muted">Here&rsquo;s a smart first activity to try.</div>';
       return;
     }
     const literacySummary = payload?.domains?.literacy;
     const numeracySummary = payload?.domains?.numeracy;
-    const studentName = String(payload?.studentName || '').trim();
-    const kidLead = studentName
-      ? `Nice work, ${escapeHtml(studentName)}. You are ready to start here.`
-      : 'Nice work. You are ready to start here.';
     const teacherRows = [literacySummary, numeracySummary]
       .filter(Boolean)
       .map((domainSummary) => `<li>${escapeHtml(domainSummary.levelLabel)} · ${domainSummary.correct}/${domainSummary.total} correct</li>`)
@@ -2639,18 +2661,21 @@
 
     result.classList.remove('hidden');
     result.innerHTML = `
-      <div class="placement-result-title">Your Starting Path</div>
-      <div class="placement-result-main">${kidLead}</div>
+      <div class="placement-result-title">Nice work.</div>
+      <div class="placement-result-main">Here&rsquo;s a smart first activity to try.</div>
       <div class="muted" style="margin-top:6px;"><strong>${escapeHtml(rec.activityLabel || 'Recommended activity')}</strong>: ${escapeHtml(rec.headline || '')}</div>
       ${rec.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(rec.notes)}</div>` : ''}
       <div class="placement-teacher-block" style="margin-top:10px;">
         <div class="home-mini-title">Teacher view</div>
         <ul class="home-progress-list" style="margin-top:4px;">${teacherRows || '<li>No domain summary available.</li>'}</ul>
       </div>
+      <div class="home-cta-row" style="margin-top:10px;">
+        <a class="secondary-btn" href="student-hub.html?source=home-v2&placed=true">Explore activities</a>
+      </div>
     `;
     const href = String(rec.activityHref || wordQuestHref(rec.focus, rec.length));
     goWordQuest.href = href;
-    goWordQuest.textContent = rec.ctaLabel || 'Start Recommended Path';
+    goWordQuest.textContent = 'Start Word Quest';
     goWordQuest.classList.remove('hidden');
     syncHomePrecheckState(payload);
   }
@@ -2661,7 +2686,7 @@
     if (!data || !data.recommendation) {
       summary.innerHTML = `
         <div class="home-mini-title">Current recommendation</div>
-        <div class="muted">Not set yet. Run Starter Check to get a starting path.</div>
+        <div class="muted">Not set yet. Run Quick Check to get a starting path.</div>
       `;
       if (openWordQuest) openWordQuest.href = '#activities-grid';
       renderHomePostCheckCard(null, false);
@@ -2696,33 +2721,21 @@
 
   function renderQuickCheckIntro() {
     const group = readHomeEntryGroup();
-    const roleId = activeWizardRole();
-    const studentName = readStudentName();
-    const gradeBand = readStudentGradeBand();
-    const focusToday = readFocusToday();
-    const roleLabel = HOME_ROLE_LABELS[roleId] || 'Student';
-    const focusLabel = focusToday === 'numeracy'
-      ? 'Math & Numbers'
-      : focusToday === 'both'
-        ? 'Not sure yet (mixed check)'
-        : 'Reading & Words';
-    const nameLine = group === 'student' && studentName
-      ? `<div class="quickcheck-inline-note">Learner: <strong>${escapeHtml(studentName)}</strong>${gradeBand ? ` (${escapeHtml(gradeBand)})` : ''}</div>`
-      : '';
+    const titleEl = modal.querySelector('h2');
+    if (titleEl) titleEl.textContent = 'Quick Check';
+    modal.setAttribute('aria-label', 'Quick Check');
     if (placementSubtitle) {
-      placementSubtitle.textContent = group === 'student'
-        ? 'Literacy Starter Check or Numeracy Starter Check will set your starting path.'
-        : 'A short starter check sets a clear first step for your school team pathway.';
+      placementSubtitle.textContent = 'Listen first, then choose an answer.';
     }
-    const selectionLine = group === 'student'
-      ? `You chose <strong>${escapeHtml(focusLabel)}</strong>.`
-      : `You chose <strong>${escapeHtml(roleLabel)}</strong>.`;
+    const subtleNextLine = group === 'student'
+      ? '1) Choose who you are  2) Pick a path  3) Jump in'
+      : '';
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-title">Ready for a 5-8 minute starter check?</div>
-        <p class="quickcheck-copy">${selectionLine}</p>
-        ${nameLine}
-        <p class="quickcheck-copy">You will answer short items, then get one clear starting path.</p>
+        <div class="quickcheck-title">Let&rsquo;s find a good starting point.</div>
+        <p class="quickcheck-copy">Answer a few quick questions. Then you&rsquo;ll get a suggestion for what to try first.</p>
+        <p class="quickcheck-copy muted">You can always skip this and jump into activities.</p>
+        ${subtleNextLine ? `<p class="quickcheck-inline-note">${escapeHtml(subtleNextLine)}</p>` : ''}
       </div>
     `;
     result.classList.add('hidden');
@@ -2744,9 +2757,9 @@
       renderSummary(payload);
       quickCheckStage.innerHTML = `
         <div class="quickcheck-card quickcheck-complete">
-          <div class="quickcheck-progress">Starter check complete</div>
-          <div class="quickcheck-title">Your recommended next step is ready below.</div>
-          <p class="quickcheck-copy">Use Start Recommended Path to begin, or restart this check any time.</p>
+          <div class="quickcheck-progress">Quick Check complete</div>
+          <div class="quickcheck-title">Nice work.</div>
+          <p class="quickcheck-copy">Here&rsquo;s a smart first activity to try.</p>
         </div>
       `;
       setQuickCheckButtonState(true);
@@ -2755,13 +2768,13 @@
     session.currentQuestion = question;
     const index = Number(session.counts[domain] || 0) + 1;
     const total = session.maxQuestionsPerDomain;
-    const progressLabel = domain === 'literacy' ? 'Literacy Starter Check' : 'Numeracy Starter Check';
+    const progressLabel = `Question ${index} of ${total}`;
     const selectedIndex = reviewPending ? Number(session.pendingAnswer?.selectedIndex) : Number.NaN;
     const hasAudioPrompt = !!String(question.audioPrompt || '').trim();
-    const promptHint = hasAudioPrompt ? 'Listen first, then pick one answer.' : 'Pick one answer.';
+    const promptHint = 'Listen first, then choose an answer.';
     quickCheckStage.innerHTML = `
       <div class="quickcheck-card">
-        <div class="quickcheck-progress">${escapeHtml(progressLabel)} · Item ${index} of ${total}</div>
+        <div class="quickcheck-progress">${escapeHtml(progressLabel)}</div>
         <div class="quickcheck-title">${escapeHtml(question.prompt)}</div>
         ${hasAudioPrompt ? `
           <div class="quickcheck-listen-row">
@@ -2776,11 +2789,11 @@
             </button>
           `).join('')}
         </div>
+        <div class="quickcheck-next-row">
+          <button type="button" class="secondary-btn quickcheck-back-btn" data-action="exit-check">Exit</button>
+        </div>
       </div>
     `;
-    if (hasAudioPrompt) {
-      playQuickCheckPromptAudio(question);
-    }
   }
 
   function renderQuickCheckPostAnswer(session) {
@@ -2810,7 +2823,7 @@
         </div>
         <div class="quickcheck-copy">${answerLine}</div>
         <div class="quickcheck-next-row">
-          <button type="button" class="secondary-btn quickcheck-back-btn" data-action="review-question">Back</button>
+          <button type="button" class="secondary-btn quickcheck-back-btn" data-action="exit-check">Exit</button>
           <button type="button" class="primary-btn quickcheck-next-btn" data-action="next-question">Next</button>
         </div>
       </div>
@@ -2868,6 +2881,12 @@
       return;
     }
 
+    const exitBtn = target.closest('[data-action="exit-check"]');
+    if (exitBtn) {
+      closeModal();
+      return;
+    }
+
     const choiceBtn = target.closest('.quickcheck-choice');
     if (choiceBtn) {
       const activeQuestion = quickCheckSession.pendingAnswer?.question || quickCheckSession.currentQuestion;
@@ -2899,12 +2918,6 @@
       quickCheckStage.querySelectorAll('.quickcheck-strategy-chip').forEach((chip) => {
         chip.classList.toggle('active', chip === strategyBtn);
       });
-      return;
-    }
-
-    const reviewBtn = target.closest('[data-action="review-question"]');
-    if (reviewBtn && quickCheckSession.pendingAnswer) {
-      renderQuickCheckQuestion(quickCheckSession, { reviewPending: true });
       return;
     }
 
@@ -3029,6 +3042,7 @@
     }
     const roleId = activeWizardRole();
     if (!roleId) return;
+    if (routeRoleToHub(roleId, { quickcheck: 'skipped' })) return;
     const gradeBand = readStudentGradeBand();
     if (gradeBand) syncProfileAndLook(gradeBand);
     applyWizardStepState(4, { persist: true });
@@ -3122,6 +3136,7 @@
   calcBtn.addEventListener('click', () => {
     if (!quickCheckSession) {
       const roleId = activeWizardRole();
+      if (routeRoleToHub(roleId, { quickcheck: 'skipped' })) return;
       startQuickCheck({
         roleId,
         gradeBand: readStudentGradeBand(),

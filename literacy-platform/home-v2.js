@@ -308,21 +308,14 @@
   }
 
   function openExistingQuickCheck(role) {
+    if (role !== 'student') {
+      routeToHub({ quickCheckStatus: 'skipped', placed: false });
+      return;
+    }
+
     const launchButton = document.getElementById('home-role-launch');
     const startButton = document.getElementById('placement-start');
     const calcButton = document.getElementById('placement-calc');
-
-    if (role === 'parent') {
-      if (startButton instanceof HTMLButtonElement) {
-        startButton.click();
-      }
-      window.setTimeout(() => {
-        if (calcButton instanceof HTMLButtonElement) {
-          calcButton.click();
-        }
-      }, 120);
-      return;
-    }
 
     if (launchButton instanceof HTMLButtonElement) {
       launchButton.click();
@@ -437,15 +430,11 @@
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
           <p class="cs-hv2-step-label">Step 3 of 3</p>
-          <h2 class="cs-hv2-question">Quick Check (recommended)</h2>
-          <p class="cs-hv2-quickcopy">A short check helps us match you to the right level. It&rsquo;s quick, low-pressure, and helpful.</p>
-          <ul class="cs-hv2-quick-bullets">
-            <li>This is not a test.</li>
-            <li>You can stop anytime.</li>
-            <li>Your answers guide better support.</li>
-          </ul>
+          <h2 class="cs-hv2-question">Let&rsquo;s find a good starting point.</h2>
+          <p class="cs-hv2-quickcopy">Answer a few quick questions. Then you&rsquo;ll get a suggestion for what to try first.</p>
+          <p class="cs-hv2-hint">You can always skip this and jump into activities.</p>
           <div class="cs-hv2-quick-actions">
-            <button type="button" class="cs-hv2-btn cs-hv2-btn-primary" data-action="start">Start Quick Check</button>
+            <button type="button" class="cs-hv2-btn cs-hv2-btn-primary" data-action="start">Start</button>
             <button type="button" class="cs-hv2-btn cs-hv2-btn-secondary" data-action="skip">Skip for now</button>
           </div>
           <div class="cs-hv2-footer">
@@ -577,6 +566,11 @@
 
     root.querySelector('[data-action="start"]')?.addEventListener('click', () => {
       const state = readState();
+      if (state.role !== 'student') {
+        writeState({ quickCheckStatus: 'skipped', adultPath: true });
+        routeToHub({ quickCheckStatus: 'skipped', placed: false });
+        return;
+      }
       if (!state.focus) return;
       const prepared = writeState({ quickCheckStatus: 'in_progress' });
       pushLegacyBridgeState(prepared);
