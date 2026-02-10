@@ -5470,6 +5470,13 @@ main {
     width: 100%;
 }
 
+.bonus-audio-note {
+    margin-top: 8px;
+    font-size: 0.84rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+}
+
 /* ---------- Teacher modal layout ---------- */
 #teacher-modal .modal-content {
     text-align: left;

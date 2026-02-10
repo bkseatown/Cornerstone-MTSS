@@ -8915,14 +8915,12 @@ function pickPreferredBonusNarrationVoice(voices = []) {
     const selectedVoiceUri = String(appSettings?.voiceUri || '').trim();
     if (selectedVoiceUri) {
         const selected = pool.find((voice) => (voice?.voiceURI || voice?.name || '') === selectedVoiceUri);
-        if (selected && isEnglishVoice(selected) && !isLowQualityVoice(selected)) {
+        if (selected && isEnglishVoice(selected) && isHighQualityVoice(selected)) {
             return selected;
         }
     }
     const dialect = getPreferredEnglishDialect();
-    return pickPreferredEnglishCandidate(pool, dialect, { requireHighQuality: true })
-        || pickPreferredEnglishCandidate(pool, dialect, { excludeLowQuality: true })
-        || null;
+    return pickPreferredEnglishCandidate(pool, dialect, { requireHighQuality: true }) || null;
 }
 
 function shouldShowBonusContent() {
@@ -9001,7 +8999,14 @@ function showBonusContent() {
     const titleEl = document.getElementById('bonus-title');
     const textEl = document.getElementById('bonus-text');
     const hearBtn = document.getElementById('bonus-hear');
+    const audioNoteEl = document.getElementById('bonus-audio-note');
     let revealBtn = document.getElementById('bonus-reveal-detail');
+    const setBonusAudioNote = (message = '') => {
+        if (!(audioNoteEl instanceof HTMLElement)) return;
+        const text = String(message || '').trim();
+        audioNoteEl.textContent = text;
+        audioNoteEl.classList.toggle('hidden', !text);
+    };
     if (!(revealBtn instanceof HTMLButtonElement) && hearBtn) {
         revealBtn = document.createElement('button');
         revealBtn.id = 'bonus-reveal-detail';
@@ -9014,6 +9019,7 @@ function showBonusContent() {
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;
     if (textEl) textEl.textContent = initialVisibleContent;
+    setBonusAudioNote('');
     bonusModal.dataset.lastSpokenText = '';
     bonusModal.dataset.bonusType = type;
     bonusModal.dataset.bonusPunchline = hasPunchline ? parsedJoke.punchline : '';
@@ -9063,8 +9069,10 @@ function showBonusContent() {
             bonusModal.dataset.lastSpokenText = popupText;
             if (!popupText) {
                 showToast('No bonus text is available to read yet.');
+                setBonusAudioNote('No bonus text is available yet.');
                 return;
             }
+            setBonusAudioNote('');
             if (isBonusTtsDebugEnabled()) {
                 console.debug('bonus-tts', {
                     popupType,
@@ -9072,12 +9080,24 @@ function showBonusContent() {
                     voiceId: getBonusVoiceDebugId()
                 });
             }
+            const packedPlayed = await tryPlayPackedTtsForLiteralText({
+                text: popupText,
+                languageCode: 'en',
+                type: 'sentence',
+                playbackRate: Math.max(0.6, getSpeechRate('sentence'))
+            });
+            if (packedPlayed) {
+                setBonusAudioNote('');
+                return;
+            }
             const voices = await getVoicesForSpeech();
             const preferred = pickPreferredBonusNarrationVoice(voices);
             if (!preferred || isLowQualityVoice(preferred)) {
                 showToast('No high-quality voice is ready for bonus playback yet.');
+                setBonusAudioNote('Voice check: high-quality English voice not ready. Open Voice and choose a listed Azure voice.');
                 return;
             }
+            setBonusAudioNote('');
             const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
             speakEnglishText(popupText, 'sentence', preferred, fallbackLang);
         };
