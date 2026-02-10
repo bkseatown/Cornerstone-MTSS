@@ -65,6 +65,7 @@ body.cs-hv2-page {
   margin: 0;
   min-height: 100svh;
   background: var(--cs-hv2-page-bg);
+  overflow-x: clip;
 }
 
 body.cs-hv2-page.cs-hv2-enabled {
@@ -314,7 +315,7 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
 
 .cs-hv2-choice-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.8rem, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--cs-hv2-space-s);
 }
 
@@ -474,7 +475,25 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   }
 }
 
-@media (max-width: 64rem) {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cs-hv2-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .cs-hv2-choice-grid {
+    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .cs-hv2-choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1199px) {
   .cs-hv2-hero-wrap {
     min-height: calc(100svh - 10.5rem);
   }
@@ -494,7 +513,7 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   }
 }
 
-@media (max-width: 40rem) {
+@media (max-width: 767px) {
   .cs-hv2-hero-wrap {
     min-height: calc(100svh - 8.5rem);
   }

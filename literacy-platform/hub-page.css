@@ -84,9 +84,11 @@ body.cs-hub-page {
   min-height: 100svh;
   background: var(--cs-hub-page-bg) !important;
   color: var(--cs-hub-color-text);
+  overflow-x: clip;
 }
 
 .cs-hub-main {
+  display: block;
   width: min(1100px, calc(100% - 1.5rem));
   margin: 1rem auto 1.5rem;
 }
@@ -122,7 +124,7 @@ body.cs-hub-page {
 
 .cs-hub-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--cs-hv2-space-s);
 }
 
@@ -149,6 +151,86 @@ body.cs-hub-page {
   line-height: 1.45;
 }
 
+.cs-hub-top-actions {
+  display: grid;
+  gap: var(--cs-hv2-space-s);
+}
+
+.cs-hub-top-actions h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.cs-hub-action-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--cs-hv2-space-s);
+}
+
+.cs-hub-action-card {
+  border: 1px solid var(--cs-hub-color-card-outline);
+  border-radius: var(--cs-hub-card-radius);
+  background: var(--cs-hub-color-surface);
+  box-shadow: var(--cs-hub-card-shadow);
+  padding: var(--cs-hv2-space-m);
+  display: grid;
+  gap: var(--cs-hv2-space-s);
+  align-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  min-height: 146px;
+}
+
+.cs-hub-action-card:hover,
+.cs-hub-action-card:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--cs-hv2-shadow-medium);
+}
+
+.cs-hub-action-copy {
+  display: grid;
+  gap: var(--cs-hv2-space-xs);
+}
+
+.cs-hub-action-copy h4 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.32;
+  font-weight: 700;
+}
+
+.cs-hub-action-copy p {
+  margin: 0;
+  color: var(--cs-hub-color-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.cs-hub-action-open {
+  width: fit-content;
+  border-radius: var(--cs-hv2-radius-pill);
+  border: 1px solid var(--cs-hub-color-outline);
+  background: var(--cs-hub-color-chip-bg);
+  color: var(--cs-hub-color-chip-text);
+  padding: 0.14rem 0.56rem;
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cs-hub-action-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cs-hv2-space-s);
+}
+
+.cs-hub-action-disabled {
+  opacity: var(--cs-hub-disabled-opacity);
+  filter: grayscale(0.12);
+}
+
 .cs-hub-divider {
   height: 1px;
   background: var(--cs-hub-color-outline);
@@ -167,7 +249,7 @@ body.cs-hub-page {
 
 .cs-hub-module-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--cs-hv2-space-s);
 }
 
@@ -227,13 +309,34 @@ body.cs-hub-page {
   display: none !important;
 }
 
-@media (max-width: 1024px) {
-  .cs-hub-summary-grid {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cs-hub-summary-grid,
+  .cs-hub-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-hub-module-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 760px) {
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .cs-hub-summary-grid,
+  .cs-hub-action-grid,
+  .cs-hub-module-grid {
+    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .cs-hub-summary-grid,
+  .cs-hub-action-grid,
+  .cs-hub-module-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
   .cs-hub-main {
     width: calc(100% - 0.75rem);
     margin-top: 0.7rem;
@@ -245,6 +348,7 @@ body.cs-hub-page {
   }
 
   .cs-hub-summary-grid,
+  .cs-hub-action-grid,
   .cs-hub-module-grid {
     grid-template-columns: minmax(0, 1fr);
   }
