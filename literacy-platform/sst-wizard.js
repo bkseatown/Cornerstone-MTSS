@@ -1,6 +1,7 @@
 (function () {
   const STORE_PREFIX = 'cs_sst_v1::';
   const ACTIVE_KEY = 'cs_sst_v1_active';
+  const PM_STORE_PREFIX = 'cs_pm_v1::';
   const STEP_COUNT = 8;
 
   const STRENGTH_OPTIONS = [
@@ -137,6 +138,9 @@
       dataMathNote: '',
       dataWritingNote: '',
       dataEvidenceNotes: '',
+      pm_snapshot_attached: false,
+      pm_snapshot: null,
+      pm_snapshot_student_slug: '',
 
       communicationLog: [],
       commDraft: {
@@ -401,6 +405,17 @@
   }
 
   function renderStepDataEvidence() {
+    const pmSummary = buildPmSummaryForStudent(state.studentName);
+    const isAttachedToCurrentStudent = Boolean(
+      state.pm_snapshot_attached &&
+      state.pm_snapshot &&
+      state.pm_snapshot_student_slug &&
+      state.pm_snapshot_student_slug === pmSummary.studentSlug
+    );
+    const attachLabel = isAttachedToCurrentStudent
+      ? 'Snapshot attached'
+      : 'Attach latest snapshot to packet';
+
     return `
       <div class="cs-sst-grid cs-sst-grid-3">
         <label class="cs-sst-field">
@@ -421,10 +436,29 @@
         <a class="cs-sst-link-btn" href="teacher-report.html">Open Teacher Report</a>
         <a class="cs-sst-link-btn" href="writing-studio-v1.html">Open Writing Studio</a>
       </div>
+      <article class="cs-sst-preview-card">
+        <h4>Progress Monitoring (from this device)</h4>
+        ${pmSummary.hasData ? `
+          <p><strong>Latest PM date:</strong> ${escapeHtml(formatDateLabel(pmSummary.latestDate || ''))}</p>
+          <p><strong>Total PM entries:</strong> ${pmSummary.totalEntries}</p>
+          <div class="cs-sst-link-row">
+            <button type="button" class="cs-sst-btn" data-action="attach-pm-snapshot">${escapeHtml(attachLabel)}</button>
+            <a class="cs-sst-link-btn" href="progress-monitoring.html">View PM details</a>
+          </div>
+          <p id="sst-pm-status" class="cs-sst-note">${isAttachedToCurrentStudent ? 'Latest snapshot attached for packet export.' : 'Snapshot not attached yet.'}</p>
+        ` : `
+          <p>No progress monitoring data found on this device.</p>
+          <div class="cs-sst-link-row">
+            <a class="cs-sst-link-btn" href="progress-monitoring.html">Open Progress Monitoring</a>
+          </div>
+          <p id="sst-pm-status" class="cs-sst-note"></p>
+        `}
+      </article>
       <label class="cs-sst-field">
         <span>Evidence links / notes (paste links or short notes)</span>
         <textarea id="sst-data-evidence" class="cs-sst-textarea">${escapeHtml(state.dataEvidenceNotes)}</textarea>
       </label>
+      <p id="sst-step-status" class="cs-sst-note" role="status" aria-live="polite"></p>
     `;
   }
 
@@ -533,6 +567,20 @@
       downloadPacketCsv();
       setStatus('SST summary CSV downloaded.');
     });
+    root.querySelector('[data-action="attach-pm-snapshot"]')?.addEventListener('click', () => {
+      syncVisibleFields();
+      const snapshot = buildPmSummaryForStudent(state.studentName);
+      if (!snapshot.hasData) {
+        setPmStatus('No progress monitoring data found for this student on this device.', true);
+        return;
+      }
+      state.pm_snapshot_attached = true;
+      state.pm_snapshot = snapshot.summary;
+      state.pm_snapshot_student_slug = snapshot.studentSlug;
+      persist();
+      render();
+      setStatus('Progress monitoring snapshot attached to packet.');
+    });
     root.querySelector('[data-action="add-comm-entry"]')?.addEventListener('click', () => {
       syncCommunicationDraft();
       const draft = state.commDraft;
@@ -635,8 +683,17 @@
   }
 
   function syncVisibleFields() {
+    const previousStudentSlug = slugify(state.studentName);
     const studentNameEl = root.querySelector('#sst-student-name');
-    if (studentNameEl) state.studentName = String(studentNameEl.value || '').trim();
+    if (studentNameEl) {
+      state.studentName = String(studentNameEl.value || '').trim();
+      const nextStudentSlug = slugify(state.studentName);
+      if (previousStudentSlug !== nextStudentSlug) {
+        state.pm_snapshot_attached = false;
+        state.pm_snapshot = null;
+        state.pm_snapshot_student_slug = '';
+      }
+    }
     const gradeBandEl = root.querySelector('#sst-grade-band');
     if (gradeBandEl) state.gradeBand = String(gradeBandEl.value || '');
     const teacherNameEl = root.querySelector('#sst-teacher-name');
@@ -709,6 +766,7 @@
 
   function buildPacketPreviewHtml() {
     const selectedSupports = Object.values(state.supports).filter((entry) => entry.selected);
+    const pmSummary = state.pm_snapshot_attached && state.pm_snapshot ? state.pm_snapshot : null;
     return `
       <h3>SST Packet Preview</h3>
       <div class="cs-sst-preview-grid">
@@ -770,6 +828,36 @@
         <p><strong>Writing:</strong> ${escapeHtml(state.dataWritingNote || '-')}</p>
         <p><strong>Evidence notes:</strong> ${escapeHtml(state.dataEvidenceNotes || '-')}</p>
       </article>
+
+      ${pmSummary ? `
+      <article class="cs-sst-preview-card">
+        <h4>Progress Monitoring Summary (from this device)</h4>
+        <p><strong>Latest date:</strong> ${escapeHtml(formatDateLabel(pmSummary.latest_date || ''))}</p>
+        <p><strong>Total entries:</strong> ${escapeHtml(pmSummary.total_entries)}</p>
+        <div class="cs-sst-table-wrap">
+          <table class="cs-sst-table">
+            <thead>
+              <tr>
+                <th>Probe</th>
+                <th>Date</th>
+                <th>Score fields</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Array.isArray(pmSummary.latest_by_probe) && pmSummary.latest_by_probe.length ? pmSummary.latest_by_probe.map((entry) => `
+                <tr>
+                  <td>${escapeHtml(entry.probe || '-')}</td>
+                  <td>${escapeHtml(formatDateLabel(entry.date || ''))}</td>
+                  <td>${escapeHtml(entry.score_fields || '-')}</td>
+                  <td>${escapeHtml(truncateText(entry.notes || '-', 120))}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="4">No progress monitoring details were available.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </article>
+      ` : ''}
 
       <article class="cs-sst-preview-card">
         <h4>Parent/Guardian communication log</h4>
@@ -1009,6 +1097,139 @@
     return 'Review the full packet and export for SST planning.';
   }
 
+  function buildPmSummaryForStudent(studentName) {
+    const studentSlug = slugify(studentName);
+    if (!studentSlug) {
+      return {
+        hasData: false,
+        studentSlug: '',
+        latestDate: '',
+        totalEntries: 0,
+        summary: null
+      };
+    }
+
+    const pmKey = `${PM_STORE_PREFIX}${studentSlug}`;
+    const parsed = safeParse(localStorage.getItem(pmKey) || '');
+    const results = Array.isArray(parsed?.results) ? parsed.results : [];
+    if (!results.length) {
+      return {
+        hasData: false,
+        studentSlug,
+        latestDate: '',
+        totalEntries: 0,
+        summary: null
+      };
+    }
+
+    const normalized = results
+      .map((entry, index) => normalizePmEntry(entry, index))
+      .filter((entry) => entry && entry.dateObj)
+      .sort((a, b) => b.dateObj - a.dateObj);
+
+    if (!normalized.length) {
+      return {
+        hasData: false,
+        studentSlug,
+        latestDate: '',
+        totalEntries: results.length,
+        summary: null
+      };
+    }
+
+    const latestByProbeMap = new Map();
+    normalized.forEach((entry) => {
+      const probeKey = entry.probe_key || 'general';
+      if (!latestByProbeMap.has(probeKey)) latestByProbeMap.set(probeKey, entry);
+    });
+    let latestByProbe = Array.from(latestByProbeMap.values());
+    if (!latestByProbe.length) latestByProbe = normalized.slice(0, 10);
+
+    const summaryRows = latestByProbe.slice(0, 10).map((entry) => ({
+      probe: entry.probe_label,
+      date: entry.date_iso,
+      score_fields: entry.score_fields,
+      notes: entry.notes
+    }));
+
+    const summary = {
+      pulled_at: new Date().toISOString(),
+      latest_date: normalized[0].date_iso,
+      total_entries: normalized.length,
+      notes_count: normalized.filter((entry) => !!entry.notes).length,
+      latest_by_probe: summaryRows
+    };
+
+    return {
+      hasData: true,
+      studentSlug,
+      latestDate: summary.latest_date,
+      totalEntries: summary.total_entries,
+      summary
+    };
+  }
+
+  function normalizePmEntry(entry, index) {
+    if (!entry || typeof entry !== 'object') return null;
+    const dateObj = parseDateValue(entry.dateISO || entry.date || entry.createdAt || entry.updatedAt);
+    if (!dateObj) return null;
+    const probeKey = String(entry.probe || entry.probe_type || entry.type || `entry-${index + 1}`).trim();
+    const probeLabel = formatProbeLabel(probeKey);
+    return {
+      probe_key: probeKey,
+      probe_label: probeLabel,
+      dateObj,
+      date_iso: dateObj.toISOString(),
+      score_fields: buildPmScoreFields(entry),
+      notes: String(entry.notes || entry.note || '').trim()
+    };
+  }
+
+  function buildPmScoreFields(entry) {
+    const scoreParts = [];
+    if (Number.isFinite(Number(entry.correct)) && Number.isFinite(Number(entry.total))) {
+      scoreParts.push(`${Number(entry.correct)}/${Number(entry.total)} correct`);
+    }
+    if (Number.isFinite(Number(entry.wpm))) {
+      scoreParts.push(`${Number(entry.wpm)} WPM`);
+    }
+    if (Number.isFinite(Number(entry.accuracy_pct))) {
+      scoreParts.push(`${Number(entry.accuracy_pct)}% accuracy`);
+    }
+    if (entry.confidence) {
+      scoreParts.push(`Confidence: ${String(entry.confidence)}`);
+    }
+    if (typeof entry.shared_strategy === 'boolean') {
+      scoreParts.push(`Shared strategy: ${entry.shared_strategy ? 'Yes' : 'No'}`);
+    }
+    return scoreParts.join(' | ') || '-';
+  }
+
+  function formatProbeLabel(rawProbe) {
+    const key = String(rawProbe || '').trim().toLowerCase();
+    const labels = {
+      'letter-sounds': 'Letter Sounds',
+      'cvc-reading': 'CVC Word Reading',
+      fluency: 'Fluency',
+      'comprehension-quick': 'Comprehension Quick',
+      'number-sense': 'Number Sense',
+      operations: 'Operations',
+      strategy: 'Problem Solving Strategy'
+    };
+    if (labels[key]) return labels[key];
+    return String(rawProbe || 'General')
+      .replace(/[-_]+/g, ' ')
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  }
+
+  function parseDateValue(value) {
+    const text = String(value || '').trim();
+    if (!text) return null;
+    const date = new Date(text);
+    if (Number.isNaN(date.getTime())) return null;
+    return date;
+  }
+
   function supportId(category, label) {
     return `${slugify(category)}__${slugify(label)}`;
   }
@@ -1029,6 +1250,13 @@
 
   function setStatus(message, isWarn) {
     const el = root.querySelector('#sst-step-status');
+    if (!el) return;
+    el.textContent = String(message || '');
+    el.classList.toggle('cs-sst-note-warn', !!isWarn);
+  }
+
+  function setPmStatus(message, isWarn) {
+    const el = root.querySelector('#sst-pm-status');
     if (!el) return;
     el.textContent = String(message || '');
     el.classList.toggle('cs-sst-note-warn', !!isWarn);
@@ -1057,6 +1285,20 @@
     const date = new Date(text);
     if (Number.isNaN(date.getTime())) return text;
     return date.toLocaleDateString();
+  }
+
+  function truncateText(value, maxLength) {
+    const text = String(value || '');
+    if (!maxLength || text.length <= maxLength) return text;
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+  }
+
+  function safeParse(raw) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   }
 
   function csvEscape(value) {
