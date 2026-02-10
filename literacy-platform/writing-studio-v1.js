@@ -2,7 +2,7 @@
   const ACTIVE_KEY = 'cs_writing_v1_active';
   const SAVE_PREFIX = 'cs_writing_v1::';
   const THEME_KEY = 'cs_hv2_theme';
-  const THEMES = ['calm', 'professional', 'playful'];
+  const THEMES = ['calm', 'professional', 'playful', 'high-contrast'];
 
   const GRADE_BANDS = [
     { id: 'k2', label: 'K-2', subtitle: 'Early writers building confidence.' },

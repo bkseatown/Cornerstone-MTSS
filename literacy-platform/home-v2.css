@@ -48,6 +48,7 @@
   --cs-hv2-btn-radius-current: var(--cs-hv2-radius-button);
   --cs-hv2-btn-primary-fill: linear-gradient(92deg, var(--cs-hv2-color-primary) 0%, var(--cs-hv2-color-primary-2) 100%);
   --cs-hv2-btn-primary-hover: linear-gradient(92deg, #4338ca 0%, #0f766e 100%);
+  --cs-hv2-btn-primary-text: #ffffff;
   --cs-hv2-btn-secondary-fill: var(--cs-hv2-color-secondary);
   --cs-hv2-btn-secondary-text: #1f2937;
   --cs-hv2-hover-lift: 1px;
@@ -72,7 +73,9 @@ body.cs-hv2-page.cs-hv2-enabled {
   background: var(--cs-hv2-page-bg) !important;
 }
 
-body.cs-hv2-enabled.cs-hv2-theme-calm {
+html.cs-hv2-theme-calm,
+body.cs-hv2-enabled.cs-hv2-theme-calm,
+body.cs-hv2-theme-calm {
   --cs-hv2-color-bg: #f5f7ff;
   --cs-hv2-color-bg-alt: #fff4ee;
   --cs-hv2-color-primary: #4f46e5;
@@ -90,7 +93,9 @@ body.cs-hv2-enabled.cs-hv2-theme-calm {
   --cs-hv2-hover-shadow: 0 16px 28px rgba(45, 59, 110, 0.16);
 }
 
-body.cs-hv2-enabled.cs-hv2-theme-professional {
+html.cs-hv2-theme-professional,
+body.cs-hv2-enabled.cs-hv2-theme-professional,
+body.cs-hv2-theme-professional {
   --cs-hv2-color-bg: #f3f6fa;
   --cs-hv2-color-bg-alt: #f4f7fb;
   --cs-hv2-color-text: #1f2937;
@@ -111,7 +116,9 @@ body.cs-hv2-enabled.cs-hv2-theme-professional {
   --cs-hv2-hover-shadow: 0 10px 16px rgba(15, 23, 42, 0.1);
 }
 
-body.cs-hv2-enabled.cs-hv2-theme-playful {
+html.cs-hv2-theme-playful,
+body.cs-hv2-enabled.cs-hv2-theme-playful,
+body.cs-hv2-theme-playful {
   --cs-hv2-color-bg: #edf6ff;
   --cs-hv2-color-bg-alt: #e8fff8;
   --cs-hv2-color-primary: #2563eb;
@@ -130,6 +137,34 @@ body.cs-hv2-enabled.cs-hv2-theme-playful {
   --cs-hv2-hover-shadow: 0 18px 30px rgba(37, 99, 235, 0.22);
 }
 
+html.cs-hv2-theme-high-contrast,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast,
+body.cs-hv2-theme-high-contrast {
+  --cs-hv2-color-bg: #05070d;
+  --cs-hv2-color-bg-alt: #090d17;
+  --cs-hv2-color-surface: #0f172a;
+  --cs-hv2-color-text: #f8fafc;
+  --cs-hv2-color-muted: #cbd5e1;
+  --cs-hv2-color-primary: #facc15;
+  --cs-hv2-color-primary-2: #f59e0b;
+  --cs-hv2-color-secondary: #152342;
+  --cs-hv2-color-outline: #2f415f;
+  --cs-hv2-color-focus: rgba(250, 204, 21, 0.5);
+  --cs-hv2-page-bg: linear-gradient(160deg, #03050a 0%, #0a1220 100%);
+  --cs-hv2-card-radius-current: 1rem;
+  --cs-hv2-card-border: 2px solid #32486b;
+  --cs-hv2-card-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  --cs-hv2-choice-border-active: #facc15;
+  --cs-hv2-choice-ring: rgba(250, 204, 21, 0.36);
+  --cs-hv2-btn-primary-fill: linear-gradient(92deg, #facc15 0%, #f59e0b 100%);
+  --cs-hv2-btn-primary-hover: linear-gradient(92deg, #fde047 0%, #fbbf24 100%);
+  --cs-hv2-btn-primary-text: #0b1324;
+  --cs-hv2-btn-secondary-fill: #17294a;
+  --cs-hv2-btn-secondary-text: #f8fafc;
+  --cs-hv2-hover-lift: 0px;
+  --cs-hv2-hover-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+}
+
 body.cs-hv2-enabled.cs-hv2-theme-professional .header-top,
 body.cs-hv2-enabled.cs-hv2-theme-professional .header-top a,
 body.cs-hv2-enabled.cs-hv2-theme-professional .header-actions .link-btn,
@@ -137,6 +172,15 @@ body.cs-hv2-enabled.cs-hv2-theme-professional .header-right,
 body.cs-hv2-enabled.cs-hv2-theme-professional .menu-btn,
 body.cs-hv2-enabled.cs-hv2-theme-professional .menu-btn summary {
   color: #1f2937 !important;
+}
+
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .header-top,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .header-top a,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .header-actions .link-btn,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .header-right,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .menu-btn,
+body.cs-hv2-enabled.cs-hv2-theme-high-contrast .menu-btn summary {
+  color: #f8fafc !important;
 }
 
 #homeV2Root {
@@ -197,6 +241,14 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   display: flex;
   align-items: center;
   gap: var(--cs-hv2-space-s);
+}
+
+.cs-hv2-step-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cs-hv2-space-s);
+  flex-wrap: wrap;
 }
 
 .cs-hv2-hero-eyebrow {
@@ -432,7 +484,7 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
 
 .cs-hv2-btn-primary {
   background: var(--cs-hv2-btn-primary-fill);
-  color: #ffffff;
+  color: var(--cs-hv2-btn-primary-text);
 }
 
 .cs-hv2-btn-primary:hover,
@@ -521,6 +573,10 @@ body.cs-hv2-enabled .header-actions .link-btn[href="index.html#home-onboarding-w
   .cs-hv2-theme-select {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .cs-hv2-step-controls {
+    align-items: stretch;
   }
 
   .cs-hv2-theme-row {

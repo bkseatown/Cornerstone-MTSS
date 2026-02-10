@@ -79,6 +79,25 @@ html.cs-hv2-theme-playful body.cs-hub-page {
   --cs-hub-card-shadow: 0 12px 24px rgba(37, 99, 235, 0.13);
 }
 
+html.cs-hv2-theme-high-contrast body.cs-hub-page {
+  --cs-hub-color-bg: #04070f;
+  --cs-hub-color-bg-alt: #0b1425;
+  --cs-hub-color-surface: #0f172a;
+  --cs-hub-color-text: #f8fafc;
+  --cs-hub-color-muted: #cbd5e1;
+  --cs-hub-color-outline: #334155;
+  --cs-hub-color-card-outline: #3d4f66;
+  --cs-hub-color-chip-bg: #162643;
+  --cs-hub-color-chip-text: #e2e8f0;
+  --cs-hub-color-warn-bg: #2d1f07;
+  --cs-hub-color-warn-border: #f59e0b;
+  --cs-hub-color-warn-text: #fde68a;
+  --cs-hub-page-bg: linear-gradient(160deg, #03050b 0%, #0a1221 100%);
+  --cs-hub-shell-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  --cs-hub-shell-radius: 1rem;
+  --cs-hub-card-shadow: 0 8px 16px rgba(2, 6, 23, 0.6);
+}
+
 body.cs-hub-page {
   margin: 0;
   min-height: 100svh;

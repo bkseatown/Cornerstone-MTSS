@@ -14,7 +14,8 @@
   const THEME_OPTIONS = [
     { value: 'calm', label: 'Calm' },
     { value: 'professional', label: 'Professional' },
-    { value: 'playful', label: 'Playful' }
+    { value: 'playful', label: 'Playful' },
+    { value: 'high-contrast', label: 'Contrast' }
   ];
 
   const ROLE_OPTIONS = [
@@ -229,7 +230,7 @@
 
   function applyTheme(theme) {
     const normalized = normalizeTheme(theme);
-    document.body.classList.remove('cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful');
+    document.body.classList.remove('cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast');
     document.body.classList.add(`cs-hv2-theme-${normalized}`);
   }
 
@@ -398,6 +399,15 @@
     `;
   }
 
+  function renderStepControls(theme) {
+    return `
+      <div class="cs-hv2-step-controls">
+        ${renderThemeSelector(theme)}
+        <button type="button" class="cs-hv2-start-over" data-action="start-over">Start over</button>
+      </div>
+    `;
+  }
+
   function renderRoleChoices(state) {
     return ROLE_OPTIONS.map((option) => `
       <button type="button" class="cs-hv2-choice-card${state.roleOption === option.value ? ' cs-hv2-choice-selected' : ''}" data-action="choose-role" data-role-option="${option.value}">
@@ -436,9 +446,11 @@
   }
 
   function renderRole(root, state) {
+    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
+          ${renderStepControls(theme)}
           <p class="cs-hv2-step-label">Step 1 of 3</p>
           <h2 class="cs-hv2-question">Who are we helping today?</h2>
           <div class="cs-hv2-choice-grid">${renderRoleChoices(state)}</div>
@@ -453,9 +465,11 @@
   }
 
   function renderSchoolRole(root, state) {
+    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
+          ${renderStepControls(theme)}
           <p class="cs-hv2-step-label">Step 2 of 3</p>
           <h2 class="cs-hv2-question">What is your role?</h2>
           <div class="cs-hv2-choice-grid" aria-label="School team roles">
@@ -477,9 +491,11 @@
   }
 
   function renderQuickCheck(root, state) {
+    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
+          ${renderStepControls(theme)}
           <p class="cs-hv2-step-label">Step 3 of 3</p>
           <h2 class="cs-hv2-question">Let&rsquo;s find a good starting point.</h2>
           <p class="cs-hv2-quickcopy">Answer a few quick questions. Then you&rsquo;ll get a suggestion for what to try first.</p>

@@ -1,5 +1,5 @@
 (function () {
-  const VALID_THEMES = ['calm', 'professional', 'playful'];
+  const VALID_THEMES = ['calm', 'professional', 'playful', 'high-contrast'];
   const THEME_KEY = 'cs_hv2_theme';
   const RESULT_KEY = 'cs_math_quickcheck_v1';
 
