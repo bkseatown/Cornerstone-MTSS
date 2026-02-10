@@ -161,7 +161,7 @@ const DEFAULT_SETTINGS = {
     showIPA: true,
     showExamples: true,
     showMouthCues: true,
-    speechRate: 0.85,
+    speechRate: 0.8,
     decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
     narrationStyle: 'expressive', // expressive | neutral
@@ -1250,7 +1250,7 @@ function orderPacksForLanguage(packs = [], languageCode = 'en') {
     });
 }
 
-async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word' } = {}) {
+async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word', playbackRate = 1 } = {}) {
     const normalizedWord = String(word || '').trim().toLowerCase();
     if (!normalizedWord) return false;
     const normalizedLang = normalizePackedTtsLanguage(languageCode);
@@ -1267,7 +1267,7 @@ async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', t
         const packId = String(pack?.id || '').trim();
         if (!packId) continue;
         const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/${normalizedType}/${encodedWord}.mp3`;
-        const played = await playPackedClipWithFallbackPaths(candidate);
+        const played = await playPackedClipWithFallbackPaths(candidate, { playbackRate });
         if (played) return true;
     }
     return false;
@@ -1340,7 +1340,7 @@ function shouldUsePackedClipForCurrentRevealText({ text = '', languageCode = 'en
     return normalizedText === expectedText;
 }
 
-async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', type = 'word' } = {}) {
+async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', type = 'word', playbackRate = 1 } = {}) {
     if (!shouldAttemptPackedTtsLookup()) return false;
     const word = String(currentWord || '').trim().toLowerCase();
     if (!word || !text) return false;
@@ -1352,7 +1352,7 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
     if (!key) return false;
     const primaryClip = manifest.entries[key];
     if (primaryClip) {
-        const played = await playPackedClipWithFallbackPaths(primaryClip);
+        const played = await playPackedClipWithFallbackPaths(primaryClip, { playbackRate });
         if (played) return true;
     }
 
@@ -1361,19 +1361,20 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            const played = await playPackedClipWithFallbackPaths(fallbackClip);
+            const played = await playPackedClipWithFallbackPaths(fallbackClip, { playbackRate });
             if (played) return true;
         }
     }
     const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
     if (crossPackClip) {
-        const played = await playPackedClipWithFallbackPaths(crossPackClip);
+        const played = await playPackedClipWithFallbackPaths(crossPackClip, { playbackRate });
         if (played) return true;
     }
     return tryPlayPackedClipByDirectPath({
         word,
         languageCode,
-        type: resolvedType
+        type: resolvedType,
+        playbackRate
     });
 }
 
@@ -1406,7 +1407,7 @@ function normalizeLiteralPackedTtsLookupText(text = '') {
         .toLowerCase();
 }
 
-async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', type = 'sentence' } = {}) {
+async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', type = 'sentence', playbackRate = 1 } = {}) {
     if (!shouldAttemptPackedTtsLookup()) return false;
     const normalizedText = normalizeLiteralPackedTtsLookupText(text);
     if (!normalizedText) return false;
@@ -1422,7 +1423,7 @@ async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', 
         const key = getPackedTtsManifestKey(normalizedText, normalizedLang, entryType);
         const clipPath = await resolvePackedTtsClipByManifestKey(key, normalizedLang);
         if (!clipPath) continue;
-        const played = await playPackedClipWithFallbackPaths(clipPath);
+        const played = await playPackedClipWithFallbackPaths(clipPath, { playbackRate });
         if (played) return true;
     }
     return false;
@@ -1815,6 +1816,7 @@ function loadSettings() {
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
         appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
+        appSettings.speechRate = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 
@@ -1840,6 +1842,7 @@ function saveSettings() {
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
     appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
+    appSettings.speechRate = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
@@ -1851,14 +1854,20 @@ function normalizeDecodableReadSpeed(value = 1.0) {
     return Math.max(0.65, Math.min(1.5, Math.round(numeric * 100) / 100));
 }
 
+function normalizeSpeechRate(value = DEFAULT_SETTINGS.speechRate) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return DEFAULT_SETTINGS.speechRate;
+    return Math.max(0.55, Math.min(1.05, Math.round(numeric * 100) / 100));
+}
+
 function getDecodableReadSpeed() {
     return normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
 }
 
 function getSpeechRate(type = 'word') {
-    const base = appSettings.speechRate || DEFAULT_SETTINGS.speechRate;
-    if (type === 'phoneme') return Math.max(0.6, base - 0.15);
-    if (type === 'sentence') return Math.min(1.0, base + 0.05);
+    const base = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
+    if (type === 'phoneme') return Math.max(0.55, base - 0.12);
+    if (type === 'sentence') return Math.max(0.55, base - 0.08);
     return base;
 }
 
@@ -2117,6 +2126,14 @@ function syncSettingsFromPlatform(nextSettings = {}) {
         if (nextVoiceUri !== String(appSettings.voiceUri || '').trim()) {
             appSettings.voiceUri = nextVoiceUri;
             sessionEnglishVoice = { dialect: '', voiceUri: '' };
+            changed = true;
+        }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(nextSettings, 'speechRate')) {
+        const nextSpeechRate = normalizeSpeechRate(nextSettings.speechRate);
+        if (nextSpeechRate !== normalizeSpeechRate(appSettings.speechRate)) {
+            appSettings.speechRate = nextSpeechRate;
             changed = true;
         }
     }
@@ -2874,7 +2891,7 @@ function countSpeechWords(text) {
 }
 
 function clampSpeechRate(value) {
-    return Math.max(0.62, Math.min(1.1, value));
+    return Math.max(0.55, Math.min(1.1, value));
 }
 
 function clampSpeechPitch(value) {
@@ -3040,10 +3057,12 @@ async function speak(text, type = "word") {
     }
 
     const packedType = type === 'sentence' ? 'sentence' : 'word';
+    const packedPlaybackRate = Math.max(0.6, getSpeechRate(packedType));
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
         languageCode: 'en',
-        type: packedType
+        type: packedType,
+        playbackRate: packedPlaybackRate
     });
     if (packedPlayed) return;
 
@@ -3468,7 +3487,8 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
         languageCode,
-        type
+        type,
+        playbackRate: Math.max(0.6, getSpeechRate(type === 'word' ? 'word' : 'sentence'))
     });
     if (packedPlayed) {
         setTranslationAudioNote('');
@@ -3497,7 +3517,8 @@ async function playTextInLanguage(text, languageCode, type = 'sentence') {
     
     const packedType = normalizePackedTtsType(type);
     const speechType = packedType === 'word' ? 'word' : 'sentence';
-    msg.rate = Math.max(0.65, getSpeechRate(speechType) - 0.1);
+    const rateOffset = speechType === 'word' ? 0.1 : 0.14;
+    msg.rate = clampSpeechRate(getSpeechRate(speechType) - rateOffset);
     msg.pitch = 1.0;
     
     speakUtterance(msg);
@@ -3777,6 +3798,14 @@ function ensureWordQuestVoiceQuickOverlay() {
           <span>Voice choice</span>
           <select id="voice-quick-voice"></select>
         </label>
+        <label class="voice-quick-field">
+          <span>Reading speed</span>
+          <div class="voice-quick-rate-row">
+            <input id="voice-quick-rate" type="range" min="0.55" max="1.05" step="0.01" />
+            <span id="voice-quick-rate-value">0.80x</span>
+          </div>
+          <span class="voice-quick-note">Applies to word, definition, sentence, and translation audio.</span>
+        </label>
         <div class="voice-quick-field voice-quick-delight">
           <span>Delight feedback</span>
           <label class="voice-quick-lock">
@@ -3798,6 +3827,8 @@ function ensureWordQuestVoiceQuickOverlay() {
     document.body.appendChild(overlay);
 
     const voiceSelect = overlay.querySelector('#voice-quick-voice');
+    const rateInput = overlay.querySelector('#voice-quick-rate');
+    const rateValue = overlay.querySelector('#voice-quick-rate-value');
     const delightMotionToggle = overlay.querySelector('#voice-quick-delight-motion');
     const delightSoundToggle = overlay.querySelector('#voice-quick-delight-sound');
     const statusEl = overlay.querySelector('#voice-quick-status');
@@ -3896,8 +3927,18 @@ function ensureWordQuestVoiceQuickOverlay() {
         overlay.classList.add('hidden');
     };
 
+    const syncRateUi = () => {
+        if (!(rateInput instanceof HTMLInputElement)) return;
+        const next = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
+        rateInput.value = String(next);
+        if (rateValue instanceof HTMLElement) {
+            rateValue.textContent = `${next.toFixed(2)}x`;
+        }
+    };
+
     const openOverlay = async () => {
         await populateVoiceChoices();
+        syncRateUi();
         if (delightMotionToggle instanceof HTMLInputElement) {
             delightMotionToggle.checked = readDelightToggleSetting(DELIGHT_MOTION_KEY, 'on') === 'on';
         }
@@ -3926,6 +3967,19 @@ function ensureWordQuestVoiceQuickOverlay() {
             await applyQuickSelection(voiceSelect.value || '');
             setStatus(`Saved: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`, true);
         });
+    }
+
+    if (rateInput instanceof HTMLInputElement) {
+        const commitRate = () => {
+            const nextRate = normalizeSpeechRate(rateInput.value);
+            syncSettingsFromPlatform({ speechRate: nextRate });
+            if (rateValue instanceof HTMLElement) {
+                rateValue.textContent = `${nextRate.toFixed(2)}x`;
+            }
+            setStatus(`Saved: reading speed ${nextRate.toFixed(2)}x.`, true);
+        };
+        rateInput.addEventListener('input', commitRate);
+        rateInput.addEventListener('change', commitRate);
     }
 
     if (delightMotionToggle instanceof HTMLInputElement) {
@@ -6546,8 +6600,12 @@ function updateModalSyllables(word, rawSyllables) {
 function estimateSpeechDuration(text, rate = 1) {
     if (!text) return 0;
     const normalized = Math.max(0.6, rate || 1);
-    const base = Math.max(900, text.length * 55);
-    return Math.min(9000, base / normalized);
+    const words = countSpeechWords(text);
+    const punctuationPauses = (String(text).match(/[.,!?;:]/g) || []).length;
+    const charEstimate = Math.max(980, String(text).length * 72);
+    const wordEstimate = Math.max(980, (words * 420) + (punctuationPauses * 120));
+    const base = Math.max(charEstimate, wordEstimate);
+    return Math.min(12000, base / normalized);
 }
 
 function autoPlayReveal(definitionText, sentenceText) {
@@ -6557,14 +6615,15 @@ function autoPlayReveal(definitionText, sentenceText) {
     const speechRateWord = getSpeechRate('word');
     const speechRateSentence = getSpeechRate('sentence');
 
-    let delay = 150;
+    const interPartGapMs = 340;
+    let delay = 170;
     if (wordText) {
         setTimeout(() => speak(wordText, 'word'), delay);
-        delay += estimateSpeechDuration(wordText, speechRateWord);
+        delay += estimateSpeechDuration(wordText, speechRateWord) + interPartGapMs;
     }
     if (definitionText) {
         setTimeout(() => speakText(definitionText, 'definition'), delay);
-        delay += estimateSpeechDuration(definitionText, speechRateSentence);
+        delay += estimateSpeechDuration(definitionText, speechRateSentence) + interPartGapMs;
     }
     if (sentenceText) {
         setTimeout(() => speak(sentenceText, 'sentence'), delay);
@@ -8779,6 +8838,12 @@ function splitRiddlePromptAndAnswer(line = '') {
 function splitJokeSetupAndPunchline(line = '') {
     const normalized = normalizeBonusLine(line);
     if (!normalized) return { setup: '', punchline: '' };
+    const questionBreak = normalized.lastIndexOf('?');
+    if (questionBreak > -1) {
+        const setup = normalized.slice(0, questionBreak + 1).trim();
+        const punchline = normalized.slice(questionBreak + 1).trim();
+        if (setup && punchline) return { setup, punchline };
+    }
     const patterns = [
         /(?:\s+|^)Answer::\s*/i,
         /(?:\s+|^)Answer:\s*/i,
@@ -9007,20 +9072,10 @@ function showBonusContent() {
                     voiceId: getBonusVoiceDebugId()
                 });
             }
-            const playedLiteral = await tryPlayPackedTtsForLiteralText({
-                text: popupText,
-                languageCode: 'en',
-                type: 'sentence'
-            });
-            if (playedLiteral) return;
             const voices = await getVoicesForSpeech();
-            const activePackId = normalizeTtsPackId(appSettings?.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
-            let preferred = pickPreferredBonusNarrationVoice(voices);
-            if (!preferred && (!activePackId || activePackId === 'default')) {
-                preferred = pickBestEnglishVoice(voices);
-            }
+            const preferred = pickPreferredBonusNarrationVoice(voices);
             if (!preferred || isLowQualityVoice(preferred)) {
-                showToast('Selected voice unavailable right now.');
+                showToast('No high-quality voice is ready for bonus playback yet.');
                 return;
             }
             const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
@@ -11879,7 +11934,8 @@ async function speakText(text, rateType = 'word') {
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
         languageCode: 'en',
-        type
+        type,
+        playbackRate: Math.max(0.6, getSpeechRate(speechType))
     });
     if (packedPlayed) return;
 

@@ -15344,6 +15344,32 @@ body:not(.has-story-track) #story-track {
     padding: 8px 10px;
 }
 
+.voice-quick-rate-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.voice-quick-rate-row input[type="range"] {
+    width: 100%;
+}
+
+.voice-quick-rate-row #voice-quick-rate-value {
+    min-width: 54px;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.voice-quick-note {
+    font-size: 0.7rem;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    color: #64748b;
+    font-weight: 700;
+}
+
 .voice-quick-lock {
     display: inline-flex;
     align-items: center;
