@@ -63,6 +63,13 @@
         </h1>
         <nav class="header-actions" aria-label="Primary">
           <a id="home-btn" class="link-btn" href="index.html">Home</a>
+          <label class="wq-theme-inline" for="wq-theme-select">Theme</label>
+          <select id="wq-theme-select" class="wq-theme-select" aria-label="Theme">
+            <option value="calm">Calm</option>
+            <option value="professional">Professional</option>
+            <option value="playful">Playful</option>
+            <option value="high-contrast">Contrast</option>
+          </select>
         </nav>
         <a id="demo-exit-link" class="link-btn demo-exit-link" href="word-quest-demo.html" aria-label="Exit demo">Exit demo</a>
       </div>
@@ -422,6 +429,27 @@
       </div>
     </div>
     <style>
+      .wq-theme-inline {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 6px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #334155;
+      }
+
+      .wq-theme-select {
+        min-height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(99, 102, 241, 0.34);
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e293b;
+        font-weight: 700;
+        padding: 6px 10px;
+      }
+
       .demo-exit-link {
         display: none;
       }
@@ -447,5 +475,47 @@
         font-size: clamp(1.1rem, 2vw, 1.35rem);
       }
     </style>
+    <script>
+      (function initWordQuestThemePicker() {
+        var KEY = 'cs_hv2_theme';
+        var allowed = new Set(['calm', 'professional', 'playful', 'high-contrast']);
+        function normalizeTheme(raw) {
+          var value = String(raw || '').trim().toLowerCase();
+          return allowed.has(value) ? value : 'calm';
+        }
+        function applyTheme(theme) {
+          var normalized = normalizeTheme(theme);
+          var cls = 'cs-hv2-theme-' + normalized;
+          document.documentElement.classList.remove(
+            'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
+          );
+          document.documentElement.classList.add(cls);
+          if (document.body) {
+            document.body.classList.remove(
+              'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
+            );
+            document.body.classList.add(cls);
+          }
+        }
+        function init() {
+          var select = document.getElementById('wq-theme-select');
+          if (!select) return;
+          var stored = 'calm';
+          try { stored = normalizeTheme(localStorage.getItem(KEY)); } catch (e) {}
+          select.value = stored;
+          applyTheme(stored);
+          select.addEventListener('change', function () {
+            var next = normalizeTheme(select.value);
+            try { localStorage.setItem(KEY, next); } catch (e) {}
+            applyTheme(next);
+          });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
   </body>
 </html>
