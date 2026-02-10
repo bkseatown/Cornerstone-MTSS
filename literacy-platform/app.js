@@ -8382,6 +8382,34 @@ function filterBonusBucket(items = [], mode = 'general') {
         .filter((item) => item && isSafeBonusLine(item) && isClearBonusLine(item, mode));
 }
 
+function getBonusHearButtonLabel(type = '') {
+    if (type === 'facts') return 'Hear the fun fact';
+    if (type === 'quotes') return 'Hear the quote';
+    if (type === 'riddles') return 'Hear the riddle';
+    if (type === 'jokes') return 'Hear the joke';
+    return 'Hear this';
+}
+
+function isBonusTtsDebugEnabled() {
+    try {
+        const params = new URLSearchParams(window.location.search || '');
+        return params.get('debug_tts') === '1';
+    } catch (e) {
+        return false;
+    }
+}
+
+function getBonusVoiceDebugId() {
+    try {
+        const packId = normalizeTtsPackId(appSettings?.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        const resolvedPackId = packId === 'default' ? '' : packId;
+        if (resolvedPackId) return `pack:${resolvedPackId}`;
+        const voiceUri = String(appSettings?.voiceUri || '').trim();
+        if (voiceUri) return `voice:${voiceUri}`;
+    } catch (e) {}
+    return 'system-default';
+}
+
 function shouldShowBonusContent() {
     const frequency = appSettings.bonus?.frequency || 'sometimes';
     if (frequency === 'off') return false;
@@ -8455,24 +8483,46 @@ function showBonusContent() {
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;
     if (textEl) textEl.textContent = visibleContent;
+    bonusModal.dataset.lastSpokenText = '';
     if (hearBtn) {
+        hearBtn.textContent = getBonusHearButtonLabel(type);
+        hearBtn.dataset.ttsType = type;
+        hearBtn.dataset.ttsText = narrationText || '';
+        hearBtn.dataset.lastSpokenText = '';
         hearBtn.disabled = !narrationText;
         hearBtn.onclick = async () => {
             stopAllActiveAudioPlayers();
             cancelPendingSpeech(true);
+            const popupType = hearBtn.dataset.ttsType || type;
+            const popupText = String((textEl && textEl.innerText) || hearBtn.dataset.ttsText || '').replace(/\s+/g, ' ').trim();
+            hearBtn.dataset.ttsText = popupText;
+            hearBtn.dataset.lastSpokenText = popupText;
+            bonusModal.dataset.lastSpokenText = popupText;
+            if (!popupText) {
+                showToast('No bonus text is available to read yet.');
+                return;
+            }
+            if (isBonusTtsDebugEnabled()) {
+                console.debug('bonus-tts', {
+                    popupType,
+                    spokenTextPreview: popupText.slice(0, 60),
+                    voiceId: getBonusVoiceDebugId()
+                });
+            }
             const playedLiteral = await tryPlayPackedTtsForLiteralText({
-                text: narrationText,
+                text: popupText,
                 languageCode: 'en',
                 type: 'sentence'
             });
             if (playedLiteral) return;
-
-            const playedPreview = await tryPlayPreferredPackPreviewClip('en');
-            if (playedPreview) {
-                showToast('Previewing your selected Azure voice. This bonus line has no recorded clip yet.');
-                return;
+            const voices = await getVoicesForSpeech();
+            const preferred = pickBestEnglishVoice(voices);
+            const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
+            speakEnglishText(popupText, 'sentence', preferred, fallbackLang);
+            const activePackId = normalizeTtsPackId(appSettings?.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+            if (activePackId && activePackId !== 'default') {
+                showToast('Selected voice unavailable - using system voice.');
             }
-            showToast('No Azure voice clip is available for this line yet.');
         };
     }
 }
