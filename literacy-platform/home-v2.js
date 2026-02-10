@@ -31,6 +31,11 @@
     dean: 'admin-hub.html'
   };
 
+  const HUB_BY_ROLE = {
+    student: 'student-hub.html',
+    parent: 'parent-hub.html'
+  };
+
   let cs_hv2_quickcheck_poll = null;
   const cs_hv2_build_stamp = readBuildStamp();
 
@@ -195,8 +200,9 @@
   }
 
   function resolveHubPath(state) {
-    if (state.role === 'student') return 'student-hub.html';
-    if (state.role === 'parent') return 'parent-hub.html';
+    if (state.role === 'student' || state.role === 'parent') {
+      return HUB_BY_ROLE[state.role] || 'student-hub.html';
+    }
     if (state.role === 'school') {
       return HUB_BY_SCHOOL_ROLE[state.schoolRole || 'teacher'] || 'teacher-hub.html';
     }
@@ -262,10 +268,24 @@
     localStorage.setItem(LEGACY_FOCUS_KEY, focus);
   }
 
-  function openExistingQuickCheck() {
+  function openExistingQuickCheck(role) {
     const launchButton = document.getElementById('home-role-launch');
     const startButton = document.getElementById('placement-start');
     const calcButton = document.getElementById('placement-calc');
+
+    // Parent flow can redirect when using the legacy role-launch CTA.
+    // Use the placement controls directly to keep Home V2 routing stable.
+    if (role === 'parent') {
+      if (startButton instanceof HTMLButtonElement) {
+        startButton.click();
+      }
+      window.setTimeout(() => {
+        if (calcButton instanceof HTMLButtonElement) {
+          calcButton.click();
+        }
+      }, 120);
+      return;
+    }
 
     if (launchButton instanceof HTMLButtonElement) {
       launchButton.click();
@@ -471,7 +491,12 @@
       if (!state.focus) return;
       const prepared = writeState({ quickCheckStatus: 'in_progress' });
       pushLegacyBridgeState(prepared);
-      openExistingQuickCheck();
+      if (hasRecommendation()) {
+        writeState({ quickCheckStatus: 'complete' });
+        routeToHub('complete');
+        return;
+      }
+      openExistingQuickCheck(prepared.role);
       startQuickCheckPolling();
     });
 
