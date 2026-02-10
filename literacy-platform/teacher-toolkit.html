@@ -3,61 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CORNERSTONE MTSS - Preview Module</title>
+    <title>CORNERSTONE MTSS - Teacher Toolkit</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="platform.js?v=1b4772c4" defer></script>
-    <script src="coming-soon.js?v=20260209f" defer></script>
+    <link rel="stylesheet" href="style.css?v=6393551e" />
+    <link rel="stylesheet" href="home-v2.css?v=step7theme1" />
+    <link rel="stylesheet" href="teacher-toolkit.css?v=step14toolkit1" />
+    <script>
+      (function () {
+        try {
+          const valid = ['calm', 'professional', 'playful'];
+          const params = new URLSearchParams(window.location.search || '');
+          const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
+          const fromStorage = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
+          const chosen = valid.includes(fromUrl) ? fromUrl : valid.includes(fromStorage) ? fromStorage : 'calm';
+          if (valid.includes(fromUrl)) localStorage.setItem('cs_hv2_theme', fromUrl);
+          document.documentElement.classList.add('cs-hv2-theme-' + chosen);
+        } catch {}
+      })();
+    </script>
+    <script src="platform.js?v=audio-silence" defer></script>
+    <script src="teacher-toolkit.js?v=step14toolkit1" defer></script>
   </head>
-  <body class="coming-soon-page force-light look-35" data-coming-soon-id="teacher-toolkit">
+  <body class="cs-ttk-page force-light look-35">
     <header>
       <div class="header-top">
         <h1>
           <a href="index.html">CORNERSTONE MTSS</a>
         </h1>
         <nav class="header-actions" aria-label="Primary">
-          <a class="link-btn" href="index.html">Home</a>
+          <a class="link-btn" href="teacher-hub.html">Teacher Hub</a>
+          <a class="link-btn" href="learning-support-hub.html">Learning Support Hub</a>
         </nav>
       </div>
     </header>
 
-    <main class="coming-soon-main">
-      <section class="coming-soon-shell" aria-label="Preview module">
-        <div class="coming-soon-kicker">Preview module - more coming soon</div>
-        <h2 id="coming-soon-title">Preview Module</h2>
-        <p id="coming-soon-subtitle" class="coming-soon-subtitle"></p>
-        <p id="coming-soon-alignment" class="coming-soon-alignment hidden"></p>
+    <main class="cs-ttk-main">
+      <section class="cs-ttk-shell" aria-label="Teacher toolkit workspace">
+        <section class="cs-ttk-card">
+          <div class="cs-ttk-head">
+            <h2>Teacher Toolkit</h2>
+            <p>UDL + Responsive Classroom routines you can use tomorrow.</p>
+          </div>
+        </section>
 
-        <div id="coming-soon-extra-top"></div>
+        <section class="cs-ttk-card" aria-label="Student context">
+          <div class="cs-ttk-card-head">
+            <h3>Student context (optional)</h3>
+            <p>Use a student name to save a focused toolkit log, or leave blank for a general class plan.</p>
+          </div>
+          <div class="cs-ttk-grid cs-ttk-grid-context">
+            <label class="cs-ttk-field">
+              <span>Student name</span>
+              <input id="ttk-student-name" class="cs-ttk-input" type="text" placeholder="Optional student name" />
+            </label>
+            <label class="cs-ttk-field">
+              <span>Grade band</span>
+              <select id="ttk-grade-band" class="cs-ttk-select">
+                <option value="">Choose grade band</option>
+                <option value="K-2">K-2</option>
+                <option value="3-5">3-5</option>
+                <option value="6-8">6-8</option>
+                <option value="9-12">9-12</option>
+              </select>
+            </label>
+            <div class="cs-ttk-field cs-ttk-field-btn">
+              <span>&nbsp;</span>
+              <button id="ttk-load-btn" type="button" class="cs-ttk-btn cs-ttk-btn-primary">Start / Load</button>
+            </div>
+          </div>
+          <p id="ttk-context-status" class="cs-ttk-note" role="status" aria-live="polite"></p>
+        </section>
 
-        <div class="coming-soon-grid">
-          <section class="coming-soon-block">
-            <h3>What this will do</h3>
-            <ul id="coming-soon-what"></ul>
-          </section>
+        <section class="cs-ttk-card" aria-label="Toolkit categories">
+          <div class="cs-ttk-card-head">
+            <h3>Toolkit categories</h3>
+            <p>Pick routines to try, track what was used, and note what helped.</p>
+          </div>
+          <div id="ttk-categories" class="cs-ttk-categories"></div>
+        </section>
 
-          <section class="coming-soon-block">
-            <h3>Who it helps</h3>
-            <div id="coming-soon-audience" class="coming-soon-chip-row"></div>
-          </section>
-
-          <section class="coming-soon-block">
-            <h3>What&apos;s available now</h3>
-            <ul id="coming-soon-now"></ul>
-          </section>
-
-          <section class="coming-soon-block">
-            <h3>Roadmap preview</h3>
-            <ul id="coming-soon-roadmap" class="coming-soon-roadmap"></ul>
-          </section>
-        </div>
-
-        <div id="coming-soon-extra-body"></div>
-
-        <div class="coming-soon-actions">
-          <button id="coming-soon-notify-btn" class="home-cta ghost" type="button">Notify me</button>
-        </div>
-        <p id="coming-soon-notify-status" class="coming-soon-notify" aria-live="polite"></p>
+        <section class="cs-ttk-card" aria-label="Exports">
+          <div class="cs-ttk-card-head">
+            <h3>Exports</h3>
+            <p>Download tried routines for team discussion and planning.</p>
+          </div>
+          <div class="cs-ttk-actions">
+            <button id="ttk-export-csv" type="button" class="cs-ttk-btn cs-ttk-btn-primary">Download Toolkit Log (CSV)</button>
+            <button id="ttk-export-html" type="button" class="cs-ttk-btn">Download Toolkit Summary (printable HTML)</button>
+          </div>
+          <p id="ttk-export-status" class="cs-ttk-note" role="status" aria-live="polite"></p>
+        </section>
       </section>
     </main>
   </body>
