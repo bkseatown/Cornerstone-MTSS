@@ -17,6 +17,7 @@ let currentWord = "";
 let currentEntry = null;
 let guesses = [];
 let currentGuess = "";
+let previousGuessRenderLength = 0;
 let gameOver = false;
 let isFirstLoad = true;
 let isUpperCase = false;
@@ -2505,21 +2506,24 @@ function applyWordQuestDesktopScale() {
     // Keep this conservative so non-fullscreen desktop/iPad windows avoid clipping.
     const staticChrome = coarsePointer ? 286 : 258;
 
-    let tileSize = (availableHeight - staticChrome) / 9.08;
-    tileSize = Math.max(34, Math.min(58, tileSize));
-    if (viewportHeight < 980) tileSize = Math.min(tileSize, 55);
-    if (viewportHeight < 910) tileSize = Math.min(tileSize, 51);
-    if (viewportHeight < 840) tileSize = Math.min(tileSize, 46);
-    if (viewportHeight < 790) tileSize = Math.min(tileSize, 42);
+    let baseTileSize = (availableHeight - staticChrome) / 9.08;
+    baseTileSize = Math.max(34, Math.min(58, baseTileSize));
+    const tileScaleBoost = window.innerWidth >= 1280 ? 1.5 : (window.innerWidth >= 1024 ? 1.35 : 1.2);
+    let tileSize = baseTileSize * tileScaleBoost;
+    tileSize = Math.max(40, Math.min(88, tileSize));
+    if (viewportHeight < 980) tileSize = Math.min(tileSize, 82);
+    if (viewportHeight < 910) tileSize = Math.min(tileSize, 76);
+    if (viewportHeight < 840) tileSize = Math.min(tileSize, 70);
+    if (viewportHeight < 790) tileSize = Math.min(tileSize, 62);
 
-    let keySize = tileSize * (coarsePointer ? 1.07 : 1.03);
-    keySize = Math.max(coarsePointer ? 36 : 34, Math.min(56, keySize));
+    let keySize = baseTileSize * (coarsePointer ? 1.07 : 1.03);
+    keySize = Math.max(coarsePointer ? 36 : 34, Math.min(62, keySize));
 
     let wideKeySize = keySize * 1.72;
-    wideKeySize = Math.max(70, Math.min(102, wideKeySize));
+    wideKeySize = Math.max(70, Math.min(116, wideKeySize));
 
-    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 104 : 96));
-    let canvasMax = Math.round(Math.max(680, Math.min(980, keyboardMax + 236)));
+    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 110 : 100));
+    let canvasMax = Math.round(Math.max(720, Math.min(1180, keyboardMax + 290)));
     let bottomGap = coarsePointer ? 14 : 10;
     if (viewportHeight < 930) bottomGap = Math.max(8, bottomGap - 3);
     if (viewportHeight < 860) bottomGap = Math.max(8, bottomGap - 2);
@@ -2564,11 +2568,11 @@ function applyWordQuestDesktopScale() {
         while ((requiredCanvasHeight > availableCanvasHeight + 2 || layoutOverflow > 2) && attempts < 8) {
             const combinedDemand = Math.max(requiredCanvasHeight, availableCanvasHeight + layoutOverflow);
             const fitRatio = Math.max(0.74, Math.min(0.95, availableCanvasHeight / Math.max(1, combinedDemand)));
-            tileSize = Math.max(30, Math.min(58, tileSize * fitRatio));
-            keySize = Math.max(coarsePointer ? 33 : 31, Math.min(54, keySize * fitRatio));
-            wideKeySize = Math.max(62, Math.min(98, wideKeySize * fitRatio));
-            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 90 : 82));
-            canvasMax = Math.round(Math.max(640, Math.min(950, keyboardMax + 214)));
+            tileSize = Math.max(30, Math.min(88, tileSize * fitRatio));
+            keySize = Math.max(coarsePointer ? 33 : 31, Math.min(60, keySize * fitRatio));
+            wideKeySize = Math.max(62, Math.min(112, wideKeySize * fitRatio));
+            keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 96 : 86));
+            canvasMax = Math.round(Math.max(680, Math.min(1120, keyboardMax + 252)));
             bottomGap = Math.max(4, Math.min(14, bottomGap - 1));
             applyDesktopScaleVars();
             requiredCanvasHeight = Math.ceil(canvas.scrollHeight || 0);
@@ -5921,6 +5925,7 @@ function startNewGame(customWord = null) {
     gameOver = false;
     guesses = [];
     currentGuess = "";
+    previousGuessRenderLength = 0;
     CURRENT_MAX_GUESSES = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     board.innerHTML = "";
     clearKeyboardColors();
@@ -6418,8 +6423,31 @@ function deleteLetter() {
     updateGrid();
 }
 
+function shouldAnimateWordQuestTiles() {
+    if (isReducedStimulationEnabled()) return false;
+    try {
+        return !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch {
+        return true;
+    }
+}
+
+function triggerTileAnimation(tile, className) {
+    if (!(tile instanceof HTMLElement) || !className) return;
+    tile.classList.remove(className);
+    // Force reflow so the same animation can be replayed reliably.
+    void tile.offsetWidth;
+    tile.classList.add(className);
+    tile.addEventListener('animationend', () => {
+        tile.classList.remove(className);
+    }, { once: true });
+}
+
 function updateGrid() {
     const offset = guesses.length * CURRENT_WORD_LENGTH;
+    const canAnimateTiles = shouldAnimateWordQuestTiles();
+    const insertedLetter = currentGuess.length > previousGuessRenderLength;
+    const latestLetterIndex = insertedLetter ? (currentGuess.length - 1) : -1;
     for (let i = 0; i < CURRENT_WORD_LENGTH; i++) {
         const t = document.getElementById(`tile-${offset + i}`);
         if (!t) continue;
@@ -6433,7 +6461,11 @@ function updateGrid() {
         t.textContent = isUpperCase ? char.toUpperCase() : char;
         const isVowel = KEYBOARD_VOWELS.has(String(char || '').toLowerCase());
         t.className = `tile active row-active${isVowel ? ' vowel' : ''}`;
+        if (canAnimateTiles && i === latestLetterIndex) {
+            triggerTileAnimation(t, 'tile-letter-bounce');
+        }
     }
+    previousGuessRenderLength = currentGuess.length;
 }
 
 function toggleCase() {
@@ -6520,11 +6552,19 @@ function evaluate(guess, target) {
 
 function revealColors(result, guess) {
     const offset = (guesses.length) * CURRENT_WORD_LENGTH;
+    const canAnimateTiles = shouldAnimateWordQuestTiles();
     result.forEach((status, i) => {
         setTimeout(() => {
             const t = document.getElementById(`tile-${offset + i}`);
+            if (!t) return;
             t.classList.add(status);
-            t.classList.add("pop");
+            if (canAnimateTiles) {
+                if (status === "correct") {
+                    triggerTileAnimation(t, 'tile-correct-celebrate');
+                } else {
+                    triggerTileAnimation(t, 'pop');
+                }
+            }
             const k = document.querySelector(`.key[data-key="${guess[i]}"]`);
             if (k) {
                 if (status === "correct") {

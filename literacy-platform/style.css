@@ -4481,6 +4481,14 @@ main {
     animation: pop 0.3s; 
 }
 
+.tile.tile-letter-bounce {
+    animation: tile-letter-bounce 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tile.tile-correct-celebrate {
+    animation: tile-correct-celebrate 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* COLORS - Soft, clear feedback with depth */
 .tile.correct { 
     background: var(--color-correct);
@@ -4520,6 +4528,46 @@ main {
     0% { transform: scale(0.9); opacity: 0.7; } 
     40% { transform: scale(1.08); } 
     100% { transform: scale(1); opacity: 1; } 
+}
+
+@keyframes tile-letter-bounce {
+    0% { transform: scale(0.76) translateY(7px); }
+    58% { transform: scale(1.12) translateY(-3px); }
+    100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes tile-correct-celebrate {
+    0% {
+        transform: scale(1);
+        box-shadow:
+            0 4px 8px rgba(46, 204, 113, 0.36),
+            0 2px 4px rgba(0,0,0,0.1),
+            inset 0 -2px 0 rgba(0,0,0,0.2);
+    }
+    48% {
+        transform: scale(1.16) rotate(-1.5deg);
+        box-shadow:
+            0 0 0 6px rgba(34, 197, 94, 0.22),
+            0 14px 24px rgba(34, 197, 94, 0.34),
+            inset 0 -1px 0 rgba(0,0,0,0.18);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        box-shadow:
+            0 4px 8px rgba(46, 204, 113, 0.4),
+            0 2px 4px rgba(0,0,0,0.1),
+            inset 0 -2px 0 rgba(0,0,0,0.2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tile.active,
+    .tile.pop,
+    .tile.tile-letter-bounce,
+    .tile.tile-correct-celebrate {
+        animation: none !important;
+        transform: none !important;
+    }
 }
 
 /* QUICK TILES - Minimal spacing */
