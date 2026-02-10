@@ -3595,6 +3595,174 @@ function applyTranslationLanguageOptionLabels(selectEl) {
     });
 }
 
+const WORD_QUEST_QUICK_VOICE_FALLBACK_PACKS = Object.freeze([
+    { id: 'ava-multi', name: 'Ava Multilingual', dialect: 'en-US' },
+    { id: 'emma-en', name: 'Emma English', dialect: 'en-US' },
+    { id: 'guy-en-us', name: 'Guy English US', dialect: 'en-US' },
+    { id: 'sonia-en-gb', name: 'Sonia British English', dialect: 'en-GB' },
+    { id: 'ryan-en-gb', name: 'Ryan British English', dialect: 'en-GB' }
+]);
+
+function normalizeQuickVoiceDialectFromPack(pack = null) {
+    const raw = String(pack?.dialect || '').trim().toLowerCase();
+    if (raw === 'en-gb') return 'en-GB';
+    if (raw === 'en-us') return 'en-US';
+    const id = String(pack?.id || '').trim().toLowerCase();
+    if (id.includes('en-gb')) return 'en-GB';
+    if (id.includes('en-us')) return 'en-US';
+    return 'en-US';
+}
+
+async function getWordQuestQuickVoicePackOptions() {
+    try {
+        const registry = await loadPackedTtsPackRegistry();
+        const packs = Array.isArray(registry?.packs) ? registry.packs : [];
+        const normalized = packs
+            .map((pack) => {
+                const id = normalizeTtsPackId(pack?.id || '');
+                if (!id || id === 'default') return null;
+                return {
+                    id,
+                    name: String(pack?.name || id).trim() || id,
+                    dialect: normalizeQuickVoiceDialectFromPack(pack)
+                };
+            })
+            .filter(Boolean);
+        if (normalized.length) {
+            const preferredOrder = new Map(WORD_QUEST_QUICK_VOICE_FALLBACK_PACKS.map((pack, index) => [pack.id, index]));
+            return normalized
+                .filter((pack) => preferredOrder.has(pack.id))
+                .sort((a, b) => preferredOrder.get(a.id) - preferredOrder.get(b.id));
+        }
+    } catch (error) {}
+    return WORD_QUEST_QUICK_VOICE_FALLBACK_PACKS.slice();
+}
+
+function ensureWordQuestVoiceQuickOverlay() {
+    let overlay = document.getElementById('voice-quick-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.id = 'voice-quick-overlay';
+    overlay.className = 'voice-quick-overlay hidden';
+    overlay.innerHTML = `
+      <section class="voice-quick-modal" role="dialog" aria-modal="true" aria-labelledby="voice-quick-title">
+        <header class="voice-quick-head">
+          <h2 id="voice-quick-title">Voice</h2>
+          <button type="button" class="voice-quick-close" aria-label="Close voice settings">×</button>
+        </header>
+        <p class="voice-quick-copy">Choose one Azure voice for listening activities.</p>
+        <label class="voice-quick-field">
+          <span>Voice choice</span>
+          <select id="voice-quick-voice"></select>
+        </label>
+        <p id="voice-quick-status" class="voice-quick-status"></p>
+        <div class="voice-quick-actions">
+          <button type="button" class="voice-quick-preview">Preview Voice</button>
+          <button type="button" class="voice-quick-done">Done</button>
+        </div>
+      </section>
+    `;
+    document.body.appendChild(overlay);
+
+    const voiceSelect = overlay.querySelector('#voice-quick-voice');
+    const statusEl = overlay.querySelector('#voice-quick-status');
+    const previewBtn = overlay.querySelector('.voice-quick-preview');
+    let quickPacks = [];
+
+    const setStatus = (message = '', active = false) => {
+        if (!statusEl) return;
+        statusEl.textContent = String(message || '').trim();
+        statusEl.classList.toggle('active', !!active && !!statusEl.textContent);
+    };
+
+    const findPack = (packId = '') => {
+        const normalized = normalizeTtsPackId(packId || '');
+        return quickPacks.find((pack) => pack.id === normalized) || null;
+    };
+
+    const applyQuickSelection = (packId = '') => {
+        const pack = findPack(packId);
+        if (!pack) return;
+        appSettings.ttsPackId = pack.id;
+        appSettings.voiceDialect = normalizeQuickVoiceDialectFromPack(pack);
+        appSettings.voiceUri = '';
+        saveSettings();
+        applySettings();
+    };
+
+    const populateVoiceChoices = async () => {
+        if (!(voiceSelect instanceof HTMLSelectElement)) return;
+        quickPacks = await getWordQuestQuickVoicePackOptions();
+        voiceSelect.innerHTML = '';
+        quickPacks.forEach((pack) => {
+            const option = document.createElement('option');
+            option.value = pack.id;
+            option.textContent = `${pack.name} (${pack.dialect})`;
+            voiceSelect.appendChild(option);
+        });
+        const preferred = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
+        if (quickPacks.some((pack) => pack.id === preferred)) {
+            voiceSelect.value = preferred;
+        } else if (quickPacks[0]) {
+            voiceSelect.value = quickPacks[0].id;
+            applyQuickSelection(quickPacks[0].id);
+        }
+        voiceSelect.disabled = !quickPacks.length;
+        if (previewBtn) previewBtn.disabled = !quickPacks.length;
+        setStatus(
+            quickPacks.length
+                ? `Preview ready: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`
+                : 'No compatible Azure voices are loaded yet.',
+            quickPacks.length > 0
+        );
+    };
+
+    const closeOverlay = () => {
+        overlay.classList.add('hidden');
+    };
+
+    const openOverlay = async () => {
+        await populateVoiceChoices();
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            (voiceSelect instanceof HTMLSelectElement ? voiceSelect : overlay.querySelector('.voice-quick-done'))?.focus();
+        }, 0);
+    };
+
+    overlay.querySelector('.voice-quick-close')?.addEventListener('click', closeOverlay);
+    overlay.querySelector('.voice-quick-done')?.addEventListener('click', closeOverlay);
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeOverlay();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
+            closeOverlay();
+        }
+    });
+
+    if (voiceSelect instanceof HTMLSelectElement) {
+        voiceSelect.addEventListener('change', () => {
+            applyQuickSelection(voiceSelect.value || '');
+            setStatus(`Saved: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`, true);
+        });
+    }
+
+    previewBtn?.addEventListener('click', async () => {
+        if (!(voiceSelect instanceof HTMLSelectElement) || !voiceSelect.options.length) {
+            setStatus('Select a voice first.');
+            return;
+        }
+        applyQuickSelection(voiceSelect.value || '');
+        setStatus('Playing voice preview…', true);
+        await previewSelectedVoice('This is your selected English listening voice.');
+        setStatus(`Preview ready: ${voiceSelect.selectedOptions?.[0]?.textContent || 'voice selected'}.`, true);
+    });
+
+    overlay.openQuickVoice = openOverlay;
+    return overlay;
+}
+
 /* --- CONTROLS & EVENTS --- */
 function initControls() {
     const newWordBtn = document.getElementById("new-word-btn");
@@ -3841,8 +4009,16 @@ function initControls() {
     }
 
     if (voiceSettingsBtn) {
-        voiceSettingsBtn.onclick = () => {
+        voiceSettingsBtn.onclick = (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
             window.dispatchEvent(new CustomEvent('cornerstone:open-voice-quick'));
+            const overlay = ensureWordQuestVoiceQuickOverlay();
+            if (overlay && typeof overlay.openQuickVoice === 'function') {
+                overlay.openQuickVoice();
+            } else {
+                openTeacherMode();
+            }
             voiceSettingsBtn.blur();
         };
     }
