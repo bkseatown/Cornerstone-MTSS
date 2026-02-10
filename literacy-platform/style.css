@@ -15617,3 +15617,96 @@ body.word-quest-page .quick-custom-word-status {
         padding: 8px 10px;
     }
 }
+
+/* =========================================================
+   Word Quest: stable layout zones + theme variable bindings
+   (appended at end of style.css to override earlier sections)
+   ========================================================= */
+
+#game-canvas {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto; /* board, hint-actions, sentence, keyboard */
+  gap: 12px;
+}
+
+#game-board { min-height: 0; }
+
+#keyboard {
+  min-height: 220px;   /* desktop baseline */
+  padding: 10px;
+  border-radius: var(--wq-radius, 14px);
+  background: var(--wq-keyboard-surface, rgba(0,0,0,0.03));
+  border: 1px solid var(--wq-border, rgba(0,0,0,0.08));
+}
+
+@media (pointer: coarse) {
+  #keyboard { min-height: 240px; padding: 12px; }
+}
+
+body.fit-screen #keyboard,
+body.fit-screen-tight #keyboard {
+  transform: none !important;
+}
+
+#game-board {
+  background: var(--wq-board-surface, transparent);
+  border-radius: var(--wq-radius, 14px);
+}
+
+/* Tiles (use multiple selectors to survive minor markup differences) */
+#game-board .tile,
+#game-board .cell,
+#game-board [data-tile] {
+  background: var(--wq-tile-bg, #fff);
+  color: var(--wq-tile-text, inherit);
+  border-color: var(--wq-tile-border, rgba(0,0,0,0.12));
+}
+
+/* Keys */
+#keyboard button,
+#keyboard .key,
+#keyboard [data-key] {
+  background: var(--wq-key-bg, rgba(0,0,0,0.06));
+  color: var(--wq-key-text, inherit);
+  border-color: var(--wq-key-border, rgba(0,0,0,0.12));
+  border-radius: var(--wq-key-radius, 12px);
+}
+
+body.cs-hv2-theme-playful #keyboard button,
+body.cs-hv2-theme-playful #keyboard .key,
+body.cs-hv2-theme-playful #keyboard [data-key] {
+  transition: transform 120ms ease, filter 120ms ease;
+}
+body.cs-hv2-theme-playful #keyboard button:active,
+body.cs-hv2-theme-playful #keyboard .key:active,
+body.cs-hv2-theme-playful #keyboard [data-key]:active {
+  transform: scale(0.98);
+}
+
+/* Force-theme bindings through existing Word Quest !important overrides */
+body.word-quest-page #game-board,
+body.force-light.word-quest-page #game-board {
+  background: var(--wq-board-surface, transparent) !important;
+  border-color: var(--wq-border, rgba(0,0,0,0.12)) !important;
+}
+
+body.word-quest-page #keyboard,
+body.force-light.word-quest-page #keyboard {
+  background: var(--wq-keyboard-surface, rgba(0,0,0,0.03)) !important;
+  border-color: var(--wq-border, rgba(0,0,0,0.12)) !important;
+}
+
+body.word-quest-page #game-board .tile:not(.correct):not(.present):not(.absent),
+body.force-light.word-quest-page #game-board .tile:not(.correct):not(.present):not(.absent) {
+  background: var(--wq-tile-bg, #fff) !important;
+  color: var(--wq-tile-text, inherit) !important;
+  border-color: var(--wq-tile-border, rgba(0,0,0,0.12)) !important;
+}
+
+body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
+body.force-light.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent) {
+  background: var(--wq-key-bg, rgba(0,0,0,0.06)) !important;
+  color: var(--wq-key-text, inherit) !important;
+  border-color: var(--wq-key-border, rgba(0,0,0,0.12)) !important;
+  box-shadow: none !important;
+}

@@ -646,6 +646,11 @@
           routeToHub({ quickCheckStatus: 'skipped', placed: false });
           return;
         }
+        if (role === 'student') {
+          writeState({ quickCheckStatus: 'skipped', step: 1, schoolRole: null, adultPath: false });
+          routeToHub({ quickCheckStatus: 'skipped', placed: false });
+          return;
+        }
         writeState({ step: 3, schoolRole: null, adultPath: false });
         showStep(3);
       });

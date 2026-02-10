@@ -17,6 +17,8 @@
   const BUILD_STAMP_CACHE_KEY = 'cornerstone_build_stamp_v1';
   const BUILD_STAMP_CACHE_TTL_MS = 15 * 60 * 1000;
   const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
+  const HOME_THEME_KEY = 'cs_hv2_theme';
+  const HOME_THEME_VALUES = ['calm', 'professional', 'playful', 'high-contrast'];
 
   const LEARNERS_KEY = 'decode_learners_v1';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
@@ -495,6 +497,32 @@
     const raw = String(value || '').trim().toLowerCase();
     if (raw === 'minimal-ink') return 'classic';
     return THEME_PRESETS.includes(raw) ? raw : 'calm';
+  }
+
+  function normalizeHomeTheme(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    return HOME_THEME_VALUES.includes(raw) ? raw : 'calm';
+  }
+
+  function applyHomeThemeClass() {
+    const root = document.documentElement;
+    const body = document.body;
+    if (!root || !body) return;
+    const params = new URLSearchParams(window.location.search || '');
+    const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
+    const fromStorage = String(localStorage.getItem(HOME_THEME_KEY) || '').trim().toLowerCase();
+    const chosen = normalizeHomeTheme(fromUrl || fromStorage || 'calm');
+    if (HOME_THEME_VALUES.includes(fromUrl)) {
+      localStorage.setItem(HOME_THEME_KEY, fromUrl);
+    } else if (!fromStorage) {
+      localStorage.setItem(HOME_THEME_KEY, chosen);
+    }
+    HOME_THEME_VALUES.forEach((theme) => {
+      root.classList.remove(`cs-hv2-theme-${theme}`);
+      body.classList.remove(`cs-hv2-theme-${theme}`);
+    });
+    root.classList.add(`cs-hv2-theme-${chosen}`);
+    body.classList.add(`cs-hv2-theme-${chosen}`);
   }
 
   const DEFAULT_QUICK_RESPONSES = [
@@ -3016,6 +3044,38 @@
     applyFocusModeLayout();
   };
 
+  // =========================================================
+  // Lightweight deploy freshness (no service worker)
+  // - Fetch version.json with cache: 'no-store'
+  // - If version changed, reload once with ?v=
+  // =========================================================
+  (function versionRefreshBootstrap() {
+    try {
+      if (!window.location || window.location.protocol === 'file:') return;
+      const VERSION_URL = '/version.json';
+      const LS_KEY = 'cs_app_version';
+      const SS_KEY = 'cs_app_version_reloaded_once';
+
+      fetch(VERSION_URL, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data || !data.v) return;
+          const current = localStorage.getItem(LS_KEY);
+          const reloaded = sessionStorage.getItem(SS_KEY) === '1';
+          if (!current) { localStorage.setItem(LS_KEY, data.v); return; }
+          if (current !== data.v && !reloaded) {
+            localStorage.setItem(LS_KEY, data.v);
+            sessionStorage.setItem(SS_KEY, '1');
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', data.v);
+            window.location.replace(url.toString());
+          }
+        })
+        .catch(() => {});
+    } catch (_) {}
+  })();
+
+  applyHomeThemeClass();
   ensureFavicon();
   renderBuildStamp();
   renderPrimaryNav();

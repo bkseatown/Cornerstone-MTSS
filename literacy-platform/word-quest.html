@@ -16,7 +16,26 @@
         } catch {}
       })();
     </script>
+    <script>
+      (function () {
+        try {
+          const allowedThemes = ['calm', 'professional', 'playful', 'high-contrast'];
+          const rawTheme = String(localStorage.getItem('cs_hv2_theme') || '').trim().toLowerCase();
+          if (!allowedThemes.includes(rawTheme)) return;
+          const themeClass = `cs-hv2-theme-${rawTheme}`;
+          document.documentElement.classList.add(themeClass);
+          document.addEventListener(
+            'DOMContentLoaded',
+            () => {
+              document.body.classList.add(themeClass);
+            },
+            { once: true }
+          );
+        } catch {}
+      })();
+    </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
     <link rel="stylesheet" href="style.css?v=20260210voice1" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
