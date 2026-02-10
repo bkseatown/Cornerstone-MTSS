@@ -1,7 +1,7 @@
 (function () {
   const FLAG_KEY = 'cs_home_v2';
   const STATE_KEY_PREFIX = 'cs_hv2_state_v1::';
-  const THEME_KEY_PREFIX = 'cs_hv2_theme_v1::';
+  const THEME_STORAGE_KEY = 'cs_hv2_theme';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
   const LEGACY_HOME_STATE_KEY_PREFIX = 'cornerstone_home_state_v4::';
   const LEGACY_ROLE_KEY = 'cm_role';
@@ -53,7 +53,6 @@
   const ROLE_OPTION_LOOKUP = buildRoleOptionLookup();
 
   let cs_hv2_quickcheck_poll = null;
-  let cs_hv2_settings_open = false;
 
   function buildRoleOptionLookup() {
     const map = {};
@@ -140,10 +139,6 @@
     return `${STATE_KEY_PREFIX}${getScopeId()}`;
   }
 
-  function getThemeKey() {
-    return `${THEME_KEY_PREFIX}${getScopeId()}`;
-  }
-
   function getLegacyHomeStateKey() {
     return `${LEGACY_HOME_STATE_KEY_PREFIX}${getScopeId()}`;
   }
@@ -189,13 +184,24 @@
   }
 
   function readTheme() {
-    return normalizeTheme(localStorage.getItem(getThemeKey()) || 'calm');
+    return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'calm');
   }
 
   function writeTheme(theme) {
     const normalized = normalizeTheme(theme);
-    localStorage.setItem(getThemeKey(), normalized);
+    localStorage.setItem(THEME_STORAGE_KEY, normalized);
     return normalized;
+  }
+
+  function readThemeFromUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const value = String(params.get('theme') || '').trim().toLowerCase();
+      if (!value) return '';
+      return THEME_OPTIONS.some((theme) => theme.value === value) ? value : '';
+    } catch {
+      return '';
+    }
   }
 
   function applyTheme(theme) {
@@ -321,15 +327,11 @@
     }, 120);
   }
 
-  function renderThemeSettings(theme) {
-    const openClass = cs_hv2_settings_open ? '' : ' cs-hv2-hidden';
+  function renderThemeSelector(theme) {
     return `
-      <div class="cs-hv2-toolbar">
-        <button type="button" class="cs-hv2-settings-trigger" data-action="toggle-settings" aria-expanded="${cs_hv2_settings_open}">Settings</button>
-      </div>
-      <div class="cs-hv2-settings${openClass}" data-cs-hv2-settings>
-        <div class="cs-hv2-settings-title">Theme</div>
-        <div class="cs-hv2-theme-row" role="group" aria-label="Home theme">
+      <div class="cs-hv2-theme-select" role="group" aria-label="Theme">
+        <span class="cs-hv2-theme-label">Theme</span>
+        <div class="cs-hv2-theme-row">
           ${THEME_OPTIONS.map((option) => `
             <button type="button" class="cs-hv2-theme-btn${theme === option.value ? ' cs-hv2-theme-selected' : ''}" data-action="set-theme" data-theme="${option.value}">${escapeHtml(option.label)}</button>
           `).join('')}
@@ -354,12 +356,16 @@
   }
 
   function renderWelcome(root) {
+    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container cs-hv2-hero-wrap">
-        <section class="cs-hv2-hero" aria-label="Welcome">
+        <section class="cs-hv2-card cs-hv2-hero" aria-label="Welcome">
           <div class="cs-hv2-hero-top">
             <p class="cs-hv2-hero-eyebrow">WELCOME</p>
-            <button type="button" class="cs-hv2-start-over" data-action="start-over">Start over</button>
+            <div class="cs-hv2-hero-controls">
+              ${renderThemeSelector(theme)}
+              <button type="button" class="cs-hv2-start-over" data-action="start-over">Start over</button>
+            </div>
           </div>
           <h2 class="cs-hv2-hero-title">Let&rsquo;s find the right learning pathway.</h2>
           <p class="cs-hv2-hero-subline">We&rsquo;ll ask a few quick questions so we can help you get started in the right place.</p>
@@ -370,12 +376,10 @@
   }
 
   function renderRole(root, state) {
-    const theme = readTheme();
     const selectedRole = roleForRoleOption(state.roleOption);
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
-          ${renderThemeSettings(theme)}
           <p class="cs-hv2-step-label">Step 1 of 3</p>
           <h2 class="cs-hv2-question">Who are we helping today?</h2>
           <div class="cs-hv2-choice-grid">${renderRoleChoices(state)}</div>
@@ -392,11 +396,9 @@
   }
 
   function renderSchoolRole(root, state) {
-    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
-          ${renderThemeSettings(theme)}
           <p class="cs-hv2-step-label">Step 2 of 3</p>
           <h2 class="cs-hv2-question">What is your role?</h2>
           <label class="cs-hv2-field-label" for="cs-hv2-school-role">Choose your role</label>
@@ -416,11 +418,9 @@
   }
 
   function renderQuickCheck(root, state) {
-    const theme = readTheme();
     root.innerHTML = `
       <div class="cs-hv2-container">
         <section class="cs-hv2-card cs-hv2-question-card">
-          ${renderThemeSettings(theme)}
           <p class="cs-hv2-step-label">Step 3 of 3</p>
           <h2 class="cs-hv2-question">Quick Check (recommended)</h2>
           <p class="cs-hv2-quickcopy">A short check helps us match you to the right level. It&rsquo;s quick, low-pressure, and helpful.</p>
@@ -464,13 +464,11 @@
     if (!root) return;
 
     root.querySelector('[data-action="begin"]')?.addEventListener('click', () => {
-      cs_hv2_settings_open = false;
       const state = writeState({ step: 1 });
       showStep(state.step);
     });
 
     root.querySelector('[data-action="start-over"]')?.addEventListener('click', () => {
-      cs_hv2_settings_open = false;
       writeState({}, { reset: true });
       showStep(0);
     });
@@ -478,7 +476,6 @@
     root.querySelector('[data-action="back"]')?.addEventListener('click', () => {
       const state = readState();
       const role = roleForRoleOption(state.roleOption) || state.role;
-      cs_hv2_settings_open = false;
       if (state.step === 1) {
         writeState({ step: 0 });
         showStep(0);
@@ -500,12 +497,6 @@
       }
     });
 
-    root.querySelector('[data-action="toggle-settings"]')?.addEventListener('click', () => {
-      const state = readState();
-      cs_hv2_settings_open = !cs_hv2_settings_open;
-      showStep(state.step);
-    });
-
     root.querySelectorAll('[data-action="set-theme"]').forEach((button) => {
       button.addEventListener('click', () => {
         const selected = normalizeTheme(button.getAttribute('data-theme') || 'calm');
@@ -521,7 +512,6 @@
         const roleOption = normalizeRoleOption(button.getAttribute('data-role-option') || '');
         const role = roleForRoleOption(roleOption);
         if (!role) return;
-        cs_hv2_settings_open = false;
         writeState({
           roleOption,
           role,
@@ -537,7 +527,6 @@
       const state = readState();
       const role = roleForRoleOption(state.roleOption) || state.role;
       if (!role) return;
-      cs_hv2_settings_open = false;
       if (role === 'school') {
         writeState({ step: 2 });
         showStep(2);
@@ -592,6 +581,10 @@
     const root = document.getElementById('homeV2Root');
     if (!root) return;
 
+    const themeFromUrl = readThemeFromUrl();
+    if (themeFromUrl) {
+      writeTheme(themeFromUrl);
+    }
     applyTheme(readTheme());
     hideLegacyHome();
 
