@@ -1054,9 +1054,12 @@
   const REPORT_MEDIA_MAX_ITEMS = 400;
 
   const NUMERACY_IMPORT_UNDO_KEY = 'decode_numeracy_import_undo_v1';
+  const STUDENT_QUICKCHECK_KEY = 'cs_lit_quickcheck_v1';
 
   const learnerNameEl = document.getElementById('report-learner-name');
   const generatedAtEl = document.getElementById('report-generated-at');
+  const quickCheckPanelEl = document.getElementById('report-quickcheck-panel');
+  const quickCheckClearBtn = document.getElementById('report-quickcheck-clear');
   const metricsEl = document.getElementById('report-metrics');
   const focusEl = document.getElementById('report-focus');
   const pulseEl = document.getElementById('report-pulse');
@@ -1313,6 +1316,60 @@
   function readJson(key, fallback) {
     const parsed = safeParse(localStorage.getItem(key) || '');
     return parsed === null || parsed === undefined ? fallback : parsed;
+  }
+
+  function clampCount(value, max) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.max(0, Math.min(max, Math.round(numeric)));
+  }
+
+  function formatQuickCheckDate(dateValue) {
+    const parsed = new Date(dateValue || '');
+    if (Number.isNaN(parsed.getTime())) return 'Unknown';
+    return parsed.toLocaleString();
+  }
+
+  function fluencyLabel(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'easy') return 'Easy';
+    if (normalized === 'okay') return 'Okay';
+    if (normalized === 'tricky') return 'Tricky';
+    return 'Tricky';
+  }
+
+  function normalizeQuickCheckPayload(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    return {
+      dateLabel: formatQuickCheckDate(payload.date),
+      lettersKnown: clampCount(payload.letters_known, 8),
+      cvcEasy: clampCount(payload.cvc_easy, 6),
+      dvEasy: clampCount(payload.dv_easy, 6),
+      fluencyRating: fluencyLabel(payload.fluency_rating)
+    };
+  }
+
+  function renderStudentQuickCheckPanel() {
+    if (!quickCheckPanelEl) return;
+    const payload = safeParse(localStorage.getItem(STUDENT_QUICKCHECK_KEY) || '');
+    const data = normalizeQuickCheckPayload(payload);
+    if (!data) {
+      quickCheckPanelEl.innerHTML = '<p class="report-focus-note">No Quick Check results found. Students can download and share their results.</p>';
+      if (quickCheckClearBtn) quickCheckClearBtn.disabled = true;
+      return;
+    }
+
+    quickCheckPanelEl.innerHTML = `
+      <div class="report-builder-summary">
+        <div><strong>Date:</strong> ${escapeHtml(data.dateLabel)}</div>
+        <div><strong>Letter sounds known:</strong> ${data.lettersKnown}/8</div>
+        <div><strong>CVC words easy:</strong> ${data.cvcEasy}/6</div>
+        <div><strong>Digraph/vowel team words easy:</strong> ${data.dvEasy}/6</div>
+        <div><strong>Fluency self-rating:</strong> ${escapeHtml(data.fluencyRating)}</div>
+      </div>
+      <p class="report-focus-note">These results are student self-reported and for classroom insight only.</p>
+    `;
+    if (quickCheckClearBtn) quickCheckClearBtn.disabled = false;
   }
 
   function clamp(value, min = 0, max = 1) {
@@ -8302,6 +8359,7 @@
     const learner = window.DECODE_PLATFORM?.getActiveLearner?.();
     if (learnerNameEl) learnerNameEl.textContent = learner?.name || 'Learner';
     if (generatedAtEl) generatedAtEl.textContent = new Date().toLocaleString();
+    renderStudentQuickCheckPanel();
 
     const logs = getLogs();
     const metrics = renderMetrics(logs);
@@ -8423,6 +8481,12 @@
 
   renderBuilderFocusOptions();
   refreshBtn?.addEventListener('click', refreshReport);
+  quickCheckClearBtn?.addEventListener('click', () => {
+    try {
+      localStorage.removeItem(STUDENT_QUICKCHECK_KEY);
+    } catch {}
+    renderStudentQuickCheckPanel();
+  });
   loadSampleBtn?.addEventListener('click', () => {
     loadSampleData();
     refreshReport();

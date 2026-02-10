@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="platform.js?v=1b4772c4" defer></script>
     <script src="class-blocks.js" defer></script>
-    <script src="teacher-report.js?v=20260209g" defer></script>
+    <script src="teacher-report.js?v=step7bquickcheck1" defer></script>
   </head>
 
   <body class="report-page force-light look-35">
@@ -39,6 +39,18 @@
           <div><strong>Learner:</strong> <span id="report-learner-name">—</span></div>
           <div><strong>Generated:</strong> <span id="report-generated-at">—</span></div>
         </div>
+      </section>
+
+      <section class="report-card" aria-label="Recent student quick check">
+        <div class="report-card-header">
+          <div>
+            <h2>Recent Student Quick Check (if shared)</h2>
+          </div>
+          <div class="report-actions">
+            <button id="report-quickcheck-clear" class="secondary-btn" type="button">Clear local Quick Check data</button>
+          </div>
+        </div>
+        <div id="report-quickcheck-panel" class="report-focus"></div>
       </section>
 
       <section class="report-card" aria-label="Growth summary">
