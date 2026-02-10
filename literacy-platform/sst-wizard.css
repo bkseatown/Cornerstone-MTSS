@@ -1,0 +1,417 @@
+:root {
+  --cs-sst-space-xs: var(--cs-hv2-space-xs, 0.5rem);
+  --cs-sst-space-s: var(--cs-hv2-space-s, 0.75rem);
+  --cs-sst-space-m: var(--cs-hv2-space-m, 1rem);
+  --cs-sst-space-l: var(--cs-hv2-space-l, 1.5rem);
+  --cs-sst-space-xl: var(--cs-hv2-space-xl, 2rem);
+
+  --cs-sst-radius-card: var(--cs-hv2-card-radius-current, 1.25rem);
+  --cs-sst-radius-input: 0.8rem;
+  --cs-sst-radius-btn: var(--cs-hv2-btn-radius-current, 0.9rem);
+  --cs-sst-radius-pill: 999px;
+
+  --cs-sst-shadow-main: var(--cs-hv2-card-shadow, 0 14px 28px rgba(30, 41, 59, 0.14));
+  --cs-sst-shadow-soft: var(--cs-hv2-shadow-soft, 0 8px 18px rgba(30, 41, 59, 0.1));
+  --cs-sst-shadow-hover: var(--cs-hv2-shadow-medium, 0 14px 28px rgba(30, 41, 59, 0.14));
+
+  --cs-sst-bg: var(--cs-hv2-color-bg, #f5f7ff);
+  --cs-sst-bg-alt: var(--cs-hv2-color-bg-alt, #fff4ee);
+  --cs-sst-surface: var(--cs-hv2-color-surface, #ffffff);
+  --cs-sst-text: var(--cs-hv2-color-text, #0f172a);
+  --cs-sst-muted: var(--cs-hv2-color-muted, #4b5563);
+  --cs-sst-outline: var(--cs-hv2-color-outline, #d6ddeb);
+  --cs-sst-primary: var(--cs-hv2-btn-primary-fill, #4f46e5);
+  --cs-sst-primary-hover: var(--cs-hv2-btn-primary-hover, #4338ca);
+  --cs-sst-secondary: var(--cs-hv2-color-secondary, #e9efff);
+  --cs-sst-focus: var(--cs-hv2-color-focus, rgba(79, 70, 229, 0.35));
+  --cs-sst-amber-bg: #fff3df;
+  --cs-sst-amber-border: #f2d29f;
+  --cs-sst-amber-text: #8a5a16;
+}
+
+body.cs-sst-page {
+  margin: 0;
+  min-height: 100svh;
+  background: linear-gradient(158deg, var(--cs-sst-bg) 0%, var(--cs-sst-bg-alt) 100%);
+  color: var(--cs-sst-text);
+  overflow-x: clip;
+}
+
+.cs-sst-main {
+  width: min(1160px, calc(100% - 1rem));
+  margin: 1rem auto 1.5rem;
+}
+
+.cs-sst-shell {
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: var(--cs-sst-radius-card);
+  background: var(--cs-sst-surface);
+  box-shadow: var(--cs-sst-shadow-main);
+  padding: var(--cs-sst-space-xl);
+}
+
+.cs-sst-card {
+  display: grid;
+  gap: var(--cs-sst-space-m);
+}
+
+.cs-sst-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--cs-sst-space-s);
+  flex-wrap: wrap;
+}
+
+.cs-sst-eyebrow {
+  margin: 0 0 0.28rem;
+  color: var(--cs-sst-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.cs-sst-header h2 {
+  margin: 0 0 0.28rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.15;
+}
+
+.cs-sst-helper {
+  margin: 0;
+  color: var(--cs-sst-muted);
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.cs-sst-progress {
+  width: fit-content;
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: var(--cs-sst-radius-pill);
+  background: color-mix(in srgb, var(--cs-sst-secondary) 60%, var(--cs-sst-surface));
+  color: var(--cs-sst-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.7rem;
+}
+
+.cs-sst-step-content {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-grid {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cs-sst-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cs-sst-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cs-sst-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cs-sst-field {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.cs-sst-field > span,
+.cs-sst-label {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--cs-sst-text);
+}
+
+.cs-sst-input,
+.cs-sst-select,
+.cs-sst-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: var(--cs-sst-radius-input);
+  background: #fff;
+  color: var(--cs-sst-text);
+  padding: 0.66rem 0.72rem;
+  font-size: 0.95rem;
+  line-height: 1.42;
+}
+
+.cs-sst-textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.cs-sst-input:focus-visible,
+.cs-sst-select:focus-visible,
+.cs-sst-textarea:focus-visible,
+.cs-sst-btn:focus-visible,
+.cs-sst-check input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cs-sst-focus);
+}
+
+.cs-sst-btn {
+  border: 1px solid var(--cs-sst-outline);
+  background: var(--cs-sst-secondary);
+  color: var(--cs-sst-text);
+  border-radius: var(--cs-sst-radius-btn);
+  padding: 0.64rem 0.95rem;
+  font-size: 0.93rem;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 170ms ease, box-shadow 170ms ease;
+}
+
+.cs-sst-btn:hover,
+.cs-sst-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--cs-sst-shadow-soft);
+}
+
+.cs-sst-btn-primary {
+  border-color: transparent;
+  background: var(--cs-sst-primary);
+  color: #fff;
+}
+
+.cs-sst-btn-primary:hover,
+.cs-sst-btn-primary:focus-visible {
+  background: var(--cs-sst-primary-hover);
+}
+
+.cs-sst-btn-quiet {
+  background: transparent;
+}
+
+.cs-sst-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cs-sst-footer,
+.cs-sst-footer-inline,
+.cs-sst-export-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-check-grid {
+  display: grid;
+  gap: 0.52rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cs-sst-check {
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: 0.78rem;
+  background: color-mix(in srgb, var(--cs-sst-secondary) 58%, var(--cs-sst-surface));
+  padding: 0.55rem 0.62rem;
+  display: flex;
+  align-items: center;
+  gap: 0.52rem;
+  min-width: 0;
+}
+
+.cs-sst-check input {
+  margin: 0;
+}
+
+.cs-sst-check span {
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--cs-sst-text);
+  word-break: break-word;
+}
+
+.cs-sst-stack {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-support-group {
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: 0.9rem;
+  background: var(--cs-sst-surface);
+  padding: var(--cs-sst-space-s);
+  display: grid;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-support-group h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.cs-sst-support-grid {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cs-sst-support-item {
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: 0.78rem;
+  background: color-mix(in srgb, var(--cs-sst-secondary) 48%, var(--cs-sst-surface));
+  padding: 0.62rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cs-sst-support-item-active {
+  box-shadow: var(--cs-sst-shadow-soft);
+}
+
+.cs-sst-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-link-btn {
+  border: 1px solid var(--cs-sst-outline);
+  background: var(--cs-sst-secondary);
+  color: var(--cs-sst-text);
+  border-radius: var(--cs-sst-radius-btn);
+  padding: 0.5rem 0.82rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cs-sst-link-btn:hover,
+.cs-sst-link-btn:focus-visible {
+  box-shadow: var(--cs-sst-shadow-soft);
+}
+
+.cs-sst-log-list {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+}
+
+.cs-sst-log-item,
+.cs-sst-preview-card {
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: 0.78rem;
+  background: var(--cs-sst-surface);
+  box-shadow: var(--cs-sst-shadow-soft);
+  padding: var(--cs-sst-space-s);
+}
+
+.cs-sst-log-item p,
+.cs-sst-preview-card p {
+  margin: 0 0 0.32rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--cs-sst-text);
+}
+
+.cs-sst-preview h3 {
+  margin: 0 0 var(--cs-sst-space-s);
+  font-size: 1.08rem;
+}
+
+.cs-sst-preview-grid {
+  display: grid;
+  gap: var(--cs-sst-space-s);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cs-sst-preview-card h4 {
+  margin: 0 0 0.36rem;
+  font-size: 0.96rem;
+}
+
+.cs-sst-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--cs-sst-outline);
+  border-radius: 0.65rem;
+}
+
+.cs-sst-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.cs-sst-table th,
+.cs-sst-table td {
+  border-bottom: 1px solid var(--cs-sst-outline);
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.52rem;
+  font-size: 0.84rem;
+  line-height: 1.36;
+  word-break: break-word;
+}
+
+.cs-sst-table th {
+  background: color-mix(in srgb, var(--cs-sst-secondary) 58%, var(--cs-sst-surface));
+  font-weight: 800;
+}
+
+.cs-sst-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.cs-sst-note {
+  margin: 0;
+  color: var(--cs-sst-muted);
+  font-size: 0.9rem;
+  line-height: 1.42;
+}
+
+.cs-sst-note-warn {
+  color: var(--cs-sst-amber-text);
+  background: var(--cs-sst-amber-bg);
+  border: 1px solid var(--cs-sst-amber-border);
+  border-radius: 0.7rem;
+  padding: 0.42rem 0.56rem;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cs-sst-grid-4,
+  .cs-sst-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .cs-sst-main {
+    width: calc(100% - 0.75rem);
+    margin-top: 0.7rem;
+  }
+
+  .cs-sst-shell {
+    padding: var(--cs-sst-space-l);
+  }
+
+  .cs-sst-grid-2,
+  .cs-sst-grid-3,
+  .cs-sst-grid-4,
+  .cs-sst-check-grid,
+  .cs-sst-preview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-sst-footer .cs-sst-btn,
+  .cs-sst-export-row .cs-sst-btn {
+    width: 100%;
+  }
+}
