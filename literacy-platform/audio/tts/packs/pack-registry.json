@@ -1,33 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-02-10T16:42:41.025Z",
+  "updatedAt": "2026-02-11T21:20:14.008Z",
   "packs": [
-    {
-      "id": "emma-en",
-      "name": "Emma English",
-      "manifestPath": "audio/tts/packs/emma-en/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Emma English).",
-      "generatedAt": "2026-02-09T04:58:27.121Z",
-      "languages": [
-        "en"
-      ],
-      "fields": [
-        "def",
-        "sentence"
-      ],
-      "voices": {
-        "en": "en-US-EmmaNeural",
-        "es": "es-ES-ElviraNeural",
-        "zh": "zh-CN-XiaoxiaoNeural",
-        "tl": "fil-PH-BlessicaNeural",
-        "hi": "hi-IN-SwaraNeural",
-        "ms": "ms-MY-YasminNeural",
-        "vi": "vi-VN-HoaiMyNeural",
-        "ar": "ar-SA-ZariyahNeural",
-        "ko": "ko-KR-SunHiNeural",
-        "ja": "ja-JP-NanamiNeural"
-      }
-    },
     {
       "id": "guy-en-us",
       "name": "Guy English US",
@@ -56,19 +30,26 @@
     },
     {
       "id": "sonia-en-gb",
-      "name": "Sonia British English",
+      "name": "sonia-en-gb voice pack",
       "manifestPath": "audio/tts/packs/sonia-en-gb/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Sonia British English).",
-      "generatedAt": "2026-02-09T05:52:30.559Z",
+      "description": "Generated via Azure TTS exporter (sonia-en-gb voice pack).",
+      "generatedAt": "2026-02-11T21:20:13.870Z",
       "languages": [
-        "en"
+        "en",
+        "es",
+        "hi",
+        "ms",
+        "tl",
+        "vi",
+        "zh"
       ],
       "fields": [
         "def",
-        "sentence"
+        "sentence",
+        "word"
       ],
       "voices": {
-        "en": "en-GB-SoniaNeural",
+        "en": "en-US-JennyNeural",
         "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
@@ -82,19 +63,59 @@
     },
     {
       "id": "ryan-en-gb",
-      "name": "Ryan British English",
+      "name": "ryan-en-gb voice pack",
       "manifestPath": "audio/tts/packs/ryan-en-gb/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Ryan British English).",
-      "generatedAt": "2026-02-09T06:15:15.523Z",
+      "description": "Generated via Azure TTS exporter (ryan-en-gb voice pack).",
+      "generatedAt": "2026-02-11T21:20:13.875Z",
       "languages": [
-        "en"
+        "en",
+        "es",
+        "hi",
+        "ms",
+        "tl",
+        "vi",
+        "zh"
       ],
       "fields": [
         "def",
-        "sentence"
+        "sentence",
+        "word"
       ],
       "voices": {
-        "en": "en-GB-RyanNeural",
+        "en": "en-US-JennyNeural",
+        "es": "es-ES-ElviraNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "tl": "fil-PH-BlessicaNeural",
+        "hi": "hi-IN-SwaraNeural",
+        "ms": "ms-MY-YasminNeural",
+        "vi": "vi-VN-HoaiMyNeural",
+        "ar": "ar-SA-ZariyahNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ja": "ja-JP-NanamiNeural"
+      }
+    },
+    {
+      "id": "emma-en",
+      "name": "emma-en voice pack",
+      "manifestPath": "audio/tts/packs/emma-en/tts-manifest.json",
+      "description": "Generated via Azure TTS exporter (emma-en voice pack).",
+      "generatedAt": "2026-02-11T21:20:13.884Z",
+      "languages": [
+        "en",
+        "es",
+        "hi",
+        "ms",
+        "tl",
+        "vi",
+        "zh"
+      ],
+      "fields": [
+        "def",
+        "sentence",
+        "word"
+      ],
+      "voices": {
+        "en": "en-US-JennyNeural",
         "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
@@ -108,32 +129,32 @@
     },
     {
       "id": "ava-multi",
-      "name": "Ava Multilingual",
+      "name": "ava-multi voice pack",
       "manifestPath": "audio/tts/packs/ava-multi/tts-manifest.json",
-      "description": "Generated via Azure TTS exporter (Ava Multilingual).",
-      "generatedAt": "2026-02-10T16:42:41.025Z",
+      "description": "Generated via Azure TTS exporter (ava-multi voice pack).",
+      "generatedAt": "2026-02-11T21:20:14.008Z",
       "languages": [
+        "ar",
         "en",
         "es",
-        "zh",
-        "tl",
         "hi",
-        "ms",
-        "vi",
-        "ar",
+        "ja",
         "ko",
-        "ja"
+        "ms",
+        "tl",
+        "vi",
+        "zh"
       ],
       "fields": [
         "def",
-        "sentence",
-        "word",
+        "passage",
         "phoneme",
-        "passage"
+        "sentence",
+        "word"
       ],
       "voices": {
-        "en": "en-US-AvaMultilingualNeural",
-        "es": "en-US-AvaMultilingualNeural",
+        "en": "en-US-JennyNeural",
+        "es": "es-ES-ElviraNeural",
         "zh": "zh-CN-XiaoxiaoNeural",
         "tl": "fil-PH-BlessicaNeural",
         "hi": "hi-IN-SwaraNeural",

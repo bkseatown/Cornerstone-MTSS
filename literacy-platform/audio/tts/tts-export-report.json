@@ -1,32 +1,45 @@
 {
-  "generatedAt": "2026-02-07T04:47:35.255Z",
-  "region": "eastus",
+  "generatedAt": "2026-02-11T21:20:13.908Z",
+  "region": "",
   "packId": "default",
   "packName": "Default voice pack",
   "languages": [
     "en",
     "es",
-    "zh",
-    "tl"
+    "hi",
+    "ms",
+    "tl",
+    "vi",
+    "zh"
   ],
   "fields": [
-    "word",
     "def",
-    "sentence"
+    "sentence",
+    "word"
   ],
   "voiceMap": {
     "en": "en-US-JennyNeural",
     "es": "es-ES-ElviraNeural",
     "zh": "zh-CN-XiaoxiaoNeural",
     "tl": "fil-PH-BlessicaNeural",
-    "hi": "hi-IN-SwaraNeural"
+    "hi": "hi-IN-SwaraNeural",
+    "ms": "ms-MY-YasminNeural",
+    "vi": "vi-VN-HoaiMyNeural",
+    "ar": "ar-SA-ZariyahNeural",
+    "ko": "ko-KR-SunHiNeural",
+    "ja": "ja-JP-NanamiNeural"
   },
-  "retries": 3,
-  "words": 500,
-  "attempted": 6000,
+  "retries": 2,
+  "words": 0,
+  "attempted": 0,
   "generated": 0,
-  "reused": 6000,
+  "reused": 0,
   "failed": 0,
+  "generatedByField": {},
+  "reusedByField": {},
+  "failedByField": {},
+  "phonemeCatalogSize": 0,
+  "phonemeTasks": 0,
   "skippedMissing": 0,
   "skippedNoVoice": 0,
   "failures": [],

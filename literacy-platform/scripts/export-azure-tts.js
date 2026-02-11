@@ -36,6 +36,7 @@ const PHONEME_DEFAULT_FILE = 'phoneme-data.js';
 const PASSAGE_MANIFEST_PREFIX = '@passage:';
 const PASSAGE_DEFAULT_FILE = 'app.js';
 const PASSAGE_EXPANSION_DEFAULT_FILE = 'decodables-expansion.js';
+const STANDARD_WORD_FIELDS = new Set(['word', 'def', 'sentence']);
 const PHONEME_TTS_OVERRIDES = {
     a: 'short a, as in cat',
     e: 'short e, as in bed',
@@ -140,6 +141,160 @@ function safeWordSlug(word = '') {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
     return slug || 'word';
+}
+
+function sortObjectByKey(obj = {}) {
+    const sorted = {};
+    Object.keys(obj || {})
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((key) => {
+            sorted[key] = obj[key];
+        });
+    return sorted;
+}
+
+function parseStandardWordManifestKey(key = '') {
+    const parts = String(key || '').split('|');
+    if (parts.length !== 3) return null;
+    const [rawWord, rawLang, rawField] = parts;
+    if (!rawWord || !rawLang || !rawField) return null;
+    if (rawWord.startsWith('@')) return null;
+    const field = String(rawField || '').trim().toLowerCase();
+    if (!STANDARD_WORD_FIELDS.has(field)) return null;
+    return {
+        rawWord,
+        lang: normalizeLangCode(rawLang),
+        field
+    };
+}
+
+function buildExpectedWordRelativePath({ rawWord = '', lang = 'en', field = 'word' } = {}) {
+    const safeLang = normalizeLangCode(lang);
+    const safeField = String(field || 'word').trim().toLowerCase();
+    const clipId = safeWordSlug(rawWord);
+    return toForwardSlash(path.join(safeLang, safeField, `${clipId}.mp3`));
+}
+
+function migrateManifestEntries({ entries = {}, manifestBase = '' } = {}) {
+    const originalEntries = (entries && typeof entries === 'object') ? entries : {};
+    const sortedInputKeys = Object.keys(originalEntries).sort((a, b) => a.localeCompare(b));
+    const normalizedBase = toForwardSlash(String(manifestBase || '').trim().replace(/\/+$/, ''));
+    const changes = {
+        migrated: [],
+        removed: [],
+        skipped: [],
+        collisions: []
+    };
+    const preservedEntries = {};
+    const candidateGroups = new Map();
+
+    sortedInputKeys.forEach((key) => {
+        const rawValue = originalEntries[key];
+        const value = String(rawValue || '').trim();
+        const parsed = parseStandardWordManifestKey(key);
+        if (!parsed) {
+            preservedEntries[key] = value;
+            return;
+        }
+
+        const clipId = safeWordSlug(parsed.rawWord);
+        const toKey = `${clipId}|${parsed.lang}|${parsed.field}`;
+        const expectedRelativePath = buildExpectedWordRelativePath({
+            rawWord: parsed.rawWord,
+            lang: parsed.lang,
+            field: parsed.field
+        });
+        const expectedWithBase = normalizedBase ? `${normalizedBase}/${expectedRelativePath}` : expectedRelativePath;
+        const matchesExpectedPath = value === expectedWithBase
+            || value === expectedRelativePath
+            || value.endsWith(`/${expectedRelativePath}`)
+            || value.endsWith(expectedRelativePath);
+
+        if (!matchesExpectedPath) {
+            preservedEntries[key] = value;
+            changes.skipped.push({
+                key,
+                reason: `path-mismatch expected suffix "${expectedRelativePath}"`,
+                value
+            });
+            return;
+        }
+
+        const group = candidateGroups.get(toKey) || [];
+        group.push({ fromKey: key, toKey, value });
+        candidateGroups.set(toKey, group);
+    });
+
+    Array.from(candidateGroups.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((toKey) => {
+            const group = candidateGroups.get(toKey) || [];
+            const distinctValues = Array.from(new Set(group.map((item) => item.value)));
+            if (distinctValues.length > 1) {
+                changes.collisions.push({
+                    toKey,
+                    fromKeys: group.map((item) => item.fromKey).sort((a, b) => a.localeCompare(b)),
+                    values: distinctValues.sort((a, b) => a.localeCompare(b))
+                });
+            }
+        });
+
+    Object.keys(preservedEntries)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((existingKey) => {
+            const group = candidateGroups.get(existingKey);
+            if (!group || !group.length) return;
+            const distinctValues = Array.from(new Set(group.map((item) => item.value)));
+            const preservedValue = String(preservedEntries[existingKey] || '').trim();
+            if (distinctValues.length !== 1 || distinctValues[0] !== preservedValue) {
+                changes.collisions.push({
+                    toKey: existingKey,
+                    fromKeys: [existingKey, ...group.map((item) => item.fromKey)].sort((a, b) => a.localeCompare(b)),
+                    values: Array.from(new Set([preservedValue, ...distinctValues])).sort((a, b) => a.localeCompare(b))
+                });
+            }
+        });
+
+    const hasCollisions = changes.collisions.length > 0;
+    if (hasCollisions) {
+        return {
+            beforeCount: sortedInputKeys.length,
+            afterCount: sortedInputKeys.length,
+            entries: sortObjectByKey(originalEntries),
+            changes,
+            hasCollisions
+        };
+    }
+
+    const migratedEntries = { ...preservedEntries };
+    Array.from(candidateGroups.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((toKey) => {
+            const group = (candidateGroups.get(toKey) || []).slice().sort((a, b) => a.fromKey.localeCompare(b.fromKey));
+            if (!group.length) return;
+            const canonical = group.find((item) => item.fromKey === toKey) || group[0];
+            migratedEntries[toKey] = canonical.value;
+            group.forEach((item) => {
+                if (item.fromKey === toKey) return;
+                changes.migrated.push({
+                    fromKey: item.fromKey,
+                    toKey,
+                    value: item.value
+                });
+                changes.removed.push({
+                    key: item.fromKey,
+                    reason: 'migrated-to-canonical-slug-key'
+                });
+            });
+        });
+
+    return {
+        beforeCount: sortedInputKeys.length,
+        afterCount: Object.keys(migratedEntries).length,
+        entries: sortObjectByKey(migratedEntries),
+        changes,
+        hasCollisions: false
+    };
 }
 
 function safePassageSlug(title = '') {
@@ -519,6 +674,7 @@ Optional:
                                    (default: en,es,zh,tl,hi,ms,vi)
   --fields=word,def,sentence      (default: word,def,sentence)
   --dry-run=true                  show task/character counts without calling Azure
+  --migrate-manifest-only=true    run manifest-key migration without synth tasks
   --include-passages=true         include decodable passage clips from app.js
   --passages-only=true            generate passage clips only
   --passages-file=app.js          file containing DEFAULT_DECODABLE_TEXTS
@@ -543,6 +699,7 @@ Optional:
 Notes:
   - Hindi text is not present in words.js by default. Use --overrides for Hindi content.
   - Output manifest is written to <out>/tts-manifest.json.
+  - Key migration report is written to <out>/changes_manifest.json.
   - With --pack-id, pack metadata is written to audio/tts/packs/pack-registry.json.
 `);
 }
@@ -603,11 +760,15 @@ async function main() {
     const retries = Number.isFinite(Number(args.retries)) ? Math.max(0, Number(args.retries)) : 2;
     const overwrite = args.overwrite === 'true';
     const dryRun = args['dry-run'] === 'true';
+    const migrateManifestOnly = args['migrate-manifest-only'] === 'true';
     const includePassages = args['include-passages'] === 'true' || args['passages-only'] === 'true';
     const passagesOnly = args['passages-only'] === 'true';
     const includePhonemes = args['include-phonemes'] === 'true' || args['phonemes-only'] === 'true';
     const phonemesOnly = args['phonemes-only'] === 'true';
     const phonemeSet = String(args['phoneme-set'] || 'core').toLowerCase() === 'all' ? 'all' : 'core';
+    const buildWordTasks = !migrateManifestOnly && !phonemesOnly && !passagesOnly;
+    const buildPassageTasks = !migrateManifestOnly && includePassages;
+    const buildPhonemeTasks = !migrateManifestOnly && includePhonemes;
 
     const region = (args.region || process.env.AZURE_SPEECH_REGION || '').trim();
     const key = (args.key || process.env.AZURE_SPEECH_KEY || '').trim();
@@ -616,15 +777,13 @@ async function main() {
         console.log('[TTS] Dry run mode: Azure credentials not required.');
     }
 
-    const shouldExportWords = !phonemesOnly && !passagesOnly;
-
-    if (!fs.existsSync(wordsPath) && shouldExportWords) {
+    if (!fs.existsSync(wordsPath) && buildWordTasks) {
         throw new Error(`Cannot find words data file: ${wordsPath}`);
     }
-    if (includePassages && !fs.existsSync(passagesPath)) {
+    if (buildPassageTasks && !fs.existsSync(passagesPath)) {
         throw new Error(`Cannot find passages file: ${passagesPath}`);
     }
-    if (includePassages && passagesExpansionArg && !fs.existsSync(passagesExpansionPath)) {
+    if (buildPassageTasks && passagesExpansionArg && !fs.existsSync(passagesExpansionPath)) {
         throw new Error(`Cannot find passages expansion file: ${passagesExpansionPath}`);
     }
     fs.mkdirSync(outDir, { recursive: true });
@@ -632,10 +791,10 @@ async function main() {
     const voiceMapFile = loadJsonFile(args['voice-map'], {});
     const voiceMap = buildVoiceMap(DEFAULT_VOICE_MAP, voiceMapFile);
     const overrides = loadJsonFile(args.overrides, {});
-    const wordsData = shouldExportWords ? loadWordsData(wordsPath) : {};
-    const wordList = shouldExportWords ? Object.keys(wordsData) : [];
-    const passageCatalog = includePassages ? loadDecodableCatalog(passagesPath, passagesExpansionPath) : [];
-    if (includePassages && !passageCatalog.length) {
+    const wordsData = buildWordTasks ? loadWordsData(wordsPath) : {};
+    const wordList = buildWordTasks ? Object.keys(wordsData) : [];
+    const passageCatalog = buildPassageTasks ? loadDecodableCatalog(passagesPath, passagesExpansionPath) : [];
+    if (buildPassageTasks && !passageCatalog.length) {
         console.warn(`[TTS] Warning: no decodable passages found in ${passagesPath}`);
     }
 
@@ -643,7 +802,7 @@ async function main() {
     const skippedMissing = [];
     const skippedNoVoice = [];
 
-    if (shouldExportWords) {
+    if (buildWordTasks) {
         wordList.forEach((word) => {
             const entry = wordsData[word];
             languages.forEach((lang) => {
@@ -686,7 +845,7 @@ async function main() {
         });
     }
 
-    if (includePassages) {
+    if (buildPassageTasks) {
         passageCatalog.forEach((passage) => {
             languages.forEach((lang) => {
                 const voice = voiceMap[lang];
@@ -722,7 +881,7 @@ async function main() {
     }
 
     let phonemeCatalog = [];
-    if (includePhonemes) {
+    if (buildPhonemeTasks) {
         phonemeCatalog = loadPhonemeCatalog(phonemePath, phonemeSet);
         const phonemeVoice = voiceMap.en;
         if (!phonemeVoice) {
@@ -769,15 +928,49 @@ async function main() {
         }
     }
 
+    const migration = migrateManifestEntries({
+        entries: preserveExisting && existingManifest?.entries && typeof existingManifest.entries === 'object'
+            ? existingManifest.entries
+            : {},
+        manifestBase
+    });
+    const changesManifest = {
+        generatedAt: new Date().toISOString(),
+        manifestPath: toForwardSlash(path.relative(rootDir, manifestPath)),
+        beforeCount: migration.beforeCount,
+        afterCount: migration.afterCount,
+        migrated: migration.changes.migrated,
+        removed: migration.changes.removed,
+        skipped: migration.changes.skipped,
+        collisions: migration.changes.collisions
+    };
+    const changesManifestPath = path.join(outDir, 'changes_manifest.json');
+
+    console.log(`[TTS] manifest migration before=${migration.beforeCount} after=${migration.afterCount} migrated=${changesManifest.migrated.length} removed=${changesManifest.removed.length} skipped=${changesManifest.skipped.length} collisions=${changesManifest.collisions.length}`);
+    migration.changes.migrated.slice(0, 10).forEach((item) => {
+        console.log(`[TTS] migrate ${item.fromKey} -> ${item.toKey} (${item.value})`);
+    });
+    if (changesManifest.collisions.length > 0) {
+        const collisionPreview = changesManifest.collisions
+            .slice(0, 10)
+            .map((item) => `${item.toKey} <= ${item.fromKeys.join(', ')}`)
+            .join('; ');
+        if (dryRun) {
+            console.log(`[TTS] collision preview: ${collisionPreview || 'n/a'}`);
+        } else {
+            throw new Error(`[TTS] Manifest key collisions detected. Re-run with --dry-run=true to inspect. ${collisionPreview}`);
+        }
+    }
+
     const manifestFieldSet = new Set(
         preserveExisting && Array.isArray(existingManifest?.fields)
             ? existingManifest.fields
             : []
     );
     fields.forEach((field) => manifestFieldSet.add(field));
-    if (includePassages) manifestFieldSet.add('passage');
-    if (includePhonemes) manifestFieldSet.add('phoneme');
-    const manifestFields = Array.from(manifestFieldSet);
+    if (buildPassageTasks) manifestFieldSet.add('passage');
+    if (buildPhonemeTasks) manifestFieldSet.add('phoneme');
+    const manifestFields = Array.from(manifestFieldSet).sort((a, b) => String(a).localeCompare(String(b)));
 
     const manifestLanguageSet = new Set(
         preserveExisting && Array.isArray(existingManifest?.languages)
@@ -785,7 +978,7 @@ async function main() {
             : []
     );
     languages.forEach((lang) => manifestLanguageSet.add(normalizeLangCode(lang)));
-    const manifestLanguages = Array.from(manifestLanguageSet);
+    const manifestLanguages = Array.from(manifestLanguageSet).sort((a, b) => String(a).localeCompare(String(b)));
 
     const manifestVoiceMap = {
         ...(preserveExisting && existingManifest?.voiceMap && typeof existingManifest.voiceMap === 'object'
@@ -794,9 +987,7 @@ async function main() {
         ...voiceMap
     };
 
-    const preservedEntries = preserveExisting && existingManifest?.entries && typeof existingManifest.entries === 'object'
-        ? { ...existingManifest.entries }
-        : {};
+    const preservedEntries = preserveExisting ? { ...migration.entries } : {};
 
     const generatedAt = new Date().toISOString();
     const manifest = {
@@ -829,11 +1020,12 @@ async function main() {
         throw new Error('Missing Azure credentials. Provide --region/--key or AZURE_SPEECH_REGION/AZURE_SPEECH_KEY.');
     }
     console.log(`[TTS] words=${wordList.length} passages=${passageCatalog.length} tasks=${finalTasks.length} missing=${skippedMissing.length} noVoice=${skippedNoVoice.length} phonemes=${phonemeTaskCount}`);
-    if (includePassages) {
+    if (buildPassageTasks) {
         console.log(`[TTS] passageTasks=${passageTaskCount}`);
     }
     console.log(`[TTS] chars=${totalCharacters} byLang={${formatCounter(charactersByLanguage)}} byField={${formatCounter(charactersByField)}}`);
     if (dryRun) {
+        console.log(`[TTS] migration samples shown=${Math.min(10, migration.changes.migrated.length)}`);
         console.log('[TTS] Dry run complete. No Azure requests were made.');
         return;
     }
@@ -855,7 +1047,8 @@ async function main() {
 
     for (let index = 0; index < finalTasks.length; index += 1) {
         const task = finalTasks[index];
-        const manifestKey = task.manifestKey || `${task.word.toLowerCase()}|${task.lang}|${task.field}`;
+        const clipId = safeWordSlug(task.word);
+        const manifestKey = task.manifestKey || `${clipId}|${task.lang}|${task.field}`;
         manifest.entries[manifestKey] = `${manifestBase}/${task.relativePath}`;
         fs.mkdirSync(path.dirname(task.absolutePath), { recursive: true });
 
@@ -917,7 +1110,9 @@ async function main() {
         }
     }
 
+    manifest.entries = sortObjectByKey(manifest.entries);
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    fs.writeFileSync(changesManifestPath, JSON.stringify(changesManifest, null, 2));
 
     const report = {
         generatedAt,
@@ -962,6 +1157,7 @@ async function main() {
     }
 
     console.log(`[TTS] Done. Manifest: ${manifestPath}`);
+    console.log(`[TTS] Changes:  ${changesManifestPath}`);
     console.log(`[TTS] Report:   ${reportPath}`);
     if (registryPath) {
         console.log(`[TTS] Registry: ${registryPath}`);

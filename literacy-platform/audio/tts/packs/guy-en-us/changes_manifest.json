@@ -1,0 +1,174 @@
+{
+  "generatedAt": "2026-02-11T21:20:13.850Z",
+  "manifestPath": "audio/tts/packs/guy-en-us/tts-manifest.json",
+  "beforeCount": 1000,
+  "afterCount": 1000,
+  "migrated": [
+    {
+      "fromKey": "can't|en|def",
+      "toKey": "can-t|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|en|sentence",
+      "toKey": "can-t|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/can-t.mp3"
+    },
+    {
+      "fromKey": "didn't|en|def",
+      "toKey": "didn-t|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|en|sentence",
+      "toKey": "didn-t|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/didn-t.mp3"
+    },
+    {
+      "fromKey": "don't|en|def",
+      "toKey": "don-t|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|en|sentence",
+      "toKey": "don-t|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/don-t.mp3"
+    },
+    {
+      "fromKey": "i'm|en|def",
+      "toKey": "i-m|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|en|sentence",
+      "toKey": "i-m|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/i-m.mp3"
+    },
+    {
+      "fromKey": "it's|en|def",
+      "toKey": "it-s|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|en|sentence",
+      "toKey": "it-s|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/it-s.mp3"
+    },
+    {
+      "fromKey": "that's|en|def",
+      "toKey": "that-s|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|en|sentence",
+      "toKey": "that-s|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/that-s.mp3"
+    },
+    {
+      "fromKey": "we're|en|def",
+      "toKey": "we-re|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|en|sentence",
+      "toKey": "we-re|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/we-re.mp3"
+    },
+    {
+      "fromKey": "won't|en|def",
+      "toKey": "won-t|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|en|sentence",
+      "toKey": "won-t|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/won-t.mp3"
+    },
+    {
+      "fromKey": "you're|en|def",
+      "toKey": "you-re|en|def",
+      "value": "audio/tts/packs/guy-en-us/en/def/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|en|sentence",
+      "toKey": "you-re|en|sentence",
+      "value": "audio/tts/packs/guy-en-us/en/sentence/you-re.mp3"
+    }
+  ],
+  "removed": [
+    {
+      "key": "can't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    }
+  ],
+  "skipped": [],
+  "collisions": []
+}

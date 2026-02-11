@@ -973,6 +973,16 @@ function normalizePackedTtsType(type = 'word') {
     return 'word';
 }
 
+// MUST match literacy-platform/scripts/export-azure-tts.js safeWordSlug.
+function safeWordSlug(word = '') {
+    const slug = String(word || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    return slug || 'word';
+}
+
 function normalizeTextForCompare(text = '') {
     return String(text || '')
         .replace(/\u200B/g, '')
@@ -1012,6 +1022,14 @@ function resolveCurrentWordTtsType(text, languageCode = 'en', requestedType = 'w
 }
 
 function getPackedTtsManifestKey(word, languageCode, type) {
+    const rawWord = String(word || '').trim();
+    if (!rawWord) return '';
+    const lang = normalizePackedTtsLanguage(languageCode);
+    const entryType = normalizePackedTtsType(type);
+    return `${safeWordSlug(rawWord)}|${lang}|${entryType}`;
+}
+
+function getLegacyPackedTtsManifestKey(word, languageCode, type) {
     const normalizedWord = String(word || '').trim().toLowerCase();
     if (!normalizedWord) return '';
     const lang = normalizePackedTtsLanguage(languageCode);
@@ -1368,11 +1386,11 @@ async function tryPlayPackedClipByDirectPath({
     sourceId = '',
     onPlay = null
 } = {}) {
-    const normalizedWord = String(word || '').trim().toLowerCase();
-    if (!normalizedWord) return false;
+    const rawWord = String(word || '').trim();
+    if (!rawWord) return false;
     const normalizedLang = normalizePackedTtsLanguage(languageCode);
     const normalizedType = normalizePackedTtsType(type);
-    const encodedWord = encodeURIComponent(normalizedWord);
+    const encodedWord = encodeURIComponent(safeWordSlug(rawWord));
 
     const registry = await loadPackedTtsPackRegistry();
     const packs = Array.isArray(registry?.packs) && registry.packs.length
@@ -1530,8 +1548,9 @@ async function tryPlayPackedTtsForCurrentWord({
     if (!manifest?.entries) return false;
     const resolvedType = resolveCurrentWordTtsType(text, languageCode, type);
     const key = getPackedTtsManifestKey(word, languageCode, resolvedType);
+    const legacyKey = getLegacyPackedTtsManifestKey(word, languageCode, resolvedType);
     if (!key) return false;
-    const primaryClip = manifest.entries[key];
+    const primaryClip = manifest.entries[key] || (legacyKey && legacyKey !== key ? manifest.entries[legacyKey] : '');
     if (primaryClip) {
         const played = await playPackedClipWithFallbackPaths(primaryClip, { playbackRate, sourceId, onPlay });
         if (played) return true;
@@ -1540,13 +1559,17 @@ async function tryPlayPackedTtsForCurrentWord({
     const activePackId = normalizeTtsPackId(manifest.__packId || 'default');
     if (activePackId !== 'default') {
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
-        const fallbackClip = fallbackManifest?.entries?.[key];
+        const fallbackClip = fallbackManifest?.entries?.[key]
+            || (legacyKey && legacyKey !== key ? fallbackManifest?.entries?.[legacyKey] : '');
         if (fallbackClip) {
             const played = await playPackedClipWithFallbackPaths(fallbackClip, { playbackRate, sourceId, onPlay });
             if (played) return true;
         }
     }
-    const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    let crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    if (!crossPackClip && legacyKey && legacyKey !== key) {
+        crossPackClip = await findPackedTtsClipAcrossPacks(legacyKey, languageCode);
+    }
     if (crossPackClip) {
         const played = await playPackedClipWithFallbackPaths(crossPackClip, { playbackRate, sourceId, onPlay });
         if (played) return true;
@@ -1611,7 +1634,11 @@ async function tryPlayPackedTtsForLiteralText({
     ]));
     for (const entryType of keyTypes) {
         const key = getPackedTtsManifestKey(normalizedText, normalizedLang, entryType);
-        const clipPath = await resolvePackedTtsClipByManifestKey(key, normalizedLang);
+        const legacyKey = getLegacyPackedTtsManifestKey(normalizedText, normalizedLang, entryType);
+        let clipPath = await resolvePackedTtsClipByManifestKey(key, normalizedLang);
+        if (!clipPath && legacyKey && legacyKey !== key) {
+            clipPath = await resolvePackedTtsClipByManifestKey(legacyKey, normalizedLang);
+        }
         if (!clipPath) continue;
         const played = await playPackedClipWithFallbackPaths(clipPath, { playbackRate, sourceId, onPlay });
         if (played) return true;
@@ -1648,11 +1675,11 @@ async function tryPlayPreferredPackPreviewClip(languageCode = 'en') {
 }
 
 async function hasPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word' } = {}) {
-    const normalizedWord = String(word || '').trim().toLowerCase();
-    if (!normalizedWord) return false;
+    const rawWord = String(word || '').trim();
+    if (!rawWord) return false;
     const normalizedLang = normalizePackedTtsLanguage(languageCode);
     const normalizedType = normalizePackedTtsType(type);
-    const encodedWord = encodeURIComponent(normalizedWord);
+    const encodedWord = encodeURIComponent(safeWordSlug(rawWord));
     const registry = await loadPackedTtsPackRegistry();
     const packs = Array.isArray(registry?.packs) && registry.packs.length
         ? registry.packs
@@ -1684,15 +1711,20 @@ async function hasPackedTtsClipForCurrentWord({ text = '', languageCode = 'en', 
 
     const resolvedType = resolveCurrentWordTtsType(text, languageCode, type);
     const key = getPackedTtsManifestKey(word, languageCode, resolvedType);
+    const legacyKey = getLegacyPackedTtsManifestKey(word, languageCode, resolvedType);
     if (!key) return false;
-    if (manifest.entries[key]) return true;
+    if (manifest.entries[key] || (legacyKey && legacyKey !== key && manifest.entries[legacyKey])) return true;
 
     const activePackId = normalizeTtsPackId(manifest.__packId || 'default');
     if (activePackId !== 'default') {
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
-        if (fallbackManifest?.entries?.[key]) return true;
+        if (fallbackManifest?.entries?.[key]
+            || (legacyKey && legacyKey !== key && fallbackManifest?.entries?.[legacyKey])) return true;
     }
-    const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    let crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
+    if (!crossPackClip && legacyKey && legacyKey !== key) {
+        crossPackClip = await findPackedTtsClipAcrossPacks(legacyKey, languageCode);
+    }
     if (crossPackClip) return true;
     return hasPackedClipByDirectPath({
         word,

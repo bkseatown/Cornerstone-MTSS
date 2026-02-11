@@ -1,0 +1,984 @@
+{
+  "generatedAt": "2026-02-11T21:20:13.896Z",
+  "manifestPath": "audio/tts/tts-manifest.json",
+  "beforeCount": 6000,
+  "afterCount": 6000,
+  "migrated": [
+    {
+      "fromKey": "can't|en|def",
+      "toKey": "can-t|en|def",
+      "value": "audio/tts/en/def/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|en|sentence",
+      "toKey": "can-t|en|sentence",
+      "value": "audio/tts/en/sentence/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|en|word",
+      "toKey": "can-t|en|word",
+      "value": "audio/tts/en/word/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|es|def",
+      "toKey": "can-t|es|def",
+      "value": "audio/tts/es/def/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|es|sentence",
+      "toKey": "can-t|es|sentence",
+      "value": "audio/tts/es/sentence/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|es|word",
+      "toKey": "can-t|es|word",
+      "value": "audio/tts/es/word/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|tl|def",
+      "toKey": "can-t|tl|def",
+      "value": "audio/tts/tl/def/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|tl|sentence",
+      "toKey": "can-t|tl|sentence",
+      "value": "audio/tts/tl/sentence/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|tl|word",
+      "toKey": "can-t|tl|word",
+      "value": "audio/tts/tl/word/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|zh|def",
+      "toKey": "can-t|zh|def",
+      "value": "audio/tts/zh/def/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|zh|sentence",
+      "toKey": "can-t|zh|sentence",
+      "value": "audio/tts/zh/sentence/can-t.mp3"
+    },
+    {
+      "fromKey": "can't|zh|word",
+      "toKey": "can-t|zh|word",
+      "value": "audio/tts/zh/word/can-t.mp3"
+    },
+    {
+      "fromKey": "didn't|en|def",
+      "toKey": "didn-t|en|def",
+      "value": "audio/tts/en/def/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|en|sentence",
+      "toKey": "didn-t|en|sentence",
+      "value": "audio/tts/en/sentence/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|en|word",
+      "toKey": "didn-t|en|word",
+      "value": "audio/tts/en/word/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|es|def",
+      "toKey": "didn-t|es|def",
+      "value": "audio/tts/es/def/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|es|sentence",
+      "toKey": "didn-t|es|sentence",
+      "value": "audio/tts/es/sentence/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|es|word",
+      "toKey": "didn-t|es|word",
+      "value": "audio/tts/es/word/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|tl|def",
+      "toKey": "didn-t|tl|def",
+      "value": "audio/tts/tl/def/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|tl|sentence",
+      "toKey": "didn-t|tl|sentence",
+      "value": "audio/tts/tl/sentence/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|tl|word",
+      "toKey": "didn-t|tl|word",
+      "value": "audio/tts/tl/word/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|zh|def",
+      "toKey": "didn-t|zh|def",
+      "value": "audio/tts/zh/def/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|zh|sentence",
+      "toKey": "didn-t|zh|sentence",
+      "value": "audio/tts/zh/sentence/didn-t.mp3"
+    },
+    {
+      "fromKey": "didn't|zh|word",
+      "toKey": "didn-t|zh|word",
+      "value": "audio/tts/zh/word/didn-t.mp3"
+    },
+    {
+      "fromKey": "don't|en|def",
+      "toKey": "don-t|en|def",
+      "value": "audio/tts/en/def/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|en|sentence",
+      "toKey": "don-t|en|sentence",
+      "value": "audio/tts/en/sentence/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|en|word",
+      "toKey": "don-t|en|word",
+      "value": "audio/tts/en/word/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|es|def",
+      "toKey": "don-t|es|def",
+      "value": "audio/tts/es/def/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|es|sentence",
+      "toKey": "don-t|es|sentence",
+      "value": "audio/tts/es/sentence/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|es|word",
+      "toKey": "don-t|es|word",
+      "value": "audio/tts/es/word/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|tl|def",
+      "toKey": "don-t|tl|def",
+      "value": "audio/tts/tl/def/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|tl|sentence",
+      "toKey": "don-t|tl|sentence",
+      "value": "audio/tts/tl/sentence/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|tl|word",
+      "toKey": "don-t|tl|word",
+      "value": "audio/tts/tl/word/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|zh|def",
+      "toKey": "don-t|zh|def",
+      "value": "audio/tts/zh/def/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|zh|sentence",
+      "toKey": "don-t|zh|sentence",
+      "value": "audio/tts/zh/sentence/don-t.mp3"
+    },
+    {
+      "fromKey": "don't|zh|word",
+      "toKey": "don-t|zh|word",
+      "value": "audio/tts/zh/word/don-t.mp3"
+    },
+    {
+      "fromKey": "i'm|en|def",
+      "toKey": "i-m|en|def",
+      "value": "audio/tts/en/def/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|en|sentence",
+      "toKey": "i-m|en|sentence",
+      "value": "audio/tts/en/sentence/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|en|word",
+      "toKey": "i-m|en|word",
+      "value": "audio/tts/en/word/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|es|def",
+      "toKey": "i-m|es|def",
+      "value": "audio/tts/es/def/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|es|sentence",
+      "toKey": "i-m|es|sentence",
+      "value": "audio/tts/es/sentence/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|es|word",
+      "toKey": "i-m|es|word",
+      "value": "audio/tts/es/word/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|tl|def",
+      "toKey": "i-m|tl|def",
+      "value": "audio/tts/tl/def/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|tl|sentence",
+      "toKey": "i-m|tl|sentence",
+      "value": "audio/tts/tl/sentence/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|tl|word",
+      "toKey": "i-m|tl|word",
+      "value": "audio/tts/tl/word/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|zh|def",
+      "toKey": "i-m|zh|def",
+      "value": "audio/tts/zh/def/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|zh|sentence",
+      "toKey": "i-m|zh|sentence",
+      "value": "audio/tts/zh/sentence/i-m.mp3"
+    },
+    {
+      "fromKey": "i'm|zh|word",
+      "toKey": "i-m|zh|word",
+      "value": "audio/tts/zh/word/i-m.mp3"
+    },
+    {
+      "fromKey": "it's|en|def",
+      "toKey": "it-s|en|def",
+      "value": "audio/tts/en/def/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|en|sentence",
+      "toKey": "it-s|en|sentence",
+      "value": "audio/tts/en/sentence/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|en|word",
+      "toKey": "it-s|en|word",
+      "value": "audio/tts/en/word/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|es|def",
+      "toKey": "it-s|es|def",
+      "value": "audio/tts/es/def/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|es|sentence",
+      "toKey": "it-s|es|sentence",
+      "value": "audio/tts/es/sentence/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|es|word",
+      "toKey": "it-s|es|word",
+      "value": "audio/tts/es/word/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|tl|def",
+      "toKey": "it-s|tl|def",
+      "value": "audio/tts/tl/def/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|tl|sentence",
+      "toKey": "it-s|tl|sentence",
+      "value": "audio/tts/tl/sentence/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|tl|word",
+      "toKey": "it-s|tl|word",
+      "value": "audio/tts/tl/word/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|zh|def",
+      "toKey": "it-s|zh|def",
+      "value": "audio/tts/zh/def/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|zh|sentence",
+      "toKey": "it-s|zh|sentence",
+      "value": "audio/tts/zh/sentence/it-s.mp3"
+    },
+    {
+      "fromKey": "it's|zh|word",
+      "toKey": "it-s|zh|word",
+      "value": "audio/tts/zh/word/it-s.mp3"
+    },
+    {
+      "fromKey": "that's|en|def",
+      "toKey": "that-s|en|def",
+      "value": "audio/tts/en/def/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|en|sentence",
+      "toKey": "that-s|en|sentence",
+      "value": "audio/tts/en/sentence/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|en|word",
+      "toKey": "that-s|en|word",
+      "value": "audio/tts/en/word/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|es|def",
+      "toKey": "that-s|es|def",
+      "value": "audio/tts/es/def/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|es|sentence",
+      "toKey": "that-s|es|sentence",
+      "value": "audio/tts/es/sentence/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|es|word",
+      "toKey": "that-s|es|word",
+      "value": "audio/tts/es/word/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|tl|def",
+      "toKey": "that-s|tl|def",
+      "value": "audio/tts/tl/def/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|tl|sentence",
+      "toKey": "that-s|tl|sentence",
+      "value": "audio/tts/tl/sentence/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|tl|word",
+      "toKey": "that-s|tl|word",
+      "value": "audio/tts/tl/word/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|zh|def",
+      "toKey": "that-s|zh|def",
+      "value": "audio/tts/zh/def/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|zh|sentence",
+      "toKey": "that-s|zh|sentence",
+      "value": "audio/tts/zh/sentence/that-s.mp3"
+    },
+    {
+      "fromKey": "that's|zh|word",
+      "toKey": "that-s|zh|word",
+      "value": "audio/tts/zh/word/that-s.mp3"
+    },
+    {
+      "fromKey": "we're|en|def",
+      "toKey": "we-re|en|def",
+      "value": "audio/tts/en/def/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|en|sentence",
+      "toKey": "we-re|en|sentence",
+      "value": "audio/tts/en/sentence/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|en|word",
+      "toKey": "we-re|en|word",
+      "value": "audio/tts/en/word/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|es|def",
+      "toKey": "we-re|es|def",
+      "value": "audio/tts/es/def/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|es|sentence",
+      "toKey": "we-re|es|sentence",
+      "value": "audio/tts/es/sentence/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|es|word",
+      "toKey": "we-re|es|word",
+      "value": "audio/tts/es/word/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|tl|def",
+      "toKey": "we-re|tl|def",
+      "value": "audio/tts/tl/def/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|tl|sentence",
+      "toKey": "we-re|tl|sentence",
+      "value": "audio/tts/tl/sentence/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|tl|word",
+      "toKey": "we-re|tl|word",
+      "value": "audio/tts/tl/word/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|zh|def",
+      "toKey": "we-re|zh|def",
+      "value": "audio/tts/zh/def/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|zh|sentence",
+      "toKey": "we-re|zh|sentence",
+      "value": "audio/tts/zh/sentence/we-re.mp3"
+    },
+    {
+      "fromKey": "we're|zh|word",
+      "toKey": "we-re|zh|word",
+      "value": "audio/tts/zh/word/we-re.mp3"
+    },
+    {
+      "fromKey": "won't|en|def",
+      "toKey": "won-t|en|def",
+      "value": "audio/tts/en/def/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|en|sentence",
+      "toKey": "won-t|en|sentence",
+      "value": "audio/tts/en/sentence/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|en|word",
+      "toKey": "won-t|en|word",
+      "value": "audio/tts/en/word/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|es|def",
+      "toKey": "won-t|es|def",
+      "value": "audio/tts/es/def/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|es|sentence",
+      "toKey": "won-t|es|sentence",
+      "value": "audio/tts/es/sentence/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|es|word",
+      "toKey": "won-t|es|word",
+      "value": "audio/tts/es/word/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|tl|def",
+      "toKey": "won-t|tl|def",
+      "value": "audio/tts/tl/def/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|tl|sentence",
+      "toKey": "won-t|tl|sentence",
+      "value": "audio/tts/tl/sentence/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|tl|word",
+      "toKey": "won-t|tl|word",
+      "value": "audio/tts/tl/word/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|zh|def",
+      "toKey": "won-t|zh|def",
+      "value": "audio/tts/zh/def/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|zh|sentence",
+      "toKey": "won-t|zh|sentence",
+      "value": "audio/tts/zh/sentence/won-t.mp3"
+    },
+    {
+      "fromKey": "won't|zh|word",
+      "toKey": "won-t|zh|word",
+      "value": "audio/tts/zh/word/won-t.mp3"
+    },
+    {
+      "fromKey": "you're|en|def",
+      "toKey": "you-re|en|def",
+      "value": "audio/tts/en/def/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|en|sentence",
+      "toKey": "you-re|en|sentence",
+      "value": "audio/tts/en/sentence/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|en|word",
+      "toKey": "you-re|en|word",
+      "value": "audio/tts/en/word/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|es|def",
+      "toKey": "you-re|es|def",
+      "value": "audio/tts/es/def/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|es|sentence",
+      "toKey": "you-re|es|sentence",
+      "value": "audio/tts/es/sentence/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|es|word",
+      "toKey": "you-re|es|word",
+      "value": "audio/tts/es/word/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|tl|def",
+      "toKey": "you-re|tl|def",
+      "value": "audio/tts/tl/def/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|tl|sentence",
+      "toKey": "you-re|tl|sentence",
+      "value": "audio/tts/tl/sentence/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|tl|word",
+      "toKey": "you-re|tl|word",
+      "value": "audio/tts/tl/word/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|zh|def",
+      "toKey": "you-re|zh|def",
+      "value": "audio/tts/zh/def/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|zh|sentence",
+      "toKey": "you-re|zh|sentence",
+      "value": "audio/tts/zh/sentence/you-re.mp3"
+    },
+    {
+      "fromKey": "you're|zh|word",
+      "toKey": "you-re|zh|word",
+      "value": "audio/tts/zh/word/you-re.mp3"
+    }
+  ],
+  "removed": [
+    {
+      "key": "can't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "can't|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "didn't|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "don't|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "i'm|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "it's|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "that's|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "we're|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "won't|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|en|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|en|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|en|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|es|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|es|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|es|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|tl|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|tl|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|tl|word",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|zh|def",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|zh|sentence",
+      "reason": "migrated-to-canonical-slug-key"
+    },
+    {
+      "key": "you're|zh|word",
+      "reason": "migrated-to-canonical-slug-key"
+    }
+  ],
+  "skipped": [],
+  "collisions": []
+}
