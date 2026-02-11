@@ -233,6 +233,7 @@ test.describe('Theme propagation', () => {
     const paletteSelector = '#wq-palette-select';
     await expect(page.locator('#wq-theme-studio-overlay')).toHaveCount(0);
     await clickWithElementFromPointGuard(page, paletteSelector);
+    await expect(page.locator(`${paletteSelector} option[value="classic-wordle"]`)).toHaveCount(1);
 
     await page.locator(paletteSelector).selectOption('professional-midnight');
     await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('professional-midnight');
@@ -258,9 +259,23 @@ test.describe('Theme propagation', () => {
     expect(festivalTokens.keyBg).not.toBe(midnightTokens.keyBg);
     expect(festivalTokens.keyboardSurface).not.toBe(midnightTokens.keyboardSurface);
 
+    await page.locator(paletteSelector).selectOption('classic-wordle');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('classic-wordle');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('classic-wordle');
+
+    const classicWordleTokens = await page.evaluate(() => ({
+      pageBg: getComputedStyle(document.body).getPropertyValue('--wq-page-bg').trim(),
+      keyBg: getComputedStyle(document.body).getPropertyValue('--wq-key-bg').trim(),
+      keyboardSurface: getComputedStyle(document.body).getPropertyValue('--wq-keyboard-surface').trim()
+    }));
+
+    expect(classicWordleTokens.pageBg).not.toBe(festivalTokens.pageBg);
+    expect(classicWordleTokens.keyBg).not.toBe(festivalTokens.keyBg);
+    expect(classicWordleTokens.keyboardSurface).not.toBe(festivalTokens.keyboardSurface);
+
     await page.reload({ waitUntil: 'domcontentloaded' });
     await closeBlockingOverlayIfPresent(page);
-    await expect(page.locator(paletteSelector)).toHaveValue('playful-festival');
-    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('playful-festival');
+    await expect(page.locator(paletteSelector)).toHaveValue('classic-wordle');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('classic-wordle');
   });
 });

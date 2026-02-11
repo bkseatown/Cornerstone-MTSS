@@ -227,6 +227,7 @@
               <option value="professional-midnight">Purple Gold</option>
               <option value="playful-festival">Citrus Arcade</option>
               <option value="playful-sunrise">Sunset Pop</option>
+              <option value="classic-wordle">Classic Wordle</option>
               <option value="classic-contrast">Electric Contrast</option>
             </select>
           </label>
@@ -659,6 +660,24 @@
         --wq-tile-text: #0c1554;
       }
 
+      body.word-quest-page[data-wq-scene="classic-wordle"] {
+        --wq-page-bg: linear-gradient(180deg, #f8f8f8 0%, #ffffff 62%, #f2f3f4 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(246, 247, 248, 0.97) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(108, 169, 101, 0.14), transparent 48%), radial-gradient(circle at 84% 88%, rgba(200, 182, 83, 0.16), transparent 52%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(108, 169, 101, 0.92), rgba(200, 182, 83, 0.88), rgba(120, 124, 127, 0.86));
+        --wq-panel-border: rgba(120, 124, 127, 0.42);
+        --wq-keyboard-surface: rgba(243, 244, 245, 0.92);
+        --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #f3f4f5 100%);
+        --wq-key-border: rgba(120, 124, 127, 0.58);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(229, 242, 227, 0.99) 0%, rgba(209, 229, 206, 0.96) 100%);
+        --wq-key-vowel-border: rgba(108, 169, 101, 0.74);
+        --wq-key-text: #000000;
+        --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 2px 7px rgba(0, 0, 0, 0.14);
+        --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f4f5f6 100%);
+        --wq-tile-border: rgba(120, 124, 127, 0.62);
+        --wq-tile-text: #000000;
+      }
+
       body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls label,
       body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls .control-label,
       body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls .control-group > div {
@@ -716,6 +735,7 @@
           'professional-midnight',
           'playful-festival',
           'playful-sunrise',
+          'classic-wordle',
           'classic-contrast'
         ]);
 
@@ -727,6 +747,7 @@
           'professional-midnight': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'standard' },
           'playful-festival': { keyboard: 'playful', intensity: 'medium', shape: 'round', density: 'standard' },
           'playful-sunrise': { keyboard: 'playful', intensity: 'soft', shape: 'round', density: 'standard' },
+          'classic-wordle': { keyboard: 'professional', intensity: 'medium', shape: 'crisp', density: 'standard' },
           'classic-contrast': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'large' }
         });
 
