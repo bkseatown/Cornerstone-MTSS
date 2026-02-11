@@ -70,6 +70,7 @@ const practiceRecordings = new Map();
 const phonemeAudioCache = new Map();
 const phonemeVideoLookupCache = new Map();
 const activeAudioPlayers = new Set();
+let activePlaybackSourceId = '';
 const PHONEME_VIDEO_LIBRARY_CANDIDATE_DIRS = [
     'assets/articulation/clips',
     'public/assets/articulation/clips'
@@ -162,11 +163,11 @@ const DEFAULT_SETTINGS = {
     showIPA: true,
     showExamples: true,
     showMouthCues: true,
-    speechRate: 0.8,
+    speechRate: 0.95,
     decodableReadSpeed: 1.0,
     voiceDialect: 'en-US',
     narrationStyle: 'expressive', // expressive | neutral
-    speechQualityMode: 'natural-preferred', // natural-preferred | natural-only | fallback-any
+    speechQualityMode: 'natural-only', // natural-preferred | natural-only | fallback-any
     ttsPackId: 'ava-multi',
     voiceUri: '',
     audienceMode: 'auto', // auto | general | young-eal
@@ -1251,7 +1252,14 @@ function orderPacksForLanguage(packs = [], languageCode = 'en') {
     });
 }
 
-async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', type = 'word', playbackRate = 1 } = {}) {
+async function tryPlayPackedClipByDirectPath({
+    word = '',
+    languageCode = 'en',
+    type = 'word',
+    playbackRate = 1,
+    sourceId = '',
+    onPlay = null
+} = {}) {
     const normalizedWord = String(word || '').trim().toLowerCase();
     if (!normalizedWord) return false;
     const normalizedLang = normalizePackedTtsLanguage(languageCode);
@@ -1268,7 +1276,7 @@ async function tryPlayPackedClipByDirectPath({ word = '', languageCode = 'en', t
         const packId = String(pack?.id || '').trim();
         if (!packId) continue;
         const candidate = `${PACKED_TTS_BASE_PATH}/packs/${packId}/${normalizedLang}/${normalizedType}/${encodedWord}.mp3`;
-        const played = await playPackedClipWithFallbackPaths(candidate, { playbackRate });
+        const played = await playPackedClipWithFallbackPaths(candidate, { playbackRate, sourceId, onPlay });
         if (played) return true;
     }
     return false;
@@ -1282,17 +1290,74 @@ function stopAllActiveAudioPlayers() {
         } catch (e) {}
     });
     activeAudioPlayers.clear();
+    activePlaybackSourceId = '';
+}
+
+function normalizePlaybackSourceId(value = '') {
+    return String(value || '').trim().toLowerCase();
+}
+
+function getActiveAudioPlayerBySourceId(sourceId = '') {
+    const normalized = normalizePlaybackSourceId(sourceId);
+    if (!normalized) return null;
+    for (const audio of activeAudioPlayers) {
+        if (!(audio instanceof HTMLAudioElement)) continue;
+        if (audio.dataset.playbackSourceId !== normalized) continue;
+        if (!audio.paused && !audio.ended) return audio;
+    }
+    return null;
+}
+
+function stopAudioPlayerInstance(audio) {
+    if (!(audio instanceof HTMLAudioElement)) return;
+    try {
+        audio.pause();
+        audio.currentTime = 0;
+    } catch (e) {}
+    activeAudioPlayers.delete(audio);
+}
+
+function beginExclusivePlaybackForSource(sourceId = '') {
+    const normalized = normalizePlaybackSourceId(sourceId);
+    const activeSameSource = getActiveAudioPlayerBySourceId(normalized);
+    if (activeSameSource) {
+        stopAudioPlayerInstance(activeSameSource);
+        if (activePlaybackSourceId === normalized) {
+            activePlaybackSourceId = '';
+        }
+        return { proceed: false, sourceId: normalized, reason: 'same-source-toggled' };
+    }
+
+    stopAllActiveAudioPlayers();
+    cancelPendingSpeech(true);
+    activePlaybackSourceId = normalized;
+    return { proceed: true, sourceId: normalized, reason: '' };
 }
 
 async function playAudioClipUrl(url, options = {}) {
     if (!url) return false;
     const playbackRate = normalizeDecodableReadSpeed(options.playbackRate ?? 1);
+    const sourceId = normalizePlaybackSourceId(options.sourceId || '');
     const onPlay = typeof options.onPlay === 'function' ? options.onPlay : null;
     const audio = new Audio(url);
     audio.playbackRate = playbackRate;
+    if (sourceId) {
+        audio.dataset.playbackSourceId = sourceId;
+    }
     activeAudioPlayers.add(audio);
     const cleanup = () => {
         activeAudioPlayers.delete(audio);
+        if (sourceId && activePlaybackSourceId === sourceId) {
+            const hasSameSourceActive = Array.from(activeAudioPlayers).some((player) => (
+                player instanceof HTMLAudioElement
+                && player.dataset.playbackSourceId === sourceId
+                && !player.paused
+                && !player.ended
+            ));
+            if (!hasSameSourceActive) {
+                activePlaybackSourceId = '';
+            }
+        }
     };
     audio.onended = cleanup;
     audio.onerror = cleanup;
@@ -1341,7 +1406,14 @@ function shouldUsePackedClipForCurrentRevealText({ text = '', languageCode = 'en
     return normalizedText === expectedText;
 }
 
-async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', type = 'word', playbackRate = 1 } = {}) {
+async function tryPlayPackedTtsForCurrentWord({
+    text = '',
+    languageCode = 'en',
+    type = 'word',
+    playbackRate = 1,
+    sourceId = '',
+    onPlay = null
+} = {}) {
     if (!shouldAttemptPackedTtsLookup()) return false;
     const word = String(currentWord || '').trim().toLowerCase();
     if (!word || !text) return false;
@@ -1353,7 +1425,7 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
     if (!key) return false;
     const primaryClip = manifest.entries[key];
     if (primaryClip) {
-        const played = await playPackedClipWithFallbackPaths(primaryClip, { playbackRate });
+        const played = await playPackedClipWithFallbackPaths(primaryClip, { playbackRate, sourceId, onPlay });
         if (played) return true;
     }
 
@@ -1362,20 +1434,22 @@ async function tryPlayPackedTtsForCurrentWord({ text = '', languageCode = 'en', 
         const fallbackManifest = await loadPackedTtsManifestFromPath(PACKED_TTS_DEFAULT_MANIFEST_PATH);
         const fallbackClip = fallbackManifest?.entries?.[key];
         if (fallbackClip) {
-            const played = await playPackedClipWithFallbackPaths(fallbackClip, { playbackRate });
+            const played = await playPackedClipWithFallbackPaths(fallbackClip, { playbackRate, sourceId, onPlay });
             if (played) return true;
         }
     }
     const crossPackClip = await findPackedTtsClipAcrossPacks(key, languageCode);
     if (crossPackClip) {
-        const played = await playPackedClipWithFallbackPaths(crossPackClip, { playbackRate });
+        const played = await playPackedClipWithFallbackPaths(crossPackClip, { playbackRate, sourceId, onPlay });
         if (played) return true;
     }
     return tryPlayPackedClipByDirectPath({
         word,
         languageCode,
         type: resolvedType,
-        playbackRate
+        playbackRate,
+        sourceId,
+        onPlay
     });
 }
 
@@ -1408,7 +1482,14 @@ function normalizeLiteralPackedTtsLookupText(text = '') {
         .toLowerCase();
 }
 
-async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', type = 'sentence', playbackRate = 1 } = {}) {
+async function tryPlayPackedTtsForLiteralText({
+    text = '',
+    languageCode = 'en',
+    type = 'sentence',
+    playbackRate = 1,
+    sourceId = '',
+    onPlay = null
+} = {}) {
     if (!shouldAttemptPackedTtsLookup()) return false;
     const normalizedText = normalizeLiteralPackedTtsLookupText(text);
     if (!normalizedText) return false;
@@ -1424,7 +1505,7 @@ async function tryPlayPackedTtsForLiteralText({ text = '', languageCode = 'en', 
         const key = getPackedTtsManifestKey(normalizedText, normalizedLang, entryType);
         const clipPath = await resolvePackedTtsClipByManifestKey(key, normalizedLang);
         if (!clipPath) continue;
-        const played = await playPackedClipWithFallbackPaths(clipPath, { playbackRate });
+        const played = await playPackedClipWithFallbackPaths(clipPath, { playbackRate, sourceId, onPlay });
         if (played) return true;
     }
     return false;
@@ -1817,6 +1898,9 @@ function loadSettings() {
         appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
         const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
         appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
+        if (appSettings.ttsPackId !== 'default') {
+            appSettings.speechQualityMode = 'natural-only';
+        }
         appSettings.speechRate = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
         appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
         appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
@@ -1843,6 +1927,9 @@ function saveSettings() {
     appSettings.speechQualityMode = normalizeSpeechQualityMode(appSettings.speechQualityMode || DEFAULT_SETTINGS.speechQualityMode);
     const normalizedPackId = normalizeTtsPackId(appSettings.ttsPackId || DEFAULT_SETTINGS.ttsPackId);
     appSettings.ttsPackId = normalizedPackId === 'default' ? DEFAULT_SETTINGS.ttsPackId : normalizedPackId;
+    if (appSettings.ttsPackId !== 'default') {
+        appSettings.speechQualityMode = 'natural-only';
+    }
     appSettings.speechRate = normalizeSpeechRate(appSettings.speechRate ?? DEFAULT_SETTINGS.speechRate);
     appSettings.guessCount = normalizeGuessCount(appSettings.guessCount ?? DEFAULT_SETTINGS.guessCount);
     appSettings.decodableReadSpeed = normalizeDecodableReadSpeed(appSettings.decodableReadSpeed ?? DEFAULT_SETTINGS.decodableReadSpeed);
@@ -2504,26 +2591,26 @@ function applyWordQuestDesktopScale() {
     const coarsePointer = isCoarsePointerLayout();
     // Estimated constant chrome inside the canvas (board padding, hint row, keyboard panel padding).
     // Keep this conservative so non-fullscreen desktop/iPad windows avoid clipping.
-    const staticChrome = coarsePointer ? 286 : 258;
+    const staticChrome = coarsePointer ? 334 : 308;
 
     let baseTileSize = (availableHeight - staticChrome) / 9.08;
     baseTileSize = Math.max(34, Math.min(58, baseTileSize));
-    const tileScaleBoost = window.innerWidth >= 1280 ? 1.5 : (window.innerWidth >= 1024 ? 1.35 : 1.2);
+    const tileScaleBoost = window.innerWidth >= 1280 ? 1.18 : (window.innerWidth >= 1024 ? 1.1 : 1.02);
     let tileSize = baseTileSize * tileScaleBoost;
-    tileSize = Math.max(40, Math.min(88, tileSize));
+    tileSize = Math.max(36, Math.min(72, tileSize));
     if (viewportHeight < 980) tileSize = Math.min(tileSize, 82);
     if (viewportHeight < 910) tileSize = Math.min(tileSize, 76);
     if (viewportHeight < 840) tileSize = Math.min(tileSize, 70);
     if (viewportHeight < 790) tileSize = Math.min(tileSize, 62);
 
-    let keySize = baseTileSize * (coarsePointer ? 1.07 : 1.03);
-    keySize = Math.max(coarsePointer ? 36 : 34, Math.min(62, keySize));
+    let keySize = baseTileSize * (coarsePointer ? 1.02 : 0.98);
+    keySize = Math.max(coarsePointer ? 34 : 32, Math.min(56, keySize));
 
     let wideKeySize = keySize * 1.72;
-    wideKeySize = Math.max(70, Math.min(116, wideKeySize));
+    wideKeySize = Math.max(66, Math.min(108, wideKeySize));
 
-    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 110 : 100));
-    let canvasMax = Math.round(Math.max(720, Math.min(1180, keyboardMax + 290)));
+    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 92 : 84));
+    let canvasMax = Math.round(Math.max(700, Math.min(1080, keyboardMax + 246)));
     let bottomGap = coarsePointer ? 14 : 10;
     if (viewportHeight < 930) bottomGap = Math.max(8, bottomGap - 3);
     if (viewportHeight < 860) bottomGap = Math.max(8, bottomGap - 2);
@@ -2999,6 +3086,10 @@ function speakSentenceWithProsody(text, voice, lang, baseRate) {
 
 function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') {
     const normalized = normalizeTextForTTS(text);
+    const qualityMode = getSpeechQualityMode();
+    if (!voice && qualityMode === 'natural-only') {
+        return false;
+    }
     const normalizedType = type === 'sentence' ? 'sentence' : (type === 'phoneme' ? 'phoneme' : 'word');
     const isSentence = normalizedType === 'sentence';
     const rate = getSpeechRate(normalizedType);
@@ -3022,10 +3113,13 @@ function speakEnglishText(text, type = 'word', voice = null, fallbackLang = '') 
         ? clampSpeechPitch(expressive ? 1.03 : 1.0)
         : (normalizedType === 'phoneme' ? 1.02 : 1.0);
     speakUtterance(msg);
+    return true;
 }
 
-async function speak(text, type = "word") {
-    if (!text) return;
+async function speak(text, type = "word", options = {}) {
+    if (!text) return false;
+    const allowSystemFallback = !!options.allowSystemFallback || type === 'phoneme';
+    const quietMissing = !!options.quietMissing;
     cancelPendingSpeech(true);
 
     // 1. Check Studio Recording
@@ -3057,7 +3151,7 @@ async function speak(text, type = "word") {
         const audio = new Audio(url);
         audio.play();
         audio.onended = () => URL.revokeObjectURL(url);
-        return; 
+        return true;
     }
 
     const packedType = type === 'sentence' ? 'sentence' : 'word';
@@ -3068,13 +3162,20 @@ async function speak(text, type = "word") {
         type: packedType,
         playbackRate: packedPlaybackRate
     });
-    if (packedPlayed) return;
+    if (packedPlayed) return true;
+
+    if (!allowSystemFallback) {
+        if (!quietMissing) {
+            showToast('Audio clip unavailable for this item.');
+        }
+        return false;
+    }
 
     // 2. Fallback to System Voice
     const voices = await getVoicesForSpeech();
     const preferred = pickBestEnglishVoice(voices);
     const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-    speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, fallbackLang);
+    return !!speakEnglishText(text, type === 'sentence' ? 'sentence' : 'word', preferred, fallbackLang);
 }
 
 function getPreferredEnglishDialect() {
@@ -3484,48 +3585,30 @@ function getBestTranslationVoice(voices, targetLang) {
 }
 
 /* Play text in a specific language for translations */
-async function playTextInLanguage(text, languageCode, type = 'sentence') {
+async function playTextInLanguage(text, languageCode, type = 'sentence', sourceId = '') {
     if (!text) return;
-    cancelPendingSpeech(true);
+    const normalizedType = normalizePackedTtsType(type);
+    const playbackSource = normalizePlaybackSourceId(sourceId || `translation-${languageCode}-${normalizedType}`);
+    const gate = beginExclusivePlaybackForSource(playbackSource);
+    if (!gate.proceed) return;
 
     const packedPlayed = await tryPlayPackedTtsForCurrentWord({
         text,
         languageCode,
-        type,
-        playbackRate: Math.max(0.6, getSpeechRate(type === 'word' ? 'word' : 'sentence'))
+        type: normalizedType,
+        playbackRate: Math.max(0.6, getSpeechRate(normalizedType === 'word' ? 'word' : 'sentence')),
+        sourceId: playbackSource
     });
     if (packedPlayed) {
         setTranslationAudioNote('');
-        return;
+        return true;
     }
-    
-    const msg = new SpeechSynthesisUtterance(text);
-    const voices = await getVoicesForSpeech();
-    const targetLang = getTranslationVoiceTarget(languageCode);
-    
-    const preferredVoice = getBestTranslationVoice(voices, targetLang);
-    const usingHighQualityVoice = !!(preferredVoice && isHighQualityVoice(preferredVoice));
-    
-    if (preferredVoice && voiceMatchesLanguage(preferredVoice, targetLang)) {
-        msg.voice = preferredVoice;
-        msg.lang = preferredVoice.lang;
-        if (usingHighQualityVoice) {
-            setTranslationAudioNote('');
-        } else {
-            setTranslationAudioNote('Using an available device voice for this language.');
-        }
-    } else {
-        notifyMissingTranslationVoice();
-        return;
+
+    if (activePlaybackSourceId === playbackSource) {
+        activePlaybackSourceId = '';
     }
-    
-    const packedType = normalizePackedTtsType(type);
-    const speechType = packedType === 'word' ? 'word' : 'sentence';
-    const rateOffset = speechType === 'word' ? 0.1 : 0.14;
-    msg.rate = clampSpeechRate(getSpeechRate(speechType) - rateOffset);
-    msg.pitch = 1.0;
-    
-    speakUtterance(msg);
+    notifyMissingTranslationVoice();
+    return false;
 }
 
 function getTranslationData(word, langCode, options = {}) {
@@ -4194,24 +4277,28 @@ function initControls() {
     const voiceSettingsBtn = document.getElementById("simple-voice-settings");
     
     if (hearWordBtn) {
-        hearWordBtn.onclick = () => {
+        hearWordBtn.onclick = async () => {
             if (isCurrentWordAudioBlocked()) {
                 hearWordBtn.blur();
                 return;
             }
-            if (currentWord) {
-                // Add visual feedback
-                const originalText = hearWordBtn.innerHTML;
-                hearWordBtn.innerHTML = '🔊 Playing...';
-                hearWordBtn.style.opacity = '0.7';
-                
-                speak(currentWord, 'word');
-                
-                // Reset button after a short delay
-                setTimeout(() => {
-                    hearWordBtn.innerHTML = originalText;
-                    hearWordBtn.style.opacity = '1';
-                }, 2000);
+            if (!currentWord) {
+                hearWordBtn.blur();
+                return;
+            }
+            const gate = beginExclusivePlaybackForSource('simple-hear-word');
+            if (gate.proceed) {
+                const played = await tryPlayPackedTtsForCurrentWord({
+                    text: currentWord,
+                    languageCode: 'en',
+                    type: 'word',
+                    playbackRate: Math.max(0.6, getSpeechRate('word')),
+                    sourceId: gate.sourceId
+                });
+                if (!played) {
+                    if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+                    showToast('No Azure clip is available for this word yet.');
+                }
             }
             hearWordBtn.blur();
         };
@@ -4219,7 +4306,7 @@ function initControls() {
     
     if (hearSentenceBtn) {
         ensureSentenceCaptionToggleControls();
-        hearSentenceBtn.onclick = () => {
+        hearSentenceBtn.onclick = async () => {
             if (isCurrentWordAudioBlocked()) {
                 hearSentenceBtn.blur();
                 return;
@@ -4248,28 +4335,26 @@ function initControls() {
                     }
                 }
 
-                const originalText = hearSentenceBtn.innerHTML;
-                hearSentenceBtn.innerHTML = '🔊 Playing...';
-                hearSentenceBtn.style.opacity = '0.7';
-
-                speak(sentence, 'sentence');
-
-                setTimeout(() => {
-                    hearSentenceBtn.innerHTML = originalText;
-                    hearSentenceBtn.style.opacity = '1';
-                }, 2000);
+                const gate = beginExclusivePlaybackForSource('simple-hear-sentence');
+                if (gate.proceed) {
+                    const played = await tryPlayPackedTtsForCurrentWord({
+                        text: sentence,
+                        languageCode: 'en',
+                        type: 'sentence',
+                        playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+                        sourceId: gate.sourceId
+                    });
+                    if (!played) {
+                        if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+                        showToast('No Azure clip is available for this sentence yet.');
+                    }
+                }
             } else {
                 if (sentencePreview) {
                     sentencePreview.classList.add('hidden');
                 }
                 if (hideCaptionBtn instanceof HTMLButtonElement) hideCaptionBtn.classList.add('hidden');
-                const originalText = hearSentenceBtn.innerHTML;
-                hearSentenceBtn.innerHTML = '❌ No sentence';
-                hearSentenceBtn.style.opacity = '0.7';
-                setTimeout(() => {
-                    hearSentenceBtn.innerHTML = originalText;
-                    hearSentenceBtn.style.opacity = '1';
-                }, 1500);
+                showToast('No sentence available for this word.');
             }
             hearSentenceBtn.blur();
         };
@@ -5386,7 +5471,7 @@ function ensureVoicePreferencesControls() {
             <label for="speech-rate"><strong>Base speech rate</strong></label>
             <div style="display:flex; gap:10px; align-items:center;">
                 <input id="speech-rate" type="range" min="0.7" max="1.05" step="0.01" />
-                <span id="speech-rate-value">0.85x</span>
+                <span id="speech-rate-value">0.95x</span>
             </div>
         </div>
         <label for="narration-style-select"><strong>Narration style</strong></label>
@@ -6231,9 +6316,21 @@ function updateAdaptiveActions() {
     hearWord.style.display = 'inline-block';
     hearWord.classList.add('hint-primary');
     hearWord.disabled = audioBlocked;
-    hearWord.onclick = () => {
+    hearWord.onclick = async () => {
         if (audioBlocked) return;
-        speak(word, 'word');
+        const gate = beginExclusivePlaybackForSource('action-hear-word');
+        if (!gate.proceed) return;
+        const played = await tryPlayPackedTtsForCurrentWord({
+            text: word,
+            languageCode: 'en',
+            type: 'word',
+            playbackRate: Math.max(0.6, getSpeechRate('word')),
+            sourceId: gate.sourceId
+        });
+        if (!played) {
+            if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+            showToast('No Azure clip is available for this word yet.');
+        }
     };
     
     // Show "Hear sentence" only if sentence exists
@@ -6242,7 +6339,21 @@ function updateAdaptiveActions() {
         hearSentence.style.display = 'inline-block';
         hearSentence.classList.add('hint-primary');
         hearSentence.disabled = false;
-        hearSentence.onclick = () => speak(sentenceText, 'sentence');
+        hearSentence.onclick = async () => {
+            const gate = beginExclusivePlaybackForSource('action-hear-sentence');
+            if (!gate.proceed) return;
+            const played = await tryPlayPackedTtsForCurrentWord({
+                text: sentenceText,
+                languageCode: 'en',
+                type: 'sentence',
+                playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+                sourceId: gate.sourceId
+            });
+            if (!played) {
+                if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+                showToast('No Azure clip is available for this sentence yet.');
+            }
+        };
     } else {
         hearSentence.style.display = 'none';
         hearSentence.disabled = true;
@@ -6658,15 +6769,57 @@ function autoPlayReveal(definitionText, sentenceText) {
     const interPartGapMs = 340;
     let delay = 170;
     if (wordText) {
-        setTimeout(() => speak(wordText, 'word'), delay);
+        setTimeout(() => {
+            const gate = beginExclusivePlaybackForSource('auto-hear-word');
+            if (!gate.proceed) return;
+            tryPlayPackedTtsForCurrentWord({
+                text: wordText,
+                languageCode: 'en',
+                type: 'word',
+                playbackRate: Math.max(0.6, getSpeechRate('word')),
+                sourceId: gate.sourceId
+            }).then((played) => {
+                if (!played && activePlaybackSourceId === gate.sourceId) {
+                    activePlaybackSourceId = '';
+                }
+            });
+        }, delay);
         delay += estimateSpeechDuration(wordText, speechRateWord) + interPartGapMs;
     }
     if (definitionText) {
-        setTimeout(() => speakText(definitionText, 'definition'), delay);
+        setTimeout(() => {
+            const gate = beginExclusivePlaybackForSource('auto-hear-definition');
+            if (!gate.proceed) return;
+            tryPlayPackedTtsForCurrentWord({
+                text: definitionText,
+                languageCode: 'en',
+                type: 'def',
+                playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+                sourceId: gate.sourceId
+            }).then((played) => {
+                if (!played && activePlaybackSourceId === gate.sourceId) {
+                    activePlaybackSourceId = '';
+                }
+            });
+        }, delay);
         delay += estimateSpeechDuration(definitionText, speechRateSentence) + interPartGapMs;
     }
     if (sentenceText) {
-        setTimeout(() => speak(sentenceText, 'sentence'), delay);
+        setTimeout(() => {
+            const gate = beginExclusivePlaybackForSource('auto-hear-sentence');
+            if (!gate.proceed) return;
+            tryPlayPackedTtsForCurrentWord({
+                text: sentenceText,
+                languageCode: 'en',
+                type: 'sentence',
+                playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+                sourceId: gate.sourceId
+            }).then((played) => {
+                if (!played && activePlaybackSourceId === gate.sourceId) {
+                    activePlaybackSourceId = '';
+                }
+            });
+        }, delay);
     }
 }
 
@@ -6856,9 +7009,22 @@ function setupModalAudioControls(definitionText, sentenceText) {
     speakBtn.textContent = 'Hear Word';
     speakBtn.classList.add('modal-audio-btn');
     speakBtn.disabled = audioBlocked;
-    speakBtn.onclick = () => {
+    speakBtn.onclick = async () => {
         if (audioBlocked) return;
-        if (currentWord) speak(currentWord, 'word');
+        if (!currentWord) return;
+        const gate = beginExclusivePlaybackForSource('modal-hear-word');
+        if (!gate.proceed) return;
+        const played = await tryPlayPackedTtsForCurrentWord({
+            text: currentWord,
+            languageCode: 'en',
+            type: 'word',
+            playbackRate: Math.max(0.6, getSpeechRate('word')),
+            sourceId: gate.sourceId
+        });
+        if (!played) {
+            if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+            showToast('No Azure clip is available for this word yet.');
+        }
     };
     if (!audioControls.contains(speakBtn)) audioControls.appendChild(speakBtn);
 
@@ -6871,9 +7037,22 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     defBtn.textContent = 'Hear Definition';
     defBtn.disabled = audioBlocked || !definitionText;
-    defBtn.onclick = () => {
+    defBtn.onclick = async () => {
         if (audioBlocked) return;
-        if (definitionText) speakText(definitionText, 'definition');
+        if (!definitionText) return;
+        const gate = beginExclusivePlaybackForSource('modal-hear-definition');
+        if (!gate.proceed) return;
+        const played = await tryPlayPackedTtsForCurrentWord({
+            text: definitionText,
+            languageCode: 'en',
+            type: 'def',
+            playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+            sourceId: gate.sourceId
+        });
+        if (!played) {
+            if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+            showToast('No Azure clip is available for this definition yet.');
+        }
     };
     if (!audioControls.contains(defBtn)) audioControls.appendChild(defBtn);
 
@@ -6886,9 +7065,22 @@ function setupModalAudioControls(definitionText, sentenceText) {
     }
     sentenceBtn.textContent = 'Hear Sentence';
     sentenceBtn.disabled = audioBlocked || !sentenceText;
-    sentenceBtn.onclick = () => {
+    sentenceBtn.onclick = async () => {
         if (audioBlocked) return;
-        if (sentenceText) speak(sentenceText, 'sentence');
+        if (!sentenceText) return;
+        const gate = beginExclusivePlaybackForSource('modal-hear-sentence');
+        if (!gate.proceed) return;
+        const played = await tryPlayPackedTtsForCurrentWord({
+            text: sentenceText,
+            languageCode: 'en',
+            type: 'sentence',
+            playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+            sourceId: gate.sourceId
+        });
+        if (!played) {
+            if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+            showToast('No Azure clip is available for this sentence yet.');
+        }
     };
     if (!audioControls.contains(sentenceBtn)) audioControls.appendChild(sentenceBtn);
 
@@ -7142,13 +7334,19 @@ function showEndModal(win) {
             translatedSentence.textContent = safeSentence ? `"${safeSentence}"` : '';
 
             if (playTranslatedWord) {
-                playTranslatedWord.onclick = safeWord ? () => playTextInLanguage(safeWord, selectedLang, 'word') : null;
+                playTranslatedWord.onclick = safeWord
+                    ? () => playTextInLanguage(safeWord, selectedLang, 'word', 'translation-hear-word')
+                    : null;
             }
             if (playTranslatedDef) {
-                playTranslatedDef.onclick = safeDefinition ? () => playTextInLanguage(safeDefinition, selectedLang, 'def') : null;
+                playTranslatedDef.onclick = safeDefinition
+                    ? () => playTextInLanguage(safeDefinition, selectedLang, 'def', 'translation-hear-definition')
+                    : null;
             }
             if (playTranslatedSentence) {
-                playTranslatedSentence.onclick = safeSentence ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence') : null;
+                playTranslatedSentence.onclick = safeSentence
+                    ? () => playTextInLanguage(safeSentence, selectedLang, 'sentence', 'translation-hear-sentence')
+                    : null;
             }
 
             translationDisplay.classList.remove("hidden");
@@ -9365,8 +9563,8 @@ function showBonusContent() {
         hearBtn.dataset.lastSpokenText = '';
         hearBtn.disabled = !hearBtn.dataset.ttsText;
         hearBtn.onclick = async () => {
-            stopAllActiveAudioPlayers();
-            cancelPendingSpeech(true);
+            const gate = beginExclusivePlaybackForSource('bonus-hear');
+            if (!gate.proceed) return;
             const popupType = hearBtn.dataset.ttsType || type;
             const popupText = String(hearBtn.dataset.ttsText || (textEl && textEl.innerText) || '').replace(/\s+/g, ' ').trim();
             hearBtn.dataset.ttsText = popupText;
@@ -9389,22 +9587,16 @@ function showBonusContent() {
                 text: popupText,
                 languageCode: 'en',
                 type: 'sentence',
-                playbackRate: Math.max(0.6, getSpeechRate('sentence'))
+                playbackRate: Math.max(0.6, getSpeechRate('sentence')),
+                sourceId: gate.sourceId
             });
             if (packedPlayed) {
                 setBonusAudioNote('');
                 return;
             }
-            const voices = await getVoicesForSpeech();
-            const preferred = pickPreferredBonusNarrationVoice(voices);
-            if (!preferred || isLowQualityVoice(preferred)) {
-                showToast('No high-quality voice is ready for bonus playback yet.');
-                setBonusAudioNote('Voice check: high-quality English voice not ready. Open Voice and choose a listed Azure voice.');
-                return;
-            }
-            setBonusAudioNote('');
-            const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-            speakEnglishText(popupText, 'sentence', preferred, fallbackLang);
+            if (activePlaybackSourceId === gate.sourceId) activePlaybackSourceId = '';
+            showToast('No Azure clip is available for this bonus item yet.');
+            setBonusAudioNote('Audio unavailable for this bonus item.');
         };
     }
 }
@@ -12250,7 +12442,7 @@ function normalizeTextForTTS(text) {
 }
 
 async function speakText(text, rateType = 'word') {
-    if (!text) return;
+    if (!text) return false;
     const normalizedRateType = String(rateType || 'word').toLowerCase();
     const type = normalizedRateType === 'definition' || normalizedRateType === 'def'
         ? 'def'
@@ -12262,12 +12454,17 @@ async function speakText(text, rateType = 'word') {
         type,
         playbackRate: Math.max(0.6, getSpeechRate(speechType))
     });
-    if (packedPlayed) return;
+    if (packedPlayed) return true;
+
+    if (speechType !== 'phoneme') {
+        showToast('Audio clip unavailable for this item.');
+        return false;
+    }
 
     const voices = await getVoicesForSpeech();
     const preferred = pickBestEnglishVoice(voices);
     const fallbackLang = preferred ? preferred.lang : getPreferredEnglishDialect();
-    speakEnglishText(text, speechType, preferred, fallbackLang);
+    return !!speakEnglishText(text, speechType, preferred, fallbackLang);
 }
 
 function speakSpelling(grapheme) {

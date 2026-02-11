@@ -2832,48 +2832,10 @@
       }
 
       const bonusHearBtn = target.closest('#bonus-hear');
-      if (!(bonusHearBtn instanceof HTMLButtonElement)) return;
-
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (bonusHearBtn.disabled) return;
-
-      if (typeof csRefreshBonusStateFn === 'function') {
-        csRefreshBonusStateFn();
-      }
-      const payload = resolveActiveRevealSpeechPayload();
-      const speechText = normalizeSpeechText(payload?.text || '');
-      if (!speechText) return;
-
-      bonusHearBtn.disabled = true;
-      try {
-        if (typeof window.stopAllActiveAudioPlayers === 'function') {
-          window.stopAllActiveAudioPlayers();
-        }
-        if (typeof window.cancelPendingSpeech === 'function') {
-          window.cancelPendingSpeech(true);
-        }
-
-        let playedPacked = false;
-        if (typeof window.tryPlayPackedTtsForLiteralText === 'function') {
-          playedPacked = await window.tryPlayPackedTtsForLiteralText({
-            text: speechText,
-            languageCode: 'en',
-            type: 'sentence'
-          });
-        }
-        if (playedPacked) return;
-
-        const settings = readVoiceSettingsForReveal();
-        const selectedPack = settings.ttsPackId;
-        if (selectedPack && selectedPack !== 'default') {
-          safeToast('Selected voice unavailable — using system voice.');
-        }
-        speakWithSystemVoice(speechText);
-      } finally {
-        setTimeout(() => {
-          bonusHearBtn.disabled = false;
-        }, 140);
+      if (bonusHearBtn instanceof HTMLButtonElement) {
+        // Let app.js own Bonus playback behavior so click toggling and
+        // "single active audio" rules stay consistent with Word/Sentence tabs.
+        return;
       }
     }, true);
   }
