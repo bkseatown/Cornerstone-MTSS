@@ -1976,13 +1976,23 @@ function shouldAttemptPackedTtsLookup() {
     return true;
 }
 
+function shouldUseLegacyForceLight() {
+    if (!document.body) return true;
+    if (document.body.classList.contains('word-quest-page')) return false;
+    if (document.body.classList.contains('cs-hv2-page')) return false;
+    if (document.body.classList.contains('cs-hv2-enabled')) return false;
+    return true;
+}
+
 function applySettings() {
     document.body.classList.toggle('calm-mode', appSettings.calmMode);
     document.body.classList.toggle('large-text', appSettings.largeText);
     document.body.classList.toggle('hide-ipa', !appSettings.showIPA);
     document.body.classList.toggle('hide-examples', !appSettings.showExamples);
     document.body.classList.toggle('hide-mouth-cues', !appSettings.showMouthCues);
-    document.body.classList.add('force-light');
+    const useLegacyForceLight = shouldUseLegacyForceLight();
+    document.body.classList.toggle('force-light', useLegacyForceLight);
+    document.documentElement.classList.toggle('force-light', useLegacyForceLight);
     document.documentElement.style.colorScheme = 'light';
     applyUiLookClass();
     updateFunHudVisibility();
@@ -2250,8 +2260,9 @@ async function previewSelectedVoice(sampleText = '') {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.body.classList.add('force-light');
-    document.documentElement.classList.add('force-light');
+    const useLegacyForceLight = shouldUseLegacyForceLight();
+    document.body.classList.toggle('force-light', useLegacyForceLight);
+    document.documentElement.classList.toggle('force-light', useLegacyForceLight);
     loadSettings();
 
     // Initialize DOM elements
