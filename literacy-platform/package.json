@@ -9,7 +9,8 @@
     "test:visual:update": "playwright test --update-snapshots",
     "tts:azure": "node scripts/export-azure-tts.js",
     "tts:azure:bonus": "node scripts/export-azure-bonus-tts.js",
-    "tts:voices": "node scripts/list-azure-voices.js"
+    "tts:voices": "node scripts/list-azure-voices.js",
+    "wordbank:studio": "node scripts/wordbank-studio.js"
   },
   "keywords": [],
   "author": "",
