@@ -10,6 +10,18 @@ Last updated: 2026-02-09
 - Latest pushed commit: `7c69d53f` (`origin/main`)
 - Local artifact noise may still exist from visual tests (`playwright-report`, `test-results`), but source updates above are pushed.
 
+## 2026-02-11 Playwright runtime note (important)
+- Playwright is installed/configured in this repo; local browser runs can pass.
+- In Codex sandboxed runs, Chromium may fail before tests execute with:
+  - `browserType.launch ... Target page, context or browser has been closed`
+  - process exit `SIGABRT` and kill `EPERM`
+- This is an environment launch constraint, not a selector/assertion failure and not a missing Playwright setup.
+- If this appears in assistant logs, re-run locally from terminal:
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
+npx playwright test tests/ux-regression.spec.js --project=desktop-chromium
+```
+
 ## 2026-02-08 latest shipped pass
 - Nav dropdown clipping fix:
   - Group menus now auto-clamp to viewport (no half-offscreen menu at standard zoom).

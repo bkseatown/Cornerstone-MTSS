@@ -2,6 +2,18 @@
 
 Last updated: 2026-02-09
 
+## 2026-02-11 Playwright runtime note (important)
+- Playwright is installed/configured in this repo; local browser runs can pass.
+- In Codex sandboxed runs, Chromium may fail before tests execute with:
+  - `browserType.launch ... Target page, context or browser has been closed`
+  - process exit `SIGABRT` and kill `EPERM`
+- This is an environment launch constraint, not a selector/assertion failure and not a missing Playwright setup.
+- If this appears in assistant logs, re-run locally from terminal:
+```bash
+cd "/Users/robertwilliamknaus/Desktop/New project/literacy-platform"
+npx playwright test tests/ux-regression.spec.js --project=desktop-chromium
+```
+
 ## 2026-02-09 Home V2 Step 2 routing + hub stubs slice
 - Scope files:
   - `literacy-platform/home-v2.js`
