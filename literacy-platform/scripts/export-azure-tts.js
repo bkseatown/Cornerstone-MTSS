@@ -7,7 +7,7 @@ const vm = require('vm');
 const DEFAULT_LANGUAGES = ['en', 'es', 'zh', 'tl', 'hi', 'ms', 'vi'];
 const DEFAULT_FIELDS = ['word', 'def', 'sentence'];
 const DEFAULT_VOICE_MAP = {
-    en: 'en-US-JennyNeural',
+    en: 'en-US-Ava:DragonHDLatestNeural',
     es: 'es-ES-ElviraNeural',
     zh: 'zh-CN-XiaoxiaoNeural',
     tl: 'fil-PH-BlessicaNeural',

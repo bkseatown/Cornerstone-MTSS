@@ -7,7 +7,28 @@ const vm = require('vm');
 
 const OUTPUT_FORMAT = 'audio-24khz-96kbitrate-mono-mp3';
 const BONUS_TYPES = ['jokes', 'riddles', 'facts', 'quotes'];
-const DEFAULT_VOICE = 'en-US-AvaMultilingualNeural';
+const DEFAULT_VOICE = 'en-US-Ava:DragonHDLatestNeural';
+const DEFAULT_PROSODY_SETTINGS = Object.freeze({
+    enabled: true,
+    defaultRate: '0%',
+    defaultPitch: '0Hz',
+    jokeSetupRate: '-3%',
+    jokePunchlineRate: '+8%',
+    jokeFullRate: '+2%',
+    jokeBreakMs: 420,
+    riddlePromptRate: '-4%',
+    riddleAnswerRate: '+6%',
+    riddleBreakMs: 320,
+    factsRate: '0%',
+    quotesRate: '-2%',
+    jokePunchlinePitch: '+2Hz',
+    riddleAnswerPitch: '+1Hz',
+    styleJokes: '',
+    styleRiddles: '',
+    styleFacts: '',
+    styleQuotes: '',
+    styleAnswers: ''
+});
 
 function parseArgs(argv) {
     const args = {};
@@ -24,6 +45,73 @@ function parseArgs(argv) {
         args[key] = value;
     });
     return args;
+}
+
+function parseBooleanFlag(value, fallback = false) {
+    if (value === undefined || value === null || value === '') return fallback;
+    const normalized = String(value).trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on') return true;
+    if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') return false;
+    return fallback;
+}
+
+function parseIntegerFlag(value, fallback = 0) {
+    const parsed = Number.parseInt(String(value ?? ''), 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function readJsonFile(filePath = '', fallback = {}) {
+    const candidate = String(filePath || '').trim();
+    if (!candidate || !fs.existsSync(candidate)) return fallback;
+    try {
+        return JSON.parse(fs.readFileSync(candidate, 'utf8'));
+    } catch {
+        return fallback;
+    }
+}
+
+function readProsodyStringArg(args, key, fileConfig, fallback = '') {
+    const fromArg = String(args[key] || '').trim();
+    if (fromArg) return fromArg;
+    const fromFile = String(fileConfig[key] || '').trim();
+    if (fromFile) return fromFile;
+    return fallback;
+}
+
+function buildProsodySettings(args = {}, rootDir = '') {
+    const configPath = String(args['prosody-config'] || '').trim();
+    const resolvedConfigPath = configPath
+        ? path.resolve(rootDir, configPath)
+        : '';
+    const fileConfig = readJsonFile(resolvedConfigPath, {});
+    const settings = {
+        enabled: parseBooleanFlag(
+            args.prosody,
+            parseBooleanFlag(fileConfig.enabled, DEFAULT_PROSODY_SETTINGS.enabled)
+        ),
+        defaultRate: readProsodyStringArg(args, 'default-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.defaultRate),
+        defaultPitch: readProsodyStringArg(args, 'default-pitch', fileConfig, DEFAULT_PROSODY_SETTINGS.defaultPitch),
+        jokeSetupRate: readProsodyStringArg(args, 'joke-setup-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.jokeSetupRate),
+        jokePunchlineRate: readProsodyStringArg(args, 'joke-punchline-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.jokePunchlineRate),
+        jokeFullRate: readProsodyStringArg(args, 'joke-full-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.jokeFullRate),
+        jokeBreakMs: Math.max(0, parseIntegerFlag(args['joke-break-ms'], parseIntegerFlag(fileConfig.jokeBreakMs, DEFAULT_PROSODY_SETTINGS.jokeBreakMs))),
+        riddlePromptRate: readProsodyStringArg(args, 'riddle-prompt-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.riddlePromptRate),
+        riddleAnswerRate: readProsodyStringArg(args, 'riddle-answer-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.riddleAnswerRate),
+        riddleBreakMs: Math.max(0, parseIntegerFlag(args['riddle-break-ms'], parseIntegerFlag(fileConfig.riddleBreakMs, DEFAULT_PROSODY_SETTINGS.riddleBreakMs))),
+        factsRate: readProsodyStringArg(args, 'facts-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.factsRate),
+        quotesRate: readProsodyStringArg(args, 'quotes-rate', fileConfig, DEFAULT_PROSODY_SETTINGS.quotesRate),
+        jokePunchlinePitch: readProsodyStringArg(args, 'joke-punchline-pitch', fileConfig, DEFAULT_PROSODY_SETTINGS.jokePunchlinePitch),
+        riddleAnswerPitch: readProsodyStringArg(args, 'riddle-answer-pitch', fileConfig, DEFAULT_PROSODY_SETTINGS.riddleAnswerPitch),
+        styleJokes: readProsodyStringArg(args, 'style-jokes', fileConfig, DEFAULT_PROSODY_SETTINGS.styleJokes),
+        styleRiddles: readProsodyStringArg(args, 'style-riddles', fileConfig, DEFAULT_PROSODY_SETTINGS.styleRiddles),
+        styleFacts: readProsodyStringArg(args, 'style-facts', fileConfig, DEFAULT_PROSODY_SETTINGS.styleFacts),
+        styleQuotes: readProsodyStringArg(args, 'style-quotes', fileConfig, DEFAULT_PROSODY_SETTINGS.styleQuotes),
+        styleAnswers: readProsodyStringArg(args, 'style-answers', fileConfig, DEFAULT_PROSODY_SETTINGS.styleAnswers)
+    };
+    return {
+        ...settings,
+        configPath: resolvedConfigPath
+    };
 }
 
 function toForwardSlash(value = '') {
@@ -116,13 +204,19 @@ this.__BONUS_YOUNG__ = BONUS_CONTENT_YOUNG;`,
 function collectBonusUtterances(pools = []) {
     const deduped = new Map();
 
-    function addLine(raw = '', source = '') {
+    function addLine(raw = '', source = '', metadata = {}) {
         const line = normalizeBonusLine(raw);
         if (!line) return;
         const keyText = normalizeBonusManifestKeyText(line);
         if (!keyText) return;
         if (!deduped.has(keyText)) {
-            deduped.set(keyText, { keyText, text: line, source });
+            deduped.set(keyText, {
+                keyText,
+                text: line,
+                source,
+                bonusType: String(metadata.bonusType || '').trim(),
+                variant: String(metadata.variant || '').trim()
+            });
         }
     }
 
@@ -133,16 +227,27 @@ function collectBonusUtterances(pools = []) {
                 const source = `${poolIndex === 0 ? 'general' : 'young'}:${type}`;
                 const base = normalizeBonusLine(line);
                 if (!base) return;
-                addLine(base, source);
+                addLine(base, source, { bonusType: type, variant: 'base' });
 
                 if (type === 'jokes') {
                     const parsed = splitJokeSetupAndPunchline(base);
-                    if (parsed.setup) addLine(parsed.setup, `${source}:setup`);
-                    if (parsed.setup && parsed.punchline) addLine(`${parsed.setup} ${parsed.punchline}`, `${source}:full`);
+                    if (parsed.setup) {
+                        addLine(parsed.setup, `${source}:setup`, { bonusType: type, variant: 'setup' });
+                    }
+                    if (parsed.punchline) {
+                        addLine(parsed.punchline, `${source}:punchline`, { bonusType: type, variant: 'punchline' });
+                    }
+                    if (parsed.setup && parsed.punchline) {
+                        addLine(`${parsed.setup} ${parsed.punchline}`, `${source}:full`, { bonusType: type, variant: 'full' });
+                    }
                 } else if (type === 'riddles') {
                     const parsed = splitRiddlePromptAndAnswer(base);
-                    if (parsed.prompt) addLine(parsed.prompt, `${source}:prompt`);
-                    if (parsed.answer) addLine(parsed.answer, `${source}:answer`);
+                    if (parsed.prompt) {
+                        addLine(parsed.prompt, `${source}:prompt`, { bonusType: type, variant: 'prompt' });
+                    }
+                    if (parsed.answer) {
+                        addLine(parsed.answer, `${source}:answer`, { bonusType: type, variant: 'answer' });
+                    }
                 }
             });
         });
@@ -183,8 +288,136 @@ async function fetchAzureToken(region, subscriptionKey) {
     return token;
 }
 
-async function synthesizeTextToMp3({ token, region, voice, locale, text }) {
-    const ssml = `<speak version="1.0" xml:lang="${escapeXml(locale)}"><voice name="${escapeXml(voice)}">${escapeXml(text)}</voice></speak>`;
+function buildPlainSsml({ voice, locale, text }) {
+    return `<speak version="1.0" xml:lang="${escapeXml(locale)}"><voice name="${escapeXml(voice)}">${escapeXml(text)}</voice></speak>`;
+}
+
+function buildProsodyChunk(text = '', { rate = '', pitch = '', style = '' } = {}) {
+    const normalizedText = normalizeBonusLine(text);
+    if (!normalizedText) return '';
+    const attrs = [];
+    if (String(rate || '').trim()) attrs.push(`rate="${escapeXml(String(rate).trim())}"`);
+    if (String(pitch || '').trim()) attrs.push(`pitch="${escapeXml(String(pitch).trim())}"`);
+    const base = attrs.length
+        ? `<prosody ${attrs.join(' ')}>${escapeXml(normalizedText)}</prosody>`
+        : escapeXml(normalizedText);
+    const styleValue = String(style || '').trim();
+    if (!styleValue) return base;
+    return `<mstts:express-as style="${escapeXml(styleValue)}">${base}</mstts:express-as>`;
+}
+
+function buildProsodySsml(task, { voice, locale, prosodySettings }) {
+    if (!prosodySettings?.enabled) return '';
+    const type = String(task?.bonusType || '').trim();
+    const variant = String(task?.variant || '').trim();
+
+    const pushBreak = (ms) => `<break time="${Math.max(0, Number(ms) || 0)}ms"/>`;
+    const chunks = [];
+
+    if (type === 'jokes') {
+        const parsed = splitJokeSetupAndPunchline(task.text || '');
+        const setup = parsed.setup || '';
+        const punchline = parsed.punchline || '';
+        if (variant === 'setup' && setup) {
+            chunks.push(buildProsodyChunk(setup, {
+                rate: prosodySettings.jokeSetupRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleJokes
+            }));
+        } else if (variant === 'punchline' && punchline) {
+            chunks.push(buildProsodyChunk(punchline, {
+                rate: prosodySettings.jokePunchlineRate,
+                pitch: prosodySettings.jokePunchlinePitch || prosodySettings.defaultPitch,
+                style: prosodySettings.styleAnswers || prosodySettings.styleJokes
+            }));
+        } else if ((variant === 'full' || variant === 'base') && setup && punchline) {
+            chunks.push(buildProsodyChunk(setup, {
+                rate: prosodySettings.jokeSetupRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleJokes
+            }));
+            chunks.push(pushBreak(prosodySettings.jokeBreakMs));
+            chunks.push(buildProsodyChunk(punchline, {
+                rate: prosodySettings.jokePunchlineRate,
+                pitch: prosodySettings.jokePunchlinePitch || prosodySettings.defaultPitch,
+                style: prosodySettings.styleAnswers || prosodySettings.styleJokes
+            }));
+        } else {
+            chunks.push(buildProsodyChunk(task.text, {
+                rate: prosodySettings.jokeFullRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleJokes
+            }));
+        }
+    } else if (type === 'riddles') {
+        const parsed = splitRiddlePromptAndAnswer(task.text || '');
+        const prompt = parsed.prompt || '';
+        const answer = parsed.answer || '';
+        if (variant === 'prompt' && prompt) {
+            chunks.push(buildProsodyChunk(prompt, {
+                rate: prosodySettings.riddlePromptRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleRiddles
+            }));
+        } else if (variant === 'answer' && answer) {
+            chunks.push(buildProsodyChunk(answer, {
+                rate: prosodySettings.riddleAnswerRate,
+                pitch: prosodySettings.riddleAnswerPitch || prosodySettings.defaultPitch,
+                style: prosodySettings.styleAnswers || prosodySettings.styleRiddles
+            }));
+        } else if ((variant === 'full' || variant === 'base') && prompt && answer) {
+            chunks.push(buildProsodyChunk(prompt, {
+                rate: prosodySettings.riddlePromptRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleRiddles
+            }));
+            chunks.push(pushBreak(prosodySettings.riddleBreakMs));
+            chunks.push(buildProsodyChunk(answer, {
+                rate: prosodySettings.riddleAnswerRate,
+                pitch: prosodySettings.riddleAnswerPitch || prosodySettings.defaultPitch,
+                style: prosodySettings.styleAnswers || prosodySettings.styleRiddles
+            }));
+        } else {
+            chunks.push(buildProsodyChunk(task.text, {
+                rate: prosodySettings.riddlePromptRate,
+                pitch: prosodySettings.defaultPitch,
+                style: prosodySettings.styleRiddles
+            }));
+        }
+    } else if (type === 'facts') {
+        chunks.push(buildProsodyChunk(task.text, {
+            rate: prosodySettings.factsRate,
+            pitch: prosodySettings.defaultPitch,
+            style: prosodySettings.styleFacts
+        }));
+    } else if (type === 'quotes') {
+        chunks.push(buildProsodyChunk(task.text, {
+            rate: prosodySettings.quotesRate,
+            pitch: prosodySettings.defaultPitch,
+            style: prosodySettings.styleQuotes
+        }));
+    } else {
+        chunks.push(buildProsodyChunk(task.text, {
+            rate: prosodySettings.defaultRate,
+            pitch: prosodySettings.defaultPitch
+        }));
+    }
+
+    const body = chunks.filter(Boolean).join('');
+    if (!body) return '';
+    return `<speak version="1.0" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="${escapeXml(locale)}"><voice name="${escapeXml(voice)}">${body}</voice></speak>`;
+}
+
+function buildSsmlVariants(task, { voice, locale, prosodySettings }) {
+    const variants = [];
+    const expressive = buildProsodySsml(task, { voice, locale, prosodySettings });
+    if (expressive) variants.push(expressive);
+    variants.push(buildPlainSsml({ voice, locale, text: task.text || '' }));
+    return Array.from(new Set(variants));
+}
+
+async function synthesizeTextToMp3({ token, region, voice, locale, text, ssml }) {
+    const ssmlBody = String(ssml || '').trim() || buildPlainSsml({ voice, locale, text });
     const response = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
         method: 'POST',
         headers: {
@@ -193,7 +426,7 @@ async function synthesizeTextToMp3({ token, region, voice, locale, text }) {
             'X-Microsoft-OutputFormat': OUTPUT_FORMAT,
             'User-Agent': 'cornerstone-mtss-bonus-tts-exporter'
         },
-        body: ssml
+        body: ssmlBody
     });
     if (!response.ok) {
         const body = await response.text();
@@ -231,7 +464,7 @@ Required:
 Optional:
   --pack-id=ava-multi             (default: ava-multi)
   --pack-name="Ava Multilingual"  (defaults to existing manifest value when present)
-  --voice=en-US-AvaMultilingualNeural
+  --voice=en-US-Ava:DragonHDLatestNeural
   --app=app.js
   --out=audio/tts/packs/<pack-id>
   --manifest-base=audio/tts/packs/<pack-id>
@@ -239,6 +472,14 @@ Optional:
   --dry-run=true                  list counts only, no Azure requests
   --limit=50                      cap number of lines
   --retries=2
+  --prosody=true                  enable SSML pacing/prosody (default: true)
+  --prosody-config=path.json      optional JSON override for rates/styles/breaks
+  --joke-setup-rate=-3%
+  --joke-punchline-rate=+8%
+  --joke-break-ms=420
+  --riddle-prompt-rate=-4%
+  --riddle-answer-rate=+6%
+  --riddle-break-ms=320
 `);
 }
 
@@ -262,6 +503,7 @@ async function main() {
     const limit = Number.isFinite(Number(args.limit)) ? Math.max(0, Number(args.limit)) : 0;
     const voice = String(args.voice || DEFAULT_VOICE).trim() || DEFAULT_VOICE;
     const locale = localeFromVoice(voice);
+    const prosodySettings = buildProsodySettings(args, rootDir);
     const region = String(args.region || process.env.AZURE_SPEECH_REGION || '').trim();
     const key = String(args.key || process.env.AZURE_SPEECH_KEY || '').trim();
     const hasCredentials = !!(region && key);
@@ -297,6 +539,13 @@ async function main() {
     console.log(`[Bonus TTS] utterances=${tasks.length} generate=${toGenerate.length} reuse=${tasks.length - toGenerate.length}`);
 
     if (dryRun) {
+        const byType = tasks.reduce((acc, task) => {
+            const keyName = task.bonusType || 'other';
+            acc[keyName] = (acc[keyName] || 0) + 1;
+            return acc;
+        }, {});
+        console.log(`[Bonus TTS] voice=${voice} locale=${locale} prosody=${prosodySettings.enabled ? 'on' : 'off'}`);
+        console.log(`[Bonus TTS] type-breakdown=${JSON.stringify(byType)}`);
         console.log('[Bonus TTS] Dry run complete. No Azure requests were made.');
         return;
     }
@@ -314,6 +563,8 @@ async function main() {
     let generated = 0;
     let reused = 0;
     let failed = 0;
+    let generatedWithProsody = 0;
+    let generatedWithPlainFallback = 0;
     const failures = [];
 
     for (let i = 0; i < tasks.length; i += 1) {
@@ -328,24 +579,35 @@ async function main() {
             }
             let success = false;
             let lastError = '';
-            for (let attempt = 0; attempt <= retries; attempt += 1) {
-                try {
-                    const buffer = await synthesizeTextToMp3({
-                        token,
-                        region,
-                        voice,
-                        locale,
-                        text: task.text
-                    });
-                    fs.writeFileSync(task.absolutePath, buffer);
-                    generated += 1;
-                    success = true;
-                    break;
-                } catch (error) {
-                    lastError = error && error.message ? error.message : 'Unknown TTS error';
-                    const transient = /(terminated|timeout|timed out|socket|network|fetch failed|econnreset|aborted|429|502|503|504)/i.test(lastError);
-                    if (attempt >= retries || !transient) break;
+            const ssmlVariants = buildSsmlVariants(task, { voice, locale, prosodySettings });
+            for (let ssmlIndex = 0; ssmlIndex < ssmlVariants.length; ssmlIndex += 1) {
+                const ssml = ssmlVariants[ssmlIndex];
+                for (let attempt = 0; attempt <= retries; attempt += 1) {
+                    try {
+                        const buffer = await synthesizeTextToMp3({
+                            token,
+                            region,
+                            voice,
+                            locale,
+                            text: task.text,
+                            ssml
+                        });
+                        fs.writeFileSync(task.absolutePath, buffer);
+                        generated += 1;
+                        if (ssmlIndex === 0 && prosodySettings.enabled) {
+                            generatedWithProsody += 1;
+                        } else {
+                            generatedWithPlainFallback += 1;
+                        }
+                        success = true;
+                        break;
+                    } catch (error) {
+                        lastError = error && error.message ? error.message : 'Unknown TTS error';
+                        const transient = /(terminated|timeout|timed out|socket|network|fetch failed|econnreset|aborted|429|502|503|504)/i.test(lastError);
+                        if (attempt >= retries || !transient) break;
+                    }
                 }
+                if (success) break;
             }
             if (!success) {
                 failed += 1;
@@ -355,7 +617,7 @@ async function main() {
         }
 
         if ((i + 1) % 25 === 0 || i === tasks.length - 1) {
-            console.log(`[Bonus TTS] progress ${i + 1}/${tasks.length} (generated=${generated}, reused=${reused}, failed=${failed})`);
+            console.log(`[Bonus TTS] progress ${i + 1}/${tasks.length} (generated=${generated}, reused=${reused}, failed=${failed}, prosody=${generatedWithProsody}, fallback=${generatedWithPlainFallback})`);
         }
     }
 
@@ -400,8 +662,11 @@ async function main() {
         generated,
         reused,
         failed,
+        generatedWithProsody,
+        generatedWithPlainFallback,
         voice,
         locale,
+        prosodySettings,
         retries,
         failures
     }, null, 2));

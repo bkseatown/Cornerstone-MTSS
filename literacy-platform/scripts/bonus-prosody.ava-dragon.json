@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "defaultRate": "0%",
+  "defaultPitch": "0Hz",
+  "jokeSetupRate": "-3%",
+  "jokePunchlineRate": "+8%",
+  "jokeFullRate": "+2%",
+  "jokeBreakMs": 420,
+  "riddlePromptRate": "-4%",
+  "riddleAnswerRate": "+6%",
+  "riddleBreakMs": 320,
+  "factsRate": "0%",
+  "quotesRate": "-2%",
+  "jokePunchlinePitch": "+2Hz",
+  "riddleAnswerPitch": "+1Hz",
+  "styleJokes": "",
+  "styleRiddles": "",
+  "styleFacts": "",
+  "styleQuotes": "",
+  "styleAnswers": ""
+}
