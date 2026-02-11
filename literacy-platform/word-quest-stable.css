@@ -767,20 +767,27 @@ body.word-quest-page .controls {
     margin-bottom: 0 !important;
     padding: 0 !important;
     display: grid !important;
-    grid-template-columns: minmax(280px, 420px) auto auto !important;
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
     align-items: end !important;
     gap: 6px 10px !important;
 }
 
 body.word-quest-page .wq-control-focus {
-    width: min(420px, calc(100vw - 260px)) !important;
-    max-width: min(420px, calc(100vw - 260px)) !important;
+    justify-self: start !important;
+    width: min(360px, 100%) !important;
+    max-width: min(360px, 100%) !important;
 }
 
 body.word-quest-page .controls #pattern-select {
     min-width: 0 !important;
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 360px !important;
+}
+
+body.word-quest-page .wq-control-new-round,
+body.word-quest-page .wq-tools-control {
+    justify-self: end !important;
+    opacity: 1 !important;
 }
 
 body.word-quest-page .controls .control-group > label {
@@ -1157,7 +1164,8 @@ body.word-quest-page .wq-tools-teacher-head strong {
 
 body.word-quest-page .wq-tools-teacher-head span {
     font-size: 0.78rem !important;
-    opacity: 0.92 !important;
+    color: #475569 !important;
+    opacity: 1 !important;
 }
 
 body.word-quest-page .wq-tools-teacher-card .quick-custom-word-body {
@@ -1189,6 +1197,7 @@ body.word-quest-page .wq-tools-teacher-card .quick-custom-word-list label {
     margin-bottom: 6px !important;
     font-size: 0.79rem !important;
     font-weight: 760 !important;
+    color: #475569 !important;
 }
 
 body.word-quest-page .wq-tools-teacher-card #quick-custom-word-list-input {
@@ -1216,6 +1225,7 @@ body.word-quest-page .wq-tools-teacher-card #quick-custom-word-file {
 body.word-quest-page .wq-tools-teacher-card .quick-custom-word-list-status,
 body.word-quest-page .wq-tools-teacher-card .quick-custom-word-status {
     font-size: 0.8rem !important;
+    color: #334155 !important;
 }
 
 body.word-quest-page .wq-tools-teacher-card .quick-custom-word-list-status.error {
@@ -1257,6 +1267,14 @@ body.word-quest-page .wq-palette-field > span {
     font-weight: 760 !important;
     letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
+    color: #475569 !important;
+}
+
+body.word-quest-page .wq-tools-body .wq-tools-field > span,
+body.word-quest-page .wq-tools-body .wq-tools-switch,
+body.word-quest-page .wq-tools-body .wq-tools-switch > span {
+    color: #475569 !important;
+    opacity: 1 !important;
 }
 
 body.word-quest-page .wq-palette-select {
