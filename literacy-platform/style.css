@@ -16160,6 +16160,7 @@ body.word-quest-page.cs-hv2-theme-calm {
     --wq-keyboard-surface: rgba(236, 245, 241, 0.74);
     --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(237, 245, 241, 0.95) 100%);
     --wq-key-border: rgba(112, 136, 133, 0.4);
+    background: linear-gradient(180deg, #f2f6f7 0%, #ecf2ed 42%, #f7f4ec 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-professional {
@@ -16176,6 +16177,7 @@ body.word-quest-page.cs-hv2-theme-professional {
     --wq-key-border: rgba(84, 112, 158, 0.42);
     --wq-key-radius: 12px;
     --wq-panel-radius: 12px;
+    background: linear-gradient(180deg, #eaf0f8 0%, #dfe8f4 54%, #d8e2f1 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-playful {
@@ -16195,6 +16197,7 @@ body.word-quest-page.cs-hv2-theme-playful {
     --wq-key-text: #1f2a44;
     --wq-key-radius: 16px;
     --wq-panel-radius: 18px;
+    background: linear-gradient(180deg, #fff9ef 0%, #fff1ef 40%, #eef4ff 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-high-contrast {
@@ -16205,9 +16208,9 @@ body.word-quest-page.cs-hv2-theme-high-contrast {
 body.word-quest-page #game-canvas,
 body.word-quest-page.fit-screen #game-canvas,
 body.word-quest-page.fit-screen-tight #game-canvas {
-    max-width: min(100%, 1020px) !important;
-    padding: 12px 14px 16px !important;
-    gap: 14px !important;
+    max-width: min(100%, 980px) !important;
+    padding: 10px 12px 14px !important;
+    gap: 12px !important;
     isolation: isolate !important;
     overflow: visible !important;
 }
@@ -16224,33 +16227,42 @@ body.word-quest-page .sentence-preview:empty {
     min-height: 0 !important;
 }
 
+body.word-quest-page #sentence-preview:not(.has-caption),
+body.word-quest-page .sentence-preview:not(.has-caption) {
+    display: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 body.word-quest-page #game-board,
 body.word-quest-page.fit-screen #game-board,
 body.word-quest-page.fit-screen-tight #game-board {
-    max-width: min(100%, 620px) !important;
+    max-width: min(100%, 560px) !important;
     margin: 0 auto !important;
-    padding: 14px !important;
-    gap: 8px !important;
+    padding: 12px !important;
+    gap: 7px !important;
 }
 
 body.word-quest-page #game-board .tile,
 body.word-quest-page #game-board .cell,
 body.word-quest-page #game-board [data-tile] {
-    width: clamp(50px, 4.8vw, 66px) !important;
-    height: clamp(50px, 4.8vw, 66px) !important;
-    font-size: clamp(1.15rem, 2vw, 1.9rem) !important;
-    border-radius: 15px !important;
+    width: clamp(46px, 4.3vw, 60px) !important;
+    height: clamp(46px, 4.3vw, 60px) !important;
+    font-size: clamp(1.05rem, 1.8vw, 1.6rem) !important;
+    border-radius: 14px !important;
 }
 
 body.word-quest-page #keyboard,
 body.word-quest-page.fit-screen #keyboard,
 body.word-quest-page.fit-screen-tight #keyboard {
-    width: min(100%, 840px) !important;
-    max-width: min(100%, 840px) !important;
-    min-height: clamp(214px, 31vh, 286px) !important;
+    width: min(100%, 780px) !important;
+    max-width: min(100%, 780px) !important;
+    min-height: clamp(188px, 28vh, 238px) !important;
     margin-inline: auto !important;
-    padding: 12px !important;
-    gap: 8px !important;
+    padding: 10px !important;
+    gap: 6px !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
@@ -16258,95 +16270,95 @@ body.word-quest-page.fit-screen-tight #keyboard {
 body.word-quest-page .keyboard-row,
 body.word-quest-page.fit-screen .keyboard-row,
 body.word-quest-page.fit-screen-tight .keyboard-row {
-    gap: 7px !important;
+    gap: 6px !important;
 }
 
 body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
 body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
 body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-    flex: 0 0 clamp(44px, 4.9vw, 58px) !important;
-    width: clamp(44px, 4.9vw, 58px) !important;
-    min-width: clamp(44px, 4.9vw, 58px) !important;
-    max-width: clamp(44px, 4.9vw, 58px) !important;
-    min-height: clamp(48px, 4.9vw, 58px) !important;
-    padding: 7px !important;
-    font-size: clamp(0.95rem, 1.25vw, 1.1rem) !important;
+    flex: 0 0 clamp(40px, 4.35vw, 52px) !important;
+    width: clamp(40px, 4.35vw, 52px) !important;
+    min-width: clamp(40px, 4.35vw, 52px) !important;
+    max-width: clamp(40px, 4.35vw, 52px) !important;
+    min-height: clamp(44px, 4.35vw, 52px) !important;
+    padding: 6px !important;
+    font-size: clamp(0.86rem, 1.08vw, 1rem) !important;
 }
 
 body.word-quest-page #keyboard .key.wide,
 body.word-quest-page.fit-screen #keyboard .key.wide,
 body.word-quest-page.fit-screen-tight #keyboard .key.wide {
-    flex: 0 0 clamp(78px, 10.6vw, 106px) !important;
-    width: clamp(78px, 10.6vw, 106px) !important;
-    min-width: clamp(78px, 10.6vw, 106px) !important;
-    max-width: clamp(78px, 10.6vw, 106px) !important;
-    font-size: clamp(0.74rem, 0.95vw, 0.88rem) !important;
+    flex: 0 0 clamp(72px, 9.2vw, 94px) !important;
+    width: clamp(72px, 9.2vw, 94px) !important;
+    min-width: clamp(72px, 9.2vw, 94px) !important;
+    max-width: clamp(72px, 9.2vw, 94px) !important;
+    font-size: clamp(0.66rem, 0.82vw, 0.78rem) !important;
 }
 
 @media (max-width: 1024px) {
     body.word-quest-page #game-canvas,
     body.word-quest-page.fit-screen #game-canvas,
     body.word-quest-page.fit-screen-tight #game-canvas {
-        max-width: min(100%, 920px) !important;
-        padding: 10px 12px 14px !important;
-        gap: 12px !important;
+        max-width: min(100%, 900px) !important;
+        padding: 9px 10px 12px !important;
+        gap: 10px !important;
     }
 
     body.word-quest-page #game-board,
     body.word-quest-page.fit-screen #game-board,
     body.word-quest-page.fit-screen-tight #game-board {
-        max-width: min(100%, 560px) !important;
-        padding: 12px !important;
-        gap: 7px !important;
+        max-width: min(100%, 520px) !important;
+        padding: 10px !important;
+        gap: 6px !important;
     }
 
     body.word-quest-page #game-board .tile,
     body.word-quest-page #game-board .cell,
     body.word-quest-page #game-board [data-tile] {
-        width: clamp(46px, 6.2vw, 58px) !important;
-        height: clamp(46px, 6.2vw, 58px) !important;
-        font-size: clamp(1.02rem, 2.2vw, 1.55rem) !important;
+        width: clamp(42px, 5.6vw, 54px) !important;
+        height: clamp(42px, 5.6vw, 54px) !important;
+        font-size: clamp(0.94rem, 1.9vw, 1.35rem) !important;
     }
 
     body.word-quest-page #keyboard,
     body.word-quest-page.fit-screen #keyboard,
     body.word-quest-page.fit-screen-tight #keyboard {
-        min-height: clamp(206px, 30vh, 248px) !important;
-        width: min(100%, 760px) !important;
-        max-width: min(100%, 760px) !important;
-        padding: 10px !important;
-        gap: 7px !important;
+        min-height: clamp(180px, 26vh, 216px) !important;
+        width: min(100%, 700px) !important;
+        max-width: min(100%, 700px) !important;
+        padding: 8px !important;
+        gap: 5px !important;
     }
 
     body.word-quest-page .keyboard-row,
     body.word-quest-page.fit-screen .keyboard-row,
     body.word-quest-page.fit-screen-tight .keyboard-row {
-        gap: 6px !important;
+        gap: 5px !important;
     }
 
     body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-        flex-basis: clamp(40px, 5.8vw, 50px) !important;
-        width: clamp(40px, 5.8vw, 50px) !important;
-        min-width: clamp(40px, 5.8vw, 50px) !important;
-        max-width: clamp(40px, 5.8vw, 50px) !important;
-        min-height: clamp(44px, 5.8vw, 50px) !important;
-        font-size: clamp(0.86rem, 1.7vw, 1rem) !important;
+        flex-basis: clamp(34px, 5vw, 44px) !important;
+        width: clamp(34px, 5vw, 44px) !important;
+        min-width: clamp(34px, 5vw, 44px) !important;
+        max-width: clamp(34px, 5vw, 44px) !important;
+        min-height: clamp(38px, 5vw, 44px) !important;
+        font-size: clamp(0.76rem, 1.35vw, 0.9rem) !important;
     }
 
     body.word-quest-page #keyboard .key.wide,
     body.word-quest-page.fit-screen #keyboard .key.wide,
     body.word-quest-page.fit-screen-tight #keyboard .key.wide {
-        flex-basis: clamp(66px, 9.9vw, 88px) !important;
-        width: clamp(66px, 9.9vw, 88px) !important;
-        min-width: clamp(66px, 9.9vw, 88px) !important;
-        max-width: clamp(66px, 9.9vw, 88px) !important;
-        font-size: clamp(0.64rem, 1.25vw, 0.78rem) !important;
+        flex-basis: clamp(54px, 8.1vw, 74px) !important;
+        width: clamp(54px, 8.1vw, 74px) !important;
+        min-width: clamp(54px, 8.1vw, 74px) !important;
+        max-width: clamp(54px, 8.1vw, 74px) !important;
+        font-size: clamp(0.56rem, 0.95vw, 0.68rem) !important;
     }
 }
 
-@media (max-height: 850px) and (min-width: 760px) {
+@media (max-height: 940px) and (min-width: 760px) {
     body.word-quest-page #game-canvas,
     body.word-quest-page.fit-screen #game-canvas,
     body.word-quest-page.fit-screen-tight #game-canvas {
@@ -16365,13 +16377,13 @@ body.word-quest-page.fit-screen-tight #keyboard .key.wide {
     body.word-quest-page #keyboard,
     body.word-quest-page.fit-screen #keyboard,
     body.word-quest-page.fit-screen-tight #keyboard {
-        min-height: clamp(196px, 28vh, 230px) !important;
-        padding: 8px !important;
+        min-height: clamp(172px, 24vh, 208px) !important;
+        padding: 7px !important;
     }
 
     body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-        min-height: clamp(40px, 4.4vw, 48px) !important;
+        min-height: clamp(36px, 4vw, 44px) !important;
     }
 }

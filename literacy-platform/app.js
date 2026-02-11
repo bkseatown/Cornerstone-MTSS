@@ -3755,8 +3755,10 @@ function ensureSentenceCaptionToggleControls() {
         toggle.checked = enabled;
         const hasPreview = !!String(sentencePreview.textContent || '').trim();
         if (!enabled || !hasPreview || sentencePreview.classList.contains('hidden')) {
+            sentencePreview.classList.remove('has-caption');
             hideBtn.classList.add('hidden');
         } else {
+            sentencePreview.classList.add('has-caption');
             hideBtn.classList.remove('hidden');
         }
     };
@@ -3767,6 +3769,7 @@ function ensureSentenceCaptionToggleControls() {
             writeSentenceCaptionMode(toggle.checked ? 'on' : 'off');
             if (!toggle.checked) {
                 sentencePreview.classList.add('hidden');
+                sentencePreview.classList.remove('has-caption');
             }
             sync();
         });
@@ -3776,6 +3779,7 @@ function ensureSentenceCaptionToggleControls() {
         hideBtn.dataset.bound = 'true';
         hideBtn.addEventListener('click', () => {
             sentencePreview.classList.add('hidden');
+            sentencePreview.classList.remove('has-caption');
             hideBtn.classList.add('hidden');
             hideBtn.blur();
         });
@@ -4241,9 +4245,11 @@ function initControls() {
                     sentencePreview.textContent = `"${sentence}"`;
                     if (captionsOn) {
                         sentencePreview.classList.remove('hidden');
+                        sentencePreview.classList.add('has-caption');
                         if (hideCaptionBtn instanceof HTMLButtonElement) hideCaptionBtn.classList.remove('hidden');
                     } else {
                         sentencePreview.classList.add('hidden');
+                        sentencePreview.classList.remove('has-caption');
                         if (hideCaptionBtn instanceof HTMLButtonElement) hideCaptionBtn.classList.add('hidden');
                     }
                 }
@@ -4260,7 +4266,9 @@ function initControls() {
                 }, 2000);
             } else {
                 if (sentencePreview) {
+                    sentencePreview.textContent = '';
                     sentencePreview.classList.add('hidden');
+                    sentencePreview.classList.remove('has-caption');
                 }
                 if (hideCaptionBtn instanceof HTMLButtonElement) hideCaptionBtn.classList.add('hidden');
                 const originalText = hearSentenceBtn.innerHTML;
