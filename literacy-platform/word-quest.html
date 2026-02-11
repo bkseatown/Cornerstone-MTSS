@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cs-build-hash" content="c36cd5bb" />
+    <meta name="cs-build-time" content="2026-02-11 00:00 UTC" />
     <title>CORNERSTONE MTSS — Word Quest</title>
     <script>
       (function () {
@@ -717,6 +719,80 @@
         font-size: clamp(1.1rem, 2vw, 1.35rem);
       }
     </style>
+    <script>
+      (function initWordQuestBuildStamp() {
+        function readMeta(name) {
+          var node = document.querySelector('meta[name="' + name + '"]');
+          if (!node) return '';
+          return String(node.getAttribute('content') || '').trim();
+        }
+
+        function readScriptVersion(prefix) {
+          var scripts = Array.from(document.querySelectorAll('script[src]'));
+          var target = scripts.find(function (node) {
+            return new RegExp(prefix.replace('.', '\\.') + '(\\?|$)').test(String(node.getAttribute('src') || ''));
+          });
+          if (!target) return '';
+          try {
+            var parsed = new URL(target.src, window.location.href);
+            return String(parsed.searchParams.get('v') || '').trim();
+          } catch (e) {
+            return '';
+          }
+        }
+
+        function ensureStyle() {
+          if (!document.head || document.getElementById('wq-build-stamp-style')) return;
+          var style = document.createElement('style');
+          style.id = 'wq-build-stamp-style';
+          style.textContent = [
+            '#wq-build-stamp {',
+            '  position: fixed;',
+            '  right: 12px;',
+            '  bottom: 52px;',
+            '  z-index: 2200;',
+            '  padding: 4px 10px;',
+            '  border-radius: 999px;',
+            '  border: 1px solid rgba(51, 65, 85, 0.25);',
+            '  background: rgba(248, 250, 252, 0.88);',
+            '  color: #334155;',
+            '  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);',
+            '  font: 600 11px/1.2 "Atkinson Hyperlegible", "Segoe UI", sans-serif;',
+            '  letter-spacing: 0.02em;',
+            '  pointer-events: none;',
+            '}',
+            '@media (max-width: 720px) {',
+            '  #wq-build-stamp { right: 8px; bottom: 46px; font-size: 10px; }',
+            '}',
+            '@media print {',
+            '  #wq-build-stamp { display: none !important; }',
+            '}'
+          ].join('\n');
+          document.head.appendChild(style);
+        }
+
+        function render() {
+          if (!document.body) return;
+          ensureStyle();
+          var hash = readMeta('cs-build-hash') || readScriptVersion('app.js') || 'local';
+          var time = readMeta('cs-build-time');
+          var badge = document.getElementById('wq-build-stamp');
+          if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'wq-build-stamp';
+            badge.setAttribute('aria-live', 'polite');
+            document.body.appendChild(badge);
+          }
+          badge.textContent = time ? ('Build: ' + hash + ' | ' + time) : ('Build: ' + hash);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', render);
+        } else {
+          render();
+        }
+      })();
+    </script>
     <script>
       (function initWordQuestThemeStudio() {
         var STORAGE_KEYS = {
