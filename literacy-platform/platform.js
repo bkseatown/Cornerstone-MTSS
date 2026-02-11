@@ -545,10 +545,20 @@
     return HOME_THEME_VALUES.includes(raw) ? raw : 'calm';
   }
 
-  function applyHomeThemeClass() {
+  function setHomeThemeClass(chosenTheme) {
     const root = document.documentElement;
     const body = document.body;
     if (!root || !body) return;
+    const chosen = normalizeHomeTheme(chosenTheme);
+    HOME_THEME_VALUES.forEach((theme) => {
+      root.classList.remove(`cs-hv2-theme-${theme}`);
+      body.classList.remove(`cs-hv2-theme-${theme}`);
+    });
+    root.classList.add(`cs-hv2-theme-${chosen}`);
+    body.classList.add(`cs-hv2-theme-${chosen}`);
+  }
+
+  function applyHomeThemeClass() {
     const params = new URLSearchParams(window.location.search || '');
     const fromUrl = String(params.get('theme') || '').trim().toLowerCase();
     const fromStorage = String(localStorage.getItem(HOME_THEME_KEY) || '').trim().toLowerCase();
@@ -558,12 +568,7 @@
     } else if (!fromStorage) {
       localStorage.setItem(HOME_THEME_KEY, chosen);
     }
-    HOME_THEME_VALUES.forEach((theme) => {
-      root.classList.remove(`cs-hv2-theme-${theme}`);
-      body.classList.remove(`cs-hv2-theme-${theme}`);
-    });
-    root.classList.add(`cs-hv2-theme-${chosen}`);
-    body.classList.add(`cs-hv2-theme-${chosen}`);
+    setHomeThemeClass(chosen);
   }
 
   function normalizeThemeStudioSetting(kind, value, fallback) {
@@ -659,8 +664,12 @@
 
     if (options.syncHomeTheme === true) {
       const mappedTheme = mapSceneToHomeTheme(nextState.scene);
-      localStorage.setItem(HOME_THEME_KEY, mappedTheme);
-      applyHomeThemeClass();
+      if (options.persist !== false) {
+        localStorage.setItem(HOME_THEME_KEY, mappedTheme);
+        applyHomeThemeClass();
+      } else {
+        setHomeThemeClass(mappedTheme);
+      }
     }
 
     return nextState;
@@ -730,6 +739,7 @@
           </div>
           <footer class="global-theme-studio-actions">
             <button type="button" class="secondary-btn" data-theme-studio-action="reset">Reset</button>
+            <button type="button" class="secondary-btn" data-theme-studio-action="cancel">Cancel</button>
             <button type="button" class="secondary-btn" data-theme-studio-action="done">Done</button>
           </footer>
         </section>
@@ -747,57 +757,93 @@
       if (key && node instanceof HTMLSelectElement) map[key] = node;
       return map;
     }, {});
+    const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
+    const syncControls = (snapshot) => {
+      Object.entries(selectByField).forEach(([key, select]) => {
+        if (hasOwn(snapshot, key)) select.value = String(snapshot[key]);
+      });
+    };
+
+    const hideOverlay = () => {
+      overlay.classList.add('hidden');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('theme-studio-open');
+    };
+
+    const cancelStudio = () => {
+      const studio = overlay.__themeStudioState;
+      if (studio && studio.committed) {
+        studio.draft = applyThemeStudioState(studio.committed, { persist: false, syncHomeTheme: true });
+        syncControls(studio.draft);
+      }
+      hideOverlay();
+    };
+
+    const commitStudio = () => {
+      const studio = overlay.__themeStudioState;
+      if (studio && studio.draft) {
+        studio.committed = applyThemeStudioState(studio.draft, { persist: true, syncHomeTheme: true });
+      }
+      hideOverlay();
+    };
 
     const loaded = readThemeStudioState();
-    let state = applyThemeStudioState(loaded.state, { persist: false, syncHomeTheme: false });
-    Object.entries(selectByField).forEach(([key, select]) => {
-      if (Object.prototype.hasOwnProperty.call(state, key)) select.value = String(state[key]);
-    });
+    const committed = applyThemeStudioState(loaded.state, { persist: false, syncHomeTheme: true });
+    const draft = {
+      scene: committed.scene,
+      keyboard: committed.keyboard,
+      intensity: committed.intensity,
+      shape: committed.shape,
+      density: committed.density
+    };
+    overlay.__themeStudioState = { committed, draft };
+    syncControls(draft);
 
     if (overlay.dataset.bound !== 'true') {
       overlay.dataset.bound = 'true';
       overlay.addEventListener('change', (event) => {
         const target = event.target;
         if (!(target instanceof HTMLSelectElement)) return;
+        const studio = overlay.__themeStudioState;
+        if (!studio || !studio.draft) return;
         const field = String(target.getAttribute('data-theme-studio-field') || '').trim();
-        if (!Object.prototype.hasOwnProperty.call(state, field)) return;
-        state = applyThemeStudioState({
-          ...state,
+        if (!hasOwn(studio.draft, field)) return;
+        studio.draft = applyThemeStudioState({
+          ...studio.draft,
           [field]: target.value
-        }, { persist: true, syncHomeTheme: field === 'scene' });
+        }, { persist: false, syncHomeTheme: true });
       });
       overlay.addEventListener('click', (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
         if (target === overlay) {
-          overlay.classList.add('hidden');
-          overlay.setAttribute('aria-hidden', 'true');
-          document.body.classList.remove('theme-studio-open');
+          cancelStudio();
           return;
         }
-        const action = String(target.getAttribute('data-theme-studio-action') || '').trim();
+        const actionTarget = target.closest('[data-theme-studio-action]');
+        if (!(actionTarget instanceof HTMLElement)) return;
+        const action = String(actionTarget.getAttribute('data-theme-studio-action') || '').trim();
         if (!action) return;
-        if (action === 'close' || action === 'done') {
-          overlay.classList.add('hidden');
-          overlay.setAttribute('aria-hidden', 'true');
-          document.body.classList.remove('theme-studio-open');
+        if (action === 'close' || action === 'cancel') {
+          cancelStudio();
+          return;
+        }
+        if (action === 'done') {
+          commitStudio();
           return;
         }
         if (action === 'reset') {
-          clearThemeStudioState();
-          const refreshed = readThemeStudioState();
-          state = applyThemeStudioState(refreshed.state, { persist: true, syncHomeTheme: true });
-          Object.entries(selectByField).forEach(([key, select]) => {
-            if (Object.prototype.hasOwnProperty.call(state, key)) select.value = String(state[key]);
-          });
+          const studio = overlay.__themeStudioState;
+          if (!studio) return;
+          studio.draft = applyThemeStudioState(getThemeStudioDefaults(), { persist: false, syncHomeTheme: true });
+          syncControls(studio.draft);
         }
       });
       document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
         if (overlay.classList.contains('hidden')) return;
-        overlay.classList.add('hidden');
-        overlay.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('theme-studio-open');
+        cancelStudio();
       });
     }
 

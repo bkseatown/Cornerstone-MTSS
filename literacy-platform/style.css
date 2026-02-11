@@ -16595,15 +16595,18 @@ body[data-cs-scene="classic-contrast"]:not(.word-quest-page) :is(h1, h2, h3, h4,
     position: fixed;
     inset: 0;
     background: rgba(15, 23, 42, 0.46);
-    backdrop-filter: blur(5px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     display: grid;
     place-items: center;
     padding: 14px;
     z-index: 4000;
+    pointer-events: auto;
 }
 
 .global-theme-studio-overlay.hidden {
     display: none;
+    pointer-events: none;
 }
 
 .global-theme-studio-modal {

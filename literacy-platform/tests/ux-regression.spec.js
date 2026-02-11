@@ -9,6 +9,62 @@ function pageUrl(fileName) {
   return pathToFileURL(path.join(rootDir, fileName)).href;
 }
 
+async function closeBlockingOverlayIfPresent(page) {
+  const overlay = page.locator('#modal-overlay');
+  const isVisible = await overlay.isVisible().catch(() => false);
+  if (!isVisible) return;
+
+  const closeSelectors = [
+    '#start-playing-btn',
+    '#bonus-continue',
+    '.close-btn',
+    '.close-teacher',
+    '.close-studio'
+  ];
+
+  for (const selector of closeSelectors) {
+    const button = page.locator(selector).first();
+    const visible = await button.isVisible().catch(() => false);
+    if (!visible) continue;
+    await button.click();
+    await expect(overlay).toHaveClass(/hidden/, { timeout: 3000 });
+    return;
+  }
+
+  throw new Error('Modal overlay is visible but no close/continue button is available.');
+}
+
+async function clickWithElementFromPointGuard(page, selector) {
+  const target = page.locator(selector).first();
+  await expect(target).toBeVisible();
+  const box = await target.boundingBox();
+  if (!box) throw new Error(`selector=${selector} hit=null`);
+
+  const centerX = box.x + box.width / 2;
+  const centerY = box.y + box.height / 2;
+  const probe = await page.evaluate(({ cssSelector, x, y }) => {
+    const node = document.elementFromPoint(x, y);
+    if (!node) return { matches: false, hit: null };
+    const style = getComputedStyle(node);
+    return {
+      matches: !!(node.matches(cssSelector) || node.closest(cssSelector)),
+      hit: {
+        tag: String(node.tagName || '').toLowerCase(),
+        id: String(node.id || ''),
+        className: String(node.className || ''),
+        pointerEvents: String(style.pointerEvents || ''),
+        zIndex: String(style.zIndex || '')
+      }
+    };
+  }, { cssSelector: selector, x: centerX, y: centerY });
+
+  if (!probe.matches) {
+    throw new Error(`selector=${selector} hit=${JSON.stringify(probe.hit)}`);
+  }
+
+  await target.click();
+}
+
 async function openWordQuest(page, theme = 'calm') {
   await page.goto(pageUrl('word-quest.html'), { waitUntil: 'domcontentloaded' });
   await page.evaluate((selectedTheme) => {
@@ -156,5 +212,49 @@ test.describe('Theme propagation', () => {
     }
 
     expect(new Set(THEMES.map((theme) => byTheme[theme].pageBg)).size).toBe(3);
+  });
+
+  test('Theme Studio preview reverts on Cancel, persists on Done, and uses non-blurred overlay', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(pageUrl('word-quest.html'), { waitUntil: 'domcontentloaded' });
+    await closeBlockingOverlayIfPresent(page);
+    await expect(page.locator('#game-canvas')).toBeVisible();
+    await page.evaluate(() => {
+      localStorage.setItem('cs_hv2_theme', 'calm');
+      localStorage.setItem('cs_wq_scene', 'calm-studio');
+      localStorage.setItem('cs_wq_keyboard_style', 'auto');
+      localStorage.setItem('cs_wq_intensity', 'medium');
+      localStorage.setItem('cs_wq_shape', 'soft');
+      localStorage.setItem('cs_wq_density', 'standard');
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await closeBlockingOverlayIfPresent(page);
+
+    const launcherSelector = '#wq-theme-studio-btn';
+    const overlaySelector = '#wq-theme-studio-overlay';
+    const sceneSelector = '#wq-scene-select';
+    const cancelSelector = '#wq-theme-studio-close';
+    const doneSelector = '#wq-theme-studio-done';
+
+    await clickWithElementFromPointGuard(page, launcherSelector);
+    await expect(page.locator(overlaySelector)).toBeVisible();
+    const backdropFilter = await page.evaluate(() => getComputedStyle(document.getElementById('wq-theme-studio-overlay')).backdropFilter);
+    expect(backdropFilter === 'none' || backdropFilter === '').toBeTruthy();
+
+    await page.locator(sceneSelector).selectOption('professional-midnight');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('professional-midnight');
+
+    await clickWithElementFromPointGuard(page, cancelSelector);
+    await expect(page.locator(overlaySelector)).toBeHidden();
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('calm-studio');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('calm-studio');
+
+    await clickWithElementFromPointGuard(page, launcherSelector);
+    await expect(page.locator(overlaySelector)).toBeVisible();
+    await page.locator(sceneSelector).selectOption('playful-festival');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('playful-festival');
+    await clickWithElementFromPointGuard(page, doneSelector);
+    await expect(page.locator(overlaySelector)).toBeHidden();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('playful-festival');
   });
 });
