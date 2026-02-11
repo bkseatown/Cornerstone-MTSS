@@ -88,6 +88,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
     <link rel="stylesheet" href="style.css?v=20260212uxfix14" />
+    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix15" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -814,6 +815,9 @@
           }
 
           function closeStudio() {
+            if (document.activeElement && overlay.contains(document.activeElement)) {
+              openBtn.focus();
+            }
             overlay.classList.add('hidden');
             overlay.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('wq-theme-studio-open');
