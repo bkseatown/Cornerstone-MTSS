@@ -87,7 +87,7 @@
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
-    <link rel="stylesheet" href="style.css?v=20260210voice1" />
+    <link rel="stylesheet" href="style.css?v=20260211uxfix1" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -96,7 +96,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight1" defer></script>
-    <script src="app.js?v=20260210voice1" defer></script>
+    <script src="app.js?v=20260211uxfix1" defer></script>
   </head>
 
   <body class="word-quest-page force-light look-35">
@@ -166,12 +166,7 @@
           <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
         </div>
 
-        <div class="control-group control-group-subtle">
-          <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
-          <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
-        </div>
-
-        <div class="control-group control-group-subtle">
+        <div class="control-group control-group-subtle wq-theme-control">
           <label for="wq-theme-select">Theme</label>
           <select id="wq-theme-select" class="wq-theme-select" aria-label="Theme">
             <option value="calm">Calm</option>
@@ -179,6 +174,11 @@
             <option value="playful">Playful</option>
             <option value="high-contrast">Contrast</option>
           </select>
+        </div>
+
+        <div class="control-group control-group-subtle">
+          <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
+          <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
         </div>
       </div>
       <div id="focus-round-chip" class="focus-round-chip" aria-live="polite"></div>
@@ -478,12 +478,17 @@
     <style>
       .wq-theme-select {
         min-height: 36px;
+        min-width: 128px;
         border-radius: 10px;
         border: 1px solid rgba(99, 102, 241, 0.34);
         background: rgba(255, 255, 255, 0.9);
         color: #1e293b;
         font-weight: 700;
         padding: 6px 10px;
+      }
+
+      .wq-theme-control {
+        min-width: 136px;
       }
 
       .demo-exit-link {
@@ -526,16 +531,23 @@
           }
         }
         function init() {
-          var select = document.getElementById('wq-theme-select');
-          if (!select) return;
+          var selects = Array.prototype.slice.call(document.querySelectorAll('.wq-theme-select'));
+          if (!selects.length) return;
           var stored = 'calm';
           try { stored = normalizeTheme(localStorage.getItem(KEY)); } catch (e) {}
-          select.value = stored;
+          selects.forEach(function (select) {
+            select.value = stored;
+          });
           applyTheme(stored);
-          select.addEventListener('change', function () {
-            var next = normalizeTheme(select.value);
-            try { localStorage.setItem(KEY, next); } catch (e) {}
-            applyTheme(next);
+          selects.forEach(function (select) {
+            select.addEventListener('change', function () {
+              var next = normalizeTheme(select.value);
+              try { localStorage.setItem(KEY, next); } catch (e) {}
+              applyTheme(next);
+              selects.forEach(function (otherSelect) {
+                if (otherSelect !== select) otherSelect.value = next;
+              });
+            });
           });
         }
         if (document.readyState === 'loading') {
