@@ -308,7 +308,7 @@ test.describe('Theme propagation', () => {
     ))).toBe('cat');
   });
 
-  test('Voice popup supports outside-dismiss and drag/expand controls', async ({ page }) => {
+  test('Voice popup supports outside-dismiss with surface drag and edge resize', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await openWordQuest(page, 'calm');
 
@@ -316,9 +316,30 @@ test.describe('Theme propagation', () => {
     await clickWithElementFromPointGuard(page, '#simple-voice-settings');
 
     const overlay = page.locator('#voice-quick-overlay');
+    const popup = page.locator('#voice-quick-overlay .voice-quick-modal');
     await expect(overlay).toBeVisible();
-    await expect(page.locator('#voice-quick-overlay .popup-window-handle')).toBeVisible();
-    await expect(page.locator('#voice-quick-overlay .popup-window-expand-btn')).toBeVisible();
+
+    const beforeDrag = await popup.boundingBox();
+    if (!beforeDrag) throw new Error('voice popup box missing before drag');
+    await page.mouse.move(beforeDrag.x + 56, beforeDrag.y + 28);
+    await page.mouse.down();
+    await page.mouse.move(beforeDrag.x + 156, beforeDrag.y + 92);
+    await page.mouse.up();
+    const afterDrag = await popup.boundingBox();
+    if (!afterDrag) throw new Error('voice popup box missing after drag');
+    expect(Math.abs(afterDrag.x - beforeDrag.x)).toBeGreaterThan(20);
+
+    const beforeResize = await popup.boundingBox();
+    if (!beforeResize) throw new Error('voice popup box missing before resize');
+    await page.mouse.move(beforeResize.x + beforeResize.width - 3, beforeResize.y + beforeResize.height - 3);
+    await page.mouse.down();
+    await page.mouse.move(beforeResize.x + beforeResize.width + 72, beforeResize.y + beforeResize.height + 72);
+    await page.mouse.up();
+    const afterResize = await popup.boundingBox();
+    if (!afterResize) throw new Error('voice popup box missing after resize');
+    expect(afterResize.width).toBeGreaterThan(beforeResize.width + 16);
+    expect(afterResize.height).toBeGreaterThan(beforeResize.height + 16);
+
     await overlay.click({ position: { x: 6, y: 6 } });
     await expect(overlay).toHaveClass(/hidden/);
   });

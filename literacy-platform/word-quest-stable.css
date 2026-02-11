@@ -237,10 +237,14 @@ body.word-quest-page .wq-tools-body {
     width: min(360px, calc(100vw - 22px));
     border-radius: 14px;
     border: 1px solid color-mix(in srgb, var(--wq-panel-border) 92%, transparent);
-    background: color-mix(in srgb, var(--wq-canvas-surface) 88%, #ffffff 12%);
+    background: color-mix(in srgb, #ffffff 94%, var(--wq-heading-text) 6%);
     box-shadow: 0 16px 34px rgba(15, 23, 42, 0.22);
     padding: 10px;
     z-index: 2800;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
+    color: #0f172a;
 }
 
 body.word-quest-page #wq-tools-menu[open] .wq-tools-body {
@@ -1119,7 +1123,7 @@ body.word-quest-page .wq-tools-teacher-card {
     padding: 12px !important;
     border-radius: 14px !important;
     border: 1px dashed color-mix(in srgb, var(--wq-panel-border) 86%, transparent) !important;
-    background: color-mix(in srgb, var(--wq-canvas-surface) 84%, #ffffff 16%) !important;
+    background: color-mix(in srgb, #ffffff 92%, var(--wq-heading-text) 8%) !important;
 }
 
 body.word-quest-page .wq-tools-teacher-head {
@@ -1199,6 +1203,12 @@ body.word-quest-page .wq-tools-teacher-card .quick-custom-word-status {
 
 body.word-quest-page .wq-tools-teacher-card .quick-custom-word-list-status.error {
     color: #b91c1c !important;
+}
+
+body.word-quest-page .cs-sentence-caption-toggle {
+    color: #0f172a !important;
+    font-weight: 820 !important;
+    opacity: 1 !important;
 }
 
 body.word-quest-page .wq-palette-field {
