@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
+    "test:ux": "playwright test tests/ux-regression.spec.js",
+    "test:audio": "playwright test tests/audio-regression.spec.js",
     "tts:azure": "node scripts/export-azure-tts.js",
     "tts:azure:bonus": "node scripts/export-azure-bonus-tts.js",
     "tts:voices": "node scripts/list-azure-voices.js",
