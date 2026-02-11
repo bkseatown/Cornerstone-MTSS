@@ -266,6 +266,10 @@
                       <option value="ocean-calm">Navy Mint</option>
                       <option value="professional-chrome">Gold Slate</option>
                       <option value="professional-midnight">Purple Gold</option>
+                      <option value="academy-evergreen">Evergreen Heritage</option>
+                      <option value="pastel-scholars">Soft Scholars</option>
+                      <option value="sprout-lavender">Lavender Sprout</option>
+                      <option value="husky-classic">Husky Classic</option>
                       <option value="playful-festival">Citrus Arcade</option>
                       <option value="playful-sunrise">Sunset Pop</option>
                       <option value="classic-wordle">Classic Wordle</option>
@@ -678,6 +682,74 @@
         --wq-tile-border: rgba(183, 165, 122, 0.62);
       }
 
+      body.word-quest-page[data-wq-scene="academy-evergreen"] {
+        --wq-page-bg: linear-gradient(180deg, #f8f4ea 0%, #efe0bb 48%, #d9cbc2 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(255, 252, 246, 0.98) 0%, rgba(246, 237, 222, 0.95) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(11, 66, 26, 0.18), transparent 46%), radial-gradient(circle at 84% 86%, rgba(96, 76, 76, 0.2), transparent 48%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(11, 66, 26, 0.94), rgba(234, 199, 132, 0.9), rgba(54, 36, 21, 0.82));
+        --wq-panel-border: rgba(96, 76, 76, 0.5);
+        --wq-keyboard-surface: rgba(244, 232, 208, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 252, 247, 0.99) 0%, rgba(246, 236, 219, 0.97) 100%);
+        --wq-key-border: rgba(84, 62, 44, 0.6);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(248, 238, 205, 0.99) 0%, rgba(235, 214, 158, 0.96) 100%);
+        --wq-key-vowel-border: rgba(133, 104, 66, 0.72);
+        --wq-key-text: #2d2319;
+        --wq-tile-bg: linear-gradient(180deg, #fffdf9 0%, #f3e8d6 100%);
+        --wq-tile-border: rgba(96, 76, 76, 0.52);
+        --wq-tile-text: #2d2319;
+      }
+
+      body.word-quest-page[data-wq-scene="pastel-scholars"] {
+        --wq-page-bg: linear-gradient(180deg, #e8f4f8 0%, #f0e7d1 48%, #efe1f3 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(252, 254, 255, 0.99) 0%, rgba(246, 243, 235, 0.96) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(145, 204, 222, 0.2), transparent 46%), radial-gradient(circle at 84% 86%, rgba(186, 123, 203, 0.18), transparent 48%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(145, 204, 222, 0.94), rgba(226, 201, 92, 0.88), rgba(205, 147, 112, 0.84), rgba(186, 123, 203, 0.8));
+        --wq-panel-border: rgba(168, 167, 150, 0.52);
+        --wq-keyboard-surface: rgba(236, 240, 232, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(238, 243, 247, 0.97) 100%);
+        --wq-key-border: rgba(112, 123, 136, 0.58);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(245, 232, 255, 0.99) 0%, rgba(230, 214, 244, 0.96) 100%);
+        --wq-key-vowel-border: rgba(131, 101, 170, 0.7);
+        --wq-key-text: #283345;
+        --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%);
+        --wq-tile-border: rgba(132, 140, 148, 0.56);
+        --wq-tile-text: #283345;
+      }
+
+      body.word-quest-page[data-wq-scene="sprout-lavender"] {
+        --wq-page-bg: linear-gradient(180deg, #e5dff3 0%, #dde7e0 48%, #eef6d9 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(248, 246, 255, 0.98) 0%, rgba(238, 247, 235, 0.95) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(120, 66, 175, 0.2), transparent 46%), radial-gradient(circle at 84% 86%, rgba(185, 255, 28, 0.2), transparent 48%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(120, 66, 175, 0.92), rgba(98, 117, 160, 0.88), rgba(126, 173, 139, 0.84), rgba(185, 255, 28, 0.8));
+        --wq-panel-border: rgba(98, 117, 160, 0.52);
+        --wq-keyboard-surface: rgba(233, 239, 229, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(237, 243, 251, 0.97) 100%);
+        --wq-key-border: rgba(98, 117, 160, 0.56);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(236, 246, 211, 0.99) 0%, rgba(217, 240, 172, 0.96) 100%);
+        --wq-key-vowel-border: rgba(120, 173, 66, 0.76);
+        --wq-key-text: #27334b;
+        --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #edf2f8 100%);
+        --wq-tile-border: rgba(110, 128, 150, 0.52);
+        --wq-tile-text: #27334b;
+      }
+
+      body.word-quest-page[data-wq-scene="husky-classic"] {
+        --wq-page-bg: linear-gradient(180deg, #32006e 0%, #4b2e83 56%, #2d1f52 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(56, 36, 106, 0.98) 0%, rgba(68, 46, 121, 0.95) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(255, 199, 0, 0.26), transparent 46%), radial-gradient(circle at 84% 86%, rgba(183, 165, 122, 0.2), transparent 48%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(255, 199, 0, 0.96), rgba(183, 165, 122, 0.88), rgba(75, 46, 131, 0.84));
+        --wq-panel-border: rgba(197, 180, 227, 0.64);
+        --wq-keyboard-surface: rgba(61, 42, 111, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(252, 246, 234, 0.99) 0%, rgba(240, 231, 206, 0.96) 100%);
+        --wq-key-border: rgba(133, 117, 77, 0.66);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(241, 232, 255, 0.99) 0%, rgba(226, 209, 246, 0.96) 100%);
+        --wq-key-vowel-border: rgba(75, 46, 131, 0.82);
+        --wq-key-text: #2f2450;
+        --wq-tile-bg: linear-gradient(180deg, rgba(252, 247, 236, 0.99) 0%, rgba(240, 229, 201, 0.96) 100%);
+        --wq-tile-border: rgba(183, 165, 122, 0.66);
+        --wq-tile-text: #2f2450;
+      }
+
       body.word-quest-page[data-wq-scene="playful-festival"] {
         --wq-page-bg: linear-gradient(180deg, #ffe3bf 0%, #e7f7cb 42%, #d6ecff 100%);
         --wq-canvas-surface: linear-gradient(180deg, rgba(255, 248, 236, 0.97) 0%, rgba(242, 251, 241, 0.94) 100%);
@@ -856,6 +928,10 @@
           'ocean-calm',
           'professional-chrome',
           'professional-midnight',
+          'academy-evergreen',
+          'pastel-scholars',
+          'sprout-lavender',
+          'husky-classic',
           'playful-festival',
           'playful-sunrise',
           'classic-wordle',
@@ -868,6 +944,10 @@
           'ocean-calm': { keyboard: 'professional', intensity: 'medium', shape: 'soft', density: 'standard' },
           'professional-chrome': { keyboard: 'professional', intensity: 'medium', shape: 'crisp', density: 'standard' },
           'professional-midnight': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'standard' },
+          'academy-evergreen': { keyboard: 'professional', intensity: 'soft', shape: 'soft', density: 'standard' },
+          'pastel-scholars': { keyboard: 'calm', intensity: 'soft', shape: 'soft', density: 'standard' },
+          'sprout-lavender': { keyboard: 'playful', intensity: 'medium', shape: 'round', density: 'standard' },
+          'husky-classic': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'standard' },
           'playful-festival': { keyboard: 'playful', intensity: 'medium', shape: 'round', density: 'standard' },
           'playful-sunrise': { keyboard: 'playful', intensity: 'soft', shape: 'round', density: 'standard' },
           'classic-wordle': { keyboard: 'professional', intensity: 'medium', shape: 'crisp', density: 'standard' },
