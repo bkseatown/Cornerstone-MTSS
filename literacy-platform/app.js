@@ -43,6 +43,7 @@ let sessionEnglishVoice = {
     voiceUri: ''
 };
 let modalDismissBound = false;
+let popupWindowInteractionsBound = false;
 let assessmentState = null;
 let enhancedVoicePrefetched = false;
 let warmupPrefetchDone = false;
@@ -2401,6 +2402,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initFocusToggle();
     enableOverlayCloseForAllModals();
     initModalDismissals();
+    initPopupWindowInteractions();
     initHowTo();
     initAdventureMode();
     if (typeof initAssessmentFlow === 'function') {
@@ -2505,6 +2507,207 @@ function enableOverlayCloseForAllModals() {
         modal.dataset.overlayClose = 'true';
     });
     modalDismissBound = true;
+}
+
+function initPopupWindowInteractions() {
+    if (popupWindowInteractionsBound) return;
+    popupWindowInteractionsBound = true;
+
+    const clampValue = (value, min, max) => Math.min(max, Math.max(min, value));
+    const setInlineStyle = (element, property, value) => {
+        if (!element) return;
+        if (value === null || value === undefined || value === '') {
+            element.style.removeProperty(property);
+        } else {
+            element.style.setProperty(property, value);
+        }
+    };
+
+    const ensureFloating = (panel) => {
+        if (!(panel instanceof HTMLElement)) return;
+        const rect = panel.getBoundingClientRect();
+        const computed = window.getComputedStyle(panel);
+        if (computed.position !== 'fixed') {
+            panel.style.position = 'fixed';
+        }
+        panel.style.left = `${rect.left}px`;
+        panel.style.top = `${rect.top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        panel.style.transform = 'none';
+        panel.style.margin = '0';
+    };
+
+    const constrainToViewport = (panel, nextLeft, nextTop) => {
+        if (!(panel instanceof HTMLElement)) return { left: nextLeft, top: nextTop };
+        const rect = panel.getBoundingClientRect();
+        const keepX = 96;
+        const keepY = 56;
+        const minLeft = keepX - rect.width;
+        const maxLeft = window.innerWidth - keepX;
+        const minTop = 8;
+        const maxTop = window.innerHeight - keepY;
+        return {
+            left: clampValue(nextLeft, minLeft, maxLeft),
+            top: clampValue(nextTop, minTop, maxTop)
+        };
+    };
+
+    const toggleExpanded = (panel, button) => {
+        if (!(panel instanceof HTMLElement)) return;
+        const expanded = panel.classList.contains('popup-window-expanded');
+        if (expanded) {
+            let restore = null;
+            try {
+                restore = JSON.parse(panel.dataset.popupWindowRestore || '{}');
+            } catch (error) {
+                restore = null;
+            }
+            setInlineStyle(panel, 'position', restore?.position || '');
+            setInlineStyle(panel, 'left', restore?.left || '');
+            setInlineStyle(panel, 'top', restore?.top || '');
+            setInlineStyle(panel, 'right', restore?.right || '');
+            setInlineStyle(panel, 'bottom', restore?.bottom || '');
+            setInlineStyle(panel, 'width', restore?.width || '');
+            setInlineStyle(panel, 'height', restore?.height || '');
+            setInlineStyle(panel, 'max-width', restore?.maxWidth || '');
+            setInlineStyle(panel, 'max-height', restore?.maxHeight || '');
+            setInlineStyle(panel, 'transform', restore?.transform || '');
+            panel.classList.remove('popup-window-expanded');
+            if (button instanceof HTMLButtonElement) {
+                button.textContent = 'Expand';
+                button.setAttribute('aria-expanded', 'false');
+            }
+            return;
+        }
+
+        ensureFloating(panel);
+        const restore = {
+            position: panel.style.position || '',
+            left: panel.style.left || '',
+            top: panel.style.top || '',
+            right: panel.style.right || '',
+            bottom: panel.style.bottom || '',
+            width: panel.style.width || '',
+            height: panel.style.height || '',
+            maxWidth: panel.style.maxWidth || '',
+            maxHeight: panel.style.maxHeight || '',
+            transform: panel.style.transform || ''
+        };
+        panel.dataset.popupWindowRestore = JSON.stringify(restore);
+        panel.classList.add('popup-window-expanded');
+        panel.style.position = 'fixed';
+        panel.style.left = '2vw';
+        panel.style.top = '5vh';
+        panel.style.width = '96vw';
+        panel.style.height = '90vh';
+        panel.style.maxWidth = '96vw';
+        panel.style.maxHeight = '90vh';
+        panel.style.transform = 'none';
+        if (button instanceof HTMLButtonElement) {
+            button.textContent = 'Restore';
+            button.setAttribute('aria-expanded', 'true');
+        }
+    };
+
+    const bindPopupWindow = (panel, handleHost) => {
+        if (!(panel instanceof HTMLElement)) return;
+        if (panel.dataset.popupWindowBound === 'true') return;
+        panel.dataset.popupWindowBound = 'true';
+        panel.classList.add('popup-window-enabled');
+
+        const host = handleHost instanceof HTMLElement ? handleHost : panel;
+        const handle = document.createElement('div');
+        handle.className = 'popup-window-handle';
+        handle.innerHTML = `
+            <span class="popup-window-handle-label" aria-hidden="true">Move</span>
+            <button type="button" class="popup-window-expand-btn" aria-label="Toggle expanded popup size" aria-expanded="false">Expand</button>
+        `;
+        host.insertAdjacentElement('afterbegin', handle);
+
+        const expandBtn = handle.querySelector('.popup-window-expand-btn');
+        if (expandBtn instanceof HTMLButtonElement) {
+            expandBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleExpanded(panel, expandBtn);
+            });
+        }
+
+        let dragging = false;
+        let dragPointerId = null;
+        let startX = 0;
+        let startY = 0;
+        let baseLeft = 0;
+        let baseTop = 0;
+
+        const stopDrag = (pointerId = null) => {
+            if (!dragging) return;
+            if (pointerId !== null && pointerId !== dragPointerId) return;
+            dragging = false;
+            if (dragPointerId !== null) {
+                try {
+                    handle.releasePointerCapture(dragPointerId);
+                } catch (error) {}
+            }
+            dragPointerId = null;
+            handle.classList.remove('is-dragging');
+            panel.classList.remove('popup-window-dragging');
+        };
+
+        handle.addEventListener('pointerdown', (event) => {
+            if (event.button !== 0) return;
+            if (event.target instanceof HTMLElement && event.target.closest('button, input, select, textarea, a, label')) return;
+            ensureFloating(panel);
+            const rect = panel.getBoundingClientRect();
+            dragging = true;
+            dragPointerId = event.pointerId;
+            startX = event.clientX;
+            startY = event.clientY;
+            baseLeft = rect.left;
+            baseTop = rect.top;
+            handle.classList.add('is-dragging');
+            panel.classList.remove('popup-window-expanded');
+            panel.classList.add('popup-window-dragging');
+            if (expandBtn instanceof HTMLButtonElement) {
+                expandBtn.textContent = 'Expand';
+                expandBtn.setAttribute('aria-expanded', 'false');
+            }
+            try {
+                handle.setPointerCapture(dragPointerId);
+            } catch (error) {}
+            event.preventDefault();
+        });
+
+        handle.addEventListener('pointermove', (event) => {
+            if (!dragging) return;
+            if (event.pointerId !== dragPointerId) return;
+            const dx = event.clientX - startX;
+            const dy = event.clientY - startY;
+            const next = constrainToViewport(panel, baseLeft + dx, baseTop + dy);
+            panel.style.left = `${next.left}px`;
+            panel.style.top = `${next.top}px`;
+        });
+
+        handle.addEventListener('pointerup', (event) => stopDrag(event.pointerId));
+        handle.addEventListener('pointercancel', (event) => stopDrag(event.pointerId));
+        handle.addEventListener('lostpointercapture', () => stopDrag());
+    };
+
+    const bindAllPopupWindows = () => {
+        document.querySelectorAll('.modal').forEach((modal) => {
+            const content = modal.querySelector('.modal-content');
+            bindPopupWindow(modal, content instanceof HTMLElement ? content : modal);
+        });
+        const quickVoiceModal = document.querySelector('#voice-quick-overlay .voice-quick-modal');
+        if (quickVoiceModal instanceof HTMLElement) {
+            bindPopupWindow(quickVoiceModal, quickVoiceModal);
+        }
+    };
+
+    bindAllPopupWindows();
+    const observer = new MutationObserver(() => bindAllPopupWindows());
+    observer.observe(document.body, { childList: true });
 }
 
 function ensureFunHud() {

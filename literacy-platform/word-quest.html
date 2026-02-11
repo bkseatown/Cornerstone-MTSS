@@ -952,6 +952,26 @@
             settings = createSettingsForScene(nextScene);
             paletteSelect.value = settings.scene;
             apply(settings, { persist: true });
+            var toolsMenu = document.getElementById('wq-tools-menu');
+            if (toolsMenu && typeof toolsMenu.open === 'boolean') {
+              toolsMenu.open = false;
+            }
+            if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') {
+              document.activeElement.blur();
+            }
+            if (document.body && typeof document.body.focus === 'function') {
+              if (!document.body.hasAttribute('tabindex')) {
+                document.body.setAttribute('tabindex', '-1');
+              }
+              try {
+                document.body.focus({ preventScroll: true });
+              } catch (e) {
+                document.body.focus();
+              }
+            }
+            try {
+              window.dispatchEvent(new CustomEvent('cornerstone:wq-palette-applied', { detail: { scene: settings.scene } }));
+            } catch (e) {}
           });
         }
 

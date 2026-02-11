@@ -288,4 +288,38 @@ test.describe('Theme propagation', () => {
     await expect(page.locator(paletteSelector)).toHaveValue('classic-wordle');
     await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('classic-wordle');
   });
+
+  test('Palette selection closes Tools and typing resumes immediately', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openWordQuest(page, 'calm');
+
+    await openWordQuestToolsMenu(page);
+    await expect.poll(() => page.evaluate(() => !!document.getElementById('wq-tools-menu')?.open)).toBe(true);
+    await clickWithElementFromPointGuard(page, '#wq-palette-select');
+    await page.locator('#wq-palette-select').selectOption('ocean-calm');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('ocean-calm');
+    await expect.poll(() => page.evaluate(() => !!document.getElementById('wq-tools-menu')?.open)).toBe(false);
+
+    await page.keyboard.type('cat');
+    await expect.poll(() => page.evaluate(() => (
+      [0, 1, 2]
+        .map((index) => String(document.getElementById(`tile-${index}`)?.textContent || '').trim().toLowerCase())
+        .join('')
+    ))).toBe('cat');
+  });
+
+  test('Voice popup supports outside-dismiss and drag/expand controls', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openWordQuest(page, 'calm');
+
+    await openWordQuestToolsMenu(page);
+    await clickWithElementFromPointGuard(page, '#simple-voice-settings');
+
+    const overlay = page.locator('#voice-quick-overlay');
+    await expect(overlay).toBeVisible();
+    await expect(page.locator('#voice-quick-overlay .popup-window-handle')).toBeVisible();
+    await expect(page.locator('#voice-quick-overlay .popup-window-expand-btn')).toBeVisible();
+    await overlay.click({ position: { x: 6, y: 6 } });
+    await expect(overlay).toHaveClass(/hidden/);
+  });
 });
