@@ -236,13 +236,14 @@ body.word-quest-page .wq-tools-body {
     right: 0;
     width: min(360px, calc(100vw - 22px));
     border-radius: 14px;
-    border: 1px solid color-mix(in srgb, var(--wq-panel-border) 92%, transparent);
-    background: color-mix(in srgb, #ffffff 94%, var(--wq-heading-text) 6%);
+    border: 1px solid rgba(148, 163, 184, 0.48);
+    background: #f8fbff;
     box-shadow: 0 16px 34px rgba(15, 23, 42, 0.22);
     padding: 10px;
     z-index: 2800;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    mix-blend-mode: normal !important;
     opacity: 1 !important;
     color: #0f172a;
 }
@@ -312,8 +313,8 @@ body.word-quest-page .quick-custom-word-panel {
     margin: 2px auto 6px !important;
     padding: 6px 10px !important;
     border-radius: 14px !important;
-    background: color-mix(in srgb, var(--wq-canvas-surface) 56%, transparent) !important;
-    border: 1px dashed color-mix(in srgb, var(--wq-panel-border) 76%, transparent) !important;
+    background: #f8fbff !important;
+    border: 1px solid rgba(148, 163, 184, 0.44) !important;
     box-shadow: none !important;
 }
 
@@ -712,8 +713,8 @@ body.word-quest-page .wq-theme-studio-btn-inline {
    Word Quest authoritative layout + readability overrides (final last-wins)
    ========================================================================== */
 body.word-quest-page {
-    --wq-header-text-strong: rgba(241, 248, 255, 0.98);
-    --wq-header-text-soft: rgba(226, 238, 255, 0.9);
+    --wq-header-text-strong: #1b2a44;
+    --wq-header-text-soft: rgba(38, 56, 88, 0.9);
     --wq-canvas-surface: linear-gradient(140deg, rgba(27, 58, 104, 0.9) 0%, rgba(28, 62, 113, 0.92) 54%, rgba(31, 67, 118, 0.88) 100%);
     --wq-canvas-glow: radial-gradient(circle at 18% 12%, rgba(77, 134, 230, 0.22), transparent 52%), radial-gradient(circle at 85% 14%, rgba(83, 170, 232, 0.14), transparent 50%);
     --wq-canvas-accent: linear-gradient(90deg, rgba(100, 156, 245, 0.94), rgba(98, 187, 223, 0.86), rgba(169, 155, 235, 0.8));
@@ -749,7 +750,7 @@ body.word-quest-page .header-top h1 a {
     color: var(--wq-header-text-strong) !important;
     font-size: clamp(1.2rem, 1.8vw, 1.58rem) !important;
     line-height: 1.04 !important;
-    text-shadow: 0 1px 0 rgba(9, 16, 31, 0.25) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62) !important;
 }
 
 body.word-quest-page .header-actions .link-btn,
@@ -803,8 +804,8 @@ body.word-quest-page .quick-custom-word-panel {
     margin: 0 auto 1px !important;
     padding: 4px 8px !important;
     border-radius: 12px !important;
-    border: 1px dashed color-mix(in srgb, var(--wq-panel-border) 70%, transparent) !important;
-    background: color-mix(in srgb, var(--wq-canvas-surface) 22%, transparent) !important;
+    border: 1px solid rgba(148, 163, 184, 0.44) !important;
+    background: #f8fbff !important;
 }
 
 body.word-quest-page .quick-custom-word-toggle {
@@ -1122,8 +1123,11 @@ body.word-quest-page .wq-tools-teacher-card {
     gap: 10px !important;
     padding: 12px !important;
     border-radius: 14px !important;
-    border: 1px dashed color-mix(in srgb, var(--wq-panel-border) 86%, transparent) !important;
-    background: color-mix(in srgb, #ffffff 92%, var(--wq-heading-text) 8%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.44) !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
 }
 
 body.word-quest-page .wq-tools-teacher-head {
