@@ -87,7 +87,7 @@
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
-    <link rel="stylesheet" href="style.css?v=20260211uxfix4" />
+    <link rel="stylesheet" href="style.css?v=20260211uxfix7" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -99,7 +99,7 @@
     <script src="app.js?v=20260211uxfix4" defer></script>
   </head>
 
-  <body class="word-quest-page force-light look-35">
+  <body class="word-quest-page cs-page-wordquest look-35">
     <header>
       <div class="header-top">
         <h1>
@@ -166,21 +166,6 @@
           <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
         </div>
 
-        <div class="control-group control-group-subtle wq-theme-control">
-          <label for="wq-theme-select">Theme</label>
-          <select id="wq-theme-select" class="wq-theme-select" aria-label="Theme">
-            <option value="calm">Calm</option>
-            <option value="professional">Professional</option>
-            <option value="playful">Playful</option>
-            <option value="high-contrast">Contrast</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="wq-theme-studio-btn">Studio</label>
-          <button id="wq-theme-studio-btn" type="button" class="case-toggle-btn wq-theme-studio-btn" aria-label="Open theme studio">Theme Studio</button>
-        </div>
-
         <div class="control-group control-group-subtle">
           <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
           <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
@@ -232,6 +217,7 @@
           <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
           <button id="simple-hear-sentence" type="button" class="hint-btn">💬 Hear Sentence</button>
           <button id="simple-voice-settings" type="button" class="hint-btn secondary">🎛️ Voice</button>
+          <button id="wq-theme-studio-btn" type="button" class="hint-btn secondary wq-theme-studio-btn-inline">🎨 Theme Studio</button>
         </div>
         <div id="sentence-preview" class="sentence-preview hidden" aria-live="polite"></div>
 
@@ -488,7 +474,7 @@
           <button id="wq-theme-studio-close" type="button" class="wq-theme-studio-close" aria-label="Close theme studio">×</button>
         </header>
 
-        <p class="wq-theme-studio-copy">Pick a scene and keyboard style. Changes apply instantly and save for next time.</p>
+        <p class="wq-theme-studio-copy">Pick a scene and keyboard style. Preview is live. Select Done to save.</p>
 
         <div class="wq-theme-studio-grid">
           <label class="wq-theme-studio-field">
@@ -573,8 +559,9 @@
       .wq-theme-studio-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.36);
-        backdrop-filter: blur(4px);
+        background: rgba(10, 12, 18, 0.22);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         display: grid;
         place-items: center;
         padding: 16px;
@@ -655,6 +642,10 @@
         display: flex;
         justify-content: flex-end;
         gap: 8px;
+      }
+
+      .wq-theme-studio-btn-inline {
+        margin-left: 4px;
       }
 
       .wq-theme-studio-reset,
@@ -828,14 +819,17 @@
           } catch (e) {}
         }
 
-        function apply(settings) {
+        function apply(settings, opts) {
+          var options = opts || {};
           if (!document.body) return;
           document.body.dataset.wqScene = settings.scene;
           document.body.dataset.wqKeyboardStyle = settings.keyboard;
           document.body.dataset.wqIntensity = settings.intensity;
           document.body.dataset.wqShape = settings.shape;
           document.body.dataset.wqDensity = settings.density;
-          persist(settings);
+          if (options.persist !== false) {
+            persist(settings);
+          }
         }
 
         function init() {
@@ -854,29 +848,50 @@
           if (!overlay || !openBtn || !sceneSelect || !keyboardSelect || !intensitySelect || !shapeSelect || !densitySelect) return;
 
           var settings = loadSettings();
-          apply(settings);
+          var draft = {
+            scene: settings.scene,
+            keyboard: settings.keyboard,
+            intensity: settings.intensity,
+            shape: settings.shape,
+            density: settings.density
+          };
+          apply(settings, { persist: false });
 
-          function syncControls() {
-            sceneSelect.value = settings.scene;
-            keyboardSelect.value = settings.keyboard;
-            intensitySelect.value = settings.intensity;
-            shapeSelect.value = settings.shape;
-            densitySelect.value = settings.density;
+          function clone(input) {
+            return {
+              scene: input.scene,
+              keyboard: input.keyboard,
+              intensity: input.intensity,
+              shape: input.shape,
+              density: input.density
+            };
+          }
+
+          function syncControls(input) {
+            var source = input || settings;
+            sceneSelect.value = source.scene;
+            keyboardSelect.value = source.keyboard;
+            intensitySelect.value = source.intensity;
+            shapeSelect.value = source.shape;
+            densitySelect.value = source.density;
           }
 
           function pullFromControls() {
-            settings = {
-              scene: normalize('scene', sceneSelect.value, sceneFromTheme(activeBaseTheme())),
-              keyboard: normalize('keyboard', keyboardSelect.value, 'auto'),
-              intensity: normalize('intensity', intensitySelect.value, 'medium'),
-              shape: normalize('shape', shapeSelect.value, 'soft'),
-              density: normalize('density', densitySelect.value, 'standard')
+            draft = {
+              scene: normalize('scene', sceneSelect.value, settings.scene),
+              keyboard: normalize('keyboard', keyboardSelect.value, settings.keyboard),
+              intensity: normalize('intensity', intensitySelect.value, settings.intensity),
+              shape: normalize('shape', shapeSelect.value, settings.shape),
+              density: normalize('density', densitySelect.value, settings.density)
             };
-            apply(settings);
+            apply(draft, { persist: false });
           }
 
           function openStudio() {
-            syncControls();
+            settings = loadSettings();
+            draft = clone(settings);
+            apply(draft, { persist: false });
+            syncControls(draft);
             overlay.classList.remove('hidden');
             overlay.setAttribute('aria-hidden', 'false');
             document.body.classList.add('wq-theme-studio-open');
@@ -888,13 +903,25 @@
             document.body.classList.remove('wq-theme-studio-open');
           }
 
+          function commitStudio() {
+            settings = clone(draft);
+            apply(settings, { persist: true });
+            closeStudio();
+          }
+
+          function cancelStudio() {
+            draft = clone(settings);
+            apply(settings, { persist: false });
+            closeStudio();
+          }
+
           [sceneSelect, keyboardSelect, intensitySelect, shapeSelect, densitySelect].forEach(function (el) {
             el.addEventListener('change', pullFromControls);
           });
 
           openBtn.addEventListener('click', openStudio);
-          if (closeBtn) closeBtn.addEventListener('click', closeStudio);
-          if (doneBtn) doneBtn.addEventListener('click', closeStudio);
+          if (closeBtn) closeBtn.addEventListener('click', cancelStudio);
+          if (doneBtn) doneBtn.addEventListener('click', commitStudio);
 
           if (resetBtn) {
             resetBtn.addEventListener('click', function () {
@@ -903,19 +930,19 @@
                   localStorage.removeItem(STORAGE_KEYS[k]);
                 });
               } catch (e) {}
-              settings = defaults();
-              apply(settings);
-              syncControls();
+              draft = defaults();
+              apply(draft, { persist: false });
+              syncControls(draft);
             });
           }
 
           overlay.addEventListener('click', function (event) {
-            if (event.target === overlay) closeStudio();
+            if (event.target === overlay) cancelStudio();
           });
 
           document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
-              closeStudio();
+              cancelStudio();
             }
           });
         }
