@@ -195,11 +195,12 @@
   }
 
   function canPlaySound() {
-    return readSoundSetting() === 'on' && window.csAudioUnlocked === true;
+    return readSoundSetting() === 'on';
   }
 
   function playStarPing() {
     if (!canPlaySound()) return false;
+    unlockAudio();
     const audioContext = ensureAudioContext();
     if (!audioContext) return false;
     if (audioContext.state === 'suspended' && typeof audioContext.resume === 'function') {
@@ -209,7 +210,7 @@
     const now = audioContext.currentTime;
     const master = audioContext.createGain();
     master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
+    master.gain.exponentialRampToValueAtTime(0.085, now + 0.02);
     master.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
     master.connect(audioContext.destination);
 
@@ -333,6 +334,7 @@
     state.meter.classList.add('is-visible');
 
     if (!allowsMotion()) {
+      playStarPing();
       setFilledStars(total);
       hideMeterSoon(1850);
       return;
