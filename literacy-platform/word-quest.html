@@ -90,6 +90,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
     <link rel="stylesheet" href="style.css?v=20260211uxfix7" />
+    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix16" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -98,7 +99,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight1" defer></script>
-    <script src="app.js?v=20260211uxfix4" defer></script>
+    <script src="app.js?v=20260212uxfix10" defer></script>
   </head>
 
   <body class="word-quest-page cs-page-wordquest look-35">
@@ -114,8 +115,8 @@
       </div>
 
       <div class="controls" role="group" aria-label="Game setup">
-        <div class="control-group">
-          <label for="pattern-select">Focus</label>
+        <div class="control-group wq-control-focus">
+          <label for="pattern-select">Focus Path</label>
           <select id="pattern-select" aria-label="Focus pattern">
             <option value="shuffle" selected>Shuffle Focus (clue on)</option>
             <option value="all">All Words</option>
@@ -135,73 +136,157 @@
             <option value="suffix">Suffixes (-ing, -ed)</option>
             <option value="compound">Compound words (sun+set)</option>
             <option value="multisyllable">Multisyllabic (pic-nic)</option>
+            <optgroup label="Math Vocabulary">
+              <option value="vocab-math-k2">Math Vocabulary (K-2)</option>
+              <option value="vocab-math-35">Math Vocabulary (3-5)</option>
+              <option value="vocab-math-68">Math Vocabulary (6-8)</option>
+              <option value="vocab-math-912">Math Vocabulary (9-12)</option>
+            </optgroup>
+            <optgroup label="Science Vocabulary">
+              <option value="vocab-science-k2">Science Vocabulary (K-2)</option>
+              <option value="vocab-science-35">Science Vocabulary (3-5)</option>
+              <option value="vocab-science-68">Science Vocabulary (6-8)</option>
+              <option value="vocab-science-912">Science Vocabulary (9-12)</option>
+            </optgroup>
+            <optgroup label="Social Studies Vocabulary">
+              <option value="vocab-social-k2">Social Studies Vocabulary (K-2)</option>
+              <option value="vocab-social-35">Social Studies Vocabulary (3-5)</option>
+              <option value="vocab-social-68">Social Studies Vocabulary (6-8)</option>
+              <option value="vocab-social-912">Social Studies Vocabulary (9-12)</option>
+            </optgroup>
+            <optgroup label="ELA Vocabulary">
+              <option value="vocab-ela-k2">ELA Vocabulary (K-2)</option>
+              <option value="vocab-ela-35">ELA Vocabulary (3-5)</option>
+              <option value="vocab-ela-68">ELA Vocabulary (6-8)</option>
+              <option value="vocab-ela-912">ELA Vocabulary (9-12)</option>
+            </optgroup>
           </select>
         </div>
 
-        <div class="control-group">
-          <label for="length-select">Length</label>
-          <select id="length-select" aria-label="Word length">
-            <option value="any">Any</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5" selected>5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="guess-count-select">Guesses</label>
-          <select id="guess-count-select" aria-label="Number of guesses">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6" selected>6</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="case-toggle">Case</label>
-          <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
-        </div>
-
-        <div class="control-group control-group-subtle">
+        <div class="control-group control-group-subtle wq-control-new-round">
           <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
           <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
+        </div>
+
+        <div class="control-group control-group-subtle wq-tools-control" aria-label="Utilities">
+          <details id="wq-tools-menu" class="wq-tools-menu">
+            <summary id="wq-tools-toggle" class="case-toggle-btn wq-tools-toggle">Open Tools</summary>
+            <div class="wq-tools-body">
+              <section class="wq-tools-teacher-card" aria-label="Teacher word controls">
+                <div class="wq-tools-teacher-head">
+                  <strong>Teacher Word Mode</strong>
+                  <span>Single word, list paste, or file import</span>
+                </div>
+                <div id="quick-custom-word-body" class="quick-custom-word-body">
+                  <div class="quick-custom-word-row">
+                    <input
+                      id="quick-custom-word-input"
+                      type="text"
+                      class="masked"
+                      placeholder="Type one class-safe word (3-12 letters)"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      spellcheck="false"
+                    />
+                    <button id="quick-custom-word-toggle-mask" type="button" class="hint-btn secondary" aria-label="Show or hide custom word">Show</button>
+                    <button id="quick-custom-word-start" type="button" class="hint-btn">Play Word</button>
+                    <button id="quick-custom-word-clear" type="button" class="hint-btn secondary">Use Library</button>
+                  </div>
+                  <div class="quick-custom-word-list">
+                    <label for="quick-custom-word-list-input">Word list (paste one per line, comma, or semicolon)</label>
+                    <textarea
+                      id="quick-custom-word-list-input"
+                      rows="4"
+                      placeholder="photosynthesis&#10;fraction&#10;democracy"
+                      spellcheck="false"
+                    ></textarea>
+                    <div class="quick-custom-word-row quick-custom-word-row-list">
+                      <input
+                        id="quick-custom-word-file"
+                        type="file"
+                        accept=".txt,.csv,.tsv,.json,.doc,.docx,.pdf,text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      />
+                      <button id="quick-custom-word-file-import" type="button" class="hint-btn secondary">Import File</button>
+                    </div>
+                    <div class="quick-custom-word-row quick-custom-word-row-list">
+                      <button id="quick-custom-word-list-set" type="button" class="hint-btn">Save List</button>
+                      <label class="quick-custom-word-list-toggle">
+                        <input id="quick-custom-word-list-enable" type="checkbox" />
+                        <span>Lock list for rounds</span>
+                      </label>
+                      <button id="quick-custom-word-list-clear" type="button" class="hint-btn secondary">Clear List</button>
+                    </div>
+                    <div id="quick-custom-word-list-status" class="quick-custom-word-list-status muted" aria-live="polite"></div>
+                  </div>
+                  <div id="quick-custom-word-status" class="quick-custom-word-status muted" aria-live="polite">
+                    Mode: Library. Pick a focus or set a teacher word.
+                  </div>
+                </div>
+              </section>
+
+              <label class="wq-tools-field" for="length-select">
+                <span>Word length</span>
+                <select id="length-select" aria-label="Word length">
+                  <option value="any">Any</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5" selected>5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                </select>
+              </label>
+
+              <label class="wq-tools-field" for="guess-count-select">
+                <span>Guesses</span>
+                <select id="guess-count-select" aria-label="Number of guesses">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                </select>
+              </label>
+
+              <div class="wq-tools-field">
+                <span>Letter case</span>
+                <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
+              </div>
+
+              <div class="wq-tools-field wq-tools-inline">
+                <span>Quick tools</span>
+                <div class="wq-tools-buttons">
+                  <button id="simple-voice-settings" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open voice settings">Voice</button>
+                  <label class="wq-palette-field" for="wq-palette-select">
+                    <span>Palette</span>
+                    <select id="wq-palette-select" class="wq-palette-select">
+                      <option value="calm-studio">Pastel Slate</option>
+                      <option value="meadow-calm">Forest Wheat</option>
+                      <option value="ocean-calm">Navy Mint</option>
+                      <option value="professional-chrome">Gold Slate</option>
+                      <option value="professional-midnight">Purple Gold</option>
+                      <option value="playful-festival">Citrus Arcade</option>
+                      <option value="playful-sunrise">Sunset Pop</option>
+                      <option value="classic-wordle">Classic Wordle</option>
+                      <option value="classic-contrast">Electric Contrast</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <label class="wq-tools-switch">
+                <input id="wq-toggle-round-clue" type="checkbox" />
+                <span>Show round clue</span>
+              </label>
+            </div>
+          </details>
         </div>
       </div>
       <div id="focus-round-chip" class="focus-round-chip" aria-live="polite"></div>
     </header>
 
     <main>
-      <section class="quick-custom-word-panel" aria-label="Custom challenge word">
-        <button id="quick-custom-word-toggle" type="button" class="quick-custom-word-toggle" aria-expanded="false">
-          Custom challenge word (optional)
-        </button>
-        <div id="quick-custom-word-body" class="quick-custom-word-body hidden">
-          <div class="quick-custom-word-row">
-            <input
-              id="quick-custom-word-input"
-              type="text"
-              class="masked"
-              placeholder="Type a class-safe word (3-12 letters)"
-              autocapitalize="none"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <button id="quick-custom-word-toggle-mask" type="button" class="hint-btn secondary" aria-label="Show or hide custom word">Show</button>
-            <button id="quick-custom-word-start" type="button" class="hint-btn">Start Custom Word</button>
-            <button id="quick-custom-word-clear" type="button" class="hint-btn secondary">Use Library</button>
-          </div>
-          <div id="quick-custom-word-status" class="quick-custom-word-status muted" aria-live="polite">
-            Mode: Library. Pick a focus or set a custom challenge word.
-          </div>
-        </div>
-      </section>
-
       <div id="focus-panel" class="focus-panel hidden" aria-label="Focus hint">
         <button id="focus-toggle-btn" class="focus-toggle-btn" type="button">💡 Hints</button>
         <div class="focus-copy">
@@ -218,21 +303,6 @@
         <div class="hint-actions" aria-label="Quick audio">
           <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
           <button id="simple-hear-sentence" type="button" class="hint-btn">💬 Hear Sentence</button>
-          <button id="simple-voice-settings" type="button" class="hint-btn secondary">🎛️ Voice</button>
-          <label class="wq-palette-field" for="wq-palette-select">
-            <span>Palette</span>
-            <select id="wq-palette-select" class="wq-palette-select">
-              <option value="calm-studio">Pastel Slate</option>
-              <option value="meadow-calm">Forest Wheat</option>
-              <option value="ocean-calm">Navy Mint</option>
-              <option value="professional-chrome">Gold Slate</option>
-              <option value="professional-midnight">Purple Gold</option>
-              <option value="playful-festival">Citrus Arcade</option>
-              <option value="playful-sunrise">Sunset Pop</option>
-              <option value="classic-wordle">Classic Wordle</option>
-              <option value="classic-contrast">Electric Contrast</option>
-            </select>
-          </label>
         </div>
         <div id="sentence-preview" class="sentence-preview hidden" aria-live="polite"></div>
 
@@ -527,18 +597,6 @@
         --wq-tile-text: #0f172a;
       }
 
-      body.word-quest-page .controls label,
-      body.word-quest-page .controls .control-label,
-      body.word-quest-page .controls .control-group > div {
-        color: #334155 !important;
-        opacity: 1 !important;
-      }
-
-      body.word-quest-page .header-top h1 a {
-        color: #0f172a !important;
-        text-shadow: none !important;
-      }
-
       body.word-quest-page[data-wq-scene="calm-studio"] {
         --wq-page-bg: linear-gradient(180deg, #eaf6fa 0%, #f2eddc 52%, #f2e8f4 100%);
         --wq-canvas-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 245, 0.95) 100%);
@@ -680,25 +738,14 @@
         --wq-tile-text: #000000;
       }
 
-      body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls label,
-      body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls .control-label,
-      body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .controls .control-group > div {
-        color: #e2e8f0 !important;
-      }
-
-      body.word-quest-page:is([data-wq-scene="ocean-calm"], [data-wq-scene="professional-midnight"], [data-wq-scene="classic-contrast"]) .header-top h1 a {
-        color: #f8fafc !important;
-      }
-
       @media (max-width: 760px) {
         .wq-palette-field {
-          width: min(340px, 100%);
-          justify-content: space-between;
+          width: 100%;
         }
 
         .wq-palette-select {
           min-width: 0;
-          width: min(220px, 100%);
+          width: 100%;
         }
       }
 

@@ -53,6 +53,8 @@ let wordQuestScrollFallback = false;
 let teacherToolsInitialized = false;
 let isCustomWordRound = false;
 let customWordInLibrary = true;
+let teacherWordList = [];
+let teacherWordListEnabled = false;
 let activeRoundPattern = 'all';
 let activeRoundFallbackNote = '';
 let voiceHealthCheckInProgress = false;
@@ -228,11 +230,31 @@ const SHUFFLE_FOCUS_PRIORITY = ['cvc', 'digraph', 'ccvc', 'cvcc', 'trigraph', 'c
 const FOCUS_TAG_EXCLUSIONS = Object.freeze({
     schwa: new Set(['apple'])
 });
+const CURRICULUM_FOCUS_LISTS = Object.freeze({
+    'vocab-math-k2': ['count', 'add', 'sum', 'take', 'equal', 'shape', 'circle', 'square', 'line', 'graph', 'half', 'whole'],
+    'vocab-math-35': ['fraction', 'decimal', 'multiply', 'divide', 'equation', 'numerator', 'denominator', 'perimeter', 'area', 'volume', 'estimate', 'quotient'],
+    'vocab-math-68': ['integer', 'ratio', 'variable', 'expression', 'coefficient', 'probability', 'percent', 'theorem', 'geometry', 'function', 'slope', 'equivalent'],
+    'vocab-math-912': ['quadratic', 'polynomial', 'logarithm', 'derivative', 'matrix', 'vector', 'statistic', 'hypothesis', 'calculus', 'function', 'sequence', 'asymptote'],
+    'vocab-science-k2': ['plant', 'animal', 'water', 'weather', 'cloud', 'soil', 'light', 'sound', 'force', 'energy', 'earth', 'space'],
+    'vocab-science-35': ['habitat', 'ecosystem', 'gravity', 'erosion', 'magnet', 'circuit', 'matter', 'organism', 'evaporation', 'condensation', 'fossil', 'adaptation'],
+    'vocab-science-68': ['photosynthesis', 'cellular', 'molecule', 'element', 'tectonic', 'climate', 'inertia', 'velocity', 'density', 'chemistry', 'ecosystem', 'organism'],
+    'vocab-science-912': ['equilibrium', 'stoichiometry', 'radiation', 'entropy', 'isotope', 'catalyst', 'organism', 'genetics', 'reaction', 'momentum', 'velocity', 'ecosystem'],
+    'vocab-social-k2': ['map', 'community', 'family', 'school', 'rules', 'leader', 'vote', 'flag', 'city', 'state', 'country', 'history'],
+    'vocab-social-35': ['culture', 'region', 'economy', 'citizen', 'history', 'government', 'resource', 'geography', 'monument', 'colony', 'immigrant', 'democracy'],
+    'vocab-social-68': ['constitution', 'democracy', 'migration', 'revolution', 'parliament', 'republic', 'federal', 'conflict', 'treaty', 'civilization', 'economy', 'citizen'],
+    'vocab-social-912': ['jurisprudence', 'sovereignty', 'ideology', 'globalization', 'diplomacy', 'legislation', 'inflation', 'policy', 'reform', 'constitution', 'democracy', 'economics'],
+    'vocab-ela-k2': ['letter', 'story', 'rhyme', 'vowel', 'author', 'title', 'sentence', 'noun', 'verb', 'read', 'write', 'sound'],
+    'vocab-ela-35': ['paragraph', 'adjective', 'adverb', 'context', 'infer', 'summarize', 'compare', 'contrast', 'sequence', 'theme', 'evidence', 'character'],
+    'vocab-ela-68': ['analyze', 'evidence', 'citation', 'argument', 'narrative', 'figurative', 'metaphor', 'syntax', 'transition', 'perspective', 'conclusion', 'counterclaim'],
+    'vocab-ela-912': ['rhetoric', 'thesis', 'counterclaim', 'synthesis', 'allusion', 'diction', 'nuance', 'irony', 'symbolism', 'semantics', 'analysis', 'argument']
+});
 const KEYBOARD_VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
 const DELIGHT_MOTION_KEY = 'cs_delight_motion';
 const DELIGHT_SOUND_KEY = 'cs_delight_sound';
 const ROUND_CLUE_VISIBILITY_KEY = 'cs_show_round_clue';
+const TEACHER_WORD_LIST_KEY = 'cs_teacher_word_list';
+const TEACHER_WORD_LIST_ENABLED_KEY = 'cs_teacher_word_list_enabled';
 const WORD_SOURCE_LIBRARY_STATUS = 'Mode: Library. Pick a focus or set a custom challenge word.';
 const CUSTOM_WORD_BLOCK_PATTERNS = [
     /fuck/i,
@@ -382,6 +404,86 @@ function validateCustomWordValue(value) {
     };
 }
 
+function readTeacherWordList() {
+    try {
+        const raw = localStorage.getItem(TEACHER_WORD_LIST_KEY);
+        const parsed = JSON.parse(raw || '[]');
+        if (!Array.isArray(parsed)) return [];
+        const uniq = [];
+        const seen = new Set();
+        parsed.forEach((item) => {
+            const result = validateCustomWordValue(item);
+            if (!result.ok || seen.has(result.value)) return;
+            seen.add(result.value);
+            uniq.push(result.value);
+        });
+        return uniq;
+    } catch (error) {
+        return [];
+    }
+}
+
+function writeTeacherWordList(words = []) {
+    const clean = [];
+    const seen = new Set();
+    words.forEach((item) => {
+        const result = validateCustomWordValue(item);
+        if (!result.ok || seen.has(result.value)) return;
+        seen.add(result.value);
+        clean.push(result.value);
+    });
+    teacherWordList = clean;
+    try {
+        localStorage.setItem(TEACHER_WORD_LIST_KEY, JSON.stringify(clean));
+    } catch (error) {}
+    return clean;
+}
+
+function readTeacherWordListEnabled() {
+    try {
+        return String(localStorage.getItem(TEACHER_WORD_LIST_ENABLED_KEY) || '').trim().toLowerCase() === 'on';
+    } catch (error) {
+        return false;
+    }
+}
+
+function writeTeacherWordListEnabled(enabled) {
+    teacherWordListEnabled = !!enabled && teacherWordList.length > 0;
+    try {
+        localStorage.setItem(TEACHER_WORD_LIST_ENABLED_KEY, teacherWordListEnabled ? 'on' : 'off');
+    } catch (error) {}
+    return teacherWordListEnabled;
+}
+
+function parseTeacherWordListInput(raw = '') {
+    const parts = String(raw || '')
+        .split(/[\n,;]+/g)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    const accepted = [];
+    const rejected = [];
+    const seen = new Set();
+    parts.forEach((item) => {
+        const result = validateCustomWordValue(item);
+        if (!result.ok) {
+            rejected.push({ word: item, reason: result.message });
+            return;
+        }
+        if (!seen.has(result.value)) {
+            seen.add(result.value);
+            accepted.push(result.value);
+        }
+    });
+    return { accepted, rejected };
+}
+
+function getTeacherWordListStatusText() {
+    if (!teacherWordList.length) return 'No teacher list saved yet.';
+    return teacherWordListEnabled
+        ? `Teacher list ON (${teacherWordList.length} words). Rounds use this list only.`
+        : `Teacher list saved (${teacherWordList.length} words). Turn on "Lock list for rounds" to activate.`;
+}
+
 function isCurrentWordAudioBlocked() {
     return isCustomWordRound;
 }
@@ -477,6 +579,10 @@ function applyCustomWordChallenge(rawValue, options = {}) {
 
     if (options.closeTeacherModal) {
         closeModal();
+    }
+
+    if (teacherWordListEnabled) {
+        writeTeacherWordListEnabled(false);
     }
 
     if (result.inLibrary) {
@@ -4263,27 +4369,77 @@ function initControls() {
     const quickCustomWordInput = document.getElementById('quick-custom-word-input');
     const quickCustomWordStartBtn = document.getElementById('quick-custom-word-start');
     const quickCustomWordClearBtn = document.getElementById('quick-custom-word-clear');
+    const quickCustomWordListInput = document.getElementById('quick-custom-word-list-input');
+    const quickCustomWordListSetBtn = document.getElementById('quick-custom-word-list-set');
+    const quickCustomWordListClearBtn = document.getElementById('quick-custom-word-list-clear');
+    const quickCustomWordListEnable = document.getElementById('quick-custom-word-list-enable');
+    const quickCustomWordListStatus = document.getElementById('quick-custom-word-list-status');
+    const quickCustomWordFileInput = document.getElementById('quick-custom-word-file');
+    const quickCustomWordFileImportBtn = document.getElementById('quick-custom-word-file-import');
     const toggleMaskBtn = document.getElementById('quick-custom-word-toggle-mask');
     const roundClueToggle = document.getElementById('wq-toggle-round-clue');
     const teacherWordToolsBtn = document.getElementById('wq-tools-teacher-word');
     const toolsMenu = document.getElementById('wq-tools-menu');
     const customWordInput = quickCustomWordInput;
     const quickCustomPanel = document.querySelector('.quick-custom-word-panel');
+    const teacherToolsCard = document.querySelector('.wq-tools-teacher-card');
+    const teacherControlsInTools = !!(quickCustomWordBody && quickCustomWordBody.closest('#wq-tools-menu'));
     const customWordTeacherOnly = isTeacherCustomWordAllowed();
     const supportsTextSecurity = typeof CSS !== 'undefined' && CSS.supports && (
         CSS.supports('-webkit-text-security: disc') || CSS.supports('text-security: disc')
     );
 
+    teacherWordList = readTeacherWordList();
+    teacherWordListEnabled = readTeacherWordListEnabled() && teacherWordList.length > 0;
+    writeTeacherWordListEnabled(teacherWordListEnabled);
+
     if (quickCustomPanel) {
         quickCustomPanel.classList.toggle('hidden', !customWordTeacherOnly);
+        quickCustomPanel.classList.toggle('is-open', false);
+        quickCustomPanel.classList.toggle('is-collapsed', customWordTeacherOnly);
         quickCustomPanel.setAttribute('aria-hidden', customWordTeacherOnly ? 'false' : 'true');
+    }
+    if (teacherToolsCard) {
+        teacherToolsCard.classList.toggle('hidden', !customWordTeacherOnly);
+        teacherToolsCard.setAttribute('aria-hidden', customWordTeacherOnly ? 'false' : 'true');
     }
 
     const setCustomPanelExpanded = (expanded) => {
-        if (!quickCustomWordBody || !quickCustomWordToggleBtn) return;
+        if (!quickCustomWordBody) return;
         quickCustomWordBody.classList.toggle('hidden', !expanded);
-        quickCustomWordToggleBtn.classList.toggle('open', expanded);
-        quickCustomWordToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        if (quickCustomWordToggleBtn) {
+            quickCustomWordToggleBtn.classList.toggle('open', expanded);
+            quickCustomWordToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        }
+        if (quickCustomPanel) {
+            quickCustomPanel.classList.toggle('is-open', expanded);
+            quickCustomPanel.classList.toggle('is-collapsed', !expanded);
+        }
+    };
+
+    const autoResizeTeacherListInput = () => {
+        if (!(quickCustomWordListInput instanceof HTMLTextAreaElement)) return;
+        quickCustomWordListInput.style.height = 'auto';
+        const next = Math.max(96, Math.min(320, quickCustomWordListInput.scrollHeight + 2));
+        quickCustomWordListInput.style.height = `${next}px`;
+    };
+
+    const setListStatus = (message = '', isError = false) => {
+        if (!(quickCustomWordListStatus instanceof HTMLElement)) return;
+        quickCustomWordListStatus.textContent = message;
+        quickCustomWordListStatus.classList.toggle('error', !!isError);
+    };
+
+    const syncTeacherWordListUi = () => {
+        if (quickCustomWordListInput instanceof HTMLTextAreaElement) {
+            quickCustomWordListInput.value = teacherWordList.join('\n');
+            autoResizeTeacherListInput();
+        }
+        if (quickCustomWordListEnable instanceof HTMLInputElement) {
+            quickCustomWordListEnable.checked = !!teacherWordListEnabled && teacherWordList.length > 0;
+            quickCustomWordListEnable.disabled = teacherWordList.length === 0;
+        }
+        setListStatus(getTeacherWordListStatusText(), false);
     };
 
     if (roundClueToggle instanceof HTMLInputElement) {
@@ -4297,24 +4453,176 @@ function initControls() {
         writeRoundClueVisibilityMode(readRoundClueVisibilityMode());
     }
 
-    if (customWordTeacherOnly && quickCustomWordToggleBtn && quickCustomWordBody) {
-        setCustomPanelExpanded(false);
-        quickCustomWordToggleBtn.onclick = () => {
-            const shouldExpand = quickCustomWordBody.classList.contains('hidden');
-            setCustomPanelExpanded(shouldExpand);
-            if (shouldExpand) {
-                setTimeout(() => quickCustomWordInput?.focus(), 0);
+    if (customWordTeacherOnly && quickCustomWordBody) {
+        if (teacherControlsInTools) {
+            setCustomPanelExpanded(true);
+            if (quickCustomWordToggleBtn instanceof HTMLButtonElement) {
+                quickCustomWordToggleBtn.classList.add('hidden');
+                quickCustomWordToggleBtn.setAttribute('aria-hidden', 'true');
+                quickCustomWordToggleBtn.tabIndex = -1;
             }
-        };
+        } else if (quickCustomWordToggleBtn) {
+            setCustomPanelExpanded(false);
+            quickCustomWordToggleBtn.onclick = () => {
+                const shouldExpand = quickCustomWordBody.classList.contains('hidden');
+                setCustomPanelExpanded(shouldExpand);
+                if (shouldExpand) {
+                    setTimeout(() => quickCustomWordInput?.focus(), 0);
+                }
+            };
+        }
     }
 
     if (teacherWordToolsBtn instanceof HTMLButtonElement) {
         teacherWordToolsBtn.classList.toggle('hidden', !customWordTeacherOnly);
         teacherWordToolsBtn.addEventListener('click', () => {
             if (!customWordTeacherOnly) return;
+            if (teacherControlsInTools) {
+                if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = true;
+                quickCustomWordInput?.focus();
+                return;
+            }
             setCustomPanelExpanded(true);
             quickCustomWordInput?.focus();
             if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = false;
+        });
+    }
+
+    if (toolsMenu instanceof HTMLDetailsElement) {
+        const closeToolsMenu = () => {
+            toolsMenu.open = false;
+        };
+        document.addEventListener('click', (event) => {
+            if (!toolsMenu.open) return;
+            const target = event.target;
+            if (target instanceof Node && toolsMenu.contains(target)) return;
+            closeToolsMenu();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && toolsMenu.open) {
+                closeToolsMenu();
+            }
+        });
+    }
+
+    if (customWordTeacherOnly && quickCustomWordListInput instanceof HTMLTextAreaElement) {
+        quickCustomWordListInput.addEventListener('input', autoResizeTeacherListInput);
+    }
+
+    if (customWordTeacherOnly && quickCustomWordListSetBtn instanceof HTMLButtonElement) {
+        quickCustomWordListSetBtn.addEventListener('click', () => {
+            const parsed = parseTeacherWordListInput(quickCustomWordListInput?.value || '');
+            if (!parsed.accepted.length) {
+                setListStatus(
+                    parsed.rejected.length
+                        ? 'No words saved. Check formatting or class-safe filter.'
+                        : 'No words entered.',
+                    true
+                );
+                return;
+            }
+            writeTeacherWordList(parsed.accepted);
+            writeTeacherWordListEnabled(true);
+            syncTeacherWordListUi();
+            const rejectedNote = parsed.rejected.length ? ` (${parsed.rejected.length} skipped)` : '';
+            setQuickCustomWordStatus(`Teacher list saved: ${teacherWordList.length} words${rejectedNote}.`, false, true);
+            startNewGame();
+        });
+    }
+
+    if (customWordTeacherOnly && quickCustomWordListEnable instanceof HTMLInputElement) {
+        quickCustomWordListEnable.addEventListener('change', () => {
+            const enabled = quickCustomWordListEnable.checked && teacherWordList.length > 0;
+            writeTeacherWordListEnabled(enabled);
+            syncTeacherWordListUi();
+            if (enabled) {
+                setQuickCustomWordStatus(`Teacher list mode is ON (${teacherWordList.length} words).`, false, true);
+                startNewGame();
+            } else {
+                setQuickCustomWordStatus(WORD_SOURCE_LIBRARY_STATUS, false, false);
+                startNewGame();
+            }
+        });
+    }
+
+    if (customWordTeacherOnly && quickCustomWordListClearBtn instanceof HTMLButtonElement) {
+        quickCustomWordListClearBtn.addEventListener('click', () => {
+            writeTeacherWordList([]);
+            writeTeacherWordListEnabled(false);
+            syncTeacherWordListUi();
+            setQuickCustomWordStatus(WORD_SOURCE_LIBRARY_STATUS, false, false);
+            startNewGame();
+        });
+    }
+
+    const importTeacherWordsFromFile = async () => {
+        if (!(quickCustomWordFileInput instanceof HTMLInputElement)) return;
+        const file = quickCustomWordFileInput.files && quickCustomWordFileInput.files[0];
+        if (!file) {
+            setListStatus('Choose a file first.', true);
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            setListStatus('File is too large. Use a file under 2MB.', true);
+            return;
+        }
+        const fileName = String(file.name || '').toLowerCase();
+        let rawText = '';
+        try {
+            if (fileName.endsWith('.json')) {
+                const jsonText = await file.text();
+                const parsedJson = JSON.parse(jsonText || '[]');
+                if (Array.isArray(parsedJson)) {
+                    rawText = parsedJson.join('\n');
+                } else if (parsedJson && Array.isArray(parsedJson.words)) {
+                    rawText = parsedJson.words.join('\n');
+                } else {
+                    rawText = String(parsedJson || '');
+                }
+            } else {
+                const buffer = await file.arrayBuffer();
+                rawText = new TextDecoder('utf-8').decode(new Uint8Array(buffer));
+            }
+        } catch (error) {
+            setListStatus('Could not read that file. Paste the list directly instead.', true);
+            return;
+        }
+
+        const parsed = parseTeacherWordListInput(rawText);
+        const acceptedFromLibrary = parsed.accepted.filter((word) => !!window.WORD_ENTRIES?.[word]);
+        const filteredOut = parsed.accepted.length - acceptedFromLibrary.length;
+        if (!acceptedFromLibrary.length) {
+            const needsManualPaste = fileName.endsWith('.pdf') || fileName.endsWith('.doc') || fileName.endsWith('.docx');
+            setListStatus(
+                needsManualPaste
+                    ? 'No readable words found. For PDF/DOC files, paste text into the list box.'
+                    : 'No valid words found in that file.',
+                true
+            );
+            return;
+        }
+
+        writeTeacherWordList(acceptedFromLibrary);
+        writeTeacherWordListEnabled(true);
+        syncTeacherWordListUi();
+        setQuickCustomWordStatus(
+            `Teacher file imported: ${teacherWordList.length} words${filteredOut ? ` (${filteredOut} non-library skipped)` : ''}.`,
+            false,
+            true
+        );
+        startNewGame();
+        quickCustomWordFileInput.value = '';
+    };
+
+    if (customWordTeacherOnly && quickCustomWordFileImportBtn instanceof HTMLButtonElement) {
+        quickCustomWordFileImportBtn.addEventListener('click', () => {
+            importTeacherWordsFromFile();
+        });
+    }
+
+    if (customWordTeacherOnly && quickCustomWordFileInput instanceof HTMLInputElement) {
+        quickCustomWordFileInput.addEventListener('change', () => {
+            importTeacherWordsFromFile();
         });
     }
 
@@ -4360,7 +4668,7 @@ function initControls() {
             const ok = applyCustomWordChallenge(value, { source: 'quick' });
             if (ok) {
                 if (quickCustomWordInput) quickCustomWordInput.value = '';
-                setCustomPanelExpanded(false);
+                if (!teacherControlsInTools) setCustomPanelExpanded(false);
             }
             if (quickCustomWordInput) quickCustomWordInput.blur();
         };
@@ -4373,7 +4681,7 @@ function initControls() {
             const ok = applyCustomWordChallenge(quickCustomWordInput.value, { source: 'quick' });
             if (ok) {
                 quickCustomWordInput.value = '';
-                setCustomPanelExpanded(false);
+                if (!teacherControlsInTools) setCustomPanelExpanded(false);
             }
         });
     }
@@ -4383,10 +4691,16 @@ function initControls() {
             if (quickCustomWordInput) quickCustomWordInput.value = '';
             isCustomWordRound = false;
             customWordInLibrary = true;
+            writeTeacherWordListEnabled(false);
+            syncTeacherWordListUi();
             setQuickCustomWordStatus(WORD_SOURCE_LIBRARY_STATUS, false, false);
             startNewGame();
-            setCustomPanelExpanded(false);
+            if (!teacherControlsInTools) setCustomPanelExpanded(false);
         };
+    }
+
+    if (customWordTeacherOnly) {
+        syncTeacherWordListUi();
     }
 
     ensureWordQuestUtilityControlsPlacement();
@@ -6231,7 +6545,23 @@ function getWordFromDictionary() {
         if (!focusKey || focusKey === 'all') return 'Any Focus';
         return window.FOCUS_INFO?.[focusKey]?.title || focusKey;
     };
+    if (!teacherWordList.length) {
+        teacherWordList = readTeacherWordList();
+    }
+    teacherWordListEnabled = readTeacherWordListEnabled() && teacherWordList.length > 0;
+
     const getPool = ({ focus = 'all', length = targetLen } = {}) => {
+        const curriculumWords = CURRICULUM_FOCUS_LISTS[focus];
+        if (Array.isArray(curriculumWords)) {
+            const basePool = curriculumWords
+                .map((word) => normalizeCustomWordInput(word))
+                .filter((word) => !!window.WORD_ENTRIES?.[word]);
+            return basePool.filter((word) => {
+                if (isBlockedClassSafeWord(word)) return false;
+                return !length || word.length === length;
+            });
+        }
+
         const blockedWords = focus === 'all' ? null : FOCUS_TAG_EXCLUSIONS[focus];
         return allWords.filter((word) => {
             const entry = window.WORD_ENTRIES[word] || {};
@@ -6248,6 +6578,44 @@ function getWordFromDictionary() {
             return true;
         });
     };
+
+    if (teacherWordListEnabled && teacherWordList.length) {
+        const teacherBasePool = teacherWordList.filter((word) => !isBlockedClassSafeWord(word));
+        let teacherPool = teacherBasePool.filter((word) => !targetLen || word.length === targetLen);
+        if (!teacherPool.length) teacherPool = teacherBasePool.slice();
+
+        if (pattern !== 'all' && pattern !== 'shuffle') {
+            const patternFiltered = teacherPool.filter((word) => {
+                const entry = window.WORD_ENTRIES[word] || {};
+                if (Array.isArray(CURRICULUM_FOCUS_LISTS[pattern])) {
+                    return CURRICULUM_FOCUS_LISTS[pattern].includes(word);
+                }
+                return Array.isArray(entry.tags) && entry.tags.includes(pattern);
+            });
+            if (patternFiltered.length) {
+                teacherPool = patternFiltered;
+            } else {
+                activeRoundFallbackNote = `No teacher-list words match ${getFocusTitle(pattern)}; using full teacher list.`;
+            }
+        }
+
+        if (!teacherPool.length) {
+            teacherPool = allWords.filter((word) => !isBlockedClassSafeWord(word));
+        }
+
+        const selected = getNonRepeatingShuffleChoice(
+            teacherPool,
+            `teacher-list:${pattern || 'all'}:${targetLen || 'any'}:${getResolvedAudienceMode()}`
+        ) || teacherPool[Math.floor(Math.random() * teacherPool.length)] || 'plant';
+        const selectedEntry = window.WORD_ENTRIES[selected] || {
+            def: 'Teacher-selected challenge word.',
+            sentence: '',
+            syllables: selected,
+            tags: []
+        };
+        activeRoundPattern = pattern === 'shuffle' ? 'all' : pattern;
+        return { word: selected, entry: selectedEntry };
+    }
 
     const selectableFocuses = Array.from(new Set(allWords.flatMap((word) => {
         const tags = window.WORD_ENTRIES[word]?.tags;

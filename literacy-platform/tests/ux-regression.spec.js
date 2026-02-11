@@ -65,6 +65,15 @@ async function clickWithElementFromPointGuard(page, selector) {
   await target.click();
 }
 
+async function openWordQuestToolsMenu(page) {
+  const toolsMenu = page.locator('#wq-tools-menu');
+  if (await toolsMenu.count() === 0) return;
+  const isOpen = await page.evaluate(() => !!document.getElementById('wq-tools-menu')?.open);
+  if (isOpen) return;
+  await clickWithElementFromPointGuard(page, '#wq-tools-toggle');
+  await expect.poll(() => page.evaluate(() => !!document.getElementById('wq-tools-menu')?.open)).toBe(true);
+}
+
 async function openWordQuest(page, theme = 'calm') {
   await page.goto(pageUrl('word-quest.html'), { waitUntil: 'domcontentloaded' });
   await page.evaluate((selectedTheme) => {
@@ -232,6 +241,7 @@ test.describe('Theme propagation', () => {
 
     const paletteSelector = '#wq-palette-select';
     await expect(page.locator('#wq-theme-studio-overlay')).toHaveCount(0);
+    await openWordQuestToolsMenu(page);
     await clickWithElementFromPointGuard(page, paletteSelector);
     await expect(page.locator(`${paletteSelector} option[value="classic-wordle"]`)).toHaveCount(1);
 

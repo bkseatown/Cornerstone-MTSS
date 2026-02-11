@@ -35,6 +35,7 @@
       'professional-midnight',
       'playful-festival',
       'playful-sunrise',
+      'classic-wordle',
       'classic-contrast'
     ]),
     keyboard: new Set(['auto', 'calm', 'professional', 'playful']),
