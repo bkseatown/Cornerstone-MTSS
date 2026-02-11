@@ -483,6 +483,18 @@ body.home-page.home-details-collapsed .home-hero {
     line-height: 1.3;
 }
 
+/* Keep step questions readable even when theme layers stack. */
+body.home-page .home-wizard-block.home-question-card {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(148, 163, 184, 0.36);
+}
+
+body.home-page .home-question-title {
+    color: #1f2937 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+}
+
 .home-step-head {
     display: grid;
     grid-template-columns: auto 1fr;
