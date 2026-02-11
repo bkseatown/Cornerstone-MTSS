@@ -1280,7 +1280,18 @@
   const body = document.body;
   if (!body) return;
 
-  body.classList.add('force-light');
+  const shouldBypassForceLight =
+    body.classList.contains('cs-page-wordquest') ||
+    body.classList.contains('word-quest-page') ||
+    body.classList.contains('cs-hv2-page') ||
+    body.classList.contains('cs-hv2-enabled') ||
+    !!document.getElementById('homeV2Root');
+  if (shouldBypassForceLight) {
+    body.classList.remove('force-light');
+    document.documentElement.classList.remove('force-light');
+  } else {
+    body.classList.add('force-light');
+  }
   body.dataset.learnerId = getActiveLearnerId();
   document.documentElement.style.colorScheme = 'light';
 

@@ -16136,7 +16136,6 @@ body.word-quest-page.cs-hv2-theme-playful {
     }
 }
 
-/* ==========================================================================
    Word Quest final override (fit + vivid themes, accessibility-safe)
    Keep this block last.
    ========================================================================== */
@@ -16398,4 +16397,115 @@ body.word-quest-page .sentence-preview:empty {
     padding: 0 !important;
     min-height: 0 !important;
     border: 0 !important;
+}
+
+/* ==========================================================================
+   LITERAL LAST LAYER: scoped force-light bypass + Word Quest layout budget
+   ========================================================================== */
+body.force-light.cs-page-wordquest,
+body.force-light.cs-hv2-page {
+    background: inherit !important;
+}
+
+body.word-quest-page.cs-page-wordquest.cs-hv2-theme-calm {
+    --wq-page-bg: linear-gradient(180deg, #e6f0f7 0%, #eaf3ec 52%, #f7f2e8 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(245, 251, 255, 0.96) 0%, rgba(236, 246, 242, 0.94) 100%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(71, 133, 173, 0.92), rgba(104, 158, 131, 0.86), rgba(191, 168, 128, 0.8));
+    --wq-panel-border: rgba(90, 123, 141, 0.34);
+    --wq-keyboard-surface: rgba(230, 242, 238, 0.86);
+    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #edf7f3 100%);
+}
+
+body.word-quest-page.cs-page-wordquest.cs-hv2-theme-professional {
+    --wq-page-bg: linear-gradient(180deg, #d2dcec 0%, #c5d3e7 44%, #bccddd 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(240, 247, 255, 0.96) 0%, rgba(225, 236, 248, 0.94) 100%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(33, 79, 161, 0.94), rgba(38, 103, 191, 0.88), rgba(43, 175, 219, 0.8));
+    --wq-panel-border: rgba(63, 92, 132, 0.4);
+    --wq-keyboard-surface: rgba(219, 232, 249, 0.88);
+    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #e4edf9 100%);
+}
+
+body.word-quest-page.cs-page-wordquest.cs-hv2-theme-playful {
+    --wq-page-bg: linear-gradient(180deg, #ffefb2 0%, #ffd0d8 42%, #bbe8ff 74%, #b6f3d2 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 248, 225, 0.96) 0%, rgba(255, 232, 242, 0.94) 48%, rgba(227, 245, 255, 0.92) 100%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(255, 143, 0, 0.96), rgba(255, 66, 160, 0.9), rgba(72, 150, 255, 0.86), rgba(47, 214, 138, 0.84));
+    --wq-panel-border: rgba(210, 118, 40, 0.46);
+    --wq-keyboard-surface: rgba(255, 226, 168, 0.9);
+    --wq-key-bg: linear-gradient(180deg, #fffef6 0%, #ffe5ab 100%);
+}
+
+@media (min-width: 900px) {
+    body.word-quest-page.cs-page-wordquest {
+        display: grid !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        min-height: 100dvh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest main {
+        min-height: 0 !important;
+        overflow: hidden !important;
+        display: grid !important;
+        grid-template-rows: auto auto minmax(0, 1fr) !important;
+        gap: 6px !important;
+        padding-bottom: 8px !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest #game-canvas,
+    body.word-quest-page.cs-page-wordquest.fit-screen #game-canvas,
+    body.word-quest-page.cs-page-wordquest.fit-screen-tight #game-canvas {
+        width: min(980px, calc(100vw - 20px)) !important;
+        max-width: min(980px, calc(100vw - 20px)) !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        margin: 0 auto !important;
+        padding: 8px 10px 10px !important;
+        display: grid !important;
+        grid-template-rows: minmax(0, 1fr) auto auto minmax(170px, 0.56fr) !important;
+        gap: 10px !important;
+        overflow: hidden !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest .tile {
+        width: clamp(36px, 4.2vh, 50px) !important;
+        height: clamp(36px, 4.2vh, 50px) !important;
+        font-size: clamp(1rem, 2.8vh, 1.7rem) !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest #keyboard {
+        min-height: clamp(170px, 23vh, 230px) !important;
+        max-height: 320px !important;
+        padding: 10px !important;
+        overflow: hidden !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest #keyboard button:not(.correct):not(.present):not(.absent),
+    body.word-quest-page.cs-page-wordquest #keyboard .key:not(.correct):not(.present):not(.absent),
+    body.word-quest-page.cs-page-wordquest #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+        min-height: clamp(44px, 5vh, 60px) !important;
+        height: clamp(44px, 5vh, 60px) !important;
+        min-width: clamp(36px, 4vw, 54px) !important;
+        max-width: 68px !important;
+        font-size: clamp(0.9rem, 2vh, 1.15rem) !important;
+    }
+}
+
+@media (max-width: 899px) {
+    body.word-quest-page.cs-page-wordquest {
+        overflow: auto !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest #game-canvas {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    body.word-quest-page.cs-page-wordquest #keyboard {
+        min-height: 220px !important;
+        max-height: none !important;
+    }
 }

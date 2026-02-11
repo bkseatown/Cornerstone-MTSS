@@ -105,6 +105,8 @@ body.cs-hv2-theme-calm {
   --cs-hv2-hover-lift: 1px;
   --cs-hv2-hover-shadow: 0 16px 28px rgba(45, 59, 110, 0.16);
   --hv2-page-bg: #f4f2eb;
+  --hv2-panel-bg: rgba(255, 255, 255, 0.72);
+  --hv2-panel-border: rgba(80, 75, 65, 0.22);
   --hv2-card-bg: #ffffff;
   --hv2-card-border: rgba(80, 75, 65, 0.18);
   --hv2-accent: #7b6fff;
@@ -143,6 +145,8 @@ body.cs-hv2-theme-professional {
   --cs-hv2-hover-lift: 0px;
   --cs-hv2-hover-shadow: 0 10px 16px rgba(15, 23, 42, 0.1);
   --hv2-page-bg: #edf2f8;
+  --hv2-panel-bg: rgba(255, 255, 255, 0.78);
+  --hv2-panel-border: rgba(30, 60, 120, 0.26);
   --hv2-card-bg: #ffffff;
   --hv2-card-border: rgba(30, 60, 120, 0.22);
   --hv2-accent: #2f5eea;
@@ -179,6 +183,8 @@ body.cs-hv2-theme-playful {
   --cs-hv2-hover-lift: 2px;
   --cs-hv2-hover-shadow: 0 18px 30px rgba(37, 99, 235, 0.22);
   --hv2-page-bg: #fff3e3;
+  --hv2-panel-bg: rgba(255, 255, 255, 0.7);
+  --hv2-panel-border: rgba(255, 140, 0, 0.3);
   --hv2-card-bg: #ffffff;
   --hv2-card-border: rgba(255, 180, 80, 0.28);
   --hv2-accent: #ff8c00;
@@ -222,6 +228,8 @@ body.cs-hv2-theme-high-contrast {
   --cs-hv2-hover-lift: 0px;
   --cs-hv2-hover-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
   --hv2-page-bg: #05070d;
+  --hv2-panel-bg: rgba(15, 23, 42, 0.92);
+  --hv2-panel-border: rgba(248, 250, 252, 0.46);
   --hv2-card-bg: #0f172a;
   --hv2-card-border: rgba(248, 250, 252, 0.45);
   --hv2-accent: #facc15;
@@ -742,4 +750,65 @@ button.primary,
 /* Ensure Home V2 themes beat any legacy preset backgrounds */
 body.hv2-root {
   background: var(--hv2-page-bg, #f5f7fb) !important;
+}
+
+/* ==========================================================================
+   Home V2 literal last layer: high-specificity theme surface bindings
+   ========================================================================== */
+body.cs-hv2-theme-calm #homeV2Root,
+body.cs-hv2-theme-professional #homeV2Root,
+body.cs-hv2-theme-playful #homeV2Root,
+body.cs-hv2-theme-high-contrast #homeV2Root {
+  background: var(--hv2-page-bg, #f5f7fb) !important;
+}
+
+body.cs-hv2-theme-calm #homeV2Root .hv2-panel,
+body.cs-hv2-theme-professional #homeV2Root .hv2-panel,
+body.cs-hv2-theme-playful #homeV2Root .hv2-panel,
+body.cs-hv2-theme-high-contrast #homeV2Root .hv2-panel,
+body.cs-hv2-theme-calm #homeV2Root .step-container,
+body.cs-hv2-theme-professional #homeV2Root .step-container,
+body.cs-hv2-theme-playful #homeV2Root .step-container,
+body.cs-hv2-theme-high-contrast #homeV2Root .step-container,
+body.cs-hv2-theme-calm #homeV2Root .cs-hv2-hero,
+body.cs-hv2-theme-professional #homeV2Root .cs-hv2-hero,
+body.cs-hv2-theme-playful #homeV2Root .cs-hv2-hero,
+body.cs-hv2-theme-high-contrast #homeV2Root .cs-hv2-hero,
+body.cs-hv2-theme-calm #homeV2Root .cs-hv2-question-card,
+body.cs-hv2-theme-professional #homeV2Root .cs-hv2-question-card,
+body.cs-hv2-theme-playful #homeV2Root .cs-hv2-question-card,
+body.cs-hv2-theme-high-contrast #homeV2Root .cs-hv2-question-card {
+  background: var(--hv2-panel-bg, rgba(255, 255, 255, 0.78)) !important;
+  border-color: var(--hv2-panel-border, rgba(0, 0, 0, 0.12)) !important;
+}
+
+body.cs-hv2-theme-calm #homeV2Root .hv2-card,
+body.cs-hv2-theme-professional #homeV2Root .hv2-card,
+body.cs-hv2-theme-playful #homeV2Root .hv2-card,
+body.cs-hv2-theme-high-contrast #homeV2Root .hv2-card,
+body.cs-hv2-theme-calm #homeV2Root .onboarding-card,
+body.cs-hv2-theme-professional #homeV2Root .onboarding-card,
+body.cs-hv2-theme-playful #homeV2Root .onboarding-card,
+body.cs-hv2-theme-high-contrast #homeV2Root .onboarding-card,
+body.cs-hv2-theme-calm #homeV2Root .cs-hv2-choice-card,
+body.cs-hv2-theme-professional #homeV2Root .cs-hv2-choice-card,
+body.cs-hv2-theme-playful #homeV2Root .cs-hv2-choice-card,
+body.cs-hv2-theme-high-contrast #homeV2Root .cs-hv2-choice-card {
+  background: var(--hv2-card-bg, rgba(255, 255, 255, 0.88)) !important;
+  border-color: var(--hv2-card-border, rgba(0, 0, 0, 0.14)) !important;
+}
+
+body.cs-hv2-theme-calm #homeV2Root [data-action="set-theme"],
+body.cs-hv2-theme-professional #homeV2Root [data-action="set-theme"],
+body.cs-hv2-theme-playful #homeV2Root [data-action="set-theme"],
+body.cs-hv2-theme-high-contrast #homeV2Root [data-action="set-theme"] {
+  border-color: var(--hv2-accent, #7b6fff) !important;
+}
+
+body.cs-hv2-theme-calm #homeV2Root [data-action="set-theme"].active,
+body.cs-hv2-theme-professional #homeV2Root [data-action="set-theme"].active,
+body.cs-hv2-theme-playful #homeV2Root [data-action="set-theme"].active,
+body.cs-hv2-theme-high-contrast #homeV2Root [data-action="set-theme"].active {
+  background: var(--hv2-accent, #7b6fff) !important;
+  color: #ffffff !important;
 }
