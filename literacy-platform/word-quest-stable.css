@@ -207,6 +207,7 @@ body.word-quest-page .wq-control-new-round .new-round-btn {
 body.word-quest-page .wq-tools-control {
     position: relative;
     min-width: 120px;
+    opacity: 1 !important;
 }
 
 body.word-quest-page #wq-tools-menu {
@@ -244,6 +245,7 @@ body.word-quest-page .wq-tools-body {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     mix-blend-mode: normal !important;
+    isolation: isolate !important;
     opacity: 1 !important;
     color: #0f172a;
 }
@@ -765,9 +767,20 @@ body.word-quest-page .controls {
     margin-bottom: 0 !important;
     padding: 0 !important;
     display: grid !important;
-    grid-template-columns: minmax(380px, 1fr) auto auto !important;
+    grid-template-columns: minmax(280px, 420px) auto auto !important;
     align-items: end !important;
     gap: 6px 10px !important;
+}
+
+body.word-quest-page .wq-control-focus {
+    width: min(420px, calc(100vw - 260px)) !important;
+    max-width: min(420px, calc(100vw - 260px)) !important;
+}
+
+body.word-quest-page .controls #pattern-select {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 body.word-quest-page .controls .control-group > label {
@@ -1210,8 +1223,22 @@ body.word-quest-page .wq-tools-teacher-card .quick-custom-word-list-status.error
 }
 
 body.word-quest-page .cs-sentence-caption-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
     color: #0f172a !important;
     font-weight: 820 !important;
+    text-shadow: none !important;
+    border: 1px solid rgba(148, 163, 184, 0.52) !important;
+    border-radius: 12px !important;
+    background: #f8fbff !important;
+    padding: 5px 12px !important;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1) !important;
+    opacity: 1 !important;
+}
+
+body.word-quest-page .cs-sentence-caption-toggle > span {
+    color: #0f172a !important;
     opacity: 1 !important;
 }
 
