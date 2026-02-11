@@ -19,6 +19,29 @@
   const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
   const HOME_THEME_KEY = 'cs_hv2_theme';
   const HOME_THEME_VALUES = ['calm', 'professional', 'playful', 'high-contrast'];
+  const THEME_STUDIO_STORAGE = Object.freeze({
+    scene: 'cs_wq_scene',
+    keyboard: 'cs_wq_keyboard_style',
+    intensity: 'cs_wq_intensity',
+    shape: 'cs_wq_shape',
+    density: 'cs_wq_density'
+  });
+  const THEME_STUDIO_ALLOWED = Object.freeze({
+    scene: new Set([
+      'calm-studio',
+      'meadow-calm',
+      'ocean-calm',
+      'professional-chrome',
+      'professional-midnight',
+      'playful-festival',
+      'playful-sunrise',
+      'classic-contrast'
+    ]),
+    keyboard: new Set(['auto', 'calm', 'professional', 'playful']),
+    intensity: new Set(['soft', 'medium', 'vivid']),
+    shape: new Set(['soft', 'round', 'crisp']),
+    density: new Set(['compact', 'standard', 'large'])
+  });
 
   const LEARNERS_KEY = 'decode_learners_v1';
   const ACTIVE_LEARNER_KEY = 'decode_active_learner_v1';
@@ -541,6 +564,262 @@
     });
     root.classList.add(`cs-hv2-theme-${chosen}`);
     body.classList.add(`cs-hv2-theme-${chosen}`);
+  }
+
+  function normalizeThemeStudioSetting(kind, value, fallback) {
+    const raw = String(value || '').trim().toLowerCase();
+    const allowed = THEME_STUDIO_ALLOWED[kind];
+    if (!(allowed instanceof Set)) return fallback;
+    return allowed.has(raw) ? raw : fallback;
+  }
+
+  function inferSceneFromHomeTheme(themeValue = 'calm') {
+    const theme = normalizeHomeTheme(themeValue);
+    if (theme === 'professional') return 'professional-chrome';
+    if (theme === 'playful') return 'playful-festival';
+    if (theme === 'high-contrast') return 'classic-contrast';
+    return 'calm-studio';
+  }
+
+  function mapSceneToHomeTheme(sceneValue = '') {
+    const scene = normalizeThemeStudioSetting('scene', sceneValue, 'calm-studio');
+    if (scene === 'professional-chrome' || scene === 'professional-midnight') return 'professional';
+    if (scene === 'playful-festival' || scene === 'playful-sunrise') return 'playful';
+    if (scene === 'classic-contrast') return 'high-contrast';
+    return 'calm';
+  }
+
+  function getThemeStudioDefaults() {
+    const fromStorage = normalizeHomeTheme(localStorage.getItem(HOME_THEME_KEY) || 'calm');
+    return {
+      scene: inferSceneFromHomeTheme(fromStorage),
+      keyboard: 'auto',
+      intensity: 'medium',
+      shape: 'soft',
+      density: 'standard'
+    };
+  }
+
+  function readThemeStudioState() {
+    const defaults = getThemeStudioDefaults();
+    const rawScene = String(localStorage.getItem(THEME_STUDIO_STORAGE.scene) || '').trim().toLowerCase();
+    return {
+      hasStoredScene: !!rawScene,
+      state: {
+        scene: normalizeThemeStudioSetting('scene', rawScene, defaults.scene),
+        keyboard: normalizeThemeStudioSetting('keyboard', localStorage.getItem(THEME_STUDIO_STORAGE.keyboard), defaults.keyboard),
+        intensity: normalizeThemeStudioSetting('intensity', localStorage.getItem(THEME_STUDIO_STORAGE.intensity), defaults.intensity),
+        shape: normalizeThemeStudioSetting('shape', localStorage.getItem(THEME_STUDIO_STORAGE.shape), defaults.shape),
+        density: normalizeThemeStudioSetting('density', localStorage.getItem(THEME_STUDIO_STORAGE.density), defaults.density)
+      }
+    };
+  }
+
+  function writeThemeStudioState(state) {
+    if (!state || typeof state !== 'object') return;
+    localStorage.setItem(THEME_STUDIO_STORAGE.scene, String(state.scene || ''));
+    localStorage.setItem(THEME_STUDIO_STORAGE.keyboard, String(state.keyboard || ''));
+    localStorage.setItem(THEME_STUDIO_STORAGE.intensity, String(state.intensity || ''));
+    localStorage.setItem(THEME_STUDIO_STORAGE.shape, String(state.shape || ''));
+    localStorage.setItem(THEME_STUDIO_STORAGE.density, String(state.density || ''));
+  }
+
+  function clearThemeStudioState() {
+    Object.values(THEME_STUDIO_STORAGE).forEach((key) => {
+      localStorage.removeItem(key);
+    });
+  }
+
+  function applyThemeStudioState(inputState = {}, options = {}) {
+    const defaults = getThemeStudioDefaults();
+    const nextState = {
+      scene: normalizeThemeStudioSetting('scene', inputState.scene, defaults.scene),
+      keyboard: normalizeThemeStudioSetting('keyboard', inputState.keyboard, defaults.keyboard),
+      intensity: normalizeThemeStudioSetting('intensity', inputState.intensity, defaults.intensity),
+      shape: normalizeThemeStudioSetting('shape', inputState.shape, defaults.shape),
+      density: normalizeThemeStudioSetting('density', inputState.density, defaults.density)
+    };
+
+    if (options.persist !== false) {
+      writeThemeStudioState(nextState);
+    }
+    if (document.body) {
+      document.body.dataset.csScene = nextState.scene;
+      document.body.dataset.csKeyboardStyle = nextState.keyboard;
+      document.body.dataset.csIntensity = nextState.intensity;
+      document.body.dataset.csShape = nextState.shape;
+      document.body.dataset.csDensity = nextState.density;
+      // Mirror on existing Word Quest data-* hooks so one settings model drives all pages.
+      document.body.dataset.wqScene = nextState.scene;
+      document.body.dataset.wqKeyboardStyle = nextState.keyboard;
+      document.body.dataset.wqIntensity = nextState.intensity;
+      document.body.dataset.wqShape = nextState.shape;
+      document.body.dataset.wqDensity = nextState.density;
+    }
+
+    if (options.syncHomeTheme === true) {
+      const mappedTheme = mapSceneToHomeTheme(nextState.scene);
+      localStorage.setItem(HOME_THEME_KEY, mappedTheme);
+      applyHomeThemeClass();
+    }
+
+    return nextState;
+  }
+
+  function ensureThemeStudioDialog() {
+    let overlay = document.getElementById('global-theme-studio-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-theme-studio-overlay';
+      overlay.className = 'global-theme-studio-overlay hidden';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.innerHTML = `
+        <section class="global-theme-studio-modal" role="dialog" aria-modal="true" aria-labelledby="global-theme-studio-title">
+          <header class="global-theme-studio-head">
+            <h2 id="global-theme-studio-title">Theme Studio</h2>
+            <button type="button" class="global-theme-studio-close" data-theme-studio-action="close" aria-label="Close theme studio">×</button>
+          </header>
+          <p class="global-theme-studio-copy">Choose a scene style for this account. It applies to every page.</p>
+          <div class="global-theme-studio-grid">
+            <label class="global-theme-studio-field">
+              <span>Scene</span>
+              <select data-theme-studio-field="scene">
+                <option value="calm-studio">Calm Studio</option>
+                <option value="meadow-calm">Meadow Calm</option>
+                <option value="ocean-calm">Ocean Mist</option>
+                <option value="professional-chrome">Professional Chrome</option>
+                <option value="professional-midnight">Professional Midnight</option>
+                <option value="playful-festival">Playful Festival</option>
+                <option value="playful-sunrise">Playful Sunrise</option>
+                <option value="classic-contrast">Classic Contrast</option>
+              </select>
+            </label>
+            <label class="global-theme-studio-field">
+              <span>Keyboard style</span>
+              <select data-theme-studio-field="keyboard">
+                <option value="auto">Match scene</option>
+                <option value="calm">Calm</option>
+                <option value="professional">Professional</option>
+                <option value="playful">Playful</option>
+              </select>
+            </label>
+            <label class="global-theme-studio-field">
+              <span>Intensity</span>
+              <select data-theme-studio-field="intensity">
+                <option value="soft">Soft</option>
+                <option value="medium">Medium</option>
+                <option value="vivid">Vivid</option>
+              </select>
+            </label>
+            <label class="global-theme-studio-field">
+              <span>Shape</span>
+              <select data-theme-studio-field="shape">
+                <option value="soft">Soft</option>
+                <option value="round">Round</option>
+                <option value="crisp">Crisp</option>
+              </select>
+            </label>
+            <label class="global-theme-studio-field">
+              <span>Density</span>
+              <select data-theme-studio-field="density">
+                <option value="compact">Compact</option>
+                <option value="standard">Standard</option>
+                <option value="large">Large</option>
+              </select>
+            </label>
+          </div>
+          <footer class="global-theme-studio-actions">
+            <button type="button" class="secondary-btn" data-theme-studio-action="reset">Reset</button>
+            <button type="button" class="secondary-btn" data-theme-studio-action="done">Done</button>
+          </footer>
+        </section>
+      `;
+      document.body.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function openThemeStudioDialog() {
+    const overlay = ensureThemeStudioDialog();
+    const fields = Array.from(overlay.querySelectorAll('[data-theme-studio-field]'));
+    const selectByField = fields.reduce((map, node) => {
+      const key = String(node.getAttribute('data-theme-studio-field') || '').trim();
+      if (key && node instanceof HTMLSelectElement) map[key] = node;
+      return map;
+    }, {});
+
+    const loaded = readThemeStudioState();
+    let state = applyThemeStudioState(loaded.state, { persist: false, syncHomeTheme: false });
+    Object.entries(selectByField).forEach(([key, select]) => {
+      if (Object.prototype.hasOwnProperty.call(state, key)) select.value = String(state[key]);
+    });
+
+    if (overlay.dataset.bound !== 'true') {
+      overlay.dataset.bound = 'true';
+      overlay.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLSelectElement)) return;
+        const field = String(target.getAttribute('data-theme-studio-field') || '').trim();
+        if (!Object.prototype.hasOwnProperty.call(state, field)) return;
+        state = applyThemeStudioState({
+          ...state,
+          [field]: target.value
+        }, { persist: true, syncHomeTheme: field === 'scene' });
+      });
+      overlay.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (target === overlay) {
+          overlay.classList.add('hidden');
+          overlay.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove('theme-studio-open');
+          return;
+        }
+        const action = String(target.getAttribute('data-theme-studio-action') || '').trim();
+        if (!action) return;
+        if (action === 'close' || action === 'done') {
+          overlay.classList.add('hidden');
+          overlay.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove('theme-studio-open');
+          return;
+        }
+        if (action === 'reset') {
+          clearThemeStudioState();
+          const refreshed = readThemeStudioState();
+          state = applyThemeStudioState(refreshed.state, { persist: true, syncHomeTheme: true });
+          Object.entries(selectByField).forEach(([key, select]) => {
+            if (Object.prototype.hasOwnProperty.call(state, key)) select.value = String(state[key]);
+          });
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (overlay.classList.contains('hidden')) return;
+        overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('theme-studio-open');
+      });
+    }
+
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('theme-studio-open');
+  }
+
+  function renderThemeStudioLauncher(nav) {
+    if (!(nav instanceof HTMLElement)) return;
+    let trigger = nav.querySelector('.theme-studio-launch');
+    if (!trigger) {
+      trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'link-btn theme-studio-launch';
+      trigger.textContent = 'Theme Studio';
+      nav.appendChild(trigger);
+    }
+    if (trigger.dataset.bound !== 'true') {
+      trigger.dataset.bound = 'true';
+      trigger.addEventListener('click', openThemeStudioDialog);
+    }
   }
 
   const DEFAULT_QUICK_RESPONSES = [
@@ -1347,6 +1626,9 @@
   platform.appendLocalArray = platform.appendLocalArray || appendLocalArray;
   platform.getSettings = function getSettingsPublic() {
     return readScopedSettings();
+  };
+  platform.openThemeStudio = function openThemeStudioPublic() {
+    openThemeStudioDialog();
   };
   platform.setSettings = function setSettingsPublic(patch = {}, options = {}) {
     const updated = writeScopedSettings(patch);
@@ -2891,6 +3173,7 @@
         if (menu) nav.appendChild(menu);
       });
       renderGlobalVoiceShortcut(nav);
+      renderThemeStudioLauncher(nav);
       wirePrimaryNavMenus(nav, currentId);
     });
 
@@ -3066,6 +3349,11 @@
   })();
 
   applyHomeThemeClass();
+  const initialThemeStudio = readThemeStudioState();
+  applyThemeStudioState(initialThemeStudio.state, {
+    persist: false,
+    syncHomeTheme: initialThemeStudio.hasStoredScene
+  });
   ensureFavicon();
   renderBuildStamp();
   renderPrimaryNav();

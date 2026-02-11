@@ -86,8 +86,8 @@
       })();
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="home-v2.css?v=step19theme1" />
-    <link rel="stylesheet" href="style.css?v=20260211uxfix6" />
+    <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
+    <link rel="stylesheet" href="style.css?v=20260211uxfix4" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -96,10 +96,10 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight1" defer></script>
-    <script src="app.js?v=20260211uxfix6" defer></script>
+    <script src="app.js?v=20260211uxfix4" defer></script>
   </head>
 
-  <body class="word-quest-page cs-page-wordquest look-35">
+  <body class="word-quest-page force-light look-35">
     <header>
       <div class="header-top">
         <h1>
@@ -174,6 +174,11 @@
             <option value="playful">Playful</option>
             <option value="high-contrast">Contrast</option>
           </select>
+        </div>
+
+        <div class="control-group control-group-subtle">
+          <label for="wq-theme-studio-btn">Studio</label>
+          <button id="wq-theme-studio-btn" type="button" class="case-toggle-btn wq-theme-studio-btn" aria-label="Open theme studio">Theme Studio</button>
         </div>
 
         <div class="control-group control-group-subtle">
@@ -475,6 +480,76 @@
         <div id="recent-words" style="margin-top: 12px;"></div>
       </div>
     </div>
+
+    <div id="wq-theme-studio-overlay" class="wq-theme-studio-overlay hidden" aria-hidden="true">
+      <section class="wq-theme-studio-modal" role="dialog" aria-modal="true" aria-labelledby="wq-theme-studio-title">
+        <header class="wq-theme-studio-head">
+          <h2 id="wq-theme-studio-title">Theme Studio</h2>
+          <button id="wq-theme-studio-close" type="button" class="wq-theme-studio-close" aria-label="Close theme studio">×</button>
+        </header>
+
+        <p class="wq-theme-studio-copy">Pick a scene and keyboard style. Changes apply instantly and save for next time.</p>
+
+        <div class="wq-theme-studio-grid">
+          <label class="wq-theme-studio-field">
+            <span>Scene</span>
+            <select id="wq-scene-select">
+              <option value="calm-studio">Calm Studio</option>
+              <option value="meadow-calm">Meadow Calm</option>
+              <option value="ocean-calm">Ocean Mist</option>
+              <option value="professional-chrome">Professional Chrome</option>
+              <option value="professional-midnight">Professional Midnight</option>
+              <option value="playful-festival">Playful Festival</option>
+              <option value="playful-sunrise">Playful Sunrise</option>
+              <option value="classic-contrast">Classic Contrast</option>
+            </select>
+          </label>
+
+          <label class="wq-theme-studio-field">
+            <span>Keyboard style</span>
+            <select id="wq-keyboard-style-select">
+              <option value="auto">Match scene</option>
+              <option value="calm">Calm</option>
+              <option value="professional">Professional</option>
+              <option value="playful">Playful</option>
+            </select>
+          </label>
+
+          <label class="wq-theme-studio-field">
+            <span>Intensity</span>
+            <select id="wq-intensity-select">
+              <option value="soft">Soft</option>
+              <option value="medium">Medium</option>
+              <option value="vivid">Vivid</option>
+            </select>
+          </label>
+
+          <label class="wq-theme-studio-field">
+            <span>Shape</span>
+            <select id="wq-shape-select">
+              <option value="soft">Soft</option>
+              <option value="round">Round</option>
+              <option value="crisp">Crisp</option>
+            </select>
+          </label>
+
+          <label class="wq-theme-studio-field">
+            <span>Density</span>
+            <select id="wq-density-select">
+              <option value="standard">Standard</option>
+              <option value="compact">Compact</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+        </div>
+
+        <footer class="wq-theme-studio-actions">
+          <button id="wq-theme-studio-reset" type="button" class="wq-theme-studio-reset">Reset</button>
+          <button id="wq-theme-studio-done" type="button" class="wq-theme-studio-done">Done</button>
+        </footer>
+      </section>
+    </div>
+
     <style>
       .wq-theme-select {
         min-height: 36px;
@@ -489,6 +564,123 @@
 
       .wq-theme-control {
         min-width: 136px;
+      }
+
+      .wq-theme-studio-btn {
+        min-width: 118px;
+      }
+
+      .wq-theme-studio-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.36);
+        backdrop-filter: blur(4px);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        z-index: 3600;
+      }
+
+      .wq-theme-studio-overlay.hidden {
+        display: none;
+      }
+
+      .wq-theme-studio-modal {
+        width: min(660px, calc(100vw - 24px));
+        border-radius: 18px;
+        border: 1px solid rgba(99, 102, 241, 0.26);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 24px 52px rgba(15, 23, 42, 0.25);
+        padding: 16px 18px;
+        display: grid;
+        gap: 12px;
+        color: #0f172a;
+      }
+
+      .wq-theme-studio-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .wq-theme-studio-head h2 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .wq-theme-studio-close {
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 2rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .wq-theme-studio-copy {
+        margin: 0;
+        color: #475569;
+        font-weight: 650;
+      }
+
+      .wq-theme-studio-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 12px;
+      }
+
+      .wq-theme-studio-field {
+        display: grid;
+        gap: 6px;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #475569;
+        font-weight: 840;
+      }
+
+      .wq-theme-studio-field select {
+        min-height: 40px;
+        border-radius: 11px;
+        border: 1px solid rgba(99, 102, 241, 0.36);
+        background: #ffffff;
+        color: #0f172a;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 8px 10px;
+      }
+
+      .wq-theme-studio-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .wq-theme-studio-reset,
+      .wq-theme-studio-done {
+        min-height: 38px;
+        padding: 7px 12px;
+        border-radius: 10px;
+        font-weight: 780;
+        cursor: pointer;
+        border: 1px solid rgba(99, 102, 241, 0.34);
+      }
+
+      .wq-theme-studio-reset {
+        background: rgba(248, 250, 252, 0.95);
+        color: #1f2937;
+      }
+
+      .wq-theme-studio-done {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(14, 165, 233, 0.88));
+        color: #ffffff;
+      }
+
+      @media (max-width: 760px) {
+        .wq-theme-studio-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       .demo-exit-link {
@@ -550,6 +742,184 @@
             });
           });
         }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+    <script>
+      (function initWordQuestThemeStudio() {
+        var STORAGE_KEYS = {
+          scene: 'cs_wq_scene',
+          keyboard: 'cs_wq_keyboard_style',
+          intensity: 'cs_wq_intensity',
+          shape: 'cs_wq_shape',
+          density: 'cs_wq_density'
+        };
+
+        var allowed = {
+          scene: new Set([
+            'calm-studio',
+            'meadow-calm',
+            'ocean-calm',
+            'professional-chrome',
+            'professional-midnight',
+            'playful-festival',
+            'playful-sunrise',
+            'classic-contrast'
+          ]),
+          keyboard: new Set(['auto', 'calm', 'professional', 'playful']),
+          intensity: new Set(['soft', 'medium', 'vivid']),
+          shape: new Set(['soft', 'round', 'crisp']),
+          density: new Set(['compact', 'standard', 'large'])
+        };
+
+        function normalize(kind, value, fallback) {
+          var v = String(value || '').trim().toLowerCase();
+          return allowed[kind].has(v) ? v : fallback;
+        }
+
+        function activeBaseTheme() {
+          var cls = document.body ? document.body.className : '';
+          if (cls.indexOf('cs-hv2-theme-professional') >= 0) return 'professional';
+          if (cls.indexOf('cs-hv2-theme-playful') >= 0) return 'playful';
+          if (cls.indexOf('cs-hv2-theme-high-contrast') >= 0) return 'high-contrast';
+          return 'calm';
+        }
+
+        function sceneFromTheme(theme) {
+          if (theme === 'professional') return 'professional-chrome';
+          if (theme === 'playful') return 'playful-festival';
+          if (theme === 'high-contrast') return 'classic-contrast';
+          return 'calm-studio';
+        }
+
+        function defaults() {
+          return {
+            scene: sceneFromTheme(activeBaseTheme()),
+            keyboard: 'auto',
+            intensity: 'medium',
+            shape: 'soft',
+            density: 'standard'
+          };
+        }
+
+        function loadSettings() {
+          var d = defaults();
+          try {
+            d.scene = normalize('scene', localStorage.getItem(STORAGE_KEYS.scene), d.scene);
+            d.keyboard = normalize('keyboard', localStorage.getItem(STORAGE_KEYS.keyboard), d.keyboard);
+            d.intensity = normalize('intensity', localStorage.getItem(STORAGE_KEYS.intensity), d.intensity);
+            d.shape = normalize('shape', localStorage.getItem(STORAGE_KEYS.shape), d.shape);
+            d.density = normalize('density', localStorage.getItem(STORAGE_KEYS.density), d.density);
+          } catch (e) {}
+          return d;
+        }
+
+        function persist(settings) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.scene, settings.scene);
+            localStorage.setItem(STORAGE_KEYS.keyboard, settings.keyboard);
+            localStorage.setItem(STORAGE_KEYS.intensity, settings.intensity);
+            localStorage.setItem(STORAGE_KEYS.shape, settings.shape);
+            localStorage.setItem(STORAGE_KEYS.density, settings.density);
+          } catch (e) {}
+        }
+
+        function apply(settings) {
+          if (!document.body) return;
+          document.body.dataset.wqScene = settings.scene;
+          document.body.dataset.wqKeyboardStyle = settings.keyboard;
+          document.body.dataset.wqIntensity = settings.intensity;
+          document.body.dataset.wqShape = settings.shape;
+          document.body.dataset.wqDensity = settings.density;
+          persist(settings);
+        }
+
+        function init() {
+          var overlay = document.getElementById('wq-theme-studio-overlay');
+          var openBtn = document.getElementById('wq-theme-studio-btn');
+          var closeBtn = document.getElementById('wq-theme-studio-close');
+          var doneBtn = document.getElementById('wq-theme-studio-done');
+          var resetBtn = document.getElementById('wq-theme-studio-reset');
+
+          var sceneSelect = document.getElementById('wq-scene-select');
+          var keyboardSelect = document.getElementById('wq-keyboard-style-select');
+          var intensitySelect = document.getElementById('wq-intensity-select');
+          var shapeSelect = document.getElementById('wq-shape-select');
+          var densitySelect = document.getElementById('wq-density-select');
+
+          if (!overlay || !openBtn || !sceneSelect || !keyboardSelect || !intensitySelect || !shapeSelect || !densitySelect) return;
+
+          var settings = loadSettings();
+          apply(settings);
+
+          function syncControls() {
+            sceneSelect.value = settings.scene;
+            keyboardSelect.value = settings.keyboard;
+            intensitySelect.value = settings.intensity;
+            shapeSelect.value = settings.shape;
+            densitySelect.value = settings.density;
+          }
+
+          function pullFromControls() {
+            settings = {
+              scene: normalize('scene', sceneSelect.value, sceneFromTheme(activeBaseTheme())),
+              keyboard: normalize('keyboard', keyboardSelect.value, 'auto'),
+              intensity: normalize('intensity', intensitySelect.value, 'medium'),
+              shape: normalize('shape', shapeSelect.value, 'soft'),
+              density: normalize('density', densitySelect.value, 'standard')
+            };
+            apply(settings);
+          }
+
+          function openStudio() {
+            syncControls();
+            overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('wq-theme-studio-open');
+          }
+
+          function closeStudio() {
+            overlay.classList.add('hidden');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('wq-theme-studio-open');
+          }
+
+          [sceneSelect, keyboardSelect, intensitySelect, shapeSelect, densitySelect].forEach(function (el) {
+            el.addEventListener('change', pullFromControls);
+          });
+
+          openBtn.addEventListener('click', openStudio);
+          if (closeBtn) closeBtn.addEventListener('click', closeStudio);
+          if (doneBtn) doneBtn.addEventListener('click', closeStudio);
+
+          if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+              try {
+                Object.keys(STORAGE_KEYS).forEach(function (k) {
+                  localStorage.removeItem(STORAGE_KEYS[k]);
+                });
+              } catch (e) {}
+              settings = defaults();
+              apply(settings);
+              syncControls();
+            });
+          }
+
+          overlay.addEventListener('click', function (event) {
+            if (event.target === overlay) closeStudio();
+          });
+
+          document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
+              closeStudio();
+            }
+          });
+        }
+
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
         } else {

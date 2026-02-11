@@ -15941,571 +15941,979 @@ body.word-quest-page #game-board [data-tile]:not(.correct):not(.present):not(.ab
     }
 }
 
-/* ==========================================================================
-   Word Quest final fit + bold theme pass
-   Keep this section as the literal end of file.
-   ========================================================================== */
-body.word-quest-page.cs-hv2-theme-calm {
-    --wq-page-bg: linear-gradient(180deg, #e9f2fb 0%, #eff6f0 54%, #f7f3e8 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(248, 252, 255, 0.96) 0%, rgba(236, 245, 244, 0.93) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(74, 144, 226, 0.9), rgba(107, 165, 139, 0.8), rgba(199, 173, 132, 0.72));
-    --wq-panel-border: rgba(86, 122, 142, 0.3);
-    --wq-keyboard-surface: rgba(236, 245, 245, 0.88);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #edf5f7 100%);
-    --wq-key-border: rgba(109, 138, 164, 0.5);
-    --wq-key-radius: 14px;
-    --wq-panel-radius: 16px;
-}
-
-body.word-quest-page.cs-hv2-theme-professional {
-    --wq-page-bg: linear-gradient(180deg, #dbe6f2 0%, #d2deec 42%, #c4d2e3 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(243, 248, 255, 0.95) 0%, rgba(226, 235, 247, 0.94) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(29, 78, 216, 0.92), rgba(37, 99, 235, 0.86), rgba(56, 189, 248, 0.72));
-    --wq-panel-border: rgba(60, 86, 126, 0.38);
-    --wq-keyboard-surface: rgba(224, 235, 250, 0.88);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #e6eef9 100%);
-    --wq-key-border: rgba(69, 98, 139, 0.55);
-    --wq-key-vowel-bg: linear-gradient(180deg, #dcecff 0%, #c9e0ff 100%);
-    --wq-key-vowel-border: rgba(41, 91, 190, 0.7);
-    --wq-key-radius: 10px;
-    --wq-panel-radius: 10px;
-}
-
+/* =========================================================
+   Word Quest final visual pass
+   - Better playful palette
+   - Larger board
+   - Keyboard key sizing that cannot collapse
+   ========================================================= */
 body.word-quest-page.cs-hv2-theme-playful {
-    --wq-page-bg: linear-gradient(180deg, #fff3c9 0%, #ffe4e1 44%, #e6f2ff 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 252, 244, 0.96) 0%, rgba(255, 241, 245, 0.93) 46%, rgba(236, 247, 255, 0.92) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(255, 149, 0, 0.94), rgba(255, 76, 157, 0.88), rgba(75, 153, 255, 0.82), rgba(52, 211, 153, 0.8));
-    --wq-panel-border: rgba(215, 126, 45, 0.4);
-    --wq-keyboard-surface: rgba(255, 243, 218, 0.9);
-    --wq-key-bg: linear-gradient(180deg, #fffdf5 0%, #ffeec8 100%);
-    --wq-key-border: rgba(215, 126, 45, 0.52);
-    --wq-key-vowel-bg: linear-gradient(180deg, #dbecff 0%, #beddff 100%);
-    --wq-key-vowel-border: rgba(68, 123, 222, 0.74);
-    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 3px 10px rgba(186, 95, 22, 0.18);
-    --wq-key-radius: 18px;
-    --wq-panel-radius: 22px;
+    --wq-page-bg: linear-gradient(180deg, #fff9f0 0%, #fff2f5 46%, #eef5ff 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 253, 248, 0.96) 0%, rgba(252, 244, 255, 0.92) 100%);
+    --wq-canvas-glow:
+        radial-gradient(circle at 16% 12%, rgba(99, 102, 241, 0.15), transparent 46%),
+        radial-gradient(circle at 85% 14%, rgba(14, 165, 233, 0.14), transparent 42%),
+        radial-gradient(circle at 52% 88%, rgba(236, 72, 153, 0.14), transparent 48%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(14, 165, 233, 0.86), rgba(236, 72, 153, 0.74));
+    --wq-panel-border: rgba(129, 94, 202, 0.32);
+    --wq-canvas-shadow: 0 24px 48px rgba(82, 58, 148, 0.16);
+    --wq-board-surface: rgba(255, 255, 255, 0.72);
+    --wq-board-shadow: 0 12px 30px rgba(84, 68, 129, 0.12);
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f7f4ff 100%);
+    --wq-tile-border: rgba(134, 112, 184, 0.36);
+    --wq-keyboard-surface: rgba(235, 227, 255, 0.64);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 239, 255, 0.95) 100%);
+    --wq-key-vowel-bg: linear-gradient(180deg, rgba(234, 247, 255, 0.98) 0%, rgba(215, 236, 255, 0.94) 100%);
+    --wq-key-border: rgba(130, 112, 174, 0.44);
+    --wq-key-vowel-border: rgba(59, 130, 246, 0.58);
+    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.94), 0 3px 10px rgba(82, 58, 148, 0.12);
+    --wq-key-text: #1f2a44;
+    --wq-key-radius: 16px;
+    --wq-panel-radius: 20px;
 }
 
-@media (min-width: 768px) {
-    body.word-quest-page {
-        height: 100dvh !important;
-        min-height: 100dvh !important;
-        overflow: hidden !important;
-    }
+body.word-quest-page #game-canvas,
+body.word-quest-page.fit-screen #game-canvas,
+body.word-quest-page.fit-screen-tight #game-canvas {
+    max-width: min(100%, 1120px) !important;
+    gap: 20px !important;
+    padding: 14px 16px 22px !important;
+}
 
-    body.word-quest-page header {
-        padding: 4px 10px 2px !important;
-    }
+body.word-quest-page #game-board,
+body.word-quest-page.fit-screen #game-board,
+body.word-quest-page.fit-screen-tight #game-board {
+    max-width: min(100%, 720px) !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    gap: 10px !important;
+}
 
-    body.word-quest-page .header-top {
-        margin-bottom: 3px !important;
-    }
+body.word-quest-page #game-board .tile,
+body.word-quest-page #game-board .cell,
+body.word-quest-page #game-board [data-tile] {
+    width: clamp(64px, 5.2vw, 78px) !important;
+    height: clamp(64px, 5.2vw, 78px) !important;
+    font-size: clamp(1.45rem, 2.2vw, 2.15rem) !important;
+    border-radius: 17px !important;
+}
 
-    body.word-quest-page .controls {
-        gap: 6px 10px !important;
-        margin-bottom: 2px !important;
-    }
+body.word-quest-page #keyboard,
+body.word-quest-page.fit-screen #keyboard,
+body.word-quest-page.fit-screen-tight #keyboard {
+    width: min(100%, 940px) !important;
+    max-width: min(100%, 940px) !important;
+    margin-inline: auto !important;
+    min-height: 320px !important;
+    padding: 18px !important;
+    gap: 12px !important;
+}
 
-    body.word-quest-page .control-group label {
-        font-size: 0.68rem !important;
-    }
+body.word-quest-page .keyboard-row,
+body.word-quest-page.fit-screen .keyboard-row,
+body.word-quest-page.fit-screen-tight .keyboard-row {
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 10px !important;
+}
 
-    body.word-quest-page .quick-custom-word-panel {
-        margin: 4px auto 6px !important;
-        padding: 8px 10px !important;
-        border-radius: 12px !important;
-        max-width: min(760px, calc(100vw - 24px)) !important;
-    }
+body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
+body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
+body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+    flex: 0 0 clamp(56px, 5.8vw, 70px) !important;
+    width: clamp(56px, 5.8vw, 70px) !important;
+    min-width: clamp(56px, 5.8vw, 70px) !important;
+    max-width: clamp(56px, 5.8vw, 70px) !important;
+    min-height: clamp(56px, 5.8vw, 70px) !important;
+    padding: 8px !important;
+    font-size: clamp(1.05rem, 1.45vw, 1.22rem) !important;
+    font-weight: 800 !important;
+}
 
-    body.word-quest-page .quick-custom-word-toggle {
-        min-height: 36px !important;
-        padding: 7px 11px !important;
-        font-size: 0.9rem !important;
-    }
+body.word-quest-page #keyboard .key.wide,
+body.word-quest-page.fit-screen #keyboard .key.wide,
+body.word-quest-page.fit-screen-tight #keyboard .key.wide {
+    flex: 0 0 clamp(98px, 12vw, 132px) !important;
+    width: clamp(98px, 12vw, 132px) !important;
+    min-width: clamp(98px, 12vw, 132px) !important;
+    max-width: clamp(98px, 12vw, 132px) !important;
+    font-size: clamp(0.86rem, 1.1vw, 1rem) !important;
+}
 
-    body.word-quest-page main {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-        padding-bottom: 8px !important;
-    }
-
+@media (max-width: 1100px) {
     body.word-quest-page #game-canvas,
     body.word-quest-page.fit-screen #game-canvas,
     body.word-quest-page.fit-screen-tight #game-canvas {
-        width: min(980px, calc(100vw - 20px)) !important;
-        max-width: min(980px, calc(100vw - 20px)) !important;
-        margin: 2px auto 6px !important;
-        padding: 10px 12px 10px !important;
-        gap: 10px !important;
-        display: grid !important;
-        grid-template-rows: auto auto auto auto !important;
-        align-content: start !important;
-        overflow: hidden !important;
+        gap: 16px !important;
+        padding: 12px 14px 18px !important;
     }
 
     body.word-quest-page #game-board,
     body.word-quest-page.fit-screen #game-board,
     body.word-quest-page.fit-screen-tight #game-board {
-        margin: 0 auto !important;
-        padding: 9px !important;
-        gap: 6px !important;
-    }
-
-    body.word-quest-page .tile,
-    body.word-quest-page.fit-screen .tile,
-    body.word-quest-page.fit-screen-tight .tile {
-        width: clamp(42px, 5.7vh, 58px) !important;
-        height: clamp(42px, 5.7vh, 58px) !important;
-        font-size: clamp(1.2rem, 3.4vh, 1.9rem) !important;
-    }
-
-    body.word-quest-page .hint-actions {
-        margin: 0 !important;
+        padding: 16px !important;
         gap: 8px !important;
     }
 
-    body.word-quest-page #sentence-preview,
-    body.word-quest-page .sentence-preview {
-        margin: 0 !important;
-        max-width: min(700px, 96%) !important;
+    body.word-quest-page #game-board .tile,
+    body.word-quest-page #game-board .cell,
+    body.word-quest-page #game-board [data-tile] {
+        width: clamp(56px, 6.2vw, 68px) !important;
+        height: clamp(56px, 6.2vw, 68px) !important;
+        font-size: clamp(1.3rem, 2.4vw, 1.9rem) !important;
     }
 
     body.word-quest-page #keyboard,
     body.word-quest-page.fit-screen #keyboard,
     body.word-quest-page.fit-screen-tight #keyboard {
-        min-height: clamp(170px, 26vh, 232px) !important;
-        width: min(860px, 100%) !important;
-        max-width: min(860px, 100%) !important;
-        margin: 0 auto !important;
-        padding: 10px !important;
-        gap: 8px !important;
+        min-height: 256px !important;
+        padding: 14px !important;
+        gap: 9px !important;
     }
 
     body.word-quest-page .keyboard-row,
     body.word-quest-page.fit-screen .keyboard-row,
     body.word-quest-page.fit-screen-tight .keyboard-row {
         gap: 8px !important;
-        justify-content: center !important;
     }
 
     body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-        min-height: clamp(40px, 5vh, 56px) !important;
-        min-width: clamp(38px, 4.5vw, 54px) !important;
-        max-width: 64px !important;
-        font-size: clamp(0.95rem, 2.2vh, 1.15rem) !important;
-        padding: 8px 10px !important;
+        flex-basis: clamp(48px, 6.4vw, 60px) !important;
+        width: clamp(48px, 6.4vw, 60px) !important;
+        min-width: clamp(48px, 6.4vw, 60px) !important;
+        max-width: clamp(48px, 6.4vw, 60px) !important;
+        min-height: clamp(48px, 6.4vw, 60px) !important;
+        font-size: clamp(0.95rem, 1.7vw, 1.1rem) !important;
     }
 
     body.word-quest-page #keyboard .key.wide,
     body.word-quest-page.fit-screen #keyboard .key.wide,
     body.word-quest-page.fit-screen-tight #keyboard .key.wide {
-        min-width: 82px !important;
-        max-width: 118px !important;
-        font-size: clamp(0.82rem, 1.8vh, 0.98rem) !important;
+        flex-basis: clamp(82px, 11vw, 108px) !important;
+        width: clamp(82px, 11vw, 108px) !important;
+        min-width: clamp(82px, 11vw, 108px) !important;
+        max-width: clamp(82px, 11vw, 108px) !important;
+        font-size: clamp(0.78rem, 1.3vw, 0.92rem) !important;
     }
 }
 
-@media (min-width: 768px) and (max-height: 860px) {
-    body.word-quest-page .quick-custom-word-panel {
-        margin: 2px auto 4px !important;
-        padding: 6px 9px !important;
-    }
-
-    body.word-quest-page #game-canvas,
-    body.word-quest-page.fit-screen #game-canvas,
-    body.word-quest-page.fit-screen-tight #game-canvas {
-        margin-top: 0 !important;
-        gap: 8px !important;
-    }
-
-    body.word-quest-page .tile,
-    body.word-quest-page.fit-screen .tile,
-    body.word-quest-page.fit-screen-tight .tile {
-        width: clamp(40px, 5.1vh, 52px) !important;
-        height: clamp(40px, 5.1vh, 52px) !important;
+@media (max-width: 480px) {
+    body.word-quest-page #game-board .tile,
+    body.word-quest-page #game-board .cell,
+    body.word-quest-page #game-board [data-tile] {
+        width: clamp(44px, 11vw, 54px) !important;
+        height: clamp(44px, 11vw, 54px) !important;
+        font-size: clamp(1.05rem, 5.5vw, 1.35rem) !important;
+        border-radius: 13px !important;
     }
 
     body.word-quest-page #keyboard,
     body.word-quest-page.fit-screen #keyboard,
     body.word-quest-page.fit-screen-tight #keyboard {
-        min-height: clamp(162px, 24vh, 210px) !important;
-        padding: 8px !important;
+        min-height: 228px !important;
+        padding: 10px !important;
+        gap: 6px !important;
+    }
+
+    body.word-quest-page .keyboard-row,
+    body.word-quest-page.fit-screen .keyboard-row,
+    body.word-quest-page.fit-screen-tight .keyboard-row {
+        gap: 5px !important;
+    }
+
+    body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
+    body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
+    body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+        flex-basis: clamp(34px, 8.1vw, 42px) !important;
+        width: clamp(34px, 8.1vw, 42px) !important;
+        min-width: clamp(34px, 8.1vw, 42px) !important;
+        max-width: clamp(34px, 8.1vw, 42px) !important;
+        min-height: clamp(40px, 9.4vw, 46px) !important;
+        font-size: clamp(0.82rem, 3.4vw, 0.95rem) !important;
+    }
+
+    body.word-quest-page #keyboard .key.wide,
+    body.word-quest-page.fit-screen #keyboard .key.wide,
+    body.word-quest-page.fit-screen-tight #keyboard .key.wide {
+        flex-basis: clamp(64px, 16vw, 84px) !important;
+        width: clamp(64px, 16vw, 84px) !important;
+        min-width: clamp(64px, 16vw, 84px) !important;
+        max-width: clamp(64px, 16vw, 84px) !important;
+        font-size: clamp(0.64rem, 2.5vw, 0.74rem) !important;
     }
 }
 
-   Word Quest final override (fit + vivid themes, accessibility-safe)
-   Keep this block last.
-   ========================================================================== */
-body.word-quest-page {
-    --wq-stage-max-width: min(980px, calc(100vw - 20px));
-    --wq-board-tile-size: clamp(38px, 4.45vh, 52px);
-    --wq-board-gap: clamp(4px, 0.75vh, 7px);
-    --wq-board-font-size: clamp(1.08rem, 3.05vh, 1.8rem);
-    --wq-key-height: clamp(42px, 4.9vh, 56px);
-    --wq-key-font-size: clamp(0.92rem, 2vh, 1.14rem);
-    --wq-key-min-width: clamp(36px, 4vw, 52px);
-    --wq-key-max-width: 66px;
-    --wq-key-wide-min: clamp(82px, 9vw, 116px);
-    --wq-key-wide-max: clamp(102px, 13vw, 140px);
-    --wq-keyboard-min-height: clamp(166px, 23vh, 224px);
-}
-
-body.word-quest-page,
-body.word-quest-page.force-light {
-    background: var(--wq-page-bg) !important;
-}
-
+/* =========================================================
+   Word Quest corrective fit pass (iPad + desktop + contrast safety)
+   ========================================================= */
 body.word-quest-page.cs-hv2-theme-calm {
-    --wq-page-bg: linear-gradient(180deg, #e6f0f7 0%, #eaf3ec 52%, #f7f2e8 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(245, 251, 255, 0.95) 0%, rgba(235, 246, 241, 0.93) 100%);
+    --wq-page-bg: linear-gradient(180deg, #f2f6f7 0%, #ecf2ed 42%, #f7f4ec 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(250, 252, 252, 0.96) 0%, rgba(241, 247, 244, 0.92) 100%);
     --wq-canvas-glow:
-        radial-gradient(circle at 15% 14%, rgba(85, 145, 185, 0.18), transparent 48%),
-        radial-gradient(circle at 86% 12%, rgba(114, 160, 124, 0.16), transparent 46%),
-        radial-gradient(circle at 50% 88%, rgba(198, 171, 131, 0.14), transparent 52%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(74, 135, 179, 0.92), rgba(104, 157, 130, 0.86), rgba(193, 169, 126, 0.8));
-    --wq-panel-border: rgba(92, 124, 144, 0.34);
-    --wq-canvas-shadow: 0 18px 38px rgba(57, 86, 103, 0.14);
-    --wq-board-surface: rgba(255, 255, 255, 0.58);
-    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f3f8f3 100%);
-    --wq-tile-border: rgba(117, 146, 131, 0.38);
-    --wq-keyboard-surface: rgba(230, 242, 238, 0.84);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #eef7f4 100%);
-    --wq-key-vowel-bg: linear-gradient(180deg, #e0ecff 0%, #cfe3ff 100%);
-    --wq-key-border: rgba(107, 139, 154, 0.5);
-    --wq-key-vowel-border: rgba(73, 116, 188, 0.66);
-    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 8px rgba(56, 90, 100, 0.12);
-    --wq-key-radius: 15px;
-    --wq-panel-radius: 16px;
+        radial-gradient(circle at 16% 10%, rgba(56, 189, 248, 0.12), transparent 44%),
+        radial-gradient(circle at 84% 11%, rgba(20, 184, 166, 0.11), transparent 44%),
+        radial-gradient(circle at 50% 90%, rgba(148, 163, 184, 0.1), transparent 48%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(77, 136, 174, 0.86), rgba(96, 160, 144, 0.78), rgba(180, 171, 145, 0.72));
+    --wq-panel-border: rgba(109, 133, 132, 0.28);
+    --wq-keyboard-surface: rgba(236, 245, 241, 0.74);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(237, 245, 241, 0.95) 100%);
+    --wq-key-border: rgba(112, 136, 133, 0.4);
+    background: linear-gradient(180deg, #f2f6f7 0%, #ecf2ed 42%, #f7f4ec 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-professional {
-    --wq-page-bg: linear-gradient(180deg, #d3dcea 0%, #c8d4e4 44%, #becddd 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(241, 247, 255, 0.95) 0%, rgba(226, 236, 248, 0.93) 100%);
+    --wq-page-bg: linear-gradient(180deg, #eaf0f8 0%, #dfe8f4 54%, #d8e2f1 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(247, 250, 255, 0.96) 0%, rgba(229, 238, 250, 0.92) 100%);
     --wq-canvas-glow:
-        radial-gradient(circle at 14% 15%, rgba(40, 89, 168, 0.18), transparent 50%),
-        radial-gradient(circle at 86% 11%, rgba(58, 133, 204, 0.14), transparent 46%),
-        radial-gradient(circle at 52% 88%, rgba(25, 75, 138, 0.1), transparent 52%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(34, 82, 165, 0.94), rgba(38, 106, 195, 0.88), rgba(45, 179, 220, 0.8));
-    --wq-panel-border: rgba(65, 94, 134, 0.4);
-    --wq-canvas-shadow: 0 18px 38px rgba(25, 49, 83, 0.16);
-    --wq-board-surface: rgba(255, 255, 255, 0.6);
-    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #edf3fb 100%);
-    --wq-tile-border: rgba(83, 111, 149, 0.44);
-    --wq-keyboard-surface: rgba(220, 232, 248, 0.88);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #e4edf9 100%);
-    --wq-key-vowel-bg: linear-gradient(180deg, #d6e8ff 0%, #c2ddff 100%);
-    --wq-key-border: rgba(73, 105, 146, 0.56);
-    --wq-key-vowel-border: rgba(47, 92, 184, 0.72);
-    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 9px rgba(29, 59, 96, 0.14);
-    --wq-key-radius: 10px;
-    --wq-panel-radius: 10px;
+        radial-gradient(circle at 16% 10%, rgba(37, 99, 235, 0.14), transparent 44%),
+        radial-gradient(circle at 84% 11%, rgba(14, 116, 144, 0.12), transparent 44%),
+        radial-gradient(circle at 50% 90%, rgba(30, 64, 175, 0.08), transparent 48%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(30, 64, 175, 0.9), rgba(37, 99, 235, 0.84), rgba(14, 116, 144, 0.72));
+    --wq-panel-border: rgba(76, 102, 146, 0.32);
+    --wq-keyboard-surface: rgba(227, 237, 252, 0.78);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(236, 244, 255, 0.95) 100%);
+    --wq-key-border: rgba(84, 112, 158, 0.42);
+    --wq-key-radius: 12px;
+    --wq-panel-radius: 12px;
+    background: linear-gradient(180deg, #eaf0f8 0%, #dfe8f4 54%, #d8e2f1 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-playful {
-    --wq-page-bg: linear-gradient(180deg, #ffefb3 0%, #ffd1d8 42%, #bde8ff 74%, #b8f4d3 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 232, 242, 0.93) 48%, rgba(227, 246, 255, 0.91) 100%);
+    --wq-page-bg: linear-gradient(180deg, #fff9ef 0%, #fff1ef 40%, #eef4ff 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 252, 247, 0.96) 0%, rgba(250, 241, 255, 0.92) 100%);
     --wq-canvas-glow:
-        radial-gradient(circle at 14% 14%, rgba(255, 153, 0, 0.26), transparent 48%),
-        radial-gradient(circle at 86% 10%, rgba(255, 65, 156, 0.2), transparent 44%),
-        radial-gradient(circle at 54% 88%, rgba(57, 181, 238, 0.2), transparent 52%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(255, 143, 0, 0.96), rgba(255, 67, 161, 0.9), rgba(73, 150, 255, 0.86), rgba(48, 214, 138, 0.84));
-    --wq-panel-border: rgba(212, 118, 40, 0.44);
-    --wq-canvas-shadow: 0 20px 42px rgba(186, 97, 20, 0.22);
-    --wq-board-surface: rgba(255, 255, 255, 0.62);
-    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #fff3db 100%);
-    --wq-tile-border: rgba(212, 120, 49, 0.48);
-    --wq-keyboard-surface: rgba(255, 228, 173, 0.88);
-    --wq-key-bg: linear-gradient(180deg, #fffef7 0%, #ffe6ad 100%);
-    --wq-key-vowel-bg: linear-gradient(180deg, #d7ecff 0%, #bdddff 100%);
-    --wq-key-border: rgba(206, 113, 36, 0.6);
-    --wq-key-vowel-border: rgba(53, 115, 219, 0.78);
-    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.94), 0 3px 11px rgba(177, 86, 23, 0.2);
-    --wq-key-text: #1f2937;
-    --wq-key-radius: 18px;
-    --wq-panel-radius: 22px;
+        radial-gradient(circle at 16% 10%, rgba(99, 102, 241, 0.15), transparent 44%),
+        radial-gradient(circle at 84% 11%, rgba(20, 184, 166, 0.14), transparent 44%),
+        radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.14), transparent 48%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.84), rgba(236, 72, 153, 0.74));
+    --wq-panel-border: rgba(127, 97, 188, 0.32);
+    --wq-keyboard-surface: rgba(237, 229, 255, 0.66);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 236, 255, 0.95) 100%);
+    --wq-key-vowel-bg: linear-gradient(180deg, rgba(230, 246, 255, 0.98) 0%, rgba(209, 235, 255, 0.95) 100%);
+    --wq-key-border: rgba(126, 108, 170, 0.42);
+    --wq-key-vowel-border: rgba(59, 130, 246, 0.58);
+    --wq-key-text: #1f2a44;
+    --wq-key-radius: 16px;
+    --wq-panel-radius: 18px;
+    background: linear-gradient(180deg, #fff9ef 0%, #fff1ef 40%, #eef4ff 100%) !important;
 }
 
 body.word-quest-page.cs-hv2-theme-high-contrast {
-    --wq-page-bg: linear-gradient(180deg, #05070e 0%, #070c17 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(10, 15, 27, 0.98) 100%);
-    --wq-canvas-glow:
-        radial-gradient(circle at 16% 12%, rgba(250, 204, 21, 0.24), transparent 48%),
-        radial-gradient(circle at 86% 10%, rgba(59, 130, 246, 0.2), transparent 44%);
+    --wq-canvas-glow: none;
     --wq-canvas-accent: linear-gradient(90deg, rgba(250, 204, 21, 0.98), rgba(59, 130, 246, 0.9));
-    --wq-panel-border: rgba(203, 213, 225, 0.62);
-    --wq-board-surface: rgba(15, 23, 42, 0.86);
-    --wq-tile-bg: linear-gradient(180deg, #0f172a 0%, #111827 100%);
-    --wq-tile-border: rgba(203, 213, 225, 0.62);
-    --wq-tile-text: #f8fafc;
-    --wq-keyboard-surface: rgba(15, 23, 42, 0.9);
-    --wq-key-bg: linear-gradient(180deg, #0f172a 0%, #111827 100%);
-    --wq-key-vowel-bg: linear-gradient(180deg, #1e293b 0%, #111827 100%);
-    --wq-key-border: rgba(203, 213, 225, 0.72);
-    --wq-key-vowel-border: rgba(250, 204, 21, 0.76);
-    --wq-key-text: #f8fafc;
-    --wq-key-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.26), 0 2px 8px rgba(0, 0, 0, 0.34);
-    --wq-key-radius: 12px;
-    --wq-panel-radius: 12px;
 }
 
-@media (min-width: 768px) {
-    body.word-quest-page {
-        min-height: 100dvh !important;
-        height: auto !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
+body.word-quest-page #game-canvas,
+body.word-quest-page.fit-screen #game-canvas,
+body.word-quest-page.fit-screen-tight #game-canvas {
+    max-width: min(100%, 980px) !important;
+    padding: 10px 12px 14px !important;
+    gap: 12px !important;
+    isolation: isolate !important;
+    overflow: visible !important;
+}
 
-    body.word-quest-page header {
-        padding: 4px 10px 2px !important;
-    }
+body.word-quest-page #sentence-preview.hidden,
+body.word-quest-page .sentence-preview.hidden,
+body.word-quest-page #sentence-preview:empty,
+body.word-quest-page .sentence-preview:empty {
+    display: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 0 !important;
+}
 
-    body.word-quest-page .header-top {
-        margin-bottom: 2px !important;
-    }
+body.word-quest-page #sentence-preview:not(.has-caption),
+body.word-quest-page .sentence-preview:not(.has-caption) {
+    display: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
 
-    body.word-quest-page .controls {
-        gap: 6px 10px !important;
-        margin-bottom: 2px !important;
-    }
+body.word-quest-page #game-board,
+body.word-quest-page.fit-screen #game-board,
+body.word-quest-page.fit-screen-tight #game-board {
+    max-width: min(100%, 560px) !important;
+    margin: 0 auto !important;
+    padding: 12px !important;
+    gap: 7px !important;
+}
 
-    body.word-quest-page .quick-custom-word-panel {
-        margin: 3px auto 5px !important;
-        padding: 8px 10px !important;
-        max-width: min(760px, calc(100vw - 20px)) !important;
-    }
+body.word-quest-page #game-board .tile,
+body.word-quest-page #game-board .cell,
+body.word-quest-page #game-board [data-tile] {
+    width: clamp(46px, 4.3vw, 60px) !important;
+    height: clamp(46px, 4.3vw, 60px) !important;
+    font-size: clamp(1.05rem, 1.8vw, 1.6rem) !important;
+    border-radius: 14px !important;
+}
 
-    body.word-quest-page main {
-        overflow: visible !important;
-        min-height: 0 !important;
-        padding-bottom: 10px !important;
-    }
+body.word-quest-page #keyboard,
+body.word-quest-page.fit-screen #keyboard,
+body.word-quest-page.fit-screen-tight #keyboard {
+    width: min(100%, 780px) !important;
+    max-width: min(100%, 780px) !important;
+    min-height: clamp(188px, 28vh, 238px) !important;
+    margin-inline: auto !important;
+    padding: 10px !important;
+    gap: 6px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 
+body.word-quest-page .keyboard-row,
+body.word-quest-page.fit-screen .keyboard-row,
+body.word-quest-page.fit-screen-tight .keyboard-row {
+    gap: 6px !important;
+}
+
+body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
+body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
+body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+    flex: 0 0 clamp(40px, 4.35vw, 52px) !important;
+    width: clamp(40px, 4.35vw, 52px) !important;
+    min-width: clamp(40px, 4.35vw, 52px) !important;
+    max-width: clamp(40px, 4.35vw, 52px) !important;
+    min-height: clamp(44px, 4.35vw, 52px) !important;
+    padding: 6px !important;
+    font-size: clamp(0.86rem, 1.08vw, 1rem) !important;
+}
+
+body.word-quest-page #keyboard .key.wide,
+body.word-quest-page.fit-screen #keyboard .key.wide,
+body.word-quest-page.fit-screen-tight #keyboard .key.wide {
+    flex: 0 0 clamp(72px, 9.2vw, 94px) !important;
+    width: clamp(72px, 9.2vw, 94px) !important;
+    min-width: clamp(72px, 9.2vw, 94px) !important;
+    max-width: clamp(72px, 9.2vw, 94px) !important;
+    font-size: clamp(0.66rem, 0.82vw, 0.78rem) !important;
+}
+
+@media (max-width: 1024px) {
     body.word-quest-page #game-canvas,
     body.word-quest-page.fit-screen #game-canvas,
     body.word-quest-page.fit-screen-tight #game-canvas {
-        width: var(--wq-stage-max-width) !important;
-        max-width: var(--wq-stage-max-width) !important;
-        margin: 2px auto 8px !important;
-        padding: 8px 10px 10px !important;
-        gap: 8px !important;
-        display: grid !important;
-        grid-template-rows: auto auto auto auto !important;
-        align-content: start !important;
-        overflow: visible !important;
-        background: var(--wq-canvas-surface) !important;
-        border-color: var(--wq-panel-border) !important;
-        box-shadow: var(--wq-canvas-shadow) !important;
+        max-width: min(100%, 900px) !important;
+        padding: 9px 10px 12px !important;
+        gap: 10px !important;
     }
 
     body.word-quest-page #game-board,
     body.word-quest-page.fit-screen #game-board,
     body.word-quest-page.fit-screen-tight #game-board {
-        margin: 0 auto !important;
-        padding: 8px !important;
-        gap: var(--wq-board-gap) !important;
-        background: var(--wq-board-surface) !important;
-        border-color: var(--wq-panel-border) !important;
-        box-shadow: var(--wq-board-shadow) !important;
+        max-width: min(100%, 520px) !important;
+        padding: 10px !important;
+        gap: 6px !important;
     }
 
-    body.word-quest-page .tile,
-    body.word-quest-page.fit-screen .tile,
-    body.word-quest-page.fit-screen-tight .tile {
-        width: var(--wq-board-tile-size) !important;
-        height: var(--wq-board-tile-size) !important;
-        font-size: var(--wq-board-font-size) !important;
+    body.word-quest-page #game-board .tile,
+    body.word-quest-page #game-board .cell,
+    body.word-quest-page #game-board [data-tile] {
+        width: clamp(42px, 5.6vw, 54px) !important;
+        height: clamp(42px, 5.6vw, 54px) !important;
+        font-size: clamp(0.94rem, 1.9vw, 1.35rem) !important;
     }
 
     body.word-quest-page #keyboard,
     body.word-quest-page.fit-screen #keyboard,
     body.word-quest-page.fit-screen-tight #keyboard {
-        min-height: var(--wq-keyboard-min-height) !important;
-        width: min(840px, 100%) !important;
-        max-width: min(840px, 100%) !important;
-        margin: 0 auto 6px !important;
-        padding: 10px !important;
-        gap: 8px !important;
-        background: var(--wq-keyboard-surface) !important;
-        border-color: var(--wq-panel-border) !important;
-        border-radius: var(--wq-panel-radius) !important;
+        min-height: clamp(180px, 26vh, 216px) !important;
+        width: min(100%, 700px) !important;
+        max-width: min(100%, 700px) !important;
+        padding: 8px !important;
+        gap: 5px !important;
     }
 
     body.word-quest-page .keyboard-row,
     body.word-quest-page.fit-screen .keyboard-row,
     body.word-quest-page.fit-screen-tight .keyboard-row {
-        gap: 7px !important;
+        gap: 5px !important;
     }
 
     body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
     body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-        min-height: var(--wq-key-height) !important;
-        min-width: var(--wq-key-min-width) !important;
-        max-width: var(--wq-key-max-width) !important;
-        padding: 8px 10px !important;
-        font-size: var(--wq-key-font-size) !important;
-        border-radius: var(--wq-key-radius) !important;
-        background: var(--wq-key-bg) !important;
-        border-color: var(--wq-key-border) !important;
-        color: var(--wq-key-text) !important;
-        box-shadow: var(--wq-key-shadow) !important;
-    }
-
-    body.word-quest-page #keyboard .key.vowel:not(.correct):not(.present):not(.absent) {
-        background: var(--wq-key-vowel-bg) !important;
-        border-color: var(--wq-key-vowel-border) !important;
+        flex-basis: clamp(34px, 5vw, 44px) !important;
+        width: clamp(34px, 5vw, 44px) !important;
+        min-width: clamp(34px, 5vw, 44px) !important;
+        max-width: clamp(34px, 5vw, 44px) !important;
+        min-height: clamp(38px, 5vw, 44px) !important;
+        font-size: clamp(0.76rem, 1.35vw, 0.9rem) !important;
     }
 
     body.word-quest-page #keyboard .key.wide,
     body.word-quest-page.fit-screen #keyboard .key.wide,
     body.word-quest-page.fit-screen-tight #keyboard .key.wide {
-        min-width: var(--wq-key-wide-min) !important;
-        max-width: var(--wq-key-wide-max) !important;
-        font-size: clamp(0.84rem, 1.75vh, 0.98rem) !important;
+        flex-basis: clamp(54px, 8.1vw, 74px) !important;
+        width: clamp(54px, 8.1vw, 74px) !important;
+        min-width: clamp(54px, 8.1vw, 74px) !important;
+        max-width: clamp(54px, 8.1vw, 74px) !important;
+        font-size: clamp(0.56rem, 0.95vw, 0.68rem) !important;
     }
 }
 
-@media (min-width: 768px) and (max-height: 900px) {
-    body.word-quest-page {
-        --wq-board-tile-size: clamp(34px, 4vh, 46px);
-        --wq-board-font-size: clamp(0.98rem, 2.6vh, 1.45rem);
-        --wq-key-height: clamp(38px, 4.4vh, 50px);
-        --wq-key-font-size: clamp(0.84rem, 1.7vh, 1rem);
-        --wq-keyboard-min-height: clamp(148px, 21vh, 188px);
-    }
-
-    body.word-quest-page .quick-custom-word-panel {
-        margin: 2px auto 4px !important;
-        padding: 6px 8px !important;
-    }
-}
-
-@media (max-width: 767px) {
-    body.word-quest-page #keyboard {
-        min-height: 200px !important;
-    }
-}
-
-body.word-quest-page #sentence-preview:empty,
-body.word-quest-page .sentence-preview:empty {
-    display: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    min-height: 0 !important;
-    border: 0 !important;
-}
-
-/* ==========================================================================
-   LITERAL LAST LAYER: scoped force-light bypass + Word Quest layout budget
-   ========================================================================== */
-body.force-light.cs-page-wordquest,
-body.force-light.cs-hv2-page {
-    background: inherit !important;
-}
-
-body.word-quest-page.cs-page-wordquest.cs-hv2-theme-calm {
-    --wq-page-bg: linear-gradient(180deg, #e6f0f7 0%, #eaf3ec 52%, #f7f2e8 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(245, 251, 255, 0.96) 0%, rgba(236, 246, 242, 0.94) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(71, 133, 173, 0.92), rgba(104, 158, 131, 0.86), rgba(191, 168, 128, 0.8));
-    --wq-panel-border: rgba(90, 123, 141, 0.34);
-    --wq-keyboard-surface: rgba(230, 242, 238, 0.86);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #edf7f3 100%);
-}
-
-body.word-quest-page.cs-page-wordquest.cs-hv2-theme-professional {
-    --wq-page-bg: linear-gradient(180deg, #d2dcec 0%, #c5d3e7 44%, #bccddd 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(240, 247, 255, 0.96) 0%, rgba(225, 236, 248, 0.94) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(33, 79, 161, 0.94), rgba(38, 103, 191, 0.88), rgba(43, 175, 219, 0.8));
-    --wq-panel-border: rgba(63, 92, 132, 0.4);
-    --wq-keyboard-surface: rgba(219, 232, 249, 0.88);
-    --wq-key-bg: linear-gradient(180deg, #ffffff 0%, #e4edf9 100%);
-}
-
-body.word-quest-page.cs-page-wordquest.cs-hv2-theme-playful {
-    --wq-page-bg: linear-gradient(180deg, #ffefb2 0%, #ffd0d8 42%, #bbe8ff 74%, #b6f3d2 100%);
-    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 248, 225, 0.96) 0%, rgba(255, 232, 242, 0.94) 48%, rgba(227, 245, 255, 0.92) 100%);
-    --wq-canvas-accent: linear-gradient(90deg, rgba(255, 143, 0, 0.96), rgba(255, 66, 160, 0.9), rgba(72, 150, 255, 0.86), rgba(47, 214, 138, 0.84));
-    --wq-panel-border: rgba(210, 118, 40, 0.46);
-    --wq-keyboard-surface: rgba(255, 226, 168, 0.9);
-    --wq-key-bg: linear-gradient(180deg, #fffef6 0%, #ffe5ab 100%);
-}
-
-@media (min-width: 900px) {
-    body.word-quest-page.cs-page-wordquest {
-        display: grid !important;
-        grid-template-rows: auto minmax(0, 1fr) !important;
-        min-height: 100dvh !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        overflow: hidden !important;
-    }
-
-    body.word-quest-page.cs-page-wordquest main {
-        min-height: 0 !important;
-        overflow: hidden !important;
-        display: grid !important;
-        grid-template-rows: auto auto minmax(0, 1fr) !important;
-        gap: 6px !important;
-        padding-bottom: 8px !important;
-    }
-
-    body.word-quest-page.cs-page-wordquest #game-canvas,
-    body.word-quest-page.cs-page-wordquest.fit-screen #game-canvas,
-    body.word-quest-page.cs-page-wordquest.fit-screen-tight #game-canvas {
-        width: min(980px, calc(100vw - 20px)) !important;
-        max-width: min(980px, calc(100vw - 20px)) !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        max-height: 100% !important;
-        margin: 0 auto !important;
-        padding: 8px 10px 10px !important;
-        display: grid !important;
-        grid-template-rows: minmax(0, 1fr) auto auto minmax(170px, 0.56fr) !important;
+@media (max-height: 940px) and (min-width: 760px) {
+    body.word-quest-page #game-canvas,
+    body.word-quest-page.fit-screen #game-canvas,
+    body.word-quest-page.fit-screen-tight #game-canvas {
         gap: 10px !important;
-        overflow: hidden !important;
+        padding-bottom: 12px !important;
     }
 
-    body.word-quest-page.cs-page-wordquest .tile {
-        width: clamp(36px, 4.2vh, 50px) !important;
-        height: clamp(36px, 4.2vh, 50px) !important;
-        font-size: clamp(1rem, 2.8vh, 1.7rem) !important;
+    body.word-quest-page #game-board .tile,
+    body.word-quest-page #game-board .cell,
+    body.word-quest-page #game-board [data-tile] {
+        width: clamp(44px, 4.2vw, 56px) !important;
+        height: clamp(44px, 4.2vw, 56px) !important;
+        font-size: clamp(1rem, 1.8vw, 1.45rem) !important;
     }
 
-    body.word-quest-page.cs-page-wordquest #keyboard {
-        min-height: clamp(170px, 23vh, 230px) !important;
-        max-height: 320px !important;
-        padding: 10px !important;
-        overflow: hidden !important;
+    body.word-quest-page #keyboard,
+    body.word-quest-page.fit-screen #keyboard,
+    body.word-quest-page.fit-screen-tight #keyboard {
+        min-height: clamp(172px, 24vh, 208px) !important;
+        padding: 7px !important;
     }
 
-    body.word-quest-page.cs-page-wordquest #keyboard button:not(.correct):not(.present):not(.absent),
-    body.word-quest-page.cs-page-wordquest #keyboard .key:not(.correct):not(.present):not(.absent),
-    body.word-quest-page.cs-page-wordquest #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
-        min-height: clamp(44px, 5vh, 60px) !important;
-        height: clamp(44px, 5vh, 60px) !important;
-        min-width: clamp(36px, 4vw, 54px) !important;
-        max-width: 68px !important;
-        font-size: clamp(0.9rem, 2vh, 1.15rem) !important;
+    body.word-quest-page #keyboard button:not(.correct):not(.present):not(.absent),
+    body.word-quest-page #keyboard .key:not(.correct):not(.present):not(.absent),
+    body.word-quest-page #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+        min-height: clamp(36px, 4vw, 44px) !important;
     }
 }
 
-@media (max-width: 899px) {
-    body.word-quest-page.cs-page-wordquest {
-        overflow: auto !important;
-    }
+/* =========================================================
+   Theme Studio (global pages + Word Quest scene bridge)
+   ========================================================= */
+body {
+    --cs-scene-page-bg: var(--theme-bg);
+    --cs-scene-grid-dot: var(--theme-grid-dot);
+    --cs-scene-grid-opacity: var(--theme-grid-opacity);
+    --cs-scene-surface: rgba(255, 255, 255, 0.9);
+    --cs-scene-border: rgba(148, 163, 184, 0.28);
+    --cs-scene-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+    --cs-scene-accent: #4f46e5;
+    --cs-scene-text: #0f172a;
+    --cs-scene-control-bg: rgba(255, 255, 255, 0.9);
+    --cs-scene-control-border: rgba(148, 163, 184, 0.36);
+    --cs-scene-control-radius: 12px;
+    --cs-scene-radius: 18px;
+}
 
-    body.word-quest-page.cs-page-wordquest #game-canvas {
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
+body.theme-studio-open {
+    overflow: hidden !important;
+}
 
-    body.word-quest-page.cs-page-wordquest #keyboard {
-        min-height: 220px !important;
-        max-height: none !important;
+.header-actions .theme-studio-launch {
+    border: 1px solid rgba(99, 102, 241, 0.28) !important;
+    background: rgba(255, 255, 255, 0.76) !important;
+    color: #1f2937 !important;
+    font-weight: 760 !important;
+}
+
+body[data-cs-scene]:not(.word-quest-page) {
+    background: var(--cs-scene-page-bg) !important;
+    color: var(--cs-scene-text);
+}
+
+body[data-cs-scene]:not(.word-quest-page)::before {
+    background-image: radial-gradient(circle at 1px 1px, var(--cs-scene-grid-dot) 1px, transparent 0) !important;
+    opacity: var(--cs-scene-grid-opacity) !important;
+}
+
+body[data-cs-scene]:not(.word-quest-page) :is(.home-card, .report-card, .report-builder-card, .header-activity-panel, .toolkit-card, .hub-card, .cloze-panel, .comp-panel, .fluency-panel, .madlibs-panel, .writing-panel, .planit-panel, .numsense-panel, .opsbuilder-panel, .assessment-card, .selected-sound, .sound-guide-card, .sound-guide-board, .global-accessibility-tools, #story-track, #quick-response-dock, .page-guide-tip, .adventure-card, .adventure-team-settings) {
+    background: var(--cs-scene-surface) !important;
+    border-color: var(--cs-scene-border) !important;
+    box-shadow: var(--cs-scene-shadow) !important;
+    border-radius: var(--cs-scene-radius) !important;
+}
+
+body[data-cs-scene]:not(.word-quest-page) :is(.link-btn, .secondary-btn, .more-tools-item, .global-accessibility-tools summary, .learner-switcher-select, .menu-btn summary) {
+    border-color: var(--cs-scene-control-border) !important;
+    background: var(--cs-scene-control-bg) !important;
+    border-radius: var(--cs-scene-control-radius) !important;
+}
+
+body[data-cs-scene]:not(.word-quest-page) :is(.header-actions .link-btn.active, .header-actions .link-btn[aria-current="page"], .theme-studio-launch:hover, .theme-studio-launch:focus-visible) {
+    border-color: var(--cs-scene-accent) !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    color: #111827 !important;
+}
+
+body[data-cs-shape="round"] {
+    --cs-scene-radius: 24px;
+    --cs-scene-control-radius: 18px;
+}
+
+body[data-cs-shape="crisp"] {
+    --cs-scene-radius: 10px;
+    --cs-scene-control-radius: 10px;
+}
+
+body[data-cs-intensity="soft"] {
+    --cs-scene-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    --cs-scene-grid-opacity: 0.1;
+}
+
+body[data-cs-intensity="vivid"] {
+    --cs-scene-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+    --cs-scene-grid-opacity: 0.24;
+}
+
+body[data-cs-density="compact"] :is(.header-actions .link-btn, .secondary-btn, .more-tools-item) {
+    padding: 5px 9px !important;
+    font-size: 0.82rem !important;
+}
+
+body[data-cs-density="large"] :is(.header-actions .link-btn, .secondary-btn, .more-tools-item) {
+    padding: 9px 14px !important;
+    font-size: 0.92rem !important;
+}
+
+body[data-cs-keyboard-style="professional"]:not(.word-quest-page) {
+    --cs-scene-control-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(236, 243, 255, 0.95));
+    --cs-scene-control-border: rgba(88, 113, 150, 0.45);
+    --cs-scene-control-radius: 10px;
+}
+
+body[data-cs-keyboard-style="playful"]:not(.word-quest-page) {
+    --cs-scene-control-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(254, 237, 213, 0.95));
+    --cs-scene-control-border: rgba(232, 121, 57, 0.46);
+    --cs-scene-control-radius: 16px;
+}
+
+body[data-cs-keyboard-style="calm"]:not(.word-quest-page) {
+    --cs-scene-control-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(236, 244, 240, 0.95));
+    --cs-scene-control-border: rgba(108, 137, 128, 0.42);
+}
+
+body[data-cs-scene="calm-studio"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #e8f3f3 0%, #eaf1e7 44%, #f5f1e8 100%);
+    --cs-scene-grid-dot: rgba(89, 138, 130, 0.16);
+    --cs-scene-grid-opacity: 0.16;
+    --cs-scene-surface: rgba(255, 255, 255, 0.9);
+    --cs-scene-border: rgba(113, 145, 137, 0.28);
+    --cs-scene-accent: #4f8da1;
+    --cs-scene-control-bg: rgba(255, 255, 255, 0.92);
+    --cs-scene-control-border: rgba(113, 145, 137, 0.35);
+}
+
+body[data-cs-scene="meadow-calm"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #edf7ee 0%, #e7f0e1 42%, #f6f2e7 100%);
+    --cs-scene-grid-dot: rgba(82, 130, 84, 0.16);
+    --cs-scene-grid-opacity: 0.15;
+    --cs-scene-surface: rgba(255, 255, 255, 0.91);
+    --cs-scene-border: rgba(97, 132, 98, 0.27);
+    --cs-scene-accent: #4f7f4e;
+    --cs-scene-control-bg: rgba(255, 255, 255, 0.93);
+    --cs-scene-control-border: rgba(97, 132, 98, 0.34);
+}
+
+body[data-cs-scene="ocean-calm"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #e8f5ff 0%, #e2eefc 48%, #ecf5f7 100%);
+    --cs-scene-grid-dot: rgba(52, 116, 182, 0.18);
+    --cs-scene-grid-opacity: 0.17;
+    --cs-scene-surface: rgba(255, 255, 255, 0.9);
+    --cs-scene-border: rgba(82, 130, 176, 0.3);
+    --cs-scene-accent: #2f6fb1;
+    --cs-scene-control-bg: rgba(247, 251, 255, 0.93);
+    --cs-scene-control-border: rgba(82, 130, 176, 0.36);
+}
+
+body[data-cs-scene="professional-chrome"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #e7edf5 0%, #dfe8f2 48%, #d4e0ed 100%);
+    --cs-scene-grid-dot: rgba(51, 83, 121, 0.16);
+    --cs-scene-grid-opacity: 0.15;
+    --cs-scene-surface: rgba(255, 255, 255, 0.92);
+    --cs-scene-border: rgba(77, 105, 138, 0.32);
+    --cs-scene-accent: #2f5fa6;
+    --cs-scene-control-bg: rgba(250, 252, 255, 0.94);
+    --cs-scene-control-border: rgba(77, 105, 138, 0.42);
+}
+
+body[data-cs-scene="professional-midnight"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #0f172a 0%, #162235 48%, #1e293b 100%);
+    --cs-scene-grid-dot: rgba(148, 163, 184, 0.2);
+    --cs-scene-grid-opacity: 0.18;
+    --cs-scene-surface: rgba(15, 23, 42, 0.85);
+    --cs-scene-border: rgba(148, 163, 184, 0.38);
+    --cs-scene-accent: #60a5fa;
+    --cs-scene-text: #e2e8f0;
+    --cs-scene-control-bg: rgba(30, 41, 59, 0.86);
+    --cs-scene-control-border: rgba(148, 163, 184, 0.45);
+}
+
+body[data-cs-scene="professional-midnight"]:not(.word-quest-page) :is(h1, h2, h3, h4, p, label, summary, .link-btn, .secondary-btn, .more-tools-item) {
+    color: #e2e8f0 !important;
+}
+
+body[data-cs-scene="playful-festival"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #fff7df 0%, #ffe9f0 42%, #e8f3ff 100%);
+    --cs-scene-grid-dot: rgba(225, 90, 26, 0.2);
+    --cs-scene-grid-opacity: 0.2;
+    --cs-scene-surface: rgba(255, 255, 255, 0.92);
+    --cs-scene-border: rgba(232, 125, 60, 0.34);
+    --cs-scene-accent: #ec5d24;
+    --cs-scene-control-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 241, 220, 0.94));
+    --cs-scene-control-border: rgba(232, 125, 60, 0.42);
+}
+
+body[data-cs-scene="playful-sunrise"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #fff3e6 0%, #ffe6df 38%, #ffe9f8 72%, #eef2ff 100%);
+    --cs-scene-grid-dot: rgba(224, 93, 61, 0.2);
+    --cs-scene-grid-opacity: 0.2;
+    --cs-scene-surface: rgba(255, 255, 255, 0.93);
+    --cs-scene-border: rgba(214, 107, 96, 0.34);
+    --cs-scene-accent: #d95f4d;
+    --cs-scene-control-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 232, 230, 0.95));
+    --cs-scene-control-border: rgba(214, 107, 96, 0.4);
+}
+
+body[data-cs-scene="classic-contrast"] {
+    --cs-scene-page-bg: linear-gradient(180deg, #080b12 0%, #0f172a 52%, #111827 100%);
+    --cs-scene-grid-dot: rgba(226, 232, 240, 0.3);
+    --cs-scene-grid-opacity: 0.24;
+    --cs-scene-surface: rgba(15, 23, 42, 0.9);
+    --cs-scene-border: rgba(226, 232, 240, 0.56);
+    --cs-scene-accent: #facc15;
+    --cs-scene-text: #f8fafc;
+    --cs-scene-control-bg: rgba(15, 23, 42, 0.92);
+    --cs-scene-control-border: rgba(226, 232, 240, 0.62);
+}
+
+body[data-cs-scene="classic-contrast"]:not(.word-quest-page) :is(h1, h2, h3, h4, p, label, summary, .link-btn, .secondary-btn, .more-tools-item) {
+    color: #f8fafc !important;
+}
+
+.global-theme-studio-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.46);
+    backdrop-filter: blur(5px);
+    display: grid;
+    place-items: center;
+    padding: 14px;
+    z-index: 4000;
+}
+
+.global-theme-studio-overlay.hidden {
+    display: none;
+}
+
+.global-theme-studio-modal {
+    width: min(680px, calc(100vw - 18px));
+    border-radius: 18px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.98);
+    color: #0f172a;
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.28);
+    padding: 16px 18px;
+    display: grid;
+    gap: 12px;
+}
+
+.global-theme-studio-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.global-theme-studio-head h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.global-theme-studio-close {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.global-theme-studio-copy {
+    margin: 0;
+    color: #475569;
+    font-weight: 660;
+}
+
+.global-theme-studio-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+.global-theme-studio-field {
+    display: grid;
+    gap: 6px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    font-weight: 840;
+}
+
+.global-theme-studio-field select {
+    min-height: 40px;
+    border-radius: 11px;
+    border: 1px solid rgba(99, 102, 241, 0.34);
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 10px;
+}
+
+.global-theme-studio-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+body[data-cs-scene="professional-midnight"] .global-theme-studio-modal,
+body[data-cs-scene="classic-contrast"] .global-theme-studio-modal {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(148, 163, 184, 0.4);
+    color: #e2e8f0;
+}
+
+body[data-cs-scene="professional-midnight"] .global-theme-studio-copy,
+body[data-cs-scene="classic-contrast"] .global-theme-studio-copy,
+body[data-cs-scene="professional-midnight"] .global-theme-studio-field,
+body[data-cs-scene="classic-contrast"] .global-theme-studio-field {
+    color: #cbd5e1;
+}
+
+body[data-cs-scene="professional-midnight"] .global-theme-studio-field select,
+body[data-cs-scene="classic-contrast"] .global-theme-studio-field select {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(148, 163, 184, 0.48);
+    color: #f8fafc;
+}
+
+@media (max-width: 760px) {
+    .global-theme-studio-grid {
+        grid-template-columns: 1fr;
     }
+}
+
+/* Word Quest scene bridge (used by Word Quest Theme Studio). */
+body.word-quest-page[data-wq-scene="calm-studio"] {
+    --wq-page-bg: linear-gradient(180deg, #f0f7f5 0%, #e9f0e8 46%, #f5f1e9 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(251, 254, 252, 0.96) 0%, rgba(239, 247, 241, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(56, 189, 248, 0.13), transparent 46%), radial-gradient(circle at 86% 12%, rgba(16, 185, 129, 0.11), transparent 44%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(71, 132, 171, 0.88), rgba(90, 156, 140, 0.82), rgba(176, 172, 144, 0.74));
+    --wq-panel-border: rgba(104, 136, 129, 0.28);
+    --wq-keyboard-surface: rgba(236, 246, 240, 0.78);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(236, 246, 240, 0.94) 100%);
+    --wq-key-border: rgba(108, 139, 132, 0.42);
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f1f8f4 100%);
+    --wq-tile-border: rgba(121, 145, 133, 0.36);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="meadow-calm"] {
+    --wq-page-bg: linear-gradient(180deg, #edf7ee 0%, #e6f1e1 44%, #f6f3ea 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(251, 255, 251, 0.96) 0%, rgba(240, 248, 239, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(22, 163, 74, 0.14), transparent 46%), radial-gradient(circle at 86% 12%, rgba(251, 191, 36, 0.1), transparent 44%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(74, 141, 88, 0.88), rgba(97, 167, 121, 0.82), rgba(188, 167, 125, 0.74));
+    --wq-panel-border: rgba(96, 131, 99, 0.29);
+    --wq-keyboard-surface: rgba(235, 245, 236, 0.79);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(238, 247, 238, 0.95) 100%);
+    --wq-key-border: rgba(95, 129, 102, 0.42);
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #f4f8ef 100%);
+    --wq-tile-border: rgba(115, 140, 109, 0.36);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="ocean-calm"] {
+    --wq-page-bg: linear-gradient(180deg, #e6f3ff 0%, #e0ebfb 50%, #eaf5f7 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(249, 253, 255, 0.96) 0%, rgba(235, 245, 252, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(37, 99, 235, 0.16), transparent 46%), radial-gradient(circle at 86% 12%, rgba(14, 116, 144, 0.12), transparent 44%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(45, 107, 190, 0.9), rgba(42, 157, 190, 0.82), rgba(103, 145, 203, 0.72));
+    --wq-panel-border: rgba(80, 123, 175, 0.3);
+    --wq-keyboard-surface: rgba(231, 241, 252, 0.8);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(235, 244, 254, 0.95) 100%);
+    --wq-key-border: rgba(84, 123, 173, 0.42);
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+    --wq-tile-border: rgba(91, 129, 177, 0.38);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="professional-chrome"] {
+    --wq-page-bg: linear-gradient(180deg, #e9eff8 0%, #dde7f3 52%, #d8e3f1 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(247, 251, 255, 0.96) 0%, rgba(231, 240, 251, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 15% 12%, rgba(59, 130, 246, 0.14), transparent 46%), radial-gradient(circle at 84% 12%, rgba(30, 64, 175, 0.1), transparent 44%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(37, 99, 235, 0.9), rgba(56, 106, 197, 0.84), rgba(14, 116, 144, 0.74));
+    --wq-panel-border: rgba(77, 103, 142, 0.32);
+    --wq-keyboard-surface: rgba(227, 238, 252, 0.82);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(238, 246, 255, 0.95) 100%);
+    --wq-key-border: rgba(83, 111, 151, 0.42);
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+    --wq-tile-border: rgba(88, 113, 150, 0.38);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="professional-midnight"] {
+    --wq-page-bg: linear-gradient(180deg, #0f172a 0%, #172437 52%, #1e293b 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.94) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(96, 165, 250, 0.16), transparent 46%), radial-gradient(circle at 84% 12%, rgba(148, 163, 184, 0.14), transparent 44%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(59, 130, 246, 0.92), rgba(96, 165, 250, 0.84), rgba(148, 163, 184, 0.72));
+    --wq-panel-border: rgba(148, 163, 184, 0.48);
+    --wq-keyboard-surface: rgba(15, 23, 42, 0.86);
+    --wq-key-bg: linear-gradient(180deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.94) 100%);
+    --wq-key-border: rgba(148, 163, 184, 0.58);
+    --wq-key-text: #f8fafc;
+    --wq-tile-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+    --wq-tile-border: rgba(148, 163, 184, 0.54);
+    --wq-tile-text: #f8fafc;
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="playful-festival"] {
+    --wq-page-bg: linear-gradient(180deg, #fff6de 0%, #ffe8f0 38%, #e8f2ff 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 253, 246, 0.96) 0%, rgba(252, 243, 255, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(249, 115, 22, 0.2), transparent 46%), radial-gradient(circle at 84% 12%, rgba(14, 165, 233, 0.14), transparent 44%), radial-gradient(circle at 52% 88%, rgba(236, 72, 153, 0.14), transparent 50%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(249, 115, 22, 0.9), rgba(14, 165, 233, 0.84), rgba(236, 72, 153, 0.74));
+    --wq-panel-border: rgba(208, 118, 70, 0.34);
+    --wq-keyboard-surface: rgba(255, 233, 214, 0.76);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 239, 219, 0.95) 100%);
+    --wq-key-border: rgba(209, 121, 68, 0.42);
+    --wq-key-radius: 18px;
+    --wq-panel-radius: 20px;
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #fff4e8 100%);
+    --wq-tile-border: rgba(201, 127, 72, 0.38);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="playful-sunrise"] {
+    --wq-page-bg: linear-gradient(180deg, #fff3e2 0%, #ffe9df 38%, #ffe6f6 74%, #ecf2ff 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(255, 252, 246, 0.96) 0%, rgba(252, 241, 248, 0.92) 100%);
+    --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(217, 95, 77, 0.18), transparent 46%), radial-gradient(circle at 84% 12%, rgba(249, 115, 22, 0.13), transparent 44%), radial-gradient(circle at 52% 88%, rgba(59, 130, 246, 0.12), transparent 50%);
+    --wq-canvas-accent: linear-gradient(90deg, rgba(214, 102, 79, 0.9), rgba(249, 115, 22, 0.82), rgba(99, 102, 241, 0.72));
+    --wq-panel-border: rgba(190, 102, 95, 0.34);
+    --wq-keyboard-surface: rgba(255, 235, 227, 0.74);
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 238, 234, 0.95) 100%);
+    --wq-key-border: rgba(186, 103, 101, 0.4);
+    --wq-key-radius: 18px;
+    --wq-panel-radius: 20px;
+    --wq-tile-bg: linear-gradient(180deg, #ffffff 0%, #fff3f1 100%);
+    --wq-tile-border: rgba(188, 114, 108, 0.36);
+    background: var(--wq-page-bg) !important;
+}
+
+body.word-quest-page[data-wq-scene="classic-contrast"] {
+    --wq-page-bg: linear-gradient(180deg, #060b16 0%, #0f172a 54%, #111827 100%);
+    --wq-canvas-surface: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+    --wq-canvas-glow: none;
+    --wq-canvas-accent: linear-gradient(90deg, rgba(250, 204, 21, 0.98), rgba(59, 130, 246, 0.9));
+    --wq-panel-border: rgba(203, 213, 225, 0.62);
+    --wq-keyboard-surface: rgba(15, 23, 42, 0.9);
+    --wq-key-bg: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    --wq-key-vowel-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    --wq-key-border: rgba(203, 213, 225, 0.64);
+    --wq-key-vowel-border: rgba(250, 204, 21, 0.7);
+    --wq-key-text: #f8fafc;
+    --wq-key-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.24), 0 2px 8px rgba(0, 0, 0, 0.34);
+    --wq-tile-bg: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    --wq-tile-border: rgba(203, 213, 225, 0.62);
+    --wq-tile-text: #f8fafc;
+    background: var(--wq-page-bg) !important;
+}
+
+/* Word Quest style controls. */
+body.word-quest-page[data-wq-keyboard-style="professional"] {
+    --wq-key-radius: 10px;
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(237, 244, 255, 0.95) 100%);
+    --wq-key-border: rgba(78, 105, 142, 0.45);
+}
+
+body.word-quest-page[data-wq-keyboard-style="playful"] {
+    --wq-key-radius: 20px;
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 239, 215, 0.95) 100%);
+    --wq-key-border: rgba(217, 124, 74, 0.45);
+}
+
+body.word-quest-page[data-wq-keyboard-style="calm"] {
+    --wq-key-radius: 14px;
+    --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(235, 245, 241, 0.95) 100%);
+    --wq-key-border: rgba(108, 139, 132, 0.42);
+}
+
+body.word-quest-page[data-wq-intensity="soft"] {
+    --wq-canvas-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+    --wq-board-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88), 0 1px 5px rgba(30, 41, 59, 0.08);
+}
+
+body.word-quest-page[data-wq-intensity="vivid"] {
+    --wq-canvas-shadow: 0 26px 56px rgba(15, 23, 42, 0.18);
+    --wq-board-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+    --wq-key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 4px 12px rgba(30, 41, 59, 0.16);
+}
+
+body.word-quest-page[data-wq-shape="round"] {
+    --wq-key-radius: 20px;
+    --wq-panel-radius: 24px;
+}
+
+body.word-quest-page[data-wq-shape="crisp"] {
+    --wq-key-radius: 10px;
+    --wq-panel-radius: 12px;
+}
+
+body.word-quest-page[data-wq-density="compact"] #game-board .tile,
+body.word-quest-page[data-wq-density="compact"] #game-board .cell,
+body.word-quest-page[data-wq-density="compact"] #game-board [data-tile] {
+    width: clamp(52px, 4.8vw, 64px) !important;
+    height: clamp(52px, 4.8vw, 64px) !important;
+}
+
+body.word-quest-page[data-wq-density="compact"] #keyboard button:not(.correct):not(.present):not(.absent),
+body.word-quest-page[data-wq-density="compact"] #keyboard .key:not(.correct):not(.present):not(.absent),
+body.word-quest-page[data-wq-density="compact"] #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+    flex-basis: clamp(50px, 5vw, 62px) !important;
+    width: clamp(50px, 5vw, 62px) !important;
+    min-width: clamp(50px, 5vw, 62px) !important;
+    max-width: clamp(50px, 5vw, 62px) !important;
+    min-height: clamp(50px, 5vw, 62px) !important;
+}
+
+body.word-quest-page[data-wq-density="compact"] #keyboard .key.wide {
+    flex-basis: clamp(90px, 10vw, 120px) !important;
+    width: clamp(90px, 10vw, 120px) !important;
+    min-width: clamp(90px, 10vw, 120px) !important;
+    max-width: clamp(90px, 10vw, 120px) !important;
+}
+
+body.word-quest-page[data-wq-density="large"] #game-board .tile,
+body.word-quest-page[data-wq-density="large"] #game-board .cell,
+body.word-quest-page[data-wq-density="large"] #game-board [data-tile] {
+    width: clamp(60px, 5.8vw, 74px) !important;
+    height: clamp(60px, 5.8vw, 74px) !important;
+}
+
+body.word-quest-page[data-wq-density="large"] #keyboard button:not(.correct):not(.present):not(.absent),
+body.word-quest-page[data-wq-density="large"] #keyboard .key:not(.correct):not(.present):not(.absent),
+body.word-quest-page[data-wq-density="large"] #keyboard [data-key]:not(.correct):not(.present):not(.absent) {
+    flex-basis: clamp(58px, 6vw, 72px) !important;
+    width: clamp(58px, 6vw, 72px) !important;
+    min-width: clamp(58px, 6vw, 72px) !important;
+    max-width: clamp(58px, 6vw, 72px) !important;
+    min-height: clamp(58px, 6vw, 72px) !important;
+}
+
+body.word-quest-page[data-wq-density="large"] #keyboard .key.wide {
+    flex-basis: clamp(104px, 12vw, 140px) !important;
+    width: clamp(104px, 12vw, 140px) !important;
+    min-width: clamp(104px, 12vw, 140px) !important;
+    max-width: clamp(104px, 12vw, 140px) !important;
 }
