@@ -3953,7 +3953,7 @@ function ensureWordQuestVoiceQuickOverlay() {
           <span>Reading speed</span>
           <div class="voice-quick-rate-row">
             <input id="voice-quick-rate" type="range" min="0.55" max="1.05" step="0.01" />
-            <span id="voice-quick-rate-value">0.80x</span>
+            <span id="voice-quick-rate-value">0.95x</span>
           </div>
           <span class="voice-quick-note">Applies to word, definition, sentence, and translation audio.</span>
         </label>
@@ -9587,7 +9587,11 @@ function showBonusContent() {
         revealBtn.className = 'secondary-btn bonus-reveal-punchline hidden';
         revealBtn.textContent = 'Reveal';
         const bonusActions = hearBtn.closest('.bonus-actions');
-        bonusActions?.insertBefore(revealBtn, hearBtn);
+        if (bonusActions && hearBtn && hearBtn.parentElement === bonusActions) {
+            bonusActions.insertBefore(revealBtn, hearBtn.nextSibling);
+        } else {
+            bonusActions?.appendChild(revealBtn);
+        }
     }
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;

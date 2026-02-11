@@ -5518,6 +5518,25 @@ main {
     width: 100%;
 }
 
+.bonus-actions #bonus-hear {
+    order: 1;
+}
+
+.bonus-actions .bonus-reveal-punchline {
+    order: 2;
+    width: min(72%, 360px) !important;
+    justify-self: center;
+    margin: 4px auto 10px !important;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px dashed rgba(255, 255, 255, 0.45) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.bonus-actions .primary-btn {
+    order: 3;
+}
+
 .bonus-audio-note {
     margin-top: 8px;
     font-size: 0.84rem;
