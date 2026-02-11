@@ -87,7 +87,7 @@
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
-    <link rel="stylesheet" href="style.css?v=20260211uxfix12" />
+    <link rel="stylesheet" href="style.css?v=20260212uxfix14" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -96,7 +96,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight1" defer></script>
-    <script src="app.js?v=20260211uxfix7" defer></script>
+    <script src="app.js?v=20260212uxfix9" defer></script>
   </head>
 
   <body class="word-quest-page cs-page-wordquest look-35">
@@ -112,8 +112,8 @@
       </div>
 
       <div class="controls" role="group" aria-label="Game setup">
-        <div class="control-group">
-          <label for="pattern-select">Focus</label>
+        <div class="control-group wq-control-focus">
+          <label for="pattern-select">Focus Path</label>
           <select id="pattern-select" aria-label="Focus pattern">
             <option value="shuffle" selected>Shuffle Focus (clue on)</option>
             <option value="all">All Words</option>
@@ -136,47 +136,61 @@
           </select>
         </div>
 
-        <div class="control-group">
-          <label for="length-select">Length</label>
-          <select id="length-select" aria-label="Word length">
-            <option value="any">Any</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5" selected>5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="guess-count-select">Guesses</label>
-          <select id="guess-count-select" aria-label="Number of guesses">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6" selected>6</option>
-          </select>
-        </div>
-
-        <div class="control-group control-group-subtle">
-          <label for="case-toggle">Case</label>
-          <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
-        </div>
-
-        <div class="control-group control-group-subtle">
+        <div class="control-group control-group-subtle wq-control-new-round">
           <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
           <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
         </div>
 
-        <div class="control-group control-group-subtle wq-utility-controls" aria-label="Utilities">
-          <label for="simple-voice-settings">Tools</label>
-          <div class="wq-utility-inline">
-            <button id="simple-voice-settings" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open voice settings">Voice</button>
-            <button id="wq-theme-studio-btn" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open theme studio">Theme</button>
-          </div>
+        <div class="control-group control-group-subtle wq-tools-control" aria-label="Utilities">
+          <label for="wq-tools-toggle">Tools</label>
+          <details id="wq-tools-menu" class="wq-tools-menu">
+            <summary id="wq-tools-toggle" class="case-toggle-btn wq-tools-toggle">Open Tools</summary>
+            <div class="wq-tools-body">
+              <label class="wq-tools-field" for="length-select">
+                <span>Word length</span>
+                <select id="length-select" aria-label="Word length">
+                  <option value="any">Any</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5" selected>5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                </select>
+              </label>
+
+              <label class="wq-tools-field" for="guess-count-select">
+                <span>Guesses</span>
+                <select id="guess-count-select" aria-label="Number of guesses">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                </select>
+              </label>
+
+              <div class="wq-tools-field">
+                <span>Letter case</span>
+                <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
+              </div>
+
+              <div class="wq-tools-field wq-tools-inline">
+                <span>Quick tools</span>
+                <div class="wq-tools-buttons">
+                  <button id="simple-voice-settings" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open voice settings">Voice</button>
+                  <button id="wq-theme-studio-btn" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open theme studio">Theme</button>
+                  <button id="wq-tools-teacher-word" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open teacher word options">Teacher Word</button>
+                </div>
+              </div>
+
+              <label class="wq-tools-switch">
+                <input id="wq-toggle-round-clue" type="checkbox" />
+                <span>Show round clue</span>
+              </label>
+            </div>
+          </details>
         </div>
       </div>
       <div id="focus-round-chip" class="focus-round-chip" aria-live="polite"></div>
@@ -185,9 +199,9 @@
     <main>
       <section class="quick-custom-word-panel" aria-label="Custom challenge word">
         <button id="quick-custom-word-toggle" type="button" class="quick-custom-word-toggle" aria-expanded="false">
-          Teacher word tool (optional)
+          Teacher-selected challenge word
         </button>
-        <div class="quick-custom-word-helper">Teacher use only</div>
+        <div class="quick-custom-word-helper">Optional teacher tool (open from Tools when needed)</div>
         <div id="quick-custom-word-body" class="quick-custom-word-body hidden">
           <div class="quick-custom-word-row">
             <input
@@ -481,57 +495,18 @@
           <button id="wq-theme-studio-close" type="button" class="wq-theme-studio-close" aria-label="Close theme studio">×</button>
         </header>
 
-        <p class="wq-theme-studio-copy">Pick a scene and keyboard style. Preview is live. Select Done to save.</p>
+        <p class="wq-theme-studio-copy">Pick one of six ready themes. Preview is live. Select Done to save.</p>
 
         <div class="wq-theme-studio-grid">
           <label class="wq-theme-studio-field">
             <span>Scene</span>
             <select id="wq-scene-select">
               <option value="calm-studio">Calm Studio</option>
-              <option value="meadow-calm">Meadow Calm</option>
-              <option value="ocean-calm">Ocean Mist</option>
+              <option value="ocean-calm">Calm Ocean</option>
               <option value="professional-chrome">Professional Chrome</option>
-              <option value="professional-midnight">Professional Midnight</option>
               <option value="playful-festival">Playful Festival</option>
               <option value="playful-sunrise">Playful Sunrise</option>
               <option value="classic-contrast">Classic Contrast</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Keyboard style</span>
-            <select id="wq-keyboard-style-select">
-              <option value="auto">Match scene</option>
-              <option value="calm">Calm</option>
-              <option value="professional">Professional</option>
-              <option value="playful">Playful</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Intensity</span>
-            <select id="wq-intensity-select">
-              <option value="soft">Soft</option>
-              <option value="medium">Medium</option>
-              <option value="vivid">Vivid</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Shape</span>
-            <select id="wq-shape-select">
-              <option value="soft">Soft</option>
-              <option value="round">Round</option>
-              <option value="crisp">Crisp</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Density</span>
-            <select id="wq-density-select">
-              <option value="standard">Standard</option>
-              <option value="compact">Compact</option>
-              <option value="large">Large</option>
             </select>
           </label>
         </div>
@@ -620,7 +595,7 @@
 
       .wq-theme-studio-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 10px 12px;
       }
 
@@ -673,12 +648,6 @@
       .wq-theme-studio-done {
         background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(14, 165, 233, 0.88));
         color: #ffffff;
-      }
-
-      @media (max-width: 760px) {
-        .wq-theme-studio-grid {
-          grid-template-columns: 1fr;
-        }
       }
 
       .demo-exit-link {
@@ -749,34 +718,19 @@
     </script>
     <script>
       (function initWordQuestThemeStudio() {
-        var STORAGE_KEYS = {
-          scene: 'cs_wq_scene',
-          keyboard: 'cs_wq_keyboard_style',
-          intensity: 'cs_wq_intensity',
-          shape: 'cs_wq_shape',
-          density: 'cs_wq_density'
-        };
+        var STORAGE_KEY = 'cs_wq_scene';
+        var allowedScenes = new Set([
+          'calm-studio',
+          'ocean-calm',
+          'professional-chrome',
+          'playful-festival',
+          'playful-sunrise',
+          'classic-contrast'
+        ]);
 
-        var allowed = {
-          scene: new Set([
-            'calm-studio',
-            'meadow-calm',
-            'ocean-calm',
-            'professional-chrome',
-            'professional-midnight',
-            'playful-festival',
-            'playful-sunrise',
-            'classic-contrast'
-          ]),
-          keyboard: new Set(['auto', 'calm', 'professional', 'playful']),
-          intensity: new Set(['soft', 'medium', 'vivid']),
-          shape: new Set(['soft', 'round', 'crisp']),
-          density: new Set(['compact', 'standard', 'large'])
-        };
-
-        function normalize(kind, value, fallback) {
+        function normalizeScene(value, fallback) {
           var v = String(value || '').trim().toLowerCase();
-          return allowed[kind].has(v) ? v : fallback;
+          return allowedScenes.has(v) ? v : fallback;
         }
 
         function activeBaseTheme() {
@@ -789,40 +743,26 @@
 
         function sceneFromTheme(theme) {
           if (theme === 'professional') return 'professional-chrome';
-          if (theme === 'playful') return 'playful-festival';
+          if (theme === 'playful') return 'playful-sunrise';
           if (theme === 'high-contrast') return 'classic-contrast';
           return 'calm-studio';
         }
 
         function defaults() {
-          return {
-            scene: sceneFromTheme(activeBaseTheme()),
-            keyboard: 'auto',
-            intensity: 'medium',
-            shape: 'soft',
-            density: 'standard'
-          };
+          return { scene: sceneFromTheme(activeBaseTheme()) };
         }
 
         function loadSettings() {
           var d = defaults();
           try {
-            d.scene = normalize('scene', localStorage.getItem(STORAGE_KEYS.scene), d.scene);
-            d.keyboard = normalize('keyboard', localStorage.getItem(STORAGE_KEYS.keyboard), d.keyboard);
-            d.intensity = normalize('intensity', localStorage.getItem(STORAGE_KEYS.intensity), d.intensity);
-            d.shape = normalize('shape', localStorage.getItem(STORAGE_KEYS.shape), d.shape);
-            d.density = normalize('density', localStorage.getItem(STORAGE_KEYS.density), d.density);
+            d.scene = normalizeScene(localStorage.getItem(STORAGE_KEY), d.scene);
           } catch (e) {}
           return d;
         }
 
         function persist(settings) {
           try {
-            localStorage.setItem(STORAGE_KEYS.scene, settings.scene);
-            localStorage.setItem(STORAGE_KEYS.keyboard, settings.keyboard);
-            localStorage.setItem(STORAGE_KEYS.intensity, settings.intensity);
-            localStorage.setItem(STORAGE_KEYS.shape, settings.shape);
-            localStorage.setItem(STORAGE_KEYS.density, settings.density);
+            localStorage.setItem(STORAGE_KEY, settings.scene);
           } catch (e) {}
         }
 
@@ -830,10 +770,10 @@
           var options = opts || {};
           if (!document.body) return;
           document.body.dataset.wqScene = settings.scene;
-          document.body.dataset.wqKeyboardStyle = settings.keyboard;
-          document.body.dataset.wqIntensity = settings.intensity;
-          document.body.dataset.wqShape = settings.shape;
-          document.body.dataset.wqDensity = settings.density;
+          document.body.dataset.wqKeyboardStyle = 'auto';
+          document.body.dataset.wqIntensity = 'medium';
+          document.body.dataset.wqShape = 'soft';
+          document.body.dataset.wqDensity = 'standard';
           if (options.persist !== false) {
             persist(settings);
           }
@@ -845,58 +785,27 @@
           var closeBtn = document.getElementById('wq-theme-studio-close');
           var doneBtn = document.getElementById('wq-theme-studio-done');
           var resetBtn = document.getElementById('wq-theme-studio-reset');
-
           var sceneSelect = document.getElementById('wq-scene-select');
-          var keyboardSelect = document.getElementById('wq-keyboard-style-select');
-          var intensitySelect = document.getElementById('wq-intensity-select');
-          var shapeSelect = document.getElementById('wq-shape-select');
-          var densitySelect = document.getElementById('wq-density-select');
 
-          if (!overlay || !openBtn || !sceneSelect || !keyboardSelect || !intensitySelect || !shapeSelect || !densitySelect) return;
+          if (!overlay || !openBtn || !sceneSelect) return;
 
           var settings = loadSettings();
-          var draft = {
-            scene: settings.scene,
-            keyboard: settings.keyboard,
-            intensity: settings.intensity,
-            shape: settings.shape,
-            density: settings.density
-          };
+          var draft = { scene: settings.scene };
           apply(settings, { persist: false });
-
-          function clone(input) {
-            return {
-              scene: input.scene,
-              keyboard: input.keyboard,
-              intensity: input.intensity,
-              shape: input.shape,
-              density: input.density
-            };
-          }
 
           function syncControls(input) {
             var source = input || settings;
             sceneSelect.value = source.scene;
-            keyboardSelect.value = source.keyboard;
-            intensitySelect.value = source.intensity;
-            shapeSelect.value = source.shape;
-            densitySelect.value = source.density;
           }
 
           function pullFromControls() {
-            draft = {
-              scene: normalize('scene', sceneSelect.value, settings.scene),
-              keyboard: normalize('keyboard', keyboardSelect.value, settings.keyboard),
-              intensity: normalize('intensity', intensitySelect.value, settings.intensity),
-              shape: normalize('shape', shapeSelect.value, settings.shape),
-              density: normalize('density', densitySelect.value, settings.density)
-            };
+            draft = { scene: normalizeScene(sceneSelect.value, settings.scene) };
             apply(draft, { persist: false });
           }
 
           function openStudio() {
             settings = loadSettings();
-            draft = clone(settings);
+            draft = { scene: settings.scene };
             apply(draft, { persist: false });
             syncControls(draft);
             overlay.classList.remove('hidden');
@@ -911,20 +820,18 @@
           }
 
           function commitStudio() {
-            settings = clone(draft);
+            settings = { scene: draft.scene };
             apply(settings, { persist: true });
             closeStudio();
           }
 
           function cancelStudio() {
-            draft = clone(settings);
+            draft = { scene: settings.scene };
             apply(settings, { persist: false });
             closeStudio();
           }
 
-          [sceneSelect, keyboardSelect, intensitySelect, shapeSelect, densitySelect].forEach(function (el) {
-            el.addEventListener('change', pullFromControls);
-          });
+          sceneSelect.addEventListener('change', pullFromControls);
 
           openBtn.addEventListener('click', openStudio);
           if (closeBtn) closeBtn.addEventListener('click', cancelStudio);
@@ -932,11 +839,7 @@
 
           if (resetBtn) {
             resetBtn.addEventListener('click', function () {
-              try {
-                Object.keys(STORAGE_KEYS).forEach(function (k) {
-                  localStorage.removeItem(STORAGE_KEYS[k]);
-                });
-              } catch (e) {}
+              try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
               draft = defaults();
               apply(draft, { persist: false });
               syncControls(draft);
