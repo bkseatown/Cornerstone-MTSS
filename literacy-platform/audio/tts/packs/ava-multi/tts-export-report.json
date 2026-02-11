@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T09:16:28.365Z",
+  "generatedAt": "2026-02-10T16:42:41.025Z",
   "region": "eastus",
   "packId": "ava-multi",
   "packName": "Ava Multilingual",
@@ -35,26 +35,175 @@
     "ja": "ja-JP-NanamiNeural"
   },
   "retries": 2,
-  "words": 500,
-  "attempted": 15079,
-  "generated": 3000,
-  "reused": 12079,
-  "failed": 0,
+  "words": 1000,
+  "attempted": 30000,
+  "generated": 29979,
+  "reused": 0,
+  "failed": 21,
   "generatedByField": {
-    "word": 3000
+    "word": 9993,
+    "def": 9993,
+    "sentence": 9993
   },
-  "reusedByField": {
-    "word": 2000,
-    "def": 5000,
-    "sentence": 5000,
-    "phoneme": 79
+  "reusedByField": {},
+  "failedByField": {
+    "def": 7,
+    "sentence": 7,
+    "word": 7
   },
-  "failedByField": {},
-  "phonemeCatalogSize": 79,
-  "phonemeTasks": 79,
+  "phonemeCatalogSize": 0,
+  "phonemeTasks": 0,
   "skippedMissing": 0,
   "skippedNoVoice": 0,
-  "failures": [],
+  "failures": [
+    {
+      "word": "custard",
+      "lang": "en",
+      "field": "def",
+      "voice": "en-US-AvaMultilingualNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "en",
+      "field": "sentence",
+      "voice": "en-US-AvaMultilingualNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "es",
+      "field": "word",
+      "voice": "en-US-AvaMultilingualNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "es",
+      "field": "def",
+      "voice": "en-US-AvaMultilingualNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "es",
+      "field": "sentence",
+      "voice": "en-US-AvaMultilingualNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "zh",
+      "field": "word",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "zh",
+      "field": "def",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "zh",
+      "field": "sentence",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "tl",
+      "field": "word",
+      "voice": "fil-PH-BlessicaNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "tl",
+      "field": "def",
+      "voice": "fil-PH-BlessicaNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "tl",
+      "field": "sentence",
+      "voice": "fil-PH-BlessicaNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "ms",
+      "field": "word",
+      "voice": "ms-MY-YasminNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "ms",
+      "field": "def",
+      "voice": "ms-MY-YasminNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "ms",
+      "field": "sentence",
+      "voice": "ms-MY-YasminNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "vi",
+      "field": "word",
+      "voice": "vi-VN-HoaiMyNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "vi",
+      "field": "def",
+      "voice": "vi-VN-HoaiMyNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "vi",
+      "field": "sentence",
+      "voice": "vi-VN-HoaiMyNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "hi",
+      "field": "word",
+      "voice": "hi-IN-SwaraNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "hi",
+      "field": "def",
+      "voice": "hi-IN-SwaraNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "hi",
+      "field": "sentence",
+      "voice": "hi-IN-SwaraNeural",
+      "error": "fetch failed"
+    },
+    {
+      "word": "custard",
+      "lang": "ar",
+      "field": "word",
+      "voice": "ar-SA-ZariyahNeural",
+      "error": "fetch failed"
+    }
+  ],
   "missingDetails": [],
   "noVoiceDetails": []
 }
