@@ -10192,7 +10192,7 @@ function getBonusHearButtonLabel(type = '', options = {}) {
     if (type === 'facts') return 'Hear the fun fact';
     if (type === 'quotes') return 'Hear the quote';
     if (type === 'riddles') return answerRevealed ? 'Hear the answer' : 'Hear the riddle';
-    if (type === 'jokes') return 'Hear the joke';
+    if (type === 'jokes') return answerRevealed ? 'Hear the punchline' : 'Hear the joke';
     return 'Hear this';
 }
 
@@ -10347,10 +10347,11 @@ function showBonusContent() {
             bonusModal.dataset.lastSpokenText = '';
             if (hasPunchline) {
                 bonusModal.dataset.bonusPunchlineRevealed = 'true';
-                textEl.textContent = `${parsedJoke.setup}\n\n${parsedJoke.punchline}`;
+                textEl.textContent = parsedJoke.punchline;
                 if (hearBtn) {
-                    hearBtn.dataset.ttsText = `${parsedJoke.setup} ${parsedJoke.punchline}`.trim();
+                    hearBtn.dataset.ttsText = parsedJoke.punchline;
                     hearBtn.dataset.lastSpokenText = '';
+                    hearBtn.textContent = getBonusHearButtonLabel(type, { answerRevealed: true });
                 }
             } else if (hasRiddleAnswer) {
                 bonusModal.dataset.bonusRiddleAnswerRevealed = 'true';
@@ -10360,6 +10361,11 @@ function showBonusContent() {
                     hearBtn.dataset.lastSpokenText = '';
                     hearBtn.textContent = getBonusHearButtonLabel(type, { answerRevealed: true });
                 }
+            }
+            if (hearBtn && appSettings.autoHear !== false) {
+                queueMicrotask(() => {
+                    if (document.body.contains(hearBtn)) hearBtn.click();
+                });
             }
             revealBtn.classList.add('hidden');
             revealBtn.blur();

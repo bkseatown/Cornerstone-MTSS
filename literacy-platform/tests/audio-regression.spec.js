@@ -269,4 +269,42 @@ test.describe('Audio playback behavior', () => {
     expect(state.events.filter((event) => event.type === 'play').length).toBe(0);
     expect(state.speakCalls).toBe(0);
   });
+
+  test('joke reveal shows and reads punchline only', async ({ page }) => {
+    await openWordQuest(page);
+    await installAudioHarness(page, 'always-play');
+    await expect(page.locator('#modal-overlay')).toHaveClass(/hidden/);
+
+    await page.evaluate(() => {
+      if (typeof appSettings !== 'undefined' && appSettings) {
+        appSettings.autoHear = true;
+      }
+      window.getBonusContentPool = () => ({
+        jokes: ['Why did the notebook bring a sweater? It had too many drafts.'],
+        riddles: [],
+        facts: [],
+        quotes: []
+      });
+      window.showBonusContent();
+    });
+
+    const bonusModal = page.locator('#bonus-modal');
+    await expect(bonusModal).toBeVisible();
+    await expect(page.locator('#bonus-text')).toContainText('Why did the notebook bring a sweater?');
+
+    await assertPointerCanReach(page, '#bonus-reveal-detail');
+    await page.locator('#bonus-reveal-detail').click();
+
+    await expect(page.locator('#bonus-text')).toHaveText('It had too many drafts.');
+    const revealState = await page.evaluate(() => ({
+      ttsText: document.getElementById('bonus-hear')?.dataset?.ttsText || '',
+      hearLabel: document.getElementById('bonus-hear')?.textContent?.trim() || ''
+    }));
+    expect(revealState.ttsText).toBe('It had too many drafts.');
+    expect(revealState.hearLabel).toBe('Hear the punchline');
+
+    await page.waitForTimeout(60);
+    const state = await readHarnessState(page);
+    expect(state.events.filter((event) => event.type === 'play' && event.sourceId === 'bonus-hear').length).toBeGreaterThanOrEqual(1);
+  });
 });
