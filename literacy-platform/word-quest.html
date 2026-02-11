@@ -17,6 +17,50 @@
       })();
     </script>
     <script>
+      (function applyWordQuestDemoRouteGuard() {
+        function isDemoMode() {
+          return !!(window.__wqDemoMode || document.documentElement.classList.contains('wq-demo-mode'));
+        }
+        function isAllowedDemoHref(rawHref) {
+          const href = String(rawHref || '').trim();
+          if (!href) return true;
+          if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return true;
+          try {
+            const url = new URL(href, window.location.href);
+            if (url.origin !== window.location.origin) return false;
+            const path = url.pathname.replace(/\/+$/, '');
+            return path.endsWith('/literacy-platform/word-quest.html')
+              || path.endsWith('/literacy-platform/word-quest-demo.html')
+              || path.endsWith('/word-quest.html')
+              || path.endsWith('/word-quest-demo.html');
+          } catch {
+            return false;
+          }
+        }
+        function init() {
+          if (!isDemoMode()) return;
+          const homeBtn = document.getElementById('home-btn');
+          if (homeBtn) homeBtn.setAttribute('href', 'word-quest-demo.html');
+          document.addEventListener('click', function (event) {
+            const target = event.target;
+            if (!target || !target.closest) return;
+            const anchor = target.closest('a[href]');
+            if (!anchor) return;
+            const href = anchor.getAttribute('href') || '';
+            if (isAllowedDemoHref(href)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            window.location.href = 'word-quest-demo.html';
+          }, true);
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+    <script>
       (function applyHv2ThemeToWordQuest() {
         var KEY = 'cs_hv2_theme';
         var allowed = new Set(['calm', 'professional', 'playful', 'high-contrast']);
@@ -449,14 +493,6 @@
       html.wq-demo-mode body.word-quest-page .demo-exit-link {
         display: inline-flex;
         margin-left: auto;
-      }
-
-      html.wq-demo-mode body.word-quest-page .header-actions,
-      html.wq-demo-mode body.word-quest-page #activity-breadcrumb,
-      html.wq-demo-mode body.word-quest-page #global-accessibility-tools,
-      html.wq-demo-mode body.word-quest-page .page-guide-tip,
-      html.wq-demo-mode body.word-quest-page .student-mode-exit-btn {
-        display: none !important;
       }
 
       html.wq-demo-mode body.word-quest-page .header-top {
