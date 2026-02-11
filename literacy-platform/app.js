@@ -232,6 +232,7 @@ const KEYBOARD_VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
 const DELIGHT_MOTION_KEY = 'cs_delight_motion';
 const DELIGHT_SOUND_KEY = 'cs_delight_sound';
+const ROUND_CLUE_VISIBILITY_KEY = 'cs_show_round_clue';
 const WORD_SOURCE_LIBRARY_STATUS = 'Mode: Library. Pick a focus or set a custom challenge word.';
 const CUSTOM_WORD_BLOCK_PATTERNS = [
     /fuck/i,
@@ -402,9 +403,9 @@ function setQuickCustomWordStatus(message = '', isError = false, isSuccess = fal
     const toggle = document.getElementById('quick-custom-word-toggle');
     if (toggle) {
         if (isSuccess) {
-            toggle.textContent = 'Custom challenge word (on)';
+            toggle.textContent = 'Teacher-selected challenge word (active)';
         } else if (!isError) {
-            toggle.textContent = 'Custom challenge word (optional)';
+            toggle.textContent = 'Teacher-selected challenge word';
         }
     }
     if (isError) {
@@ -2574,15 +2575,18 @@ function applyWordQuestDesktopScale() {
     const body = document.body;
     if (!body || !body.classList.contains('word-quest-page')) return;
 
-    if (window.innerWidth < 821) {
+    const clearDesktopScaleVars = () => {
         body.style.removeProperty('--wq-tile-size-desktop');
         body.style.removeProperty('--wq-key-size-desktop');
         body.style.removeProperty('--wq-key-wide-size-desktop');
         body.style.removeProperty('--wq-keyboard-max-desktop');
         body.style.removeProperty('--wq-canvas-max-desktop');
         body.style.removeProperty('--wq-desktop-bottom-gap');
-        return;
-    }
+    };
+
+    // Theme/layout now uses fixed breakpoint CSS sizing.
+    clearDesktopScaleVars();
+    return;
 
     const header = document.querySelector('header');
     const headerHeight = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
@@ -2683,6 +2687,14 @@ function applyWordQuestDesktopScale() {
 function updateWordQuestScrollFallback() {
     const body = document.body;
     if (!body || !body.classList.contains('word-quest-page')) return;
+
+    if (window.innerWidth >= 980) {
+        if (wordQuestScrollFallback) {
+            wordQuestScrollFallback = false;
+            body.classList.remove('wq-scroll-fallback');
+        }
+        return;
+    }
 
     const canvas = document.getElementById('game-canvas');
     const keyboardEl = document.getElementById('keyboard');
@@ -3811,6 +3823,27 @@ function writeDelightToggleSetting(key, next = 'off') {
     return value;
 }
 
+function readRoundClueVisibilityMode() {
+    try {
+        const raw = String(localStorage.getItem(ROUND_CLUE_VISIBILITY_KEY) || '').trim().toLowerCase();
+        return raw === 'on' ? 'on' : 'off';
+    } catch (error) {
+        return 'off';
+    }
+}
+
+function writeRoundClueVisibilityMode(mode = 'off') {
+    const next = String(mode || '').trim().toLowerCase() === 'on' ? 'on' : 'off';
+    try {
+        localStorage.setItem(ROUND_CLUE_VISIBILITY_KEY, next);
+    } catch (error) {}
+    const chip = document.getElementById('focus-round-chip');
+    if (chip) {
+        chip.classList.toggle('is-hidden', next !== 'on');
+    }
+    return next;
+}
+
 function ensureSentenceCaptionToggleControls() {
     const sentenceBtn = document.getElementById('simple-hear-sentence');
     const hintActions = sentenceBtn?.closest('.hint-actions');
@@ -3882,6 +3915,52 @@ function ensureSentenceCaptionToggleControls() {
     sync();
 }
 
+function ensureWordQuestUtilityControlsPlacement() {
+    const body = document.body;
+    if (!body || !body.classList.contains('word-quest-page')) return;
+    const legacyPost = document.querySelector('.post-keyboard-actions');
+    const inlineWrap = document.querySelector('.wq-tools-buttons');
+    if (!(inlineWrap instanceof HTMLElement)) {
+        if (legacyPost instanceof HTMLElement) {
+            legacyPost.classList.add('hidden');
+            legacyPost.setAttribute('aria-hidden', 'true');
+        }
+        return;
+    }
+
+    const voiceBtn = document.getElementById('simple-voice-settings');
+    if (voiceBtn instanceof HTMLElement) {
+        voiceBtn.classList.add('wq-utility-btn');
+        if (voiceBtn.parentElement !== inlineWrap) {
+            inlineWrap.appendChild(voiceBtn);
+        }
+    }
+
+    const themeBtn = document.getElementById('wq-theme-studio-btn');
+    if (themeBtn instanceof HTMLElement) {
+        themeBtn.classList.add('wq-utility-btn');
+        if (themeBtn.parentElement !== inlineWrap) {
+            inlineWrap.appendChild(themeBtn);
+        }
+    }
+
+    const misplacedUtilityControls = document.querySelectorAll('.hint-actions #simple-voice-settings, .hint-actions #wq-theme-studio-btn, .hint-actions .wq-theme-studio-btn-inline');
+    misplacedUtilityControls.forEach((node) => {
+        if (!(node instanceof HTMLElement)) return;
+        node.classList.add('wq-utility-btn');
+        if (node.id === 'wq-theme-studio-btn' || node.id === 'simple-voice-settings') {
+            inlineWrap.appendChild(node);
+        } else {
+            node.remove();
+        }
+    });
+
+    if (legacyPost instanceof HTMLElement) {
+        legacyPost.classList.add('hidden');
+        legacyPost.setAttribute('aria-hidden', 'true');
+    }
+}
+
 function ensureWordQuestVoiceQuickOverlay() {
     let overlay = document.getElementById('voice-quick-overlay');
     if (overlay) return overlay;
@@ -3904,7 +3983,7 @@ function ensureWordQuestVoiceQuickOverlay() {
           <span>Reading speed</span>
           <div class="voice-quick-rate-row">
             <input id="voice-quick-rate" type="range" min="0.55" max="1.05" step="0.01" />
-            <span id="voice-quick-rate-value">0.80x</span>
+            <span id="voice-quick-rate-value">0.95x</span>
           </div>
           <span class="voice-quick-note">Applies to word, definition, sentence, and translation audio.</span>
         </label>
@@ -4185,6 +4264,9 @@ function initControls() {
     const quickCustomWordStartBtn = document.getElementById('quick-custom-word-start');
     const quickCustomWordClearBtn = document.getElementById('quick-custom-word-clear');
     const toggleMaskBtn = document.getElementById('quick-custom-word-toggle-mask');
+    const roundClueToggle = document.getElementById('wq-toggle-round-clue');
+    const teacherWordToolsBtn = document.getElementById('wq-tools-teacher-word');
+    const toolsMenu = document.getElementById('wq-tools-menu');
     const customWordInput = quickCustomWordInput;
     const quickCustomPanel = document.querySelector('.quick-custom-word-panel');
     const customWordTeacherOnly = isTeacherCustomWordAllowed();
@@ -4204,6 +4286,17 @@ function initControls() {
         quickCustomWordToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     };
 
+    if (roundClueToggle instanceof HTMLInputElement) {
+        roundClueToggle.checked = readRoundClueVisibilityMode() === 'on';
+        roundClueToggle.addEventListener('change', () => {
+            writeRoundClueVisibilityMode(roundClueToggle.checked ? 'on' : 'off');
+            updateFocusPanel();
+        });
+        writeRoundClueVisibilityMode(roundClueToggle.checked ? 'on' : 'off');
+    } else {
+        writeRoundClueVisibilityMode(readRoundClueVisibilityMode());
+    }
+
     if (customWordTeacherOnly && quickCustomWordToggleBtn && quickCustomWordBody) {
         setCustomPanelExpanded(false);
         quickCustomWordToggleBtn.onclick = () => {
@@ -4213,6 +4306,16 @@ function initControls() {
                 setTimeout(() => quickCustomWordInput?.focus(), 0);
             }
         };
+    }
+
+    if (teacherWordToolsBtn instanceof HTMLButtonElement) {
+        teacherWordToolsBtn.classList.toggle('hidden', !customWordTeacherOnly);
+        teacherWordToolsBtn.addEventListener('click', () => {
+            if (!customWordTeacherOnly) return;
+            setCustomPanelExpanded(true);
+            quickCustomWordInput?.focus();
+            if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = false;
+        });
     }
 
     if (customWordTeacherOnly && customWordInput) {
@@ -4285,6 +4388,8 @@ function initControls() {
             setCustomPanelExpanded(false);
         };
     }
+
+    ensureWordQuestUtilityControlsPlacement();
 
     // Simple audio buttons
     const hearWordBtn = document.getElementById("simple-hear-word");
@@ -4390,8 +4495,17 @@ function initControls() {
             } else {
                 openTeacherMode();
             }
+            if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = false;
             voiceSettingsBtn.blur();
         };
+    }
+
+    const themeStudioBtn = document.getElementById('wq-theme-studio-btn');
+    if (themeStudioBtn instanceof HTMLButtonElement) {
+        themeStudioBtn.addEventListener('click', () => {
+            if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = false;
+            themeStudioBtn.blur();
+        });
     }
 
     refreshPatternSelectTooltip();
@@ -6265,6 +6379,7 @@ function updateFocusPanel() {
         } else {
             focusRoundChip.textContent = `Round clue: ${info.title || selectedPattern}`;
         }
+        focusRoundChip.classList.toggle('is-hidden', readRoundClueVisibilityMode() !== 'on');
     }
 
     // Support both older + newer DOM ids
@@ -6529,6 +6644,15 @@ function createKey(txt, action, wide) {
     const b = document.createElement("button");
     b.textContent = txt;
     b.className = `key ${wide ? 'wide' : ''}`;
+    if (wide) {
+        const widePx = window.innerWidth <= 760
+            ? 74
+            : (window.innerHeight <= 860 ? 78 : 86);
+        b.style.setProperty('flex', `0 0 ${widePx}px`, 'important');
+        b.style.setProperty('width', `${widePx}px`, 'important');
+        b.style.setProperty('min-width', `${widePx}px`, 'important');
+        b.style.setProperty('max-width', `${widePx}px`, 'important');
+    }
     b.onclick = (e) => {
         // Add visual feedback
         e.target.classList.add('key-pressed');
@@ -9536,7 +9660,11 @@ function showBonusContent() {
         revealBtn.className = 'secondary-btn bonus-reveal-punchline hidden';
         revealBtn.textContent = 'Reveal';
         const bonusActions = hearBtn.closest('.bonus-actions');
-        bonusActions?.insertBefore(revealBtn, hearBtn);
+        if (bonusActions && hearBtn && hearBtn.parentElement === bonusActions) {
+            bonusActions.insertBefore(revealBtn, hearBtn.nextSibling);
+        } else {
+            bonusActions?.appendChild(revealBtn);
+        }
     }
     if (emojiEl) emojiEl.textContent = emoji;
     if (titleEl) titleEl.textContent = title;

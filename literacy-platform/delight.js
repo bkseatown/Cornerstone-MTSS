@@ -188,7 +188,7 @@
   function bindAudioUnlock() {
     if (window.__csDelightAudioUnlockBound) return;
     window.__csDelightAudioUnlockBound = true;
-    window.csAudioUnlocked = window.csAudioUnlocked === true;
+    window.csAudioUnlocked = false;
     const onGesture = () => unlockAudio();
     document.addEventListener('pointerdown', onGesture, { capture: true, passive: true });
     document.addEventListener('keydown', onGesture, { capture: true });
