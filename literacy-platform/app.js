@@ -402,9 +402,9 @@ function setQuickCustomWordStatus(message = '', isError = false, isSuccess = fal
     const toggle = document.getElementById('quick-custom-word-toggle');
     if (toggle) {
         if (isSuccess) {
-            toggle.textContent = 'Custom challenge word (on)';
+            toggle.textContent = 'Teacher word tool (on)';
         } else if (!isError) {
-            toggle.textContent = 'Custom challenge word (optional)';
+            toggle.textContent = 'Teacher word tool (optional)';
         }
     }
     if (isError) {
@@ -3882,6 +3882,55 @@ function ensureSentenceCaptionToggleControls() {
     sync();
 }
 
+function ensureWordQuestUtilityControlsPlacement() {
+    const body = document.body;
+    if (!body || !body.classList.contains('word-quest-page')) return;
+
+    const controls = document.querySelector('.controls');
+    if (!(controls instanceof HTMLElement)) return;
+
+    let utilityGroup = controls.querySelector('.wq-utility-controls');
+    if (!(utilityGroup instanceof HTMLElement)) {
+        utilityGroup = document.createElement('div');
+        utilityGroup.className = 'control-group control-group-subtle wq-utility-controls';
+        utilityGroup.setAttribute('aria-label', 'Utilities');
+        utilityGroup.innerHTML = `
+          <label for="simple-voice-settings">Tools</label>
+          <div class="wq-utility-inline"></div>
+        `;
+        controls.appendChild(utilityGroup);
+    }
+
+    let inlineWrap = utilityGroup.querySelector('.wq-utility-inline');
+    if (!(inlineWrap instanceof HTMLElement)) {
+        inlineWrap = document.createElement('div');
+        inlineWrap.className = 'wq-utility-inline';
+        utilityGroup.appendChild(inlineWrap);
+    }
+
+    const voiceBtn = document.getElementById('simple-voice-settings');
+    if (voiceBtn instanceof HTMLElement) {
+        voiceBtn.classList.add('wq-utility-btn');
+        if (voiceBtn.parentElement !== inlineWrap) {
+            inlineWrap.appendChild(voiceBtn);
+        }
+    }
+
+    const themeBtn = document.getElementById('wq-theme-studio-btn');
+    if (themeBtn instanceof HTMLElement) {
+        themeBtn.classList.add('wq-utility-btn');
+        if (themeBtn.parentElement !== inlineWrap) {
+            inlineWrap.appendChild(themeBtn);
+        }
+    }
+
+    const legacyPost = document.querySelector('.post-keyboard-actions');
+    if (legacyPost instanceof HTMLElement) {
+        legacyPost.classList.add('hidden');
+        legacyPost.setAttribute('aria-hidden', 'true');
+    }
+}
+
 function ensureWordQuestVoiceQuickOverlay() {
     let overlay = document.getElementById('voice-quick-overlay');
     if (overlay) return overlay;
@@ -4285,6 +4334,8 @@ function initControls() {
             setCustomPanelExpanded(false);
         };
     }
+
+    ensureWordQuestUtilityControlsPlacement();
 
     // Simple audio buttons
     const hearWordBtn = document.getElementById("simple-hear-word");
