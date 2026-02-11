@@ -217,7 +217,19 @@
           <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
           <button id="simple-hear-sentence" type="button" class="hint-btn">💬 Hear Sentence</button>
           <button id="simple-voice-settings" type="button" class="hint-btn secondary">🎛️ Voice</button>
-          <button id="wq-theme-studio-btn" type="button" class="hint-btn secondary wq-theme-studio-btn-inline">🎨 Theme Studio</button>
+          <label class="wq-palette-field" for="wq-palette-select">
+            <span>Palette</span>
+            <select id="wq-palette-select" class="wq-palette-select">
+              <option value="calm-studio">Calm Canvas</option>
+              <option value="meadow-calm">Sage Meadow</option>
+              <option value="ocean-calm">Ocean Slate</option>
+              <option value="professional-chrome">Graphite Pro</option>
+              <option value="professional-midnight">Midnight Focus</option>
+              <option value="playful-festival">Citrus Pop</option>
+              <option value="playful-sunrise">Rose Dawn</option>
+              <option value="classic-contrast">High Contrast</option>
+            </select>
+          </label>
         </div>
         <div id="sentence-preview" class="sentence-preview hidden" aria-live="polite"></div>
 
@@ -467,210 +479,166 @@
       </div>
     </div>
 
-    <div id="wq-theme-studio-overlay" class="wq-theme-studio-overlay hidden" aria-hidden="true">
-      <section class="wq-theme-studio-modal" role="dialog" aria-modal="true" aria-labelledby="wq-theme-studio-title">
-        <header class="wq-theme-studio-head">
-          <h2 id="wq-theme-studio-title">Theme Studio</h2>
-          <button id="wq-theme-studio-close" type="button" class="wq-theme-studio-close" aria-label="Close theme studio">×</button>
-        </header>
-
-        <p class="wq-theme-studio-copy">Pick a scene and keyboard style. Preview is live. Select Done to save.</p>
-
-        <div class="wq-theme-studio-grid">
-          <label class="wq-theme-studio-field">
-            <span>Scene</span>
-            <select id="wq-scene-select">
-              <option value="calm-studio">Calm Studio</option>
-              <option value="meadow-calm">Meadow Calm</option>
-              <option value="ocean-calm">Ocean Mist</option>
-              <option value="professional-chrome">Professional Chrome</option>
-              <option value="professional-midnight">Professional Midnight</option>
-              <option value="playful-festival">Playful Festival</option>
-              <option value="playful-sunrise">Playful Sunrise</option>
-              <option value="classic-contrast">Classic Contrast</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Keyboard style</span>
-            <select id="wq-keyboard-style-select">
-              <option value="auto">Match scene</option>
-              <option value="calm">Calm</option>
-              <option value="professional">Professional</option>
-              <option value="playful">Playful</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Intensity</span>
-            <select id="wq-intensity-select">
-              <option value="soft">Soft</option>
-              <option value="medium">Medium</option>
-              <option value="vivid">Vivid</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Shape</span>
-            <select id="wq-shape-select">
-              <option value="soft">Soft</option>
-              <option value="round">Round</option>
-              <option value="crisp">Crisp</option>
-            </select>
-          </label>
-
-          <label class="wq-theme-studio-field">
-            <span>Density</span>
-            <select id="wq-density-select">
-              <option value="standard">Standard</option>
-              <option value="compact">Compact</option>
-              <option value="large">Large</option>
-            </select>
-          </label>
-        </div>
-
-        <footer class="wq-theme-studio-actions">
-          <button id="wq-theme-studio-reset" type="button" class="wq-theme-studio-reset">Reset</button>
-          <button id="wq-theme-studio-done" type="button" class="wq-theme-studio-done">Done</button>
-        </footer>
-      </section>
-    </div>
-
     <style>
-      .wq-theme-select {
-        min-height: 36px;
-        min-width: 128px;
-        border-radius: 10px;
-        border: 1px solid rgba(99, 102, 241, 0.34);
-        background: rgba(255, 255, 255, 0.9);
-        color: #1e293b;
-        font-weight: 700;
-        padding: 6px 10px;
-      }
-
-      .wq-theme-control {
-        min-width: 136px;
-      }
-
-      .wq-theme-studio-btn {
-        min-width: 118px;
-      }
-
-      .wq-theme-studio-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(10, 12, 18, 0.22);
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        display: grid;
-        place-items: center;
-        padding: 16px;
-        z-index: 3600;
-      }
-
-      .wq-theme-studio-overlay.hidden {
-        display: none;
-      }
-
-      .wq-theme-studio-modal {
-        width: min(660px, calc(100vw - 24px));
-        border-radius: 18px;
-        border: 1px solid rgba(99, 102, 241, 0.26);
-        background: rgba(255, 255, 255, 0.98);
-        box-shadow: 0 24px 52px rgba(15, 23, 42, 0.25);
-        padding: 16px 18px;
-        display: grid;
-        gap: 12px;
-        color: #0f172a;
-      }
-
-      .wq-theme-studio-head {
-        display: flex;
+      .wq-palette-field {
+        display: inline-flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(71, 85, 105, 0.34);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
       }
 
-      .wq-theme-studio-head h2 {
-        margin: 0;
-        font-size: 1.2rem;
-      }
-
-      .wq-theme-studio-close {
-        border: none;
-        background: transparent;
-        color: #64748b;
-        font-size: 2rem;
-        line-height: 1;
-        cursor: pointer;
-      }
-
-      .wq-theme-studio-copy {
-        margin: 0;
-        color: #475569;
-        font-weight: 650;
-      }
-
-      .wq-theme-studio-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px 12px;
-      }
-
-      .wq-theme-studio-field {
-        display: grid;
-        gap: 6px;
-        font-size: 0.78rem;
+      .wq-palette-field span {
+        color: #334155;
+        font-size: 0.7rem;
+        font-weight: 820;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #475569;
-        font-weight: 840;
       }
 
-      .wq-theme-studio-field select {
-        min-height: 40px;
-        border-radius: 11px;
-        border: 1px solid rgba(99, 102, 241, 0.36);
+      .wq-palette-select {
+        min-height: 34px;
+        min-width: 172px;
+        border-radius: 10px;
+        border: 1px solid rgba(71, 85, 105, 0.35);
         background: #ffffff;
         color: #0f172a;
-        font-size: 0.95rem;
-        font-weight: 700;
-        padding: 8px 10px;
+        font-size: 0.9rem;
+        font-weight: 760;
+        padding: 4px 10px;
       }
 
-      .wq-theme-studio-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
+      .wq-palette-select:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 1px;
       }
 
-      .wq-theme-studio-btn-inline {
-        margin-left: 4px;
+      body.word-quest-page {
+        --wq-panel-border: rgba(71, 85, 105, 0.4);
+        --wq-key-border: rgba(71, 85, 105, 0.44);
+        --wq-tile-border: rgba(71, 85, 105, 0.46);
+        --wq-key-text: #0f172a;
+        --wq-tile-text: #0f172a;
       }
 
-      .wq-theme-studio-reset,
-      .wq-theme-studio-done {
-        min-height: 38px;
-        padding: 7px 12px;
-        border-radius: 10px;
-        font-weight: 780;
-        cursor: pointer;
-        border: 1px solid rgba(99, 102, 241, 0.34);
+      body.word-quest-page .controls label,
+      body.word-quest-page .controls .control-label,
+      body.word-quest-page .controls .control-group > div {
+        color: #334155 !important;
+        opacity: 1 !important;
       }
 
-      .wq-theme-studio-reset {
-        background: rgba(248, 250, 252, 0.95);
-        color: #1f2937;
+      body.word-quest-page .header-top h1 a {
+        color: #0f172a !important;
+        text-shadow: none !important;
       }
 
-      .wq-theme-studio-done {
-        background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(14, 165, 233, 0.88));
-        color: #ffffff;
+      body.word-quest-page[data-wq-scene="calm-studio"] {
+        --wq-page-bg: linear-gradient(180deg, #dce8f1 0%, #dfebe4 48%, #ece8df 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(246, 250, 252, 0.97) 0%, rgba(235, 243, 238, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 18% 14%, rgba(56, 145, 187, 0.18), transparent 44%), radial-gradient(circle at 84% 16%, rgba(80, 146, 121, 0.12), transparent 44%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(58, 114, 152, 0.9), rgba(81, 133, 122, 0.82), rgba(153, 150, 120, 0.72));
+        --wq-keyboard-surface: rgba(220, 233, 231, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(234, 244, 240, 0.97) 100%);
+      }
+
+      body.word-quest-page[data-wq-scene="meadow-calm"] {
+        --wq-page-bg: linear-gradient(180deg, #e0ebdf 0%, #e8ecd8 46%, #efe6d8 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(247, 251, 244, 0.97) 0%, rgba(238, 245, 230, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 14%, rgba(57, 130, 77, 0.18), transparent 44%), radial-gradient(circle at 82% 18%, rgba(180, 142, 63, 0.14), transparent 44%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(66, 124, 80, 0.9), rgba(99, 150, 96, 0.82), rgba(160, 133, 84, 0.74));
+        --wq-keyboard-surface: rgba(223, 234, 219, 0.9);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(236, 245, 231, 0.97) 100%);
+      }
+
+      body.word-quest-page[data-wq-scene="ocean-calm"] {
+        --wq-page-bg: linear-gradient(180deg, #d7e5f3 0%, #d9e7ef 46%, #e1e8ec 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(242, 248, 252, 0.97) 0%, rgba(230, 239, 245, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(45, 117, 173, 0.2), transparent 44%), radial-gradient(circle at 86% 16%, rgba(40, 126, 149, 0.14), transparent 44%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(43, 101, 159, 0.9), rgba(39, 131, 165, 0.82), rgba(83, 122, 170, 0.74));
+        --wq-keyboard-surface: rgba(214, 228, 240, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(230, 240, 250, 0.97) 100%);
+      }
+
+      body.word-quest-page[data-wq-scene="professional-chrome"] {
+        --wq-page-bg: linear-gradient(180deg, #d2dde8 0%, #cdd8e4 48%, #c3cfdd 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(236, 243, 250, 0.97) 0%, rgba(224, 233, 244, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 14%, rgba(56, 94, 139, 0.18), transparent 44%), radial-gradient(circle at 84% 16%, rgba(60, 88, 122, 0.14), transparent 44%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(47, 84, 128, 0.92), rgba(63, 102, 148, 0.84), rgba(80, 118, 160, 0.76));
+        --wq-keyboard-surface: rgba(206, 220, 237, 0.92);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(226, 236, 248, 0.97) 100%);
+        --wq-key-border: rgba(67, 95, 129, 0.56);
+      }
+
+      body.word-quest-page[data-wq-scene="professional-midnight"] {
+        --wq-page-bg: linear-gradient(180deg, #19253b 0%, #1f2e47 52%, #253650 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(29, 43, 64, 0.97) 0%, rgba(34, 49, 73, 0.95) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 18% 12%, rgba(109, 163, 232, 0.24), transparent 44%), radial-gradient(circle at 82% 16%, rgba(148, 178, 215, 0.16), transparent 44%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(118, 172, 240, 0.94), rgba(148, 190, 248, 0.88), rgba(180, 210, 250, 0.8));
+        --wq-panel-border: rgba(162, 188, 218, 0.6);
+        --wq-keyboard-surface: rgba(37, 54, 79, 0.9);
+        --wq-key-bg: linear-gradient(180deg, rgba(246, 250, 255, 0.98) 0%, rgba(226, 237, 251, 0.95) 100%);
+        --wq-key-text: #1c2b43;
+        --wq-key-border: rgba(125, 161, 210, 0.64);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(218, 236, 255, 0.99) 0%, rgba(196, 222, 251, 0.96) 100%);
+        --wq-key-vowel-border: rgba(75, 130, 208, 0.8);
+        --wq-tile-bg: linear-gradient(180deg, rgba(245, 250, 255, 0.98) 0%, rgba(228, 238, 251, 0.95) 100%);
+        --wq-tile-text: #1b2a42;
+        --wq-tile-border: rgba(129, 163, 209, 0.6);
+      }
+
+      body.word-quest-page[data-wq-scene="playful-festival"] {
+        --wq-page-bg: linear-gradient(180deg, #ffe4b4 0%, #ffd3dc 42%, #d5e7ff 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(255, 247, 232, 0.97) 0%, rgba(248, 238, 249, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 16% 12%, rgba(229, 113, 45, 0.24), transparent 46%), radial-gradient(circle at 84% 12%, rgba(25, 148, 206, 0.18), transparent 44%), radial-gradient(circle at 54% 88%, rgba(214, 71, 143, 0.14), transparent 50%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(227, 109, 41, 0.92), rgba(31, 149, 204, 0.86), rgba(206, 76, 142, 0.76));
+        --wq-keyboard-surface: rgba(253, 222, 179, 0.9);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 252, 0.99) 0%, rgba(255, 235, 200, 0.96) 100%);
+        --wq-key-border: rgba(194, 107, 52, 0.6);
+        --wq-key-vowel-bg: linear-gradient(180deg, rgba(220, 239, 255, 0.99) 0%, rgba(191, 220, 254, 0.96) 100%);
+        --wq-key-vowel-border: rgba(64, 128, 216, 0.8);
+      }
+
+      body.word-quest-page[data-wq-scene="playful-sunrise"] {
+        --wq-page-bg: linear-gradient(180deg, #ffe2c3 0%, #ffd9e5 40%, #dfdfff 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(255, 248, 239, 0.97) 0%, rgba(247, 238, 249, 0.94) 100%);
+        --wq-canvas-glow: radial-gradient(circle at 18% 14%, rgba(212, 110, 88, 0.22), transparent 46%), radial-gradient(circle at 84% 16%, rgba(219, 118, 54, 0.16), transparent 44%), radial-gradient(circle at 56% 90%, rgba(88, 114, 224, 0.16), transparent 50%);
+        --wq-canvas-accent: linear-gradient(90deg, rgba(206, 95, 76, 0.92), rgba(224, 120, 52, 0.84), rgba(96, 96, 228, 0.76));
+        --wq-keyboard-surface: rgba(255, 223, 212, 0.9);
+        --wq-key-bg: linear-gradient(180deg, rgba(255, 255, 253, 0.99) 0%, rgba(255, 235, 227, 0.96) 100%);
+        --wq-key-border: rgba(180, 102, 95, 0.58);
+      }
+
+      body.word-quest-page[data-wq-scene="classic-contrast"] {
+        --wq-page-bg: linear-gradient(180deg, #0a0f18 0%, #101827 54%, #151d2e 100%);
+        --wq-canvas-surface: linear-gradient(180deg, rgba(18, 26, 40, 0.98) 0%, rgba(22, 31, 47, 0.96) 100%);
+        --wq-canvas-glow: none;
+        --wq-canvas-accent: linear-gradient(90deg, rgba(250, 204, 21, 0.98), rgba(96, 165, 250, 0.92));
+        --wq-panel-border: rgba(201, 215, 233, 0.72);
+        --wq-keyboard-surface: rgba(19, 28, 43, 0.92);
+        --wq-key-bg: linear-gradient(180deg, #111a2a 0%, #172134 100%);
+        --wq-key-vowel-bg: linear-gradient(180deg, #1b2a43 0%, #16263d 100%);
+        --wq-key-border: rgba(203, 213, 225, 0.7);
+        --wq-key-vowel-border: rgba(250, 204, 21, 0.8);
+        --wq-key-text: #f8fafc;
+        --wq-key-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.25), 0 2px 8px rgba(0, 0, 0, 0.38);
+        --wq-tile-bg: linear-gradient(180deg, #101a2b 0%, #162234 100%);
+        --wq-tile-border: rgba(206, 219, 237, 0.68);
+        --wq-tile-text: #f8fafc;
       }
 
       @media (max-width: 760px) {
-        .wq-theme-studio-grid {
-          grid-template-columns: 1fr;
+        .wq-palette-field {
+          width: min(340px, 100%);
+          justify-content: space-between;
+        }
+
+        .wq-palette-select {
+          min-width: 0;
+          width: min(220px, 100%);
         }
       }
 
@@ -692,55 +660,6 @@
       }
     </style>
     <script>
-      (function initWordQuestThemePicker() {
-        var KEY = 'cs_hv2_theme';
-        var allowed = new Set(['calm', 'professional', 'playful', 'high-contrast']);
-        function normalizeTheme(raw) {
-          var value = String(raw || '').trim().toLowerCase();
-          return allowed.has(value) ? value : 'calm';
-        }
-        function applyTheme(theme) {
-          var normalized = normalizeTheme(theme);
-          var cls = 'cs-hv2-theme-' + normalized;
-          document.documentElement.classList.remove(
-            'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
-          );
-          document.documentElement.classList.add(cls);
-          if (document.body) {
-            document.body.classList.remove(
-              'cs-hv2-theme-calm', 'cs-hv2-theme-professional', 'cs-hv2-theme-playful', 'cs-hv2-theme-high-contrast'
-            );
-            document.body.classList.add(cls);
-          }
-        }
-        function init() {
-          var selects = Array.prototype.slice.call(document.querySelectorAll('.wq-theme-select'));
-          if (!selects.length) return;
-          var stored = 'calm';
-          try { stored = normalizeTheme(localStorage.getItem(KEY)); } catch (e) {}
-          selects.forEach(function (select) {
-            select.value = stored;
-          });
-          applyTheme(stored);
-          selects.forEach(function (select) {
-            select.addEventListener('change', function () {
-              var next = normalizeTheme(select.value);
-              try { localStorage.setItem(KEY, next); } catch (e) {}
-              applyTheme(next);
-              selects.forEach(function (otherSelect) {
-                if (otherSelect !== select) otherSelect.value = next;
-              });
-            });
-          });
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
-        } else {
-          init();
-        }
-      })();
-    </script>
-    <script>
       (function initWordQuestThemeStudio() {
         var STORAGE_KEYS = {
           scene: 'cs_wq_scene',
@@ -750,27 +669,27 @@
           density: 'cs_wq_density'
         };
 
-        var allowed = {
-          scene: new Set([
-            'calm-studio',
-            'meadow-calm',
-            'ocean-calm',
-            'professional-chrome',
-            'professional-midnight',
-            'playful-festival',
-            'playful-sunrise',
-            'classic-contrast'
-          ]),
-          keyboard: new Set(['auto', 'calm', 'professional', 'playful']),
-          intensity: new Set(['soft', 'medium', 'vivid']),
-          shape: new Set(['soft', 'round', 'crisp']),
-          density: new Set(['compact', 'standard', 'large'])
-        };
+        var allowedScenes = new Set([
+          'calm-studio',
+          'meadow-calm',
+          'ocean-calm',
+          'professional-chrome',
+          'professional-midnight',
+          'playful-festival',
+          'playful-sunrise',
+          'classic-contrast'
+        ]);
 
-        function normalize(kind, value, fallback) {
-          var v = String(value || '').trim().toLowerCase();
-          return allowed[kind].has(v) ? v : fallback;
-        }
+        var scenePresets = Object.freeze({
+          'calm-studio': { keyboard: 'calm', intensity: 'soft', shape: 'soft', density: 'standard' },
+          'meadow-calm': { keyboard: 'calm', intensity: 'soft', shape: 'soft', density: 'standard' },
+          'ocean-calm': { keyboard: 'professional', intensity: 'medium', shape: 'soft', density: 'standard' },
+          'professional-chrome': { keyboard: 'professional', intensity: 'medium', shape: 'crisp', density: 'standard' },
+          'professional-midnight': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'standard' },
+          'playful-festival': { keyboard: 'playful', intensity: 'medium', shape: 'round', density: 'standard' },
+          'playful-sunrise': { keyboard: 'playful', intensity: 'soft', shape: 'round', density: 'standard' },
+          'classic-contrast': { keyboard: 'professional', intensity: 'vivid', shape: 'crisp', density: 'large' }
+        });
 
         function activeBaseTheme() {
           var cls = document.body ? document.body.className : '';
@@ -787,26 +706,30 @@
           return 'calm-studio';
         }
 
-        function defaults() {
+        function normalizeScene(value, fallback) {
+          var v = String(value || '').trim().toLowerCase();
+          return allowedScenes.has(v) ? v : fallback;
+        }
+
+        function createSettingsForScene(scene) {
+          var normalizedScene = normalizeScene(scene, 'calm-studio');
+          var preset = scenePresets[normalizedScene] || scenePresets['calm-studio'];
           return {
-            scene: sceneFromTheme(activeBaseTheme()),
-            keyboard: 'auto',
-            intensity: 'medium',
-            shape: 'soft',
-            density: 'standard'
+            scene: normalizedScene,
+            keyboard: preset.keyboard,
+            intensity: preset.intensity,
+            shape: preset.shape,
+            density: preset.density
           };
         }
 
-        function loadSettings() {
-          var d = defaults();
+        function loadSceneDefault() {
+          var fallbackScene = sceneFromTheme(activeBaseTheme());
           try {
-            d.scene = normalize('scene', localStorage.getItem(STORAGE_KEYS.scene), d.scene);
-            d.keyboard = normalize('keyboard', localStorage.getItem(STORAGE_KEYS.keyboard), d.keyboard);
-            d.intensity = normalize('intensity', localStorage.getItem(STORAGE_KEYS.intensity), d.intensity);
-            d.shape = normalize('shape', localStorage.getItem(STORAGE_KEYS.shape), d.shape);
-            d.density = normalize('density', localStorage.getItem(STORAGE_KEYS.density), d.density);
-          } catch (e) {}
-          return d;
+            return normalizeScene(localStorage.getItem(STORAGE_KEYS.scene), fallbackScene);
+          } catch (e) {
+            return fallbackScene;
+          }
         }
 
         function persist(settings) {
@@ -833,117 +756,19 @@
         }
 
         function init() {
-          var overlay = document.getElementById('wq-theme-studio-overlay');
-          var openBtn = document.getElementById('wq-theme-studio-btn');
-          var closeBtn = document.getElementById('wq-theme-studio-close');
-          var doneBtn = document.getElementById('wq-theme-studio-done');
-          var resetBtn = document.getElementById('wq-theme-studio-reset');
+          var paletteSelect = document.getElementById('wq-palette-select');
+          if (!paletteSelect) return;
 
-          var sceneSelect = document.getElementById('wq-scene-select');
-          var keyboardSelect = document.getElementById('wq-keyboard-style-select');
-          var intensitySelect = document.getElementById('wq-intensity-select');
-          var shapeSelect = document.getElementById('wq-shape-select');
-          var densitySelect = document.getElementById('wq-density-select');
-
-          if (!overlay || !openBtn || !sceneSelect || !keyboardSelect || !intensitySelect || !shapeSelect || !densitySelect) return;
-
-          var settings = loadSettings();
-          var draft = {
-            scene: settings.scene,
-            keyboard: settings.keyboard,
-            intensity: settings.intensity,
-            shape: settings.shape,
-            density: settings.density
-          };
+          var scene = loadSceneDefault();
+          var settings = createSettingsForScene(scene);
           apply(settings, { persist: false });
+          paletteSelect.value = settings.scene;
 
-          function clone(input) {
-            return {
-              scene: input.scene,
-              keyboard: input.keyboard,
-              intensity: input.intensity,
-              shape: input.shape,
-              density: input.density
-            };
-          }
-
-          function syncControls(input) {
-            var source = input || settings;
-            sceneSelect.value = source.scene;
-            keyboardSelect.value = source.keyboard;
-            intensitySelect.value = source.intensity;
-            shapeSelect.value = source.shape;
-            densitySelect.value = source.density;
-          }
-
-          function pullFromControls() {
-            draft = {
-              scene: normalize('scene', sceneSelect.value, settings.scene),
-              keyboard: normalize('keyboard', keyboardSelect.value, settings.keyboard),
-              intensity: normalize('intensity', intensitySelect.value, settings.intensity),
-              shape: normalize('shape', shapeSelect.value, settings.shape),
-              density: normalize('density', densitySelect.value, settings.density)
-            };
-            apply(draft, { persist: false });
-          }
-
-          function openStudio() {
-            settings = loadSettings();
-            draft = clone(settings);
-            apply(draft, { persist: false });
-            syncControls(draft);
-            overlay.classList.remove('hidden');
-            overlay.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('wq-theme-studio-open');
-          }
-
-          function closeStudio() {
-            overlay.classList.add('hidden');
-            overlay.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('wq-theme-studio-open');
-          }
-
-          function commitStudio() {
-            settings = clone(draft);
+          paletteSelect.addEventListener('change', function () {
+            var nextScene = normalizeScene(paletteSelect.value, settings.scene);
+            settings = createSettingsForScene(nextScene);
+            paletteSelect.value = settings.scene;
             apply(settings, { persist: true });
-            closeStudio();
-          }
-
-          function cancelStudio() {
-            draft = clone(settings);
-            apply(settings, { persist: false });
-            closeStudio();
-          }
-
-          [sceneSelect, keyboardSelect, intensitySelect, shapeSelect, densitySelect].forEach(function (el) {
-            el.addEventListener('change', pullFromControls);
-          });
-
-          openBtn.addEventListener('click', openStudio);
-          if (closeBtn) closeBtn.addEventListener('click', cancelStudio);
-          if (doneBtn) doneBtn.addEventListener('click', commitStudio);
-
-          if (resetBtn) {
-            resetBtn.addEventListener('click', function () {
-              try {
-                Object.keys(STORAGE_KEYS).forEach(function (k) {
-                  localStorage.removeItem(STORAGE_KEYS[k]);
-                });
-              } catch (e) {}
-              draft = defaults();
-              apply(draft, { persist: false });
-              syncControls(draft);
-            });
-          }
-
-          overlay.addEventListener('click', function (event) {
-            if (event.target === overlay) cancelStudio();
-          });
-
-          document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
-              cancelStudio();
-            }
           });
         }
 

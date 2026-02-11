@@ -214,7 +214,7 @@ test.describe('Theme propagation', () => {
     expect(new Set(THEMES.map((theme) => byTheme[theme].pageBg)).size).toBe(3);
   });
 
-  test('Theme Studio preview reverts on Cancel, persists on Done, and uses non-blurred overlay', async ({ page }) => {
+  test('Palette dropdown applies and persists distinct presets with guarded clicks', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(pageUrl('word-quest.html'), { waitUntil: 'domcontentloaded' });
     await closeBlockingOverlayIfPresent(page);
@@ -230,31 +230,37 @@ test.describe('Theme propagation', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await closeBlockingOverlayIfPresent(page);
 
-    const launcherSelector = '#wq-theme-studio-btn';
-    const overlaySelector = '#wq-theme-studio-overlay';
-    const sceneSelector = '#wq-scene-select';
-    const cancelSelector = '#wq-theme-studio-close';
-    const doneSelector = '#wq-theme-studio-done';
+    const paletteSelector = '#wq-palette-select';
+    await expect(page.locator('#wq-theme-studio-overlay')).toHaveCount(0);
+    await clickWithElementFromPointGuard(page, paletteSelector);
 
-    await clickWithElementFromPointGuard(page, launcherSelector);
-    await expect(page.locator(overlaySelector)).toBeVisible();
-    const backdropFilter = await page.evaluate(() => getComputedStyle(document.getElementById('wq-theme-studio-overlay')).backdropFilter);
-    expect(backdropFilter === 'none' || backdropFilter === '').toBeTruthy();
-
-    await page.locator(sceneSelector).selectOption('professional-midnight');
+    await page.locator(paletteSelector).selectOption('professional-midnight');
     await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('professional-midnight');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('professional-midnight');
 
-    await clickWithElementFromPointGuard(page, cancelSelector);
-    await expect(page.locator(overlaySelector)).toBeHidden();
-    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('calm-studio');
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('calm-studio');
+    const midnightTokens = await page.evaluate(() => ({
+      pageBg: getComputedStyle(document.body).getPropertyValue('--wq-page-bg').trim(),
+      keyBg: getComputedStyle(document.body).getPropertyValue('--wq-key-bg').trim(),
+      keyboardSurface: getComputedStyle(document.body).getPropertyValue('--wq-keyboard-surface').trim()
+    }));
 
-    await clickWithElementFromPointGuard(page, launcherSelector);
-    await expect(page.locator(overlaySelector)).toBeVisible();
-    await page.locator(sceneSelector).selectOption('playful-festival');
+    await page.locator(paletteSelector).selectOption('playful-festival');
     await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('playful-festival');
-    await clickWithElementFromPointGuard(page, doneSelector);
-    await expect(page.locator(overlaySelector)).toBeHidden();
     await expect.poll(() => page.evaluate(() => localStorage.getItem('cs_wq_scene') || '')).toBe('playful-festival');
+
+    const festivalTokens = await page.evaluate(() => ({
+      pageBg: getComputedStyle(document.body).getPropertyValue('--wq-page-bg').trim(),
+      keyBg: getComputedStyle(document.body).getPropertyValue('--wq-key-bg').trim(),
+      keyboardSurface: getComputedStyle(document.body).getPropertyValue('--wq-keyboard-surface').trim()
+    }));
+
+    expect(festivalTokens.pageBg).not.toBe(midnightTokens.pageBg);
+    expect(festivalTokens.keyBg).not.toBe(midnightTokens.keyBg);
+    expect(festivalTokens.keyboardSurface).not.toBe(midnightTokens.keyboardSurface);
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await closeBlockingOverlayIfPresent(page);
+    await expect(page.locator(paletteSelector)).toHaveValue('playful-festival');
+    await expect.poll(() => page.evaluate(() => document.body.dataset.wqScene || '')).toBe('playful-festival');
   });
 });
