@@ -2980,10 +2980,6 @@ function applyWordQuestDesktopScale() {
         body.style.removeProperty('--wq-desktop-bottom-gap');
     };
 
-    // Theme/layout now uses fixed breakpoint CSS sizing.
-    clearDesktopScaleVars();
-    return;
-
     const header = document.querySelector('header');
     const headerHeight = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 900;
@@ -3002,31 +2998,31 @@ function applyWordQuestDesktopScale() {
     const coarsePointer = isCoarsePointerLayout();
     // Estimated constant chrome inside the canvas (board padding, hint row, keyboard panel padding).
     // Keep this conservative so non-fullscreen desktop/iPad windows avoid clipping.
-    const staticChrome = coarsePointer ? 334 : 308;
+    const staticChrome = coarsePointer ? 352 : 328;
 
     let baseTileSize = (availableHeight - staticChrome) / 9.08;
-    baseTileSize = Math.max(34, Math.min(58, baseTileSize));
+    baseTileSize = Math.max(31, Math.min(56, baseTileSize));
     const tileScaleBoost = window.innerWidth >= 1280 ? 1.18 : (window.innerWidth >= 1024 ? 1.1 : 1.02);
     let tileSize = baseTileSize * tileScaleBoost;
-    tileSize = Math.max(36, Math.min(72, tileSize));
+    tileSize = Math.max(34, Math.min(68, tileSize));
     if (viewportHeight < 980) tileSize = Math.min(tileSize, 82);
     if (viewportHeight < 910) tileSize = Math.min(tileSize, 76);
     if (viewportHeight < 840) tileSize = Math.min(tileSize, 70);
     if (viewportHeight < 790) tileSize = Math.min(tileSize, 62);
 
     let keySize = baseTileSize * (coarsePointer ? 1.02 : 0.98);
-    keySize = Math.max(coarsePointer ? 34 : 32, Math.min(56, keySize));
+    keySize = Math.max(coarsePointer ? 33 : 31, Math.min(52, keySize));
 
     let wideKeySize = keySize * 1.72;
-    wideKeySize = Math.max(66, Math.min(108, wideKeySize));
+    wideKeySize = Math.max(62, Math.min(98, wideKeySize));
 
-    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 92 : 84));
-    let canvasMax = Math.round(Math.max(700, Math.min(1080, keyboardMax + 246)));
-    let bottomGap = coarsePointer ? 14 : 10;
+    let keyboardMax = Math.round((keySize * 10) + (coarsePointer ? 82 : 74));
+    let canvasMax = Math.round(Math.max(680, Math.min(1060, keyboardMax + 236)));
+    let bottomGap = coarsePointer ? 12 : 10;
     if (viewportHeight < 930) bottomGap = Math.max(8, bottomGap - 3);
     if (viewportHeight < 860) bottomGap = Math.max(8, bottomGap - 2);
     if (viewportHeight < 800) bottomGap = Math.max(5, bottomGap - 2);
-    bottomGap = Math.max(5, Math.min(18, bottomGap));
+    bottomGap = Math.max(6, Math.min(14, bottomGap));
 
     const applyDesktopScaleVars = () => {
         body.style.setProperty('--wq-tile-size-desktop', `${tileSize.toFixed(1)}px`);
