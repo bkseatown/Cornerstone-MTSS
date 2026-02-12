@@ -5146,7 +5146,7 @@ function initControls() {
         bonusContinueBtn.onclick = closeModal;
     }
 
-    document.querySelectorAll(".close-btn, .close-teacher, .close-studio, #start-playing-btn").forEach(btn => {
+    document.querySelectorAll(".close-btn, .close-teacher, .close-studio").forEach(btn => {
         btn.addEventListener("click", closeModal);
     });
 
@@ -13627,21 +13627,65 @@ function initTutorial() {
     const tutorialShown = localStorage.getItem('tutorialShown');
     const welcomeModal = document.getElementById('welcome-modal');
     const startBtn = document.getElementById('start-playing-btn');
-    const dontShowCheckbox = document.getElementById('dont-show-tutorial');
-    
-    if (!tutorialShown && welcomeModal) {
+    const backBtn = document.getElementById('welcome-back-btn');
+    const stepTitle = document.getElementById('welcome-step-title');
+    const stepCaption = document.getElementById('welcome-step-caption');
+    const stepIndex = document.getElementById('welcome-step-index');
+    const stepTotal = document.getElementById('welcome-step-total');
+    if (!welcomeModal || !startBtn) return;
+
+    const tutorialSteps = Array.from(welcomeModal.querySelectorAll('[data-tutorial-step]'));
+    const stepDots = Array.from(welcomeModal.querySelectorAll('[data-step-dot]'));
+    if (!tutorialSteps.length) return;
+
+    let activeStepIndex = 0;
+    const finalStepIndex = tutorialSteps.length - 1;
+    if (stepTotal) stepTotal.textContent = String(tutorialSteps.length);
+
+    const renderStep = (nextIndex) => {
+        activeStepIndex = Math.max(0, Math.min(finalStepIndex, nextIndex));
+        tutorialSteps.forEach((stepEl, idx) => {
+            stepEl.classList.toggle('hidden', idx !== activeStepIndex);
+        });
+        stepDots.forEach((dotEl, idx) => {
+            dotEl.classList.toggle('active', idx === activeStepIndex);
+        });
+        const currentStep = tutorialSteps[activeStepIndex];
+        if (stepTitle) {
+            stepTitle.textContent = currentStep.dataset.stepTitle || 'Word Quest Quick Tour';
+        }
+        if (stepCaption) {
+            stepCaption.textContent = currentStep.dataset.stepCaption || '';
+        }
+        if (stepIndex) {
+            stepIndex.textContent = String(activeStepIndex + 1);
+        }
+        const stepCta = activeStepIndex === finalStepIndex
+            ? 'Start Playing'
+            : (currentStep.dataset.stepCta || 'Next');
+        startBtn.textContent = stepCta;
+        if (backBtn) {
+            backBtn.classList.toggle('hidden', activeStepIndex === 0);
+        }
+    };
+
+    if (!tutorialShown) {
+        localStorage.setItem('tutorialShown', 'true');
         if (modalOverlay) modalOverlay.classList.remove('hidden');
         welcomeModal.classList.remove('hidden');
+        renderStep(0);
     }
-    
-    if (startBtn) {
-        startBtn.onclick = () => {
-            if (dontShowCheckbox && dontShowCheckbox.checked) {
-                localStorage.setItem('tutorialShown', 'true');
-            }
-            closeModal();
-        };
+
+    if (backBtn) {
+        backBtn.onclick = () => renderStep(activeStepIndex - 1);
     }
+    startBtn.onclick = () => {
+        if (activeStepIndex < finalStepIndex) {
+            renderStep(activeStepIndex + 1);
+            return;
+        }
+        closeModal();
+    };
 }
 
 /* Focus Panel Toggle */
@@ -15233,8 +15277,7 @@ function initModalDismissals() {
         const active = getDismissableModal();
         if (active) {
             if (active.id === 'welcome-modal') {
-                const startBtn = document.getElementById('start-playing-btn');
-                if (startBtn) return startBtn.click();
+                return closeModal();
             }
             if (active.id === 'info-modal') return closeInfoModal();
             closeModal();
@@ -15248,8 +15291,7 @@ function initModalDismissals() {
         const active = getDismissableModal();
         if (!active) return;
         if (active.id === 'welcome-modal') {
-            const startBtn = document.getElementById('start-playing-btn');
-            if (startBtn) return startBtn.click();
+            return closeModal();
         }
         if (active.id === 'info-modal') return closeInfoModal();
         closeModal();

@@ -333,17 +333,98 @@
     <div id="modal-overlay" class="hidden" aria-hidden="true"></div>
 
     <!-- Welcome / Tutorial -->
-    <div id="welcome-modal" class="modal hidden welcome-modal" role="dialog" aria-modal="true" aria-label="Welcome">
-      <div class="modal-content">
-        <button class="close-btn" type="button" aria-label="Close">✕</button>
-        <h2>Welcome</h2>
-        <p>Pick a focus, listen to the word, and decode it.</p>
-        <label style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-          <input id="dont-show-tutorial" type="checkbox" />
-          <span>Don’t show this again</span>
-        </label>
-        <div style="display:flex; gap:10px; margin-top:14px;">
-          <button id="start-playing-btn" type="button" class="primary-btn">Start</button>
+    <div id="welcome-modal" class="modal hidden welcome-modal" role="dialog" aria-modal="true" aria-label="How to play Word Quest">
+      <div class="modal-content welcome-tutorial-card">
+        <h2 id="welcome-step-title">Word Quest Quick Tour</h2>
+        <p id="welcome-step-caption" class="welcome-step-caption"></p>
+
+        <div class="welcome-step-progress" aria-label="Tutorial step progress">
+          <span class="welcome-step-dot active" data-step-dot="0" aria-hidden="true"></span>
+          <span class="welcome-step-dot" data-step-dot="1" aria-hidden="true"></span>
+          <span class="welcome-step-dot" data-step-dot="2" aria-hidden="true"></span>
+          <span class="welcome-step-dot" data-step-dot="3" aria-hidden="true"></span>
+        </div>
+
+        <section
+          class="welcome-step"
+          data-tutorial-step="0"
+          data-step-title="Pick Your Play Style"
+          data-step-caption="You can play classic Wordle style, or listen first and spell."
+          data-step-cta="Show Example"
+        >
+          <div class="welcome-mode-grid">
+            <article class="welcome-mode-card">
+              <h3>🧩 Classic Wordle</h3>
+              <p>No hints or audio. Use 6 guesses and pure deduction.</p>
+            </article>
+            <article class="welcome-mode-card">
+              <h3>🔊 Listen & Spell</h3>
+              <p>Use sentence and word audio clues, then spell what you hear.</p>
+            </article>
+          </div>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="1"
+          data-step-title="Step 1: First Guess"
+          data-step-caption="Gray letters are out. Yellow letters are in, but in the wrong spot."
+          data-step-cta="Next Clue"
+        >
+          <div class="welcome-tile-row" aria-label="First guess example">
+            <span class="welcome-tile absent">T</span>
+            <span class="welcome-tile absent">O</span>
+            <span class="welcome-tile absent">U</span>
+            <span class="welcome-tile present">C</span>
+            <span class="welcome-tile absent">H</span>
+          </div>
+          <p class="welcome-step-note">Guess: <strong>TOUCH</strong>. Only <strong>C</strong> belongs in the answer, but not in this position.</p>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="2"
+          data-step-title="Step 2: Stronger Guess"
+          data-step-caption="Use what you learned to place likely letters."
+          data-step-cta="Final Step"
+        >
+          <div class="welcome-tile-row" aria-label="Second guess example">
+            <span class="welcome-tile present">C</span>
+            <span class="welcome-tile correct">R</span>
+            <span class="welcome-tile correct">I</span>
+            <span class="welcome-tile present">B</span>
+            <span class="welcome-tile absent">S</span>
+          </div>
+          <p class="welcome-step-note">Guess: <strong>CRIBS</strong>. Great progress: <strong>2 green</strong>, <strong>2 yellow</strong>, <strong>1 gray</strong>.</p>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="3"
+          data-step-title="Step 3: Detective Finish"
+          data-step-caption="Rule out impossible options, then lock your best guess."
+          data-step-cta="Start Playing"
+        >
+          <div class="welcome-reasoning-row" aria-label="Deductive reasoning example">
+            <span class="welcome-candidate ruled-out">BRISK ✕ (S was gray)</span>
+            <span class="welcome-candidate best">BRICK ✓</span>
+          </div>
+          <div class="welcome-tile-row" aria-label="Winning guess example">
+            <span class="welcome-tile correct">B</span>
+            <span class="welcome-tile correct">R</span>
+            <span class="welcome-tile correct">I</span>
+            <span class="welcome-tile correct">C</span>
+            <span class="welcome-tile correct">K</span>
+          </div>
+          <p class="welcome-step-note">Now you’re ready. Start with Classic mode or turn on listening hints anytime.</p>
+        </section>
+
+        <div class="welcome-step-actions">
+          <button id="welcome-back-btn" type="button" class="welcome-nav-btn hidden">Back</button>
+          <div class="welcome-step-count" aria-live="polite">
+            <span id="welcome-step-index">1</span>/<span id="welcome-step-total">4</span>
+          </div>
+          <button id="start-playing-btn" type="button" class="primary-btn">Show Example</button>
         </div>
       </div>
     </div>

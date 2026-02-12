@@ -6957,51 +6957,208 @@ select{
   cursor:pointer;
 }
 
-/* ---------- Welcome modal styling (Wordle-ish) ---------- */
-.welcome-card{
-  max-width: 520px;
-  width: calc(100% - 32px);
+/* ---------- First-time Word Quest tutorial ---------- */
+body.word-quest-page #welcome-modal.welcome-modal {
+  width: min(720px, calc(100vw - 24px));
+  max-width: min(720px, calc(100vw - 24px));
+  max-height: min(86vh, 880px);
+  border-radius: 22px;
+  border: 1px solid rgba(71, 85, 105, 0.28);
+  background: linear-gradient(165deg, rgba(248, 251, 255, 0.99) 0%, rgba(237, 244, 255, 0.99) 100%);
+  box-shadow: 0 28px 48px rgba(15, 23, 42, 0.24);
+  color: #0f172a;
   text-align: left;
 }
 
-.welcome-card h2{
-  text-align:center;
-  margin-top: 0;
+body.word-quest-page #welcome-modal .welcome-tutorial-card {
+  display: grid;
+  gap: 14px;
+  padding-right: clamp(4px, 0.9vw, 12px);
 }
 
-.welcome-steps ul{ padding-left: 18px; margin: 12px 0; }
-.badge{
-  display:inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  vertical-align: -2px;
-  margin-right: 6px;
-}
-.badge.correct{ background: var(--color-correct); }
-.badge.present{ background: var(--color-present); }
-.badge.absent{ background: var(--color-absent); }
-
-.dont-show{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:center;
-  margin: 12px 0;
-  font-size: 0.95rem;
+body.word-quest-page #welcome-modal h2 {
+  margin: 2px 0 0;
+  font-size: clamp(1.32rem, 2.25vw, 1.7rem);
+  color: #1e293b;
+  text-align: center;
 }
 
-button.primary{
-  display:block;
-  width: min(260px, 100%);
-  margin: 0 auto;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: none;
+body.word-quest-page #welcome-modal .welcome-step-caption {
+  margin: 0;
+  text-align: center;
+  color: #334155;
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+  font-weight: 650;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-dot.active {
+  background: #4338ca;
+  transform: scale(1.12);
+}
+
+body.word-quest-page #welcome-modal .welcome-step {
+  display: grid;
+  gap: 12px;
+  min-height: 188px;
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-card {
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(237, 242, 255, 0.96) 100%);
+  padding: 12px 14px;
+  display: grid;
+  gap: 7px;
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-card p {
+  margin: 0;
+  color: #334155;
+  font-weight: 560;
+  line-height: 1.4;
+}
+
+body.word-quest-page #welcome-modal .welcome-tile-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+body.word-quest-page #welcome-modal .welcome-tile {
+  width: clamp(40px, 6.2vw, 50px);
+  height: clamp(40px, 6.2vw, 50px);
+  border-radius: 11px;
+  border: 2px solid rgba(148, 163, 184, 0.65);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: clamp(1.05rem, 2vw, 1.24rem);
+  letter-spacing: 0.03em;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.97);
+}
+
+body.word-quest-page #welcome-modal .welcome-tile.correct {
   background: var(--color-correct);
-  color: #fff;
-  font-weight: 700;
-  cursor:pointer;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #ffffff;
+}
+
+body.word-quest-page #welcome-modal .welcome-tile.present {
+  background: var(--color-present);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+body.word-quest-page #welcome-modal .welcome-tile.absent {
+  background: var(--color-absent);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #ffffff;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-note {
+  margin: 0;
+  text-align: center;
+  color: #1e293b;
+  font-size: clamp(0.92rem, 1.7vw, 1rem);
+  font-weight: 620;
+}
+
+body.word-quest-page #welcome-modal .welcome-reasoning-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+body.word-quest-page #welcome-modal .welcome-candidate {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(0.85rem, 1.7vw, 0.95rem);
+  background: rgba(255, 255, 255, 0.95);
+  color: #334155;
+}
+
+body.word-quest-page #welcome-modal .welcome-candidate.ruled-out {
+  background: rgba(148, 163, 184, 0.2);
+  color: #475569;
+}
+
+body.word-quest-page #welcome-modal .welcome-candidate.best {
+  border-color: rgba(34, 197, 94, 0.58);
+  background: rgba(220, 252, 231, 0.84);
+  color: #166534;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-actions {
+  display: grid;
+  grid-template-columns: minmax(84px, auto) 1fr minmax(148px, auto);
+  align-items: center;
+  gap: 10px;
+}
+
+body.word-quest-page #welcome-modal .welcome-nav-btn {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.75);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+  font-weight: 760;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+body.word-quest-page #welcome-modal .welcome-step-count {
+  text-align: center;
+  font-weight: 800;
+  color: #475569;
+}
+
+body.word-quest-page #welcome-modal #start-playing-btn {
+  width: 100%;
+  margin: 0;
+  min-height: 44px;
+  border-radius: 14px;
+}
+
+@media (max-width: 760px) {
+  body.word-quest-page #welcome-modal .welcome-mode-grid,
+  body.word-quest-page #welcome-modal .welcome-reasoning-row {
+    grid-template-columns: 1fr;
+  }
+
+  body.word-quest-page #welcome-modal .welcome-step {
+    min-height: 210px;
+  }
 }
 
 /* ---------- Recording Studio modal ---------- */
