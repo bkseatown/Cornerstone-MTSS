@@ -90,7 +90,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
     <link rel="stylesheet" href="style.css?v=20260212uxfix12" />
-    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix23" />
+    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix24" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -99,7 +99,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight3" defer></script>
-    <script src="app.js?v=20260212uxfix14" defer></script>
+    <script src="app.js?v=20260212uxfix15" defer></script>
   </head>
 
   <body class="word-quest-page cs-page-wordquest look-35">
@@ -172,105 +172,103 @@
           <details id="wq-tools-menu" class="wq-tools-menu">
             <summary id="wq-tools-toggle" class="case-toggle-btn wq-tools-toggle">Open Tools</summary>
             <div class="wq-tools-body">
-              <section class="wq-tools-teacher-card" aria-label="Teacher word controls">
-                <div class="wq-tools-teacher-head">
-                  <strong>Teacher Word Mode</strong>
-                  <span>Single word, list paste, or file import</span>
+              <div class="wq-tools-tabs" role="tablist" aria-label="Tool sections">
+                <button
+                  id="wq-tools-tab-round"
+                  type="button"
+                  class="wq-tools-tab is-active"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="wq-tools-panel-round"
+                  data-tools-tab="round"
+                >Round Setup</button>
+                <button
+                  id="wq-tools-tab-audio-theme"
+                  type="button"
+                  class="wq-tools-tab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="wq-tools-panel-audio-theme"
+                  data-tools-tab="audio-theme"
+                  tabindex="-1"
+                >Audio + Theme</button>
+                <button
+                  id="wq-tools-tab-teacher"
+                  type="button"
+                  class="wq-tools-tab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="wq-tools-panel-teacher"
+                  data-tools-tab="teacher"
+                  tabindex="-1"
+                >Teacher Word</button>
+              </div>
+
+              <section id="wq-tools-panel-round" class="wq-tools-panel is-active" role="tabpanel" aria-labelledby="wq-tools-tab-round" data-tools-panel="round">
+                <div class="wq-tools-subcard">
+                  <label class="wq-tools-field" for="length-select">
+                    <span>Word length</span>
+                    <select id="length-select" aria-label="Word length">
+                      <option value="any">Any</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5" selected>5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                    </select>
+                  </label>
+
+                  <label class="wq-tools-field" for="guess-count-select">
+                    <span>Guesses</span>
+                    <select id="guess-count-select" aria-label="Number of guesses">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6" selected>6</option>
+                    </select>
+                  </label>
                 </div>
-                <div id="quick-custom-word-body" class="quick-custom-word-body">
-                  <div class="quick-custom-word-row">
-                    <input
-                      id="quick-custom-word-input"
-                      type="text"
-                      class="masked"
-                      placeholder="Type one class-safe word (3-12 letters)"
-                      autocapitalize="none"
-                      autocomplete="off"
-                      spellcheck="false"
-                    />
-                    <button id="quick-custom-word-toggle-mask" type="button" class="hint-btn secondary" aria-label="Show or hide custom word">Show</button>
-                    <button id="quick-custom-word-start" type="button" class="hint-btn">Play Word</button>
-                    <button id="quick-custom-word-clear" type="button" class="hint-btn secondary">Use Library</button>
+
+                <div class="wq-tools-subcard">
+                  <div class="wq-tools-field">
+                    <span>Letter case</span>
+                    <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
                   </div>
-                  <div class="quick-custom-word-list">
-                    <label for="quick-custom-word-list-input">Word list (paste one per line, comma, or semicolon)</label>
-                    <textarea
-                      id="quick-custom-word-list-input"
-                      rows="4"
-                      placeholder="photosynthesis&#10;fraction&#10;democracy"
-                      spellcheck="false"
-                    ></textarea>
-                    <div class="quick-custom-word-row quick-custom-word-row-list">
-                      <input
-                        id="quick-custom-word-file"
-                        type="file"
-                        accept=".txt,.csv,.tsv,.json,.doc,.docx,.pdf,text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      />
-                      <button id="quick-custom-word-file-import" type="button" class="hint-btn secondary">Import File</button>
-                    </div>
-                    <div class="quick-custom-word-row quick-custom-word-row-list">
-                      <button id="quick-custom-word-list-set" type="button" class="hint-btn">Save List</button>
-                      <label class="quick-custom-word-list-toggle">
-                        <input id="quick-custom-word-list-enable" type="checkbox" />
-                        <span>Lock list for rounds</span>
-                      </label>
-                      <button id="quick-custom-word-list-clear" type="button" class="hint-btn secondary">Clear List</button>
-                    </div>
-                    <div id="quick-custom-word-list-status" class="quick-custom-word-list-status muted" aria-live="polite"></div>
-                  </div>
-                  <div id="quick-custom-word-status" class="quick-custom-word-status muted" aria-live="polite">
-                    Mode: Library. Pick a focus or set a teacher word.
-                  </div>
+
+                  <label class="wq-tools-switch">
+                    <input id="wq-toggle-round-clue" type="checkbox" />
+                    <span>Show round clue</span>
+                  </label>
                 </div>
               </section>
 
-              <label class="wq-tools-field" for="length-select">
-                <span>Word length</span>
-                <select id="length-select" aria-label="Word length">
-                  <option value="any">Any</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5" selected>5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                </select>
-              </label>
+              <section id="wq-tools-panel-audio-theme" class="wq-tools-panel hidden" role="tabpanel" aria-labelledby="wq-tools-tab-audio-theme" data-tools-panel="audio-theme" aria-hidden="true">
+                <div class="wq-tools-subcard">
+                  <div class="wq-tools-field wq-tools-inline">
+                    <span>Quick tools</span>
+                    <div class="wq-tools-buttons">
+                      <button id="simple-voice-settings" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open voice settings">Voice</button>
+                      <button
+                        id="cs-delight-sound-toggle"
+                        type="button"
+                        class="case-toggle-btn wq-utility-btn"
+                        aria-label="Toggle celebration sound"
+                        aria-pressed="false"
+                      >Celebration sound: Off</button>
+                      <button
+                        id="wq-test-celebration-sound"
+                        type="button"
+                        class="case-toggle-btn wq-utility-btn"
+                        aria-label="Play celebration sound test"
+                      >Test Sound</button>
+                    </div>
+                  </div>
+                </div>
 
-              <label class="wq-tools-field" for="guess-count-select">
-                <span>Guesses</span>
-                <select id="guess-count-select" aria-label="Number of guesses">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6" selected>6</option>
-                </select>
-              </label>
-
-              <div class="wq-tools-field">
-                <span>Letter case</span>
-                <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
-              </div>
-
-              <div class="wq-tools-field wq-tools-inline">
-                <span>Quick tools</span>
-                <div class="wq-tools-buttons">
-                  <button id="simple-voice-settings" type="button" class="case-toggle-btn wq-utility-btn" aria-label="Open voice settings">Voice</button>
-                  <button
-                    id="cs-delight-sound-toggle"
-                    type="button"
-                    class="case-toggle-btn wq-utility-btn"
-                    aria-label="Toggle celebration sound"
-                    aria-pressed="false"
-                  >Celebration sound: Off</button>
-                  <button
-                    id="wq-test-celebration-sound"
-                    type="button"
-                    class="case-toggle-btn wq-utility-btn"
-                    aria-label="Play celebration sound test"
-                  >Test Sound</button>
+                <div class="wq-tools-subcard">
                   <label class="wq-palette-field" for="wq-palette-select">
                     <span>Palette</span>
                     <select id="wq-palette-select" class="wq-palette-select">
@@ -290,12 +288,61 @@
                     </select>
                   </label>
                 </div>
-              </div>
+              </section>
 
-              <label class="wq-tools-switch">
-                <input id="wq-toggle-round-clue" type="checkbox" />
-                <span>Show round clue</span>
-              </label>
+              <section id="wq-tools-panel-teacher" class="wq-tools-panel hidden" role="tabpanel" aria-labelledby="wq-tools-tab-teacher" data-tools-panel="teacher" aria-hidden="true">
+                <section class="wq-tools-teacher-card" aria-label="Teacher word controls">
+                  <div class="wq-tools-teacher-head">
+                    <strong>Teacher Word Mode</strong>
+                    <span>Single word, list paste, or file import</span>
+                  </div>
+                  <div id="quick-custom-word-body" class="quick-custom-word-body">
+                    <div class="quick-custom-word-row">
+                      <input
+                        id="quick-custom-word-input"
+                        type="text"
+                        class="masked"
+                        placeholder="Type one class-safe word (3-12 letters)"
+                        autocapitalize="none"
+                        autocomplete="off"
+                        spellcheck="false"
+                      />
+                      <button id="quick-custom-word-toggle-mask" type="button" class="hint-btn secondary" aria-label="Show or hide custom word">Show</button>
+                      <button id="quick-custom-word-start" type="button" class="hint-btn">Play Word</button>
+                      <button id="quick-custom-word-clear" type="button" class="hint-btn secondary">Use Library</button>
+                    </div>
+                    <div class="quick-custom-word-list">
+                      <label for="quick-custom-word-list-input">Word list (paste one per line, comma, or semicolon)</label>
+                      <textarea
+                        id="quick-custom-word-list-input"
+                        rows="4"
+                        placeholder="photosynthesis&#10;fraction&#10;democracy"
+                        spellcheck="false"
+                      ></textarea>
+                      <div class="quick-custom-word-row quick-custom-word-row-list">
+                        <input
+                          id="quick-custom-word-file"
+                          type="file"
+                          accept=".txt,.csv,.tsv,.json,.doc,.docx,.pdf,text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        />
+                        <button id="quick-custom-word-file-import" type="button" class="hint-btn secondary">Import File</button>
+                      </div>
+                      <div class="quick-custom-word-row quick-custom-word-row-list">
+                        <button id="quick-custom-word-list-set" type="button" class="hint-btn">Save List</button>
+                        <label class="quick-custom-word-list-toggle">
+                          <input id="quick-custom-word-list-enable" type="checkbox" />
+                          <span>Lock list for rounds</span>
+                        </label>
+                        <button id="quick-custom-word-list-clear" type="button" class="hint-btn secondary">Clear List</button>
+                      </div>
+                      <div id="quick-custom-word-list-status" class="quick-custom-word-list-status muted" aria-live="polite"></div>
+                    </div>
+                    <div id="quick-custom-word-status" class="quick-custom-word-status muted" aria-live="polite">
+                      Mode: Library. Pick a focus or set a teacher word.
+                    </div>
+                  </div>
+                </section>
+              </section>
             </div>
           </details>
         </div>

@@ -4674,6 +4674,7 @@ function initControls() {
     const roundClueToggle = document.getElementById('wq-toggle-round-clue');
     const teacherWordToolsBtn = document.getElementById('wq-tools-teacher-word');
     const toolsMenu = document.getElementById('wq-tools-menu');
+    const toolsTeacherTabBtn = document.getElementById('wq-tools-tab-teacher');
     const customWordInput = quickCustomWordInput;
     const quickCustomPanel = document.querySelector('.quick-custom-word-panel');
     const teacherToolsCard = document.querySelector('.wq-tools-teacher-card');
@@ -4682,10 +4683,96 @@ function initControls() {
     const supportsTextSecurity = typeof CSS !== 'undefined' && CSS.supports && (
         CSS.supports('-webkit-text-security: disc') || CSS.supports('text-security: disc')
     );
+    const initToolsTabbedPanels = () => {
+        if (!(toolsMenu instanceof HTMLElement)) return;
+        const tabButtons = Array.from(toolsMenu.querySelectorAll('.wq-tools-tab[data-tools-tab]'));
+        const panels = Array.from(toolsMenu.querySelectorAll('.wq-tools-panel[data-tools-panel]'));
+        if (!tabButtons.length || !panels.length) return;
+
+        const storageKey = 'wq_tools_active_tab';
+        const fallbackTab = 'round';
+        const resolveTabId = (nextTabId) => {
+            const target = String(nextTabId || '').trim();
+            if (!target) return fallbackTab;
+            return tabButtons.some((btn) => btn.dataset.toolsTab === target) ? target : fallbackTab;
+        };
+
+        const applyTab = (nextTabId, { persist = true, focus = false } = {}) => {
+            const tabId = resolveTabId(nextTabId);
+            tabButtons.forEach((btn) => {
+                const isActive = btn.dataset.toolsTab === tabId;
+                btn.classList.toggle('is-active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.tabIndex = isActive ? 0 : -1;
+                if (isActive && focus) btn.focus();
+            });
+            panels.forEach((panel) => {
+                const isActive = panel.dataset.toolsPanel === tabId;
+                panel.classList.toggle('is-active', isActive);
+                panel.classList.toggle('hidden', !isActive);
+                panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            });
+            if (persist) {
+                try {
+                    localStorage.setItem(storageKey, tabId);
+                } catch (e) {}
+            }
+        };
+
+        const moveFocusByOffset = (currentTab, offset) => {
+            if (!tabButtons.length) return;
+            const currentIndex = Math.max(0, tabButtons.indexOf(currentTab));
+            const nextIndex = (currentIndex + offset + tabButtons.length) % tabButtons.length;
+            const nextTab = tabButtons[nextIndex];
+            if (!(nextTab instanceof HTMLButtonElement)) return;
+            applyTab(nextTab.dataset.toolsTab, { focus: true });
+        };
+
+        tabButtons.forEach((btn) => {
+            if (!(btn instanceof HTMLButtonElement) || btn.dataset.boundToolsTab === 'true') return;
+            btn.dataset.boundToolsTab = 'true';
+            btn.addEventListener('click', () => {
+                applyTab(btn.dataset.toolsTab);
+            });
+            btn.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    moveFocusByOffset(btn, 1);
+                } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    moveFocusByOffset(btn, -1);
+                } else if (event.key === 'Home') {
+                    event.preventDefault();
+                    const firstTab = tabButtons[0];
+                    if (firstTab) applyTab(firstTab.dataset.toolsTab, { focus: true });
+                } else if (event.key === 'End') {
+                    event.preventDefault();
+                    const lastTab = tabButtons[tabButtons.length - 1];
+                    if (lastTab) applyTab(lastTab.dataset.toolsTab, { focus: true });
+                }
+            });
+        });
+
+        let initialTab = fallbackTab;
+        try {
+            initialTab = resolveTabId(localStorage.getItem(storageKey));
+        } catch (e) {}
+        applyTab(initialTab, { persist: false });
+
+        if (toolsMenu instanceof HTMLDetailsElement && toolsMenu.dataset.boundToolsToggle !== 'true') {
+            toolsMenu.dataset.boundToolsToggle = 'true';
+            toolsMenu.addEventListener('toggle', () => {
+                if (!toolsMenu.open) return;
+                const activeTab = tabButtons.find((btn) => btn.classList.contains('is-active'));
+                applyTab(activeTab?.dataset.toolsTab || initialTab, { persist: false });
+            });
+        }
+    };
 
     teacherWordList = readTeacherWordList();
     teacherWordListEnabled = readTeacherWordListEnabled() && teacherWordList.length > 0;
     writeTeacherWordListEnabled(teacherWordListEnabled);
+    initToolsTabbedPanels();
 
     if (quickCustomPanel) {
         quickCustomPanel.classList.toggle('hidden', !customWordTeacherOnly);
@@ -4773,6 +4860,7 @@ function initControls() {
             if (!customWordTeacherOnly) return;
             if (teacherControlsInTools) {
                 if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = true;
+                if (toolsTeacherTabBtn instanceof HTMLButtonElement) toolsTeacherTabBtn.click();
                 quickCustomWordInput?.focus();
                 return;
             }

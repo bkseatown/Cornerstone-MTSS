@@ -1373,3 +1373,159 @@ body.word-quest-page .wq-palette-select {
         width: min(96vw, calc(100vw - 20px)) !important;
     }
 }
+
+/* Compact tabbed tools panel (Round / Audio+Theme / Teacher) */
+body.word-quest-page #wq-tools-menu[open] .wq-tools-body {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: min(700px, calc(100vw - 22px)) !important;
+    max-height: min(78vh, 700px) !important;
+    overflow: hidden !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(129, 140, 248, 0.44) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.97) 100%) !important;
+    color: #e2e8f0 !important;
+    box-shadow: 0 22px 46px rgba(15, 23, 42, 0.48) !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    background: rgba(15, 23, 42, 0.46);
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-tab {
+    min-height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 780;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-tab.is-active {
+    border-color: rgba(129, 140, 248, 0.62);
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.9) 0%, rgba(67, 56, 202, 0.88) 100%);
+    color: #f8fafc;
+    box-shadow: 0 6px 16px rgba(67, 56, 202, 0.35);
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel {
+    display: none;
+    gap: 10px;
+    min-height: 0;
+    max-height: min(58vh, 540px);
+    overflow: auto;
+    padding-right: 2px;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel.is-active {
+    display: grid;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-subcard {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.76) 0%, rgba(15, 23, 42, 0.72) 100%);
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-field,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-switch {
+    border: 1px solid rgba(148, 163, 184, 0.34) !important;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.66) 100%) !important;
+    box-shadow: none !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-field > span,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-switch,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-switch > span,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-palette-field > span {
+    color: #e2e8f0 !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-buttons {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-buttons > * {
+    flex: 1 1 180px;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel input[type="text"],
+body.word-quest-page #wq-tools-menu .wq-tools-panel input[type="file"],
+body.word-quest-page #wq-tools-menu .wq-tools-panel textarea,
+body.word-quest-page #wq-tools-menu .wq-tools-panel select,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .case-toggle-btn,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .hint-btn {
+    border: 1px solid rgba(148, 163, 184, 0.46) !important;
+    background: linear-gradient(180deg, rgba(241, 245, 249, 0.97) 0%, rgba(226, 232, 240, 0.95) 100%) !important;
+    color: #0f172a !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .quick-custom-word-list label,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .quick-custom-word-status,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .quick-custom-word-list-status {
+    color: #cbd5e1 !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-teacher-card {
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.82) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.34) !important;
+    border-left: 3px solid rgba(129, 140, 248, 0.72) !important;
+    box-shadow: none !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-teacher-head {
+    border: 1px solid rgba(148, 163, 184, 0.32) !important;
+    background: linear-gradient(180deg, rgba(51, 65, 85, 0.9) 0%, rgba(30, 41, 59, 0.88) 100%) !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-teacher-head strong,
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-tools-teacher-head span {
+    color: #f1f5f9 !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-palette-field {
+    display: grid !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    border: 1px solid rgba(148, 163, 184, 0.36) !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.66) 0%, rgba(15, 23, 42, 0.62) 100%) !important;
+}
+
+body.word-quest-page #wq-tools-menu .wq-tools-panel .wq-palette-select {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+@media (max-width: 900px) {
+    body.word-quest-page #wq-tools-menu[open] .wq-tools-body {
+        width: min(96vw, 560px) !important;
+    }
+}
+
+@media (max-width: 760px) {
+    body.word-quest-page #wq-tools-menu .wq-tools-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.word-quest-page #wq-tools-menu .wq-tools-tab[data-tools-tab="teacher"] {
+        grid-column: 1 / -1;
+    }
+}
