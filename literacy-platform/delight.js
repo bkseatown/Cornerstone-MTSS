@@ -185,9 +185,11 @@
 
   function unlockAudio() {
     if (window.csAudioUnlocked === true) return;
-    window.csAudioUnlocked = true;
     const audioContext = ensureAudioContext();
     if (!audioContext) return;
+    const hasActivation = !!(navigator.userActivation && (navigator.userActivation.isActive || navigator.userActivation.hasBeenActive));
+    if (audioContext.state === 'suspended' && !hasActivation) return;
+    window.csAudioUnlocked = true;
     if (audioContext.state === 'suspended' && typeof audioContext.resume === 'function') {
       audioContext.resume().catch(() => {});
     }
@@ -211,8 +213,8 @@
     unlockAudio();
     const audioContext = ensureAudioContext();
     if (!audioContext) return false;
-    if (audioContext.state === 'suspended' && typeof audioContext.resume === 'function') {
-      audioContext.resume().catch(() => {});
+    if (audioContext.state === 'suspended') {
+      return false;
     }
 
     const now = audioContext.currentTime;
