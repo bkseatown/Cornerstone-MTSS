@@ -5003,6 +5003,7 @@ function initControls() {
     const hearWordBtn = document.getElementById("simple-hear-word");
     const hearSentenceBtn = document.getElementById("simple-hear-sentence");
     const voiceSettingsBtn = document.getElementById("simple-voice-settings");
+    const testCelebrationSoundBtn = document.getElementById("wq-test-celebration-sound");
     
     if (hearWordBtn) {
         hearWordBtn.onclick = async () => {
@@ -5105,6 +5106,16 @@ function initControls() {
             }
             if (toolsMenu instanceof HTMLDetailsElement) toolsMenu.open = false;
             voiceSettingsBtn.blur();
+        };
+    }
+
+    if (testCelebrationSoundBtn instanceof HTMLButtonElement) {
+        testCelebrationSoundBtn.onclick = () => {
+            const played = !!(window.csDelight && typeof window.csDelight.playStarPing === 'function' && window.csDelight.playStarPing());
+            if (!played) {
+                showToast('Celebration sound is off or blocked. Turn it on and tap anywhere once.');
+            }
+            testCelebrationSoundBtn.blur();
         };
     }
 

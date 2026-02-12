@@ -851,7 +851,7 @@ body.word-quest-page.wq-scroll-fallback #game-canvas {
     width: min(1080px, calc(100vw - 34px)) !important;
     max-width: min(1080px, calc(100vw - 34px)) !important;
     margin: 0 auto !important;
-    padding: 18px 14px 20px !important;
+    padding: 18px 14px 24px !important;
     border-radius: 24px !important;
     border: 1px solid color-mix(in srgb, var(--wq-panel-border) 92%, transparent) !important;
     background: var(--wq-canvas-glow), var(--wq-canvas-surface) !important;
@@ -892,8 +892,8 @@ body.word-quest-page.fit-screen-tight #game-board {
 body.word-quest-page #game-board .tile,
 body.word-quest-page #game-board .cell,
 body.word-quest-page #game-board [data-tile] {
-    width: 54px !important;
-    height: 54px !important;
+    width: 52px !important;
+    height: 52px !important;
     border-radius: 16px !important;
     border-width: 1px !important;
     font-size: 1.45rem !important;
@@ -939,8 +939,8 @@ body.word-quest-page.fit-screen #keyboard,
 body.word-quest-page.fit-screen-tight #keyboard {
     width: min(736px, calc(100% - 8px)) !important;
     max-width: min(736px, calc(100% - 8px)) !important;
-    margin: 0 auto max(16px, env(safe-area-inset-bottom, 0px)) !important;
-    padding: 8px 0 max(6px, env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 auto max(24px, env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 0 max(10px, env(safe-area-inset-bottom, 0px)) !important;
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
@@ -957,13 +957,13 @@ body.word-quest-page.fit-screen-tight .keyboard-row {
 body.word-quest-page #keyboard button,
 body.word-quest-page #keyboard .key,
 body.word-quest-page #keyboard [data-key] {
-    flex: 0 0 52px !important;
+    flex: 0 0 50px !important;
     flex-shrink: 0 !important;
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-    height: 52px !important;
-    min-height: 52px !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 50px !important;
+    min-height: 50px !important;
     padding: 6px !important;
     border-radius: 15px !important;
     border: 1px solid var(--wq-key-border) !important;
@@ -983,11 +983,11 @@ body.word-quest-page #keyboard button.wide,
 body.word-quest-page #keyboard [data-key].wide,
 body.word-quest-page.fit-screen #keyboard .key.wide,
 body.word-quest-page.fit-screen-tight #keyboard .key.wide {
-    flex: 0 0 86px !important;
+    flex: 0 0 82px !important;
     flex-shrink: 0 !important;
-    width: 86px !important;
-    min-width: 86px !important;
-    max-width: 86px !important;
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
     font-size: 0.9rem !important;
     letter-spacing: 0.01em !important;
     white-space: nowrap !important;
@@ -1027,8 +1027,8 @@ body.word-quest-page #game-board .tile.absent {
     body.word-quest-page.fit-screen,
     body.word-quest-page.fit-screen-tight {
         min-height: 100dvh !important;
-        height: 100dvh !important;
-        overflow: hidden !important;
+        height: auto !important;
+        overflow: auto !important;
         display: flex !important;
         flex-direction: column !important;
     }
@@ -1038,7 +1038,7 @@ body.word-quest-page #game-board .tile.absent {
     body.word-quest-page.fit-screen-tight main {
         flex: 1 1 auto !important;
         min-height: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         align-content: start !important;
     }
 }
@@ -1129,9 +1129,9 @@ body.word-quest-page .wq-tools-body {
     max-height: min(78vh, 680px) !important;
     overflow: auto !important;
     padding: 12px !important;
-    border: 1px solid rgba(99, 102, 241, 0.24) !important;
-    background: linear-gradient(180deg, #f5f8ff 0%, #edf3ff 100%) !important;
-    box-shadow: 0 18px 36px rgba(30, 41, 59, 0.2) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    background: linear-gradient(180deg, #e9efff 0%, #deebff 100%) !important;
+    box-shadow: 0 18px 36px rgba(30, 41, 59, 0.22) !important;
 }
 
 body.word-quest-page #wq-tools-menu[open] .wq-tools-body {
@@ -1147,9 +1147,9 @@ body.word-quest-page .wq-tools-teacher-card {
     gap: 10px !important;
     padding: 12px !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(99, 102, 241, 0.22) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
     border-left: 4px solid rgba(99, 102, 241, 0.58) !important;
-    background: linear-gradient(180deg, #ffffff 0%, #f6f9ff 100%) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     opacity: 1 !important;
@@ -1161,6 +1161,10 @@ body.word-quest-page .wq-tools-teacher-head {
     justify-content: space-between !important;
     align-items: baseline !important;
     gap: 8px !important;
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(148, 163, 184, 0.32) !important;
+    background: linear-gradient(180deg, #f8fbff 0%, #edf3ff 100%) !important;
 }
 
 body.word-quest-page .wq-tools-teacher-head strong {
@@ -1283,14 +1287,14 @@ body.word-quest-page .wq-tools-body .wq-tools-field {
     padding: 10px 12px !important;
     border: 1px solid rgba(148, 163, 184, 0.42) !important;
     border-radius: 12px !important;
-    background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%) !important;
+    background: linear-gradient(180deg, #f5f9ff 0%, #ebf3ff 100%) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
 }
 
 body.word-quest-page .wq-tools-body .wq-tools-field.wq-tools-inline {
     grid-column: 1 / -1 !important;
-    background: linear-gradient(180deg, #eef4ff 0%, #e7efff 100%) !important;
-    border-color: rgba(99, 102, 241, 0.26) !important;
+    background: linear-gradient(180deg, #e8f4ff 0%, #dff0ff 100%) !important;
+    border-color: rgba(14, 116, 144, 0.32) !important;
 }
 
 body.word-quest-page .wq-tools-body .wq-tools-buttons {
@@ -1305,7 +1309,7 @@ body.word-quest-page .wq-tools-body .wq-tools-switch {
     padding: 10px 12px !important;
     border: 1px solid rgba(148, 163, 184, 0.42) !important;
     border-radius: 12px !important;
-    background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%) !important;
+    background: linear-gradient(180deg, #f2f7ff 0%, #e8f1ff 100%) !important;
 }
 
 body.word-quest-page .wq-tools-body .wq-tools-field > span,
@@ -1313,6 +1317,10 @@ body.word-quest-page .wq-tools-body .wq-tools-switch,
 body.word-quest-page .wq-tools-body .wq-tools-switch > span {
     color: #334155 !important;
     opacity: 1 !important;
+}
+
+body.word-quest-page > .cs-delight-sound-toggle {
+    display: none !important;
 }
 
 body.word-quest-page #wq-tools-menu .cs-delight-sound-toggle,
@@ -1332,6 +1340,12 @@ body.word-quest-page #wq-tools-menu .cs-delight-sound-toggle-inline {
     line-height: 1.15 !important;
     min-height: 34px !important;
     padding: 6px 10px !important;
+}
+
+body.word-quest-page #wq-tools-menu #wq-test-celebration-sound {
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+    color: #0f172a !important;
 }
 
 body.word-quest-page #wq-tools-menu .cs-delight-sound-toggle[aria-pressed="true"] {
