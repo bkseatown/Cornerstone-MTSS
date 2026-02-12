@@ -534,9 +534,9 @@ function refreshPatternSelectTooltip() {
     const label = selected ? String(selected.textContent || '').trim() : '';
     patternSelect.title = label;
     if (label) {
-        patternSelect.setAttribute('aria-label', `Focus pattern: ${label}`);
+        patternSelect.setAttribute('aria-label', `Choose your path: ${label}`);
     } else {
-        patternSelect.setAttribute('aria-label', 'Focus pattern');
+        patternSelect.setAttribute('aria-label', 'Choose your path');
     }
 }
 
@@ -4318,7 +4318,7 @@ function ensureSentenceCaptionToggleControls() {
         wrap.innerHTML = `
           <label class="cs-sentence-caption-toggle">
             <input id="cs-sentence-caption-toggle" type="checkbox" />
-            <span>Show sentence text</span>
+            <span>Sentence text</span>
           </label>
         `;
         hintActions.insertAdjacentElement('afterend', wrap);
@@ -4662,7 +4662,7 @@ function ensureWordQuestVoiceQuickOverlay() {
 
 /* --- CONTROLS & EVENTS --- */
 function initControls() {
-    writeSentenceCaptionMode(readSentenceCaptionMode());
+    writeSentenceCaptionMode('off');
     const delightMotion = writeDelightToggleSetting(DELIGHT_MOTION_KEY, readDelightToggleSetting(DELIGHT_MOTION_KEY, 'on'));
     const delightSound = writeDelightToggleSetting(DELIGHT_SOUND_KEY, readDelightToggleSetting(DELIGHT_SOUND_KEY, 'off'));
     if (window.csDelight && typeof window.csDelight.setMotionSetting === 'function') {
@@ -7206,14 +7206,14 @@ function updateFocusPanel() {
     const focusRoundChip = document.getElementById('focus-round-chip');
     if (focusRoundChip) {
         if (selectedPattern === 'all') {
-            focusRoundChip.textContent = 'Round clue: Any focus';
+            focusRoundChip.textContent = 'Hint: Any focus';
         } else if (selectedPattern === 'shuffle') {
-            focusRoundChip.textContent = `Round clue: ${info.title || 'Mixed review'}`;
+            focusRoundChip.textContent = `Hint: ${info.title || 'Mixed review'}`;
         } else if (usesFallback) {
             const note = activeRoundFallbackNote ? ` · ${activeRoundFallbackNote}` : '';
-            focusRoundChip.textContent = `Round clue: ${info.title || 'Any focus'}${note}`;
+            focusRoundChip.textContent = `Hint: ${info.title || 'Any focus'}${note}`;
         } else {
-            focusRoundChip.textContent = `Round clue: ${info.title || selectedPattern}`;
+            focusRoundChip.textContent = `Hint: ${info.title || selectedPattern}`;
         }
         focusRoundChip.classList.toggle('is-hidden', readRoundClueVisibilityMode() !== 'on');
     }

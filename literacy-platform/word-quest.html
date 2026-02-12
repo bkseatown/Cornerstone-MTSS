@@ -90,7 +90,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
     <link rel="stylesheet" href="style.css?v=20260212uxfix13" />
-    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix26" />
+    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix28" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -99,7 +99,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight3" defer></script>
-    <script src="app.js?v=20260212uxfix16" defer></script>
+    <script src="app.js?v=20260212uxfix18" defer></script>
   </head>
 
   <body class="word-quest-page cs-page-wordquest look-35">
@@ -116,9 +116,8 @@
 
       <div class="controls" role="group" aria-label="Game setup">
         <div class="control-group wq-control-focus">
-          <label for="pattern-select">Focus Path</label>
-          <select id="pattern-select" aria-label="Focus pattern">
-            <option value="shuffle" selected>Shuffle Focus (clue on)</option>
+          <select id="pattern-select" aria-label="Choose your path">
+            <option value="shuffle" selected>Choose your path?</option>
             <option value="all">All Words</option>
             <option value="cvc">CVC (short vowels: cat, pin)</option>
             <option value="digraph">Digraphs (sh, ch, th)</option>
@@ -161,11 +160,23 @@
               <option value="vocab-ela-912">ELA Vocabulary (9-12)</option>
             </optgroup>
           </select>
+          <label class="wq-focus-hint-toggle" for="wq-toggle-round-clue">
+            <input id="wq-toggle-round-clue" type="checkbox" />
+            <span>Small focus hint</span>
+          </label>
         </div>
 
         <div class="control-group control-group-subtle wq-control-new-round">
           <label for="new-word-btn" aria-hidden="true">&nbsp;</label>
           <button id="new-word-btn" type="button" class="case-toggle-btn new-round-btn" aria-label="Start new round">New Round</button>
+        </div>
+
+        <div class="control-group control-group-subtle wq-control-mode" aria-label="Play mode">
+          <label for="wq-play-mode-switch" aria-hidden="true">&nbsp;</label>
+          <div id="wq-play-mode-switch" class="wq-play-mode-switch" role="group" aria-label="Play mode">
+            <button id="wq-play-mode-classic" type="button" class="wq-play-mode-btn is-active" data-play-mode-option="classic" aria-pressed="true">Classic</button>
+            <button id="wq-play-mode-listen" type="button" class="wq-play-mode-btn" data-play-mode-option="listen" aria-pressed="false">Listen &amp; Spell</button>
+          </div>
         </div>
 
         <div class="control-group control-group-subtle wq-tools-control" aria-label="Utilities">
@@ -237,11 +248,6 @@
                     <span>Letter case</span>
                     <button id="case-toggle" type="button" class="case-toggle-btn" aria-label="Toggle letter case">abc</button>
                   </div>
-
-                  <label class="wq-tools-switch">
-                    <input id="wq-toggle-round-clue" type="checkbox" />
-                    <span>Show round clue</span>
-                  </label>
                 </div>
               </section>
 
@@ -363,11 +369,6 @@
 
       <div id="game-canvas">
         <div id="game-board" aria-label="Guess grid"></div>
-
-        <div id="wq-play-mode-switch" class="wq-play-mode-switch" role="group" aria-label="Play mode">
-          <button id="wq-play-mode-classic" type="button" class="wq-play-mode-btn is-active" data-play-mode-option="classic" aria-pressed="true">Classic</button>
-          <button id="wq-play-mode-listen" type="button" class="wq-play-mode-btn" data-play-mode-option="listen" aria-pressed="false">Listen &amp; Spell</button>
-        </div>
 
         <div class="hint-actions" aria-label="Quick audio">
           <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
