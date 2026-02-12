@@ -89,8 +89,8 @@
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="home-v2.css?v=step18theme4" />
-    <link rel="stylesheet" href="style.css?v=20260212uxfix12" />
-    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix25" />
+    <link rel="stylesheet" href="style.css?v=20260212uxfix13" />
+    <link rel="stylesheet" href="word-quest-stable.css?v=20260212uxfix26" />
     <link rel="stylesheet" href="delight.css?v=step18delight1" />
     <script src="words.js" defer></script>
     <script src="decodables-expansion.js" defer></script>
@@ -99,7 +99,7 @@
     <script src="focus-info.js" defer></script>
     <script src="translations.js" defer></script>
     <script src="delight.js?v=step18delight3" defer></script>
-    <script src="app.js?v=20260212uxfix15" defer></script>
+    <script src="app.js?v=20260212uxfix16" defer></script>
   </head>
 
   <body class="word-quest-page cs-page-wordquest look-35">
@@ -364,6 +364,11 @@
       <div id="game-canvas">
         <div id="game-board" aria-label="Guess grid"></div>
 
+        <div id="wq-play-mode-switch" class="wq-play-mode-switch" role="group" aria-label="Play mode">
+          <button id="wq-play-mode-classic" type="button" class="wq-play-mode-btn is-active" data-play-mode-option="classic" aria-pressed="true">Classic</button>
+          <button id="wq-play-mode-listen" type="button" class="wq-play-mode-btn" data-play-mode-option="listen" aria-pressed="false">Listen &amp; Spell</button>
+        </div>
+
         <div class="hint-actions" aria-label="Quick audio">
           <button id="simple-hear-word" type="button" class="hint-btn">🔊 Hear Word</button>
           <button id="simple-hear-sentence" type="button" class="hint-btn">💬 Hear Sentence</button>
@@ -395,25 +400,27 @@
         <section
           class="welcome-step"
           data-tutorial-step="0"
+          data-step-mode="both"
           data-step-title="Pick Your Play Style"
           data-step-caption="You can play classic Wordle style, or listen first and spell."
-          data-step-cta="Show Example"
         >
           <div class="welcome-mode-grid">
-            <article class="welcome-mode-card">
+            <button type="button" class="welcome-mode-card welcome-mode-choice" data-welcome-mode="classic" aria-pressed="false">
               <h3>🧩 Classic Wordle</h3>
               <p>No hints or audio. Use 6 guesses and pure deduction.</p>
-            </article>
-            <article class="welcome-mode-card">
-              <h3>🔊 Listen & Spell</h3>
+            </button>
+            <button type="button" class="welcome-mode-card welcome-mode-choice" data-welcome-mode="listen" aria-pressed="false">
+              <h3>🔊 Listen &amp; Spell</h3>
               <p>Use sentence and word audio clues, then spell what you hear.</p>
-            </article>
+            </button>
           </div>
+          <p id="welcome-mode-helper" class="welcome-step-note">Choose one mode now. You can switch anytime during a round with the mode buttons above the board.</p>
         </section>
 
         <section
           class="welcome-step hidden"
           data-tutorial-step="1"
+          data-step-mode="classic"
           data-step-title="Step 1: First Guess"
           data-step-caption="Gray letters are out. Yellow letters are in, but in the wrong spot."
           data-step-cta="Next Clue"
@@ -431,6 +438,7 @@
         <section
           class="welcome-step hidden"
           data-tutorial-step="2"
+          data-step-mode="classic"
           data-step-title="Step 2: Stronger Guess"
           data-step-caption="Use what you learned to place likely letters."
           data-step-cta="Final Step"
@@ -448,6 +456,7 @@
         <section
           class="welcome-step hidden"
           data-tutorial-step="3"
+          data-step-mode="classic"
           data-step-title="Step 3: Detective Finish"
           data-step-caption="Rule out impossible options, then lock your best guess."
           data-step-cta="Start Playing"
@@ -464,6 +473,60 @@
             <span class="welcome-tile correct">K</span>
           </div>
           <p class="welcome-step-note">Now you’re ready. Start with Classic mode or turn on listening hints anytime.</p>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="1"
+          data-step-mode="listen"
+          data-step-title="Step 1: Hear the Sentence Clue"
+          data-step-caption="Tap Hear Sentence first. Use context clues to predict possible spellings."
+          data-step-cta="Next Clue"
+        >
+          <div class="welcome-reasoning-row" aria-label="Sentence-first clue example">
+            <span class="welcome-candidate best">“The <strong>brick</strong> one looked brighter.”</span>
+            <span class="welcome-candidate">Possible words: <strong>brick</strong>, <strong>brisk</strong></span>
+          </div>
+          <p class="welcome-step-note">Sentence hints narrow your options before you type.</p>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="2"
+          data-step-mode="listen"
+          data-step-title="Step 2: Hear the Target Word"
+          data-step-caption="Tap Hear Word to confirm the exact target, then spell what you heard."
+          data-step-cta="Final Step"
+        >
+          <div class="welcome-tile-row" aria-label="Listen and spell example">
+            <span class="welcome-tile correct">B</span>
+            <span class="welcome-tile correct">R</span>
+            <span class="welcome-tile correct">I</span>
+            <span class="welcome-tile correct">C</span>
+            <span class="welcome-tile correct">K</span>
+          </div>
+          <p class="welcome-step-note">You can replay sentence and word audio as many times as needed.</p>
+        </section>
+
+        <section
+          class="welcome-step hidden"
+          data-tutorial-step="3"
+          data-step-mode="listen"
+          data-step-title="Step 3: Switch Anytime"
+          data-step-caption="Want pure Wordle? Switch to Classic. Need supports? Switch back to Listen & Spell."
+          data-step-cta="Start Playing"
+        >
+          <div class="welcome-mode-grid">
+            <article class="welcome-mode-card">
+              <h3>Classic</h3>
+              <p>Audio buttons are hidden for a deduction-only round.</p>
+            </article>
+            <article class="welcome-mode-card">
+              <h3>Listen &amp; Spell</h3>
+              <p>Audio buttons return so students can use sentence and word clues.</p>
+            </article>
+          </div>
+          <p class="welcome-step-note">Mode switching does not reset your round.</p>
         </section>
 
         <div class="welcome-step-actions">

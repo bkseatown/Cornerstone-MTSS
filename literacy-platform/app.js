@@ -254,6 +254,9 @@ const SENTENCE_CAPTION_KEY = 'cs_caption_sentence';
 const DELIGHT_MOTION_KEY = 'cs_delight_motion';
 const DELIGHT_SOUND_KEY = 'cs_delight_sound';
 const ROUND_CLUE_VISIBILITY_KEY = 'cs_show_round_clue';
+const PLAY_MODE_KEY = 'cs_wordquest_play_mode_v1';
+const PLAY_MODE_CLASSIC = 'classic';
+const PLAY_MODE_LISTEN = 'listen';
 const TEACHER_WORD_LIST_KEY = 'cs_teacher_word_list';
 const TEACHER_WORD_LIST_ENABLED_KEY = 'cs_teacher_word_list_enabled';
 const WORD_SOURCE_LIBRARY_STATUS = 'Mode: Library. Pick a focus or set a custom challenge word.';
@@ -4236,6 +4239,71 @@ function writeRoundClueVisibilityMode(mode = 'off') {
     return next;
 }
 
+function normalizePlayMode(mode = '') {
+    return String(mode || '').trim().toLowerCase() === PLAY_MODE_LISTEN
+        ? PLAY_MODE_LISTEN
+        : PLAY_MODE_CLASSIC;
+}
+
+function readPlayMode() {
+    try {
+        return normalizePlayMode(localStorage.getItem(PLAY_MODE_KEY) || '');
+    } catch (error) {
+        return PLAY_MODE_CLASSIC;
+    }
+}
+
+function writePlayMode(mode = PLAY_MODE_CLASSIC) {
+    const next = normalizePlayMode(mode);
+    try {
+        localStorage.setItem(PLAY_MODE_KEY, next);
+    } catch (error) {}
+    return next;
+}
+
+function applyPlayMode(mode = PLAY_MODE_CLASSIC, options = {}) {
+    const opts = options && typeof options === 'object' ? options : {};
+    const nextMode = writePlayMode(mode);
+    const isListen = nextMode === PLAY_MODE_LISTEN;
+
+    document.body.dataset.wqPlayMode = nextMode;
+
+    const classicBtn = document.getElementById('wq-play-mode-classic');
+    const listenBtn = document.getElementById('wq-play-mode-listen');
+    if (classicBtn) {
+        const active = !isListen;
+        classicBtn.classList.toggle('is-active', active);
+        classicBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+    if (listenBtn) {
+        listenBtn.classList.toggle('is-active', isListen);
+        listenBtn.setAttribute('aria-pressed', isListen ? 'true' : 'false');
+    }
+
+    const hintActions = document.querySelector('.hint-actions');
+    if (hintActions instanceof HTMLElement) {
+        hintActions.classList.toggle('hidden', !isListen);
+        hintActions.setAttribute('aria-hidden', isListen ? 'false' : 'true');
+    }
+
+    const sentenceToggleWrap = document.getElementById('cs-sentence-caption-toggle-wrap');
+    if (sentenceToggleWrap instanceof HTMLElement) {
+        sentenceToggleWrap.classList.toggle('hidden', !isListen);
+        sentenceToggleWrap.setAttribute('aria-hidden', isListen ? 'false' : 'true');
+    }
+
+    const sentencePreview = document.getElementById('sentence-preview');
+    if (!isListen && sentencePreview instanceof HTMLElement) {
+        sentencePreview.classList.add('hidden');
+        sentencePreview.classList.remove('has-caption');
+    }
+
+    if (opts.toast === true) {
+        showToast(isListen ? 'Mode: Listen & Spell' : 'Mode: Classic Wordle');
+    }
+    return nextMode;
+}
+
 function ensureSentenceCaptionToggleControls() {
     const sentenceBtn = document.getElementById('simple-hear-sentence');
     const hintActions = sentenceBtn?.closest('.hint-actions');
@@ -5084,11 +5152,20 @@ function initControls() {
     ensureWordQuestUtilityControlsPlacement();
 
     // Simple audio buttons
+    const playModeClassicBtn = document.getElementById('wq-play-mode-classic');
+    const playModeListenBtn = document.getElementById('wq-play-mode-listen');
     const hearWordBtn = document.getElementById("simple-hear-word");
     const hearSentenceBtn = document.getElementById("simple-hear-sentence");
     const voiceSettingsBtn = document.getElementById("simple-voice-settings");
     const testCelebrationSoundBtn = document.getElementById("wq-test-celebration-sound");
-    
+
+    if (playModeClassicBtn) {
+        playModeClassicBtn.onclick = () => applyPlayMode(PLAY_MODE_CLASSIC, { toast: true });
+    }
+    if (playModeListenBtn) {
+        playModeListenBtn.onclick = () => applyPlayMode(PLAY_MODE_LISTEN, { toast: true });
+    }
+
     if (hearWordBtn) {
         hearWordBtn.onclick = async () => {
             if (isCurrentWordAudioBlocked()) {
@@ -5176,6 +5253,8 @@ function initControls() {
             hearSentenceBtn.blur();
         };
     }
+
+    applyPlayMode(readPlayMode(), { toast: false });
 
     if (voiceSettingsBtn) {
         voiceSettingsBtn.onclick = (event) => {
@@ -13716,25 +13795,41 @@ function initTutorial() {
     const stepCaption = document.getElementById('welcome-step-caption');
     const stepIndex = document.getElementById('welcome-step-index');
     const stepTotal = document.getElementById('welcome-step-total');
+    const modeHelper = document.getElementById('welcome-mode-helper');
+    const modeChoiceButtons = Array.from(welcomeModal?.querySelectorAll('[data-welcome-mode]') || []);
     if (!welcomeModal || !startBtn) return;
 
     const tutorialSteps = Array.from(welcomeModal.querySelectorAll('[data-tutorial-step]'));
     const stepDots = Array.from(welcomeModal.querySelectorAll('[data-step-dot]'));
     if (!tutorialSteps.length) return;
 
+    let selectedMode = readPlayMode();
+    let visibleSteps = [];
     let activeStepIndex = 0;
-    const finalStepIndex = tutorialSteps.length - 1;
-    if (stepTotal) stepTotal.textContent = String(tutorialSteps.length);
-
-    const renderStep = (nextIndex) => {
-        activeStepIndex = Math.max(0, Math.min(finalStepIndex, nextIndex));
-        tutorialSteps.forEach((stepEl, idx) => {
-            stepEl.classList.toggle('hidden', idx !== activeStepIndex);
+    const getModeSteps = (mode) => {
+        return tutorialSteps.filter((stepEl) => {
+            const stepMode = String(stepEl.dataset.stepMode || 'both').trim().toLowerCase();
+            return stepMode === 'both' || stepMode === normalizePlayMode(mode);
         });
+    };
+
+    const renderStep = (nextIndex = 0) => {
+        visibleSteps = getModeSteps(selectedMode);
+        const finalStepIndex = Math.max(0, visibleSteps.length - 1);
+        activeStepIndex = Math.max(0, Math.min(finalStepIndex, nextIndex));
+
+        tutorialSteps.forEach((stepEl) => {
+            stepEl.classList.add('hidden');
+        });
+        const currentStep = visibleSteps[activeStepIndex];
+        if (!currentStep) return;
+        currentStep.classList.remove('hidden');
+
         stepDots.forEach((dotEl, idx) => {
+            dotEl.classList.toggle('hidden', idx >= visibleSteps.length);
             dotEl.classList.toggle('active', idx === activeStepIndex);
         });
-        const currentStep = tutorialSteps[activeStepIndex];
+
         if (stepTitle) {
             stepTitle.textContent = currentStep.dataset.stepTitle || 'Word Quest Quick Tour';
         }
@@ -13744,30 +13839,69 @@ function initTutorial() {
         if (stepIndex) {
             stepIndex.textContent = String(activeStepIndex + 1);
         }
-        const stepCta = activeStepIndex === finalStepIndex
+        if (stepTotal) {
+            stepTotal.textContent = String(visibleSteps.length);
+        }
+
+        const onModeChoiceStep = String(currentStep.dataset.stepMode || 'both').trim().toLowerCase() === 'both';
+        let stepCta = activeStepIndex === finalStepIndex
             ? 'Start Playing'
             : (currentStep.dataset.stepCta || 'Next');
+        if (onModeChoiceStep) {
+            stepCta = selectedMode === PLAY_MODE_LISTEN
+                ? 'Show Listen Example'
+                : (selectedMode === PLAY_MODE_CLASSIC ? 'Show Classic Example' : 'Choose a Mode');
+            startBtn.disabled = !(selectedMode === PLAY_MODE_CLASSIC || selectedMode === PLAY_MODE_LISTEN);
+        } else {
+            startBtn.disabled = false;
+        }
         startBtn.textContent = stepCta;
+
+        modeChoiceButtons.forEach((btn) => {
+            const mode = normalizePlayMode(btn.dataset.welcomeMode || '');
+            const active = mode === selectedMode;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        if (modeHelper) {
+            modeHelper.textContent = onModeChoiceStep
+                ? 'Choose one mode now. You can switch anytime during a round with the mode buttons above the board.'
+                : (selectedMode === PLAY_MODE_LISTEN
+                    ? 'Listen & Spell mode uses Hear Sentence and Hear Word as active clues.'
+                    : 'Classic mode hides audio clues for pure Wordle-style deduction.');
+        }
+
         if (backBtn) {
             backBtn.classList.toggle('hidden', activeStepIndex === 0);
         }
     };
 
+    modeChoiceButtons.forEach((btn) => {
+        if (!(btn instanceof HTMLButtonElement)) return;
+        btn.addEventListener('click', () => {
+            selectedMode = normalizePlayMode(btn.dataset.welcomeMode || '');
+            renderStep(activeStepIndex);
+        });
+    });
+
+    renderStep(0);
+
     if (!tutorialShown) {
         localStorage.setItem('tutorialShown', 'true');
         if (modalOverlay) modalOverlay.classList.remove('hidden');
         welcomeModal.classList.remove('hidden');
-        renderStep(0);
     }
 
     if (backBtn) {
         backBtn.onclick = () => renderStep(activeStepIndex - 1);
     }
     startBtn.onclick = () => {
+        const finalStepIndex = Math.max(0, getModeSteps(selectedMode).length - 1);
         if (activeStepIndex < finalStepIndex) {
             renderStep(activeStepIndex + 1);
             return;
         }
+        applyPlayMode(selectedMode, { toast: true });
         closeModal();
     };
 }

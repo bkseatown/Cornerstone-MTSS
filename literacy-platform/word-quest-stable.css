@@ -904,6 +904,37 @@ body.word-quest-page #game-board [data-tile] {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 8px rgba(7, 16, 34, 0.24) !important;
 }
 
+body.word-quest-page .wq-play-mode-switch {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    margin: 0 auto !important;
+    padding: 4px !important;
+    border-radius: 999px !important;
+    border: 1px solid color-mix(in srgb, var(--wq-panel-border) 90%, transparent) !important;
+    background: color-mix(in srgb, var(--wq-board-surface) 42%, transparent) !important;
+}
+
+body.word-quest-page .wq-play-mode-btn {
+    min-height: 32px !important;
+    padding: 6px 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid color-mix(in srgb, var(--wq-key-border) 80%, transparent) !important;
+    background: color-mix(in srgb, var(--wq-key-bg) 86%, transparent) !important;
+    color: var(--wq-key-text) !important;
+    font-size: 0.84rem !important;
+    font-weight: 780 !important;
+    letter-spacing: 0.01em !important;
+    cursor: pointer !important;
+}
+
+body.word-quest-page .wq-play-mode-btn.is-active {
+    border-color: color-mix(in srgb, var(--wq-key-vowel-border) 88%, transparent) !important;
+    background: var(--wq-key-vowel-bg) !important;
+    box-shadow: 0 3px 10px rgba(7, 16, 34, 0.22) !important;
+}
+
 body.word-quest-page .hint-actions {
     margin: 0 auto !important;
     gap: 8px !important;

@@ -7031,6 +7031,23 @@ body.word-quest-page #welcome-modal .welcome-mode-card {
   gap: 7px;
 }
 
+body.word-quest-page #welcome-modal .welcome-mode-choice {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-choice.is-active {
+  border-color: rgba(67, 56, 202, 0.6);
+  box-shadow: 0 8px 18px rgba(67, 56, 202, 0.24);
+  background: linear-gradient(180deg, rgba(238, 242, 255, 0.99) 0%, rgba(224, 231, 255, 0.97) 100%);
+}
+
+body.word-quest-page #welcome-modal .welcome-mode-choice:focus-visible {
+  outline: 3px solid rgba(67, 56, 202, 0.45);
+  outline-offset: 2px;
+}
+
 body.word-quest-page #welcome-modal .welcome-mode-card h3 {
   margin: 0;
   font-size: 1rem;
@@ -7090,6 +7107,11 @@ body.word-quest-page #welcome-modal .welcome-step-note {
   color: #1e293b;
   font-size: clamp(0.92rem, 1.7vw, 1rem);
   font-weight: 620;
+}
+
+body.word-quest-page #welcome-modal #welcome-mode-helper {
+  color: #334155;
+  font-size: clamp(0.88rem, 1.6vw, 0.96rem);
 }
 
 body.word-quest-page #welcome-modal .welcome-reasoning-row {
