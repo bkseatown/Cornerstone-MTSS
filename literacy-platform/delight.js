@@ -143,6 +143,14 @@
       toggle.setAttribute('aria-label', 'Toggle delight sounds');
       document.body.appendChild(toggle);
     }
+    const isWordQuest = !!document.body?.classList.contains('word-quest-page');
+    const wordQuestToolsHost = isWordQuest
+      ? document.querySelector('#wq-tools-menu .wq-tools-buttons')
+      : null;
+    if (wordQuestToolsHost instanceof HTMLElement && toggle.parentElement !== wordQuestToolsHost) {
+      wordQuestToolsHost.appendChild(toggle);
+    }
+    toggle.classList.toggle('cs-delight-sound-toggle-inline', wordQuestToolsHost instanceof HTMLElement);
     state.soundToggle = toggle;
     syncSoundToggleUi();
     if (toggle.dataset.bound !== 'true') {
